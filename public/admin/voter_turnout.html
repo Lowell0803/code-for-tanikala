@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Voter Turnout</title>
+
+
+  <link rel="stylesheet" type="text/css" href="css/index_admin.css" />
+  <link rel="stylesheet" type="text/css" href="css/voter_turnout.css" />
+
+  <!-- Dependencies -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="dependencies/liner-bar.css" />
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-logo">
+      <img src="../img/logo_tanikala.png" />
+    </div>
+    <div class="header-content">
+      <h2>BulSU Student Government Election 2025-2026</h2>
+      <p>Current Period: <span>Voting</span> | <span>ELECTION ONGOING</span></p>
+      <p>Voting Period: <span>MM/DD/YYYY</span> - <span>MM/DD/YYYY</span></p>
+    </div>
+    <div class="header-user">
+      <img src="../img/placeholder_admin_profile.png" />
+      <div>Admin 1</div>
+    </div>
+  </header>
+
+  <div class="content">
+    <aside class="aside">
+      <div class="aside-admin">
+        <img src="../img/placeholder_admin_profile.png" />
+        <h3>Admin 1</h3>
+      </div>
+      <nav class="aside-nav">
+        <ul class="nav-main">
+          <li><a href="voter_turnout.html" id="active-link">Voter Turnout</a></li>
+          <li><a href="results.html">Results</a></li>
+          <li><a href="voter_information.html">Voter Information</a></li>
+          <li><a>Settings</a></li>
+        </ul>
+        <ul class="nav-settings">
+          <li><a href="settings_edit_account.html">Edit Account</a></li>
+          <li><a href="settings_edit_candidates.html">Edit Candidates</a></li>
+          <li><a href="settings_edit_election.html">Edit Election</a></li>
+          <li><a href="settings_delete_election.html">Delete Election</a></li>
+        </ul>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="main-header">
+        <select class="select">
+          <option>Main Campus</option>
+        </select>
+        <p id="text-blockchain-link"><b>Blockchain Link:</b> <span><a
+              href="https://www.blockchain.com/ucsebulsu">https://www.blockchain.com/ucsebulsu</a></span></p>
+      </div>
+      <div class="main-content">
+        <div class="main-left">
+          <h1>LSC Voter Turnout</h1>
+          <div id="container-charts"></div>
+        </div>
+        <div class="main-right">
+          <h1>BulSU Total Voter Turnout</h1>
+          <div class="content-box-2">
+            <canvas id="chart-turnout"></canvas>
+
+            <div class="summary-text">
+              <span></span>
+            </div>
+          </div>
+          <br>
+          <div class="content-colleges">
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-side"></div>
+    <div class="footer-center">© 2024 - Fourmula 1</div>
+    <div class="footer-side">OCTOBER 23, 2024 - 04:17 AM</div>
+  </footer>
+
+  <script src="dependencies/liner-bar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/turnout_liner_bar.js"></script>
+  <script src="js/turnout_pie_chart.js"></script>
+</body>
+
+</html>

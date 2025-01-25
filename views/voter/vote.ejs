@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Voting System</title>
+
+    <link rel="stylesheet" type="text/css" href="voter/css/index_voter.css">
+    <link rel="stylesheet" type="text/css" href="voter/css/vote.css">
+    <link rel="stylesheet" type="text/css" href="voter/css/vote_choice.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-logo">
+            <img src="img/logo_tanikala.png" alt="Tanikala Voting System" />
+        </div>
+        <nav class="header-nav">
+            <ul class="header-nav-content">
+                <li><a href="vote.html" id="active-link">Vote</a></li>
+                <li><a href="review.html">Review</a></li>
+                <li><a href="verify.html">Verify</a></li>
+            </ul>
+        </nav>
+        <div class="header-bottom-line"></div>
+    </header>
+
+    <div class="content">
+        <div class="content-header">
+            <div class="content-header-bulsu">
+                <img src="img/logo_bulsu.png">
+            </div>
+            <div class="content-header-text">
+                <h1>BulSU Student Government Elections<br>S.Y. 2025 - 2026</h1>
+            </div>
+            <div class="content-header-ucse">
+                <img src="img/logo_bulsu_ucse.png">
+            </div>
+        </div>
+        <form>
+            <div class="content-main">
+
+                <p>You can submit your votes by pressing the SUBMIT BALLOT button below.</p>
+
+                <div class="ballot ballot-ssc">
+                    <br>
+                    <h3 class="ballot-header ballot-council">Supreme Student Council</h3><br>
+
+                    <!-- President Candidates -->
+                    <h3 class="ballot-header ballot-position">President</h3><br>
+                    <div id="ballot-president" class="ballot-choices">
+                        <!-- Placeholder for President Candidates -->
+                        <input id="president-1" type="radio" name="president" value="1">
+                        <label for="president-1">
+                            <% let president_1=candidates.find(candidate=> candidate.position === 'president' &&
+                                candidate.party === 'KASAMA'); %>
+                                <h4>
+                                    <%= president_1.party %>
+                                </h4>
+                                <img src="<%= president_1.image %>" alt="<%= president_1.name %>">
+                                <h4>
+                                    <%= president_1.name %>
+                                </h4>
+                                <p>
+                                    <%= president_1.moreInfo %>
+                                </p>
+                        </label>
+                        <input id="president-2" type="radio" name="president" value="2">
+                        <label for="president-2">
+                            <% let president_2=candidates.find(candidate=> candidate.position === 'president' &&
+                                candidate.party === 'BulSU ONE'); %>
+                                <h4>
+                                    <%= president_2.party %>
+                                </h4>
+                                <img src="<%= president_2.image %>" alt="<%= president_2.name %>">
+                                <h4>
+                                    <%= president_2.name %>
+                                </h4>
+                                <p>
+                                    <%= president_2.moreInfo %>
+                                </p>
+                        </label>
+                    </div>
+
+                    <br>
+
+                    <!-- Vice President Candidates -->
+                    <h3 class="ballot-header ballot-position">Vice President</h3><br>
+                    <div id="ballot-vice-president" class="ballot-choices">
+                        <!-- Placeholder for Vice President Candidates -->
+                        <input id="vice-president-3" type="radio" name="vice-president" value="3">
+                        <label for="vice-president-3">
+                            <% let vice_president_1=candidates.find(candidate=> candidate.position === 'vice president'
+                                &&
+                                candidate.party === 'KASAMA'); %>
+                                <h4>
+                                    <%= vice_president_1.party %>
+                                </h4>
+                                <img src="<%= vice_president_1.image %>" alt="<%= vice_president_1.name %>">
+                                <h4>
+                                    <%= vice_president_1.name %>
+                                </h4>
+                                <p>
+                                    <%= vice_president_1.moreInfo %>
+                                </p>
+                        </label>
+                        <input id="vice-president-4" type="radio" name="vice-president" value="4">
+                        <label for="vice-president-4">
+                            <% let vice_president_2=candidates.find(candidate=> candidate.position === 'vice president'
+                                &&
+                                candidate.party === 'BulSU ONE'); %>
+                                <h4>
+                                    <%= vice_president_2.party %>
+                                </h4>
+                                <img src="<%= vice_president_2.image %>" alt="<%= vice_president_2.name %>">
+                                <h4>
+                                    <%= vice_president_2.name %>
+                                </h4>
+                                <p>
+                                    <%= vice_president_2.moreInfo %>
+                                </p>
+                        </label>
+                    </div>
+
+                    <br>
+                    <h3 class="ballot-header ballot-position">Senators</h3><br>
+                    <div id="ballot-senator" class="ballot-choices">
+                        <!-- Placeholder for KASAMA Senator Candidates -->
+                        <div class="party">
+                            <input id="senator-1" type="checkbox" name="senator" value="kasama-1">
+                            <label for="senator-1">
+                                <% let senator_1=candidates.find(candidate=> candidate._senator_id === '1' &&
+                                    candidate.party === 'KASAMA'); %>
+                                    <h4>
+                                        <%= senator_1.party %>
+                                    </h4>
+                                    <img src="<%= senator_1.image %>" alt="<%= senator_1.name %>">
+                                    <h4>
+                                        <%= senator_1.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_1.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-2" type="checkbox" name="senator" value="kasama-2">
+                            <label for="senator-2">
+                                <% let senator_2=candidates.find(candidate=> candidate._senator_id === '2' &&
+                                    candidate.party === 'KASAMA'); %>
+                                    <h4>
+                                        <%= senator_2.party %>
+                                    </h4>
+                                    <img src="<%= senator_2.image %>" alt="<%= senator_2.name %>">
+                                    <h4>
+                                        <%= senator_2.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_2.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-3" type="checkbox" name="senator" value="kasama-3">
+                            <label for="senator-3">
+                                <% let senator_3=candidates.find(candidate=> candidate._senator_id === '3' &&
+                                    candidate.party === 'KASAMA'); %>
+                                    <h4>
+                                        <%= senator_3.party %>
+                                    </h4>
+                                    <img src="<%= senator_3.image %>" alt="<%= senator_3.name %>">
+                                    <h4>
+                                        <%= senator_3.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_3.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-4" type="checkbox" name="senator" value="kasama-4">
+                            <label for="senator-4">
+                                <% let senator_4=candidates.find(candidate=> candidate._senator_id === '4' &&
+                                    candidate.party === 'KASAMA'); %>
+                                    <h4>
+                                        <%= senator_4.party %>
+                                    </h4>
+                                    <img src="<%= senator_4.image %>" alt="<%= senator_4.name %>">
+                                    <h4>
+                                        <%= senator_4.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_4.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-5" type="checkbox" name="senator" value="kasama-5">
+                            <label for="senator-5">
+                                <% let senator_5=candidates.find(candidate=> candidate._senator_id === '5' &&
+                                    candidate.party === 'KASAMA'); %>
+                                    <h4>
+                                        <%= senator_5.party %>
+                                    </h4>
+                                    <img src="<%= senator_5.image %>" alt="<%= senator_5.name %>">
+                                    <h4>
+                                        <%= senator_5.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_5.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-6" type="checkbox" name="senator" value="kasama-6">
+                            <label for="senator-6">
+                                <% let senator_6=candidates.find(candidate=> candidate._senator_id === '6' &&
+                                    candidate.party === 'KASAMA'); %>
+                                    <h4>
+                                        <%= senator_6.party %>
+                                    </h4>
+                                    <img src="<%= senator_6.image %>" alt="<%= senator_6.name %>">
+                                    <h4>
+                                        <%= senator_6.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_6.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-7" type="checkbox" name="senator" value="kasama-7">
+                            <label for="senator-7">
+                                <% let senator_7=candidates.find(candidate=> candidate._senator_id === '7' &&
+                                    candidate.party === 'KASAMA'); %>
+                                    <h4>
+                                        <%= senator_7.party %>
+                                    </h4>
+                                    <img src="<%= senator_7.image %>" alt="<%= senator_7.name %>">
+                                    <h4>
+                                        <%= senator_7.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_7.moreInfo %>
+                                    </p>
+                            </label>
+                        </div>
+
+                        <!-- Placeholder for Senator Candidates -->
+                        <div class="party">
+                            <input id="senator-8" type="checkbox" name="senator" value="bulsu-one-8">
+                            <label for="senator-8">
+                                <% let senator_8=candidates.find(candidate=> candidate._senator_id === '1' &&
+                                    candidate.party === 'BulSU ONE'); %>
+                                    <h4>
+                                        <%= senator_8.party %>
+                                    </h4>
+                                    <img src="<%= senator_8.image %>" alt="<%= senator_8.name %>">
+                                    <h4>
+                                        <%= senator_8.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_8.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-9" type="checkbox" name="senator" value="bulsu-one-9">
+                            <label for="senator-9">
+                                <% let senator_9=candidates.find(candidate=> candidate._senator_id === '2' &&
+                                    candidate.party === 'BulSU ONE'); %>
+                                    <h4>
+                                        <%= senator_9.party %>
+                                    </h4>
+                                    <img src="<%= senator_9.image %>" alt="<%= senator_9.name %>">
+                                    <h4>
+                                        <%= senator_9.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_9.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-10" type="checkbox" name="senator" value="bulsu-one-10">
+                            <label for="senator-10">
+                                <% let senator_10=candidates.find(candidate=> candidate._senator_id === '3' &&
+                                    candidate.party === 'BulSU ONE'); %>
+                                    <h4>
+                                        <%= senator_10.party %>
+                                    </h4>
+                                    <img src="<%= senator_10.image %>" alt="<%= senator_10.name %>">
+                                    <h4>
+                                        <%= senator_10.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_10.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-11" type="checkbox" name="senator" value="bulsu-one-11">
+                            <label for="senator-11">
+                                <% let senator_11=candidates.find(candidate=> candidate._senator_id === '4' &&
+                                    candidate.party === 'BulSU ONE'); %>
+                                    <h4>
+                                        <%= senator_11.party %>
+                                    </h4>
+                                    <img src="<%= senator_11.image %>" alt="<%= senator_11.name %>">
+                                    <h4>
+                                        <%= senator_11.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_11.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-12" type="checkbox" name="senator" value="bulsu-one-12">
+                            <label for="senator-12">
+                                <% let senator_12=candidates.find(candidate=> candidate._senator_id === '5' &&
+                                    candidate.party === 'BulSU ONE'); %>
+                                    <h4>
+                                        <%= senator_12.party %>
+                                    </h4>
+                                    <img src="<%= senator_12.image %>" alt="<%= senator_12.name %>">
+                                    <h4>
+                                        <%= senator_12.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_12.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-13" type="checkbox" name="senator" value="bulsu-one-13">
+                            <label for="senator-13">
+                                <% let senator_13=candidates.find(candidate=> candidate._senator_id === '6' &&
+                                    candidate.party === 'BulSU ONE'); %>
+                                    <h4>
+                                        <%= senator_13.party %>
+                                    </h4>
+                                    <img src="<%= senator_13.image %>" alt="<%= senator_13.name %>">
+                                    <h4>
+                                        <%= senator_13.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_13.moreInfo %>
+                                    </p>
+                            </label>
+
+                            <input id="senator-14" type="checkbox" name="senator" value="bulsu-one-14">
+                            <label for="senator-14">
+                                <% let senator_14=candidates.find(candidate=> candidate._senator_id === '7' &&
+                                    candidate.party === 'BulSU ONE'); %>
+                                    <h4>
+                                        <%= senator_14.party %>
+                                    </h4>
+                                    <img src="<%= senator_14.image %>" alt="<%= senator_14.name %>">
+                                    <h4>
+                                        <%= senator_14.name %>
+                                    </h4>
+                                    <p>
+                                        <%= senator_14.moreInfo %>
+                                    </p>
+                            </label>
+
+
+                        </div>
+                    </div>
+                    <br>
+                    <script>
+                        // temporary data
+                        // the real data is based on the voter's account
+                        let voterCollege = "CBEA";
+                        let voterProgram = "Bachelor of Science in Business Administration";
+                    </script>
+                    <label for="governor-1">
+                        <% let governor_1=candidates_lsc.find(candidate=>
+                            candidate.college === voterCollege &&
+                            candidate.position === 'governor' &&
+                            candidate.party === 'KASAMA'
+                            );
+                            %>
+                            <% if (governor_1) { %>
+                                <h4>
+                                    <%= governor_1.party %>
+                                </h4>
+                                <img src="<%= governor_1.image %>" alt="<%= governor_1.name %>">
+                                <h4>
+                                    <%= governor_1.name %>
+                                </h4>
+                                <p>
+                                    <%= governor_1.moreInfo %>
+                                </p>
+                                <% } else { %>
+                                    <p>No candidates available for this position.</p>
+                                    <% } %>
+                    </label>
+
+
+                    <input id="president-2" type="radio" name="president" value="2">
+                    <label for="president-2">
+
+                    </label>
+                </div>
+            </div>
+
+
+
+
+            <p>You still need to review and confirm your votes in the next page.</p>
+            <input type="submit" value="Submit Ballot">
+    </div>
+    </form>
+    </div>
+
+
+    <div class="footer">
+        <div class="footer-left">
+            <p>OCTOBER 23, 2024 - 04:17 AM</p>
+        </div>
+        <div class="footer-right">
+            <p>© 2024 - Fourmula 1</p>
+        </div>
+    </div>
+
+    <script>
+    </script>
+
+</body>
+
+</html>

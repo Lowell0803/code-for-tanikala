@@ -1,0 +1,208 @@
+{
+  "supremeStudentCouncil": {
+    "presidents": [
+      {
+        "name": "Zarina Dungo",
+        "partylist": "KASAMA",
+        "info": "I am Zarina",
+        "img": "path/to/juan_president.jpg"
+      },
+      {
+        "name": "Blez Lampayan",
+        "partylist": "BulSU ONE",
+        "info": "Praesent commodo cursus magna, vel scelerisque nisl consectetur.",
+        "img": "path/to/pedro_president.jpg"
+      }
+    ],
+    "vicePresidents": [
+      {
+        "name": "Maria Clara",
+        "partylist": "KASAMA",
+        "info": "Praesent commodo cursus magna, vel scelerisque nisl consectetur.",
+        "img": "path/to/maria_vice_president.jpg"
+      },
+      {
+        "name": "Ana Reyes",
+        "partylist": "BulSU ONE",
+        "info": "Cras mattis consectetur purus sit amet fermentum.",
+        "img": "path/to/ana_vice_president.jpg"
+      }
+    ],
+    "senators": [
+      {
+        "name": "Senator 1",
+        "partylist": "KASAMA",
+        "info": "Curabitur blandit tempus porttitor.",
+        "img": "path/to/senator1.jpg"
+      },
+      {
+        "name": "Senator 2",
+        "partylist": "KASAMA",
+        "info": "Maecenas sed diam eget risus varius blandit sit amet non magna.",
+        "img": "path/to/senator2.jpg"
+      },
+      {
+        "name": "Senator 3",
+        "partylist": "KASAMA",
+        "info": "Donec ullamcorper nulla non metus auctor fringilla.",
+        "img": "path/to/senator3.jpg"
+      },
+      {
+        "name": "Senator 4",
+        "partylist": "KASAMA",
+        "info": "Aenean lacinia bibendum nulla sed consectetur.",
+        "img": "path/to/senator4.jpg"
+      },
+      {
+        "name": "Senator 5",
+        "partylist": "KASAMA",
+        "info": "Vivamus sagittis lacus vel augue laoreet rutrum.",
+        "img": "path/to/senator5.jpg"
+      },
+      {
+        "name": "Senator 6",
+        "partylist": "KASAMA",
+        "info": "Nulla vitae elit libero, a pharetra augue.",
+        "img": "path/to/senator6.jpg"
+      },
+      {
+        "name": "Senator 7",
+        "partylist": "KASAMA",
+        "info": "Etiam porta sem malesuada magna mollis euismod.",
+        "img": "path/to/senator7.jpg"
+      },
+      {
+        "name": "Senator 8",
+        "partylist": "BulSU ONE",
+        "info": "Sed posuere consectetur est at lobortis.",
+        "img": "path/to/senator8.jpg"
+      },
+      {
+        "name": "Senator 9",
+        "partylist": "BulSU ONE",
+        "info": "Cras mattis consectetur purus sit amet fermentum.",
+        "img": "path/to/senator9.jpg"
+      },
+      {
+        "name": "Senator 10",
+        "partylist": "BulSU ONE",
+        "info": "Integer posuere erat a ante venenatis dapibus.",
+        "img": "path/to/senator10.jpg"
+      },
+      {
+        "name": "Senator 11",
+        "partylist": "BulSU ONE",
+        "info": "Aenean eu leo quam. Pellentesque ornare sem lacinia.",
+        "img": "path/to/senator11.jpg"
+      },
+      {
+        "name": "Senator 12",
+        "partylist": "BulSU ONE",
+        "info": "Fusce dapibus, tellus ac cursus commodo.",
+        "img": "path/to/senator12.jpg"
+      },
+      {
+        "name": "Senator 13",
+        "partylist": "BulSU ONE",
+        "info": "Duis mollis, est non commodo luctus.",
+        "img": "path/to/senator13.jpg"
+      },
+      {
+        "name": "Senator 14",
+        "partylist": "BulSU ONE",
+        "info": "Vestibulum id ligula porta felis euismod semper.",
+        "img": "path/to/senator14.jpg"
+      }
+    ]
+  },
+  "localStudentCouncils": {
+    "College of Architecture and Fine Arts (CAFA)": {
+      "governors": [
+        {
+          "name": "Engr. Leader",
+          "partylist": "KASAMA",
+          "info": "Integer posuere erat a ante venenatis dapibus posuere velit aliquet.",
+          "img": "path/to/engr_governor.jpg"
+        },
+        {
+          "name": "Engr. Leader",
+          "partylist": "KASAMA",
+          "info": "Integer posuere erat a ante venenatis dapibus posuere velit aliquet.",
+          "img": "path/to/engr_governor.jpg"
+        }
+      ],
+      "viceGovernors": [
+        {
+          "name": "Engr. Deputy",
+          "partylist": "KASAMA",
+          "info": "Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis.",
+          "img": "path/to/engr_vice_governor.jpg"
+        },
+        {
+          "name": "Engr. Deputy",
+          "partylist": "BulSU ONE",
+          "info": "Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis.",
+          "img": "path/to/engr_vice_governor.jpg"
+        }
+      ],
+      "boardMembers": [
+        {
+          "name": "Board Member 1",
+          "partylist": "KASAMA",
+          "info": "Sed posuere consectetur est at lobortis.",
+          "img": "path/to/board_member1.jpg"
+        },
+        {
+          "name": "Board Member 2",
+          "partylist": "BulSU ONE",
+          "info": "Duis mollis, est non commodo luctus.",
+          "img": "path/to/board_member2.jpg"
+        }
+      ]
+    },
+    "College of Arts and Letters (CAL)": {
+      "governors": [
+        {
+          "name": "Engr. Leader",
+          "partylist": "KASAMA",
+          "info": "Integer posuere erat a ante venenatis dapibus posuere velit aliquet.",
+          "img": "path/to/engr_governor.jpg"
+        },
+        {
+          "name": "Engr. Leader",
+          "partylist": "KASAMA",
+          "info": "Integer posuere erat a ante venenatis dapibus posuere velit aliquet.",
+          "img": "path/to/engr_governor.jpg"
+        }
+      ],
+      "viceGovernors": [
+        {
+          "name": "Engr. Deputy",
+          "partylist": "KASAMA",
+          "info": "Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis.",
+          "img": "path/to/engr_vice_governor.jpg"
+        },
+        {
+          "name": "Engr. Deputy",
+          "partylist": "BulSU ONE",
+          "info": "Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis.",
+          "img": "path/to/engr_vice_governor.jpg"
+        }
+      ],
+      "boardMembers": [
+        {
+          "name": "Board Member 1",
+          "partylist": "BulSU ONE",
+          "info": "Morbi leo risus, porta ac consectetur ac, vestibulum at eros.",
+          "img": "path/to/biz_board_member1.jpg"
+        },
+        {
+          "name": "Board Member 2",
+          "partylist": "BulSU ONE",
+          "info": "Vestibulum id ligula porta felis euismod semper.",
+          "img": "path/to/biz_board_member2.jpg"
+        }
+      ]
+    }
+  }
+}

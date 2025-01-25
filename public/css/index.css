@@ -1,0 +1,206 @@
+:root {
+  /* colors */
+  --color-darkRed: #310505;
+  --color-mediumRed: #550c0a;
+  --color-lightRed: #a60212;
+  --color-darkYellow: #f5ab29;
+  --color-mediumYellow: #e1ae5b;
+  --color-lightYellow: #f2ddb4;
+  --color-lighterYellow: #faf2db;
+ 
+  --color-darkGreen: #245414;
+  --color-lightGreen: #5fb643;
+  --color-darkBlue: #004aad;
+  --color-lightBlue: #2c86fd;
+  --color-gray: #323847;
+
+  /* div sizes */
+  --height-body: 100vh;
+  --height-header: 16vh;
+  --height-content: calc(100vh - var(--height-header) - var(--height-footer));
+  --height-footer: 4vh;
+  
+  /* div header sizes */
+  --width-header-logo: 25vw; 
+  --width-header-nav: calc(100vw - var(--width-header-logo));
+  --width-header-nav-content: 50%;
+
+  /* div content sizes */
+  --height-content-title: 20%;
+  --height-content-main: calc(100% - var(--height-content-title));
+
+   /* div content-main sizes */
+  --width-content-main-left: 10vw;
+  --width-content-center: calc(100vw - var(--width-content-main-left) - var(--width-content-main-right));
+  --width-content-main-right: var(--width-content-main-left);
+
+  /* div footer sizes */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: 100vh; /* sus */
+  background: radial-gradient(circle, var(--color-mediumRed), var(--color-darkRed));
+  font-family: "Poppins", "Century Gothic";
+  color: white;
+}
+
+li {
+  list-style: none;
+}
+
+.header-nav-content a {
+  color: white;
+  text-decoration: none;
+}
+
+img {
+width: 100%;
+}
+
+/* .header, .footer, .content,
+.header-logo, .header-nav, .header-nav-content,
+.content-title, .content-main, .content-main-left, 
+.content-main-center, .content-main-right {
+  border: 1px solid black;
+} */
+
+/* Header */
+.header {
+  display: flex;
+  flex-basis: var(--height-header);
+  position: relative;
+}
+
+.header-logo {
+  display: flex;
+  flex-basis: var(--width-header-logo);
+  justify-content: center;
+  align-items: center;  
+  padding-left: 3rem;
+}
+
+.header-logo img {
+  width: 100%;
+}
+
+.header-nav {
+  display: flex;
+  flex-basis: var(--width-header-nav);
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.header-nav-content {
+  display: flex;
+  flex-basis: var(--width-header-nav-content);
+  gap: 3.5rem;
+  justify-content: center;
+  align-items: center;
+  padding-top: 1.5rem;
+  padding-left: 3rem;
+} 
+
+.header-bottom-line {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 93%;
+  border-bottom: 0.28em solid var(--color-darkYellow);
+}
+
+/* Content */
+.content {
+  display: flex;
+  flex-basis: var(--height-content);
+  overflow-y: auto;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: center;
+  flex-grow: 1;
+}
+
+.content-title {
+  display: flex;
+  min-height: var(--height-content-title);
+  align-items: center;
+}
+
+.content-main {
+  display: flex;
+  flex-basis: var(--height-content-main);
+  justify-content: center;
+  align-items: center;
+  gap: 6%;
+  min-width: 80%;
+  margin-bottom: 3%;
+  flex-grow: 1;
+}
+
+.content-main img {
+  opacity: 0.6;
+}
+
+.content-main-left {
+  display: flex;
+  flex-basis: var(--width-content-main-left);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.content-main-center {
+  display: flex;
+  flex-basis: var(--width-content-main-center);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.content-main-right {
+  display: flex;
+  flex-basis: var(--width-content-main-right);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Footer */
+.footer {
+  flex-basis: var(--height-footer);
+  background-color: var(--color-lightRed);
+ 
+}
+
+/* .footer-date {
+
+}
+
+.footer-credits {
+
+}
+
+.footer-admin-logIn {
+
+} */
+
+/* buttons */
+
+.button-rounded-yellow {
+  padding: 4%;
+  border: 0.1em solid black;
+  border-radius: 1.8em;
+  background-color: var(--color-darkYellow);
+  font-weight: bold;
+}

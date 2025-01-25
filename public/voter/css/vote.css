@@ -1,0 +1,80 @@
+:root {
+  --color-lighter-yellow: #f1d5a8;
+  --color-yellow: #f4ab2a;
+  --color-red: #a60212;
+  --color-blue: #004aad;
+}
+
+/* .ballot-choices div {
+  border: 2px solid black;
+} */
+
+.ballot {
+  background-color: var(--color-lighter-yellow);
+  min-height: 80vh;
+  border-radius: 2em;
+  color: black;
+  width: 100%;
+}
+
+.ballot-header {
+  color: white;
+  padding: 1% 0;
+}
+
+.ballot-council {
+  background-color: var(--color-red);
+}
+
+.ballot-position {
+  background-color: var(--color-blue);
+}
+
+/* .ballot-choices > div:first-child {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+} */
+
+.ballot-choices img {
+  width: 5em;
+  height: auto;
+  border-radius: 1em;
+}
+
+.ballot-choices input[type="radio"] {
+  display: none;
+}
+.ballot-choices input[type="checkbox"] {
+  display: none;
+}
+
+.ballot-choices label {
+  display: block;
+  border: 2px solid #707070;
+  border-radius: 0.4em;
+}
+
+.ballot-choices input[type="radio"]:checked + label {
+  background: #aac5e9;
+}
+.ballot-choices input[type="checkbox"]:checked + label {
+  background: #aac5e9;
+}
+
+.ballot-choices input[type="checkbox"] {
+  /* display: none; */
+}
+
+#ballot-senator {
+  display: flex;
+  flex-direction: row;
+}
+.ballot-senator label {
+  width: 48%;
+  background-color: white;
+}
+
+.label-abstain {
+  background-color: white;
+}

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Edit Account</title>
+
+    <link rel="stylesheet" type="text/css" href="css/index_admin.css" />
+    <link rel="stylesheet" type="text/css" href="css/settings_edit_account.css" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-logo">
+            <img src="../img/logo_tanikala.png" />
+        </div>
+        <div class="header-content">
+            <h2>BulSU Student Government Election 2025-2026</h2>
+            <p>Current Period: <span>Voting</span> | <span>ELECTION ONGOING</span></p>
+            <p>Voting Period: <span>MM/DD/YYYY</span> - <span>MM/DD/YYYY</span></p>
+        </div>
+        <div class="header-user">
+            <img src="../img/placeholder_admin_profile.png" />
+            <div>Admin 1</div>
+        </div>
+    </header>
+
+    <div class="content">
+        <aside class="aside">
+            <div class="aside-admin">
+                <img src="../img/placeholder_admin_profile.png" />
+                <h3>Admin 1</h3>
+            </div>
+            <nav class="aside-nav">
+                <ul class="nav-main">
+                    <li><a href="voter_turnout.html">Voter Turnout</a></li>
+                    <li><a href="results.html">Results</a></li>
+                    <li><a href="voter_information.html">Voter Information</a></li>
+                    <li><a>Settings</a></li>
+                </ul>
+                <ul class="nav-settings">
+                    <li><a href="settings_edit_account.html" id="active-link">Edit Account</a></li>
+                    <li><a href="settings_edit_candidates.html">Edit Candidates</a></li>
+                    <li><a href="settings_edit_election.html">Edit Election</a></li>
+                    <li><a href="settings_delete_election.html">Delete Election</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main">
+            <div class="main-details">
+                <div class="main-details-info">
+                    <h2>Account Details</h2>
+                    <br>
+                    <form id="form-details">
+                        <div>
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" placeholder="Email" disabled>
+                        </div>
+                        <div>
+                            <label for="username">Username:</label>
+                            <input type="text" id="username" placeholder="Username" disabled>
+                        </div>
+                        <div>
+                            <label for="password">Password:</label>
+                            <input type="password" id="password" placeholder="Password" disabled>
+                        </div>
+                        <div>
+                            <label for="confirm-password">Confirm Password:</label>
+                            <input type="password" id="confirm-password" placeholder="Confirm Password" disabled>
+                        </div>
+                        <br>
+                        <div>
+                            <button type="button" id="button-edit">Edit</button>
+                            <button type="submit" id="button-save" style="display: none;">Save</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="main-details-profile">
+                    <img id="img-admin" src="../img/placeholder_admin_profile.png" alt="Admin Profile">
+                    <button id="change-image">Change Profile Image</button>
+                    <input type="file" class="input-file" id="input-file">
+
+                </div>
+            </div>
+            <div class="main-control">
+                <h2>Account Control</h2>
+                <div>
+                    <div>
+                        <input type="checkbox" id="disableVoting" name="disableVoting">
+                        <label for="disableVoting">Disable Voting Period</label>
+                    </div>
+
+                    <div>
+                        <p>Current Status: Voting</p>
+                    </div>
+
+                    <div>
+                        <button id="saveButton">Save</button>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+
+    </main>
+
+
+    </div>
+    <footer class="footer">
+        <div class="footer-side"></div>
+        <div class="footer-center">© 2024 - Fourmula 1</div>
+        <div class="footer-side">OCTOBER 23, 2024 - 04:17 AM</div>
+    </footer>
+
+    <script>
+        const profileImage = document.getElementById("img-admin");
+        const changeImageButton = document.getElementById("change-image");
+        const fileInput = document.getElementById("file-input");
+
+        changeImageButton.addEventListener("click", () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    profileImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+    </script>
+    <script>
+        const formDetails = document.getElementById("form-details");
+        const editButton = document.getElementById("edit-button");
+        const saveButton = document.getElementById("save-button");
+        const inputs = profileForm.querySelectorAll("input");
+
+        editButton.addEventListener("click", () => {
+            inputs.forEach(input => input.disabled = false);
+            saveButton.style.display = "inline-block";
+            editButton.style.display = "none";
+        });
+
+        profileForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            alert("Profile saved! (No backend yet.)");
+        });
+    </script>
+</body>
+
+</html>

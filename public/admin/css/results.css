@@ -1,0 +1,69 @@
+/* also being used by settings_edit_candidates.html */
+
+:root {
+  --background-light-red: #f8cbba;
+  --background-light-yellow: #f2ddb4;
+  --background-lighter-yellow: #faf2db;
+  --background-light-green: #c9ddb1;
+
+  --width-main-left: 50%;
+  --width-main-right: calc(100% - var(--width-main-left));
+}
+
+/* .main,
+.main-left,
+.main-right {
+  border: 1px solid black;
+} */
+
+.main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  background-color: var(--background-lighter-yellow);
+}
+
+.main-left {
+  flex-basis: var(--width-main-left);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.main-left h1 {
+  margin: 4%;
+  text-align: center;
+}
+
+.container-ssc {
+  background-color: var(--background-light-yellow);
+  margin: 4%;
+  padding: 6%;
+  border-radius: 2em;
+}
+
+.container-lsc {
+  background-color: var(--background-light-green);
+  margin: 4%;
+  padding: 6%;
+  border-radius: 2em;
+}
+#container-president {
+  background-color: var(--background-light-red);
+}
+
+.main-right {
+  flex-basis: var(--width-main-right);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.main-right-header {
+  margin-top: 4%;
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+}

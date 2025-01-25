@@ -1,0 +1,22 @@
+:root {
+  --background-green: #57ac4f;
+  --background-dark-brown: #370606;
+}
+
+.btn-add,
+.btn-edit {
+  background-color: var(--background-green);
+  font-weight: bold;
+  color: white;
+  padding: 3% 6%;
+  border-radius: 5em;
+  border: none;
+}
+
+.btn-add {
+  background-color: var(--background-green);
+}
+
+.btn-edit {
+  background-color: var(--background-dark-brown);
+}
