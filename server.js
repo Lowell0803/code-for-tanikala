@@ -23,15 +23,12 @@ const startServer = async () => {
 
     app.get("/vote", async (req, res) => {
       try {
+        // Data from the logged in account
+        const voterCollege = req.user ? req.user.college : "CAFA";
+
         const collection = db.collection("candidates");
         const data = await collection.find({}).toArray();
         const allCandidates = data.map((doc) => doc.candidates).flat();
-
-        // const collectionLSC = db.collection("candidates_lsc");
-        // const dataLSC = await collectionLSC.find({}).toArray();
-        // const allCandidatesLSC = dataLSC.map((doc) => doc.candidates).flat();
-
-        // // define collectionLSC, dataLSC, allCandidatesLSC here with the db.collection named candidates_lsc
 
         const collectionLSC = db.collection("candidates_lsc");
         const dataLSC = await collectionLSC.find({}).toArray();
@@ -41,11 +38,14 @@ const startServer = async () => {
           )
           .flat();
 
-        console.log("Candidates fetched from the database:", allCandidates);
+        // console.log("Candidates fetched from the database:", allCandidates);
         console.log("Candidates fetched from the database:", allCandidatesLSC);
+
+        // Pass voterCollege to the EJS template
         res.render("voter/vote", {
           candidates: allCandidates,
           candidates_lsc: allCandidatesLSC,
+          voterCollege, // Dynamically pass the voter's college
         });
       } catch (error) {
         console.error("Error fetching candidates:", error);
