@@ -368,7 +368,7 @@
                     <h3 class="ballot-header ballot-council">Local Student Council - <%= voterCollege %>
                     </h3><br>
                     <br>
-                    <h3 class="ballot-header ballot-position">Governors</h3><br>
+                    <h3 class="ballot-header ballot-position">Governor</h3><br>
                     <div id="ballot-governor" class="ballot-choices">
                         <input id="governor-1" type="radio" name="governor" value="governor-kasama">
                         <label for="governor-1">
@@ -413,6 +413,110 @@
                                     <% } else { %>
                                         <p>No candidates available for this position.</p>
                                         <% } %>
+                        </label>
+                    </div>
+                    <br>
+                    <h3 class="ballot-header ballot-position">Vice Governor</h3><br>
+                    <div id="ballot-vice-governor" class="ballot-choices">
+                        <input id="vice-governor-1" type="radio" name="vice-governor" value="kasama">
+                        <label for="vice-governor-1">
+                            <% let vice_governor_1=candidates_lsc.find(candidate=>
+                                candidate.college === voterCollege &&
+                                candidate.position === 'vice governor' &&
+                                candidate.party === 'KASAMA'
+                                ); %>
+                                <% if (vice_governor_1) { %>
+                                    <h4>
+                                        <%= vice_governor_1.party %>
+                                    </h4>
+                                    <img src="<%= vice_governor_1.image %>" alt="<%= vice_governor_1.name %>">
+                                    <h4>
+                                        <%= vice_governor_1.name %>
+                                    </h4>
+                                    <p>
+                                        <%= vice_governor_1.moreInfo %>
+                                    </p>
+                                    <% } else { %>
+                                        <p>No candidates available for this position.</p>
+                                        <% } %>
+                        </label>
+                        <input id="vice-governor-2" type="radio" name="vice-governor" value="bulsuone">
+                        <label for="vice-governor-2">
+                            <% let vice_governor_2=candidates_lsc.find(candidate=>
+                                candidate.college === voterCollege &&
+                                candidate.position === 'vice governor' &&
+                                candidate.party === 'BulSU ONE'
+                                ); %>
+                                <% if (vice_governor_2) { %>
+                                    <h4>
+                                        <%= vice_governor_2.party %>
+                                    </h4>
+                                    <img src="<%= vice_governor_2.image %>" alt="<%= vice_governor_2.name %>">
+                                    <h4>
+                                        <%= vice_governor_2.name %>
+                                    </h4>
+                                    <p>
+                                        <%= vice_governor_2.moreInfo %>
+                                    </p>
+                                    <% } else { %>
+                                        <p>No candidates available for this position.</p>
+                                        <% } %>
+                        </label>
+                    </div>
+                    <br>
+                    <h3 class="ballot-header ballot-position">Board Member</h3><br>
+                    <div id="ballot-board-member" class="ballot-choices">
+                        <input id="board-member-1" type="radio" name="board-member" value="kasama">
+                        <label for="board-member-1">
+                            <% // Find the board member that matches the voterCollege, program, and party 'KASAMA' let
+                                board_member_1=lsc_board_members.find(candidate=>
+                                candidate.college === voterCollege &&
+                                candidate.program === voterProgram &&
+                                candidate.party === 'KASAMA'
+                                );
+                                %>
+                                <% if (board_member_1) { %>
+                                    <h4>
+                                        <%= board_member_1.party %>
+                                    </h4>
+                                    <img src="<%= board_member_1.image %>" alt="<%= board_member_1.name %>">
+                                    <h4>
+                                        <%= board_member_1.name %>
+                                    </h4>
+                                    <p>
+                                        <%= board_member_1.moreInfo %>
+                                    </p>
+                                    <% } else { %>
+                                        <p>No candidates available for this position.</p>
+                                        <% } %>
+                        </label>
+
+
+                        <input id="board-member-2" type="radio" name="board-member" value="kasama">
+                        <label for="board-member-2">
+                            <% // Find the board member that matches the voterCollege, program, and party 'KASAMA' let
+                                board_member_2=lsc_board_members.find(candidate=>
+                                candidate.college === voterCollege &&
+                                candidate.program === voterProgram &&
+                                candidate.party === 'BulSU ONE'
+                                );
+                                %>
+                                <% if (board_member_2) { %>
+                                    <h4>
+                                        <%= board_member_2.party %>
+                                    </h4>
+                                    <img src="<%= board_member_2.image %>" alt="<%= board_member_2.name %>">
+                                    <h4>
+                                        <%= board_member_2.name %>
+                                    </h4>
+                                    <p>
+                                        <%= board_member_2.moreInfo %>
+                                    </p>
+                                    <% } else { %>
+                                        <p>No candidates available for this position.</p>
+                                        <% } %>
+                        </label>
+
                         </label>
                     </div>
                     <br>
