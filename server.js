@@ -2,10 +2,15 @@ const express = require("express");
 const path = require("path");
 const connectToDatabase = require("./db");
 
+const bodyParser = require("body-parser");
+
 const app = express();
 const PORT = 3000;
 
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use(express.json()); // Parse JSON body
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -16,6 +21,39 @@ const startServer = async () => {
   try {
     db = await connectToDatabase();
     console.log("Connected to the database successfully!");
+
+    // app.post("/update-candidate", async (req, res) => {
+    //   try {
+    //     const { id, name, party, moreInfo } = req.body;
+
+    //     if (!id || !name || !party || !moreInfo) {
+    //       return res.status(400).send("All fields are required.");
+    //     }
+
+    //     const collection = db.collection("candidates_lsc");
+
+    //     // Update the candidate's details
+    //     const result = await collection.updateOne(
+    //       { "candidates._id": id }, // Find candidate by `_id`
+    //       {
+    //         $set: {
+    //           "candidates.$.name": name,
+    //           "candidates.$.party": party,
+    //           "candidates.$.moreInfo": moreInfo,
+    //         },
+    //       }
+    //     );
+
+    //     if (result.matchedCount === 0) {
+    //       return res.status(404).send("Candidate not found.");
+    //     }
+
+    //     res.status(200).send("Candidate information updated successfully!");
+    //   } catch (error) {
+    //     console.error("Error updating candidate:", error);
+    //     res.status(500).send("Failed to update candidate information.");
+    //   }
+    // });
 
     app.get("/", (req, res) => {
       res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -29,10 +67,10 @@ const startServer = async () => {
         //   ? req.user.program
         //   : "Bachelor of Fine Arts Major in Visual Communication";
 
-        const voterCollege = req.user ? req.user.college : "CBEA";
+        const voterCollege = req.user ? req.user.college : "CAL";
         const voterProgram = req.user
           ? req.user.program
-          : "Bachelor of Science in Entrepreneurship";
+          : "Bachelor of Performing Arts";
 
         const collection = db.collection("candidates");
         const data = await collection.find({}).toArray();
@@ -52,30 +90,6 @@ const startServer = async () => {
         const dataLSCBoardmembers = await collectionLSCBoardMembers
           .find({})
           .toArray();
-
-        // Extract all board members by filtering positions
-        // const allBoardMembers = dataLSC
-        //   .map((doc) =>
-        //     doc.positions
-        //       .filter((position) => position.position === "Board Member")
-        //       .flatMap((position) => position.programs)
-        //       .flatMap((program) => program.candidates)
-        //   )
-        //   .flat();
-
-        // const allBoardMembers = dataLSC
-        //   .map((doc) =>
-        //     doc.positions
-        //       .filter((position) => position.position === "Board Member")
-        //       .flatMap((position) => position.programs)
-        //       .flatMap((program) => {
-        //         // Log each program before adding to the flatMap result
-        //         // console.log("Program:", program.program);
-        //         console.log(program.candidates);
-        //         return program.candidates;
-        //       })
-        //   )
-        //   .flat();
 
         const allBoardMembers = dataLSC
           .map((doc) =>
@@ -112,6 +126,68 @@ const startServer = async () => {
       } catch (error) {
         console.error("Error fetching candidates:", error);
         res.status(500).send("Failed to fetch candidates");
+      }
+    });
+
+    app.get("/dashboard", async (req, res) => {
+      try {
+        const collection = db.collection("candidates");
+        const data = await collection.find({}).toArray();
+        const allCandidates = data.map((doc) => doc.candidates).flat();
+
+        // console.log(allCandidates);
+
+        // Render the dashboard with candidatesData
+        res.render("admin/dashboard", { candidates: allCandidates });
+      } catch (error) {
+        console.error("Error fetching candidates for dashboard:", error);
+        res
+          .status(500)
+          .send("Failed to fetch candidates data for the dashboard");
+      }
+    });
+
+    app.post("/update-candidate", async (req, res) => {
+      console.log("Form data:", req.body);
+      try {
+        const { _id, name, party, moreInfo, candidatePosition } = req.body; // Include position for selecting the correct array
+
+        const collection = db.collection("candidates");
+
+        console.log("Updating candidate with ID:", _id);
+
+        // Use the position to target the right candidates array
+        console.log("Querying for position:", candidatePosition);
+        console.log("Querying for candidate ID:", _id);
+
+        const result = await collection.updateOne(
+          {
+            // position: candidatePosition, // Match position (President, Vice President, etc.)
+            "candidates._id": String(_id), // Match the candidate's _id in the array
+          },
+          {
+            $set: {
+              "candidates.$.name": name,
+              "candidates.$.party": party,
+              "candidates.$.moreInfo": moreInfo,
+            },
+          }
+        );
+
+        console.log("Update result:", result);
+
+        if (result.modifiedCount > 0) {
+          console.log(`Candidate with ID ${_id} updated successfully.`);
+          res.redirect("/dashboard");
+        } else {
+          console.log(
+            `No candidate found with ID ${_id} in position ${candidatePosition}.`
+          );
+          res.status(404).send("Candidate not found.");
+        }
+      } catch (error) {
+        console.error("Error updating candidate:", error);
+        res.status(500).send("Failed to update candidate.");
       }
     });
 

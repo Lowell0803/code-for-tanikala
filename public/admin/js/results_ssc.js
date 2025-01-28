@@ -1,6 +1,6 @@
 async function renderPositions() {
   // Fetch the JSON data
-  const response = await fetch("data/results_ssc.json");
+  const response = await fetch("admin/data/results_ssc.json");
   const data = await response.json();
 
   // Loop through positions and render them
