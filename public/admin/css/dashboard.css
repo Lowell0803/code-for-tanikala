@@ -1,0 +1,175 @@
+:root {
+  --background-light-yellow: #f2ddb4;
+  --background-lighter-yellow: #faf2db;
+  --background-yellow: #e1ae5b;
+  --background-green: #57ac4f;
+  --background-brown: #370606;
+  --background-form: #d8ac65;
+  --background-red: #a60212;
+}
+
+.container,
+.form-container {
+  border: 3px solid rgb(0, 0, 0, 0.5);
+}
+
+.container img {
+  width: 5em;
+  height: auto;
+  border-radius: 0.5em;
+}
+
+.button {
+  font-weight: bold;
+  color: white;
+  padding: 1em 3em;
+  border-radius: 5em;
+  border: none;
+}
+
+/* #form-edit {
+  position: relative;
+}
+
+#form-buttons {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+} */
+
+.button-edit {
+  background-color: var(--background-brown);
+}
+
+.button-add,
+.button-save {
+  background-color: var(--background-green);
+}
+
+#button-delete,
+#button-remove {
+  background-color: var(--background-red);
+}
+
+#button-close {
+  color: black;
+}
+
+body {
+  position: relative;
+}
+
+#form-add {
+  display: none;
+  min-height: 60dvh;
+  min-width: 60vw;
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--background-form);
+  border-radius: 1em;
+  padding: 2%;
+}
+
+#form-edit {
+  display: none;
+  min-height: 60dvh;
+  min-width: 60vw;
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--background-form);
+  border-radius: 1em;
+  padding: 2%;
+}
+
+form img {
+  width: 5em;
+  height: auto;
+}
+
+/* .main,
+  .main-details,
+  .main-control,
+  .main-details-info,
+  .main-details-profile {
+    border: 1px solid black;
+  } */
+
+/* .main {
+  align-items: stretch;
+  height: 100%;
+}
+
+#img-admin {
+  width: 30%;
+}
+
+.main > div {
+  flex-grow: 1;
+}
+
+.main-details {
+  display: flex;
+  flex-direction: row;
+  max-width: 100%;
+  height: 30%;
+}
+
+.main-details-info,
+.main-details-profile {
+  padding: 2.5%;
+}
+
+.main-details-info {
+  flex-basis: 40%;
+}
+
+.main-details-profile {
+  flex-basis: 30%;
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+}
+
+#form-details {
+  display: flex;
+  flex-direction: column;
+}
+
+#form-details div {
+  display: flex;
+  margin-top: 3%;
+}
+
+#form-details > div label {
+  min-width: 30%;
+  font-weight: bold;
+}
+
+#form-details > div input {
+  min-width: 70%;
+  height: 2.5em;
+  background-color: var(--background-light-yellow);
+  color: black;
+  border: none;
+  padding: 0 3%;
+}
+
+#button-edit {
+  background-color: var(--background-green);
+  font-weight: bold;
+  color: white;
+  padding: 3% 6%;
+  border-radius: 5em;
+  border: none;
+}
+
+.main-control {
+  padding: 2.5%;
+} */
