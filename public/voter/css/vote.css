@@ -68,7 +68,7 @@
 
 #ballot-senator {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 }
 .ballot-senator label {
   width: 48%;

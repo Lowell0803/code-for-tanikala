@@ -9,8 +9,8 @@ const PORT = 3000;
 
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(express.json()); // Parse JSON body
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" })); // Adjust size if needed
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -150,25 +150,33 @@ const startServer = async () => {
     app.post("/update-candidate", async (req, res) => {
       console.log("Form data:", req.body);
       try {
-        const { _id, name, party, moreInfo, candidatePosition } = req.body; // Include position for selecting the correct array
+        let {
+          _id,
+          image,
+          originalImage,
+          name,
+          party,
+          moreInfo,
+          candidatePosition,
+        } = req.body;
+
+        // If no new image is uploaded, use the original image
+        if (!image || image === "") {
+          image = originalImage;
+        }
+
+        console.log("Updating candidate with ID:", _id);
+        // console.log("Final Image:", image); // Debugging
 
         const collection = db.collection("candidates");
 
-        console.log("Updating candidate with ID:", _id);
-
-        // Use the position to target the right candidates array
-        console.log("Querying for position:", candidatePosition);
-        console.log("Querying for candidate ID:", _id);
-
         const result = await collection.updateOne(
-          {
-            // position: candidatePosition, // Match position (President, Vice President, etc.)
-            "candidates._id": String(_id), // Match the candidate's _id in the array
-          },
+          { "candidates._id": String(_id) },
           {
             $set: {
               "candidates.$.name": name,
               "candidates.$.party": party,
+              "candidates.$.image": image,
               "candidates.$.moreInfo": moreInfo,
             },
           }
@@ -180,14 +188,84 @@ const startServer = async () => {
           console.log(`Candidate with ID ${_id} updated successfully.`);
           res.redirect("/dashboard");
         } else {
-          console.log(
-            `No candidate found with ID ${_id} in position ${candidatePosition}.`
-          );
+          console.log(`No candidate found with ID ${_id}.`);
           res.status(404).send("Candidate not found.");
         }
       } catch (error) {
         console.error("Error updating candidate:", error);
         res.status(500).send("Failed to update candidate.");
+      }
+    });
+
+    app.get("/api/candidates", async (req, res) => {
+      try {
+        const { position } = req.query;
+        if (!position) {
+          return res.status(400).json({ error: "Position is required" });
+        }
+
+        const collection = db.collection("candidates"); // Ensure this is the correct collection
+
+        // Use case-insensitive search for the position
+        const result = await collection.findOne({
+          position: { $regex: new RegExp(`^${position}$`, "i") }, // Case-insensitive match
+        });
+
+        if (!result) {
+          return res.status(404).json({ error: "Position not found" });
+        }
+
+        res.json(result);
+      } catch (error) {
+        console.error("Error fetching candidates:", error);
+        res
+          .status(500)
+          .json({ error: "Internal server error", details: error.message });
+      }
+    });
+
+    app.post("/add-candidate", async (req, res) => {
+      try {
+        const { _id, name, party, moreInfo, candidatePosition } = req.body;
+
+        const collection = db.collection("candidates");
+
+        // Find the position document
+        const positionData = await collection.findOne({
+          position: candidatePosition,
+        });
+
+        if (!positionData) {
+          return res.status(404).send("Position not found.");
+        }
+
+        // Create the new candidate object
+        const newCandidate = {
+          _id: String(_id),
+          name,
+          party,
+          image: "img/placeholder_admin_profile.png", // Default image
+          moreInfo,
+          position: candidatePosition.toLowerCase(),
+        };
+
+        console.log(newCandidate);
+
+        // Push new candidate into the candidates array
+        const result = await collection.updateOne(
+          { position: candidatePosition },
+          { $push: { candidates: newCandidate } }
+        );
+
+        if (result.modifiedCount > 0) {
+          console.log(`Candidate ${name} added successfully.`);
+          res.redirect("/dashboard");
+        } else {
+          res.status(500).send("Failed to add candidate.");
+        }
+      } catch (error) {
+        console.error("Error adding candidate:", error);
+        res.status(500).send("Internal Server Error");
       }
     });
 
