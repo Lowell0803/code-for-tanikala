@@ -226,7 +226,13 @@ const startServer = async () => {
 
     app.post("/add-candidate", async (req, res) => {
       try {
-        const { _id, name, party, moreInfo, candidatePosition } = req.body;
+        const { _id, name, image, party, moreInfo, candidatePosition } =
+          req.body;
+
+        // If no new image is uploaded, use the original image
+        if (!image || image === "") {
+          image = "img/placeholder_admin_profile.png";
+        }
 
         const collection = db.collection("candidates");
 
@@ -244,7 +250,7 @@ const startServer = async () => {
           _id: String(_id),
           name,
           party,
-          image: "img/placeholder_admin_profile.png", // Default image
+          image,
           moreInfo,
           position: candidatePosition.toLowerCase(),
         };
@@ -266,6 +272,35 @@ const startServer = async () => {
       } catch (error) {
         console.error("Error adding candidate:", error);
         res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.post("/delete-candidate", async (req, res) => {
+      try {
+        const { _id } = req.body;
+
+        if (!_id) {
+          return res.status(400).send("Candidate ID is required.");
+        }
+
+        const collection = db.collection("candidates");
+
+        // Find the document containing the candidate and remove them from the candidates array
+        const result = await collection.updateOne(
+          { "candidates._id": _id },
+          { $pull: { candidates: { _id: _id } } }
+        );
+
+        if (result.modifiedCount > 0) {
+          console.log(`Candidate with ID ${_id} deleted successfully.`);
+          res.status(200).send("Candidate deleted successfully.");
+        } else {
+          console.log(`No candidate found with ID ${_id}.`);
+          res.status(404).send("Candidate not found.");
+        }
+      } catch (error) {
+        console.error("Error deleting candidate:", error);
+        res.status(500).send("Failed to delete candidate.");
       }
     });
 
