@@ -954,6 +954,40 @@ const startServer = async () => {
       }
     });
 
+    app.get("/api/lsc-candidates", async (req, res) => {
+      try {
+        const { college } = req.query;
+        if (!college) {
+          return res.status(400).json({ error: "College is required" });
+        }
+
+        const collectionLSC = db.collection("candidates_lsc");
+        const data = await collectionLSC.findOne({
+          collegeAcronym: college,
+        });
+
+        if (!data) {
+          return res.json({ governor: [], viceGovernor: [], boardMembers: [] });
+        }
+
+        const governor =
+          data.positions.find((pos) => pos.position === "Governor")
+            ?.candidates || [];
+        const viceGovernor =
+          data.positions.find((pos) => pos.position === "Vice Governor")
+            ?.candidates || [];
+        const boardMembers =
+          data.positions
+            .find((pos) => pos.position === "Board Member")
+            ?.programs.flatMap((program) => program.candidates) || [];
+
+        res.json({ governor, viceGovernor, boardMembers });
+      } catch (error) {
+        console.error("Error fetching LSC candidates:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    });
+
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
     });
