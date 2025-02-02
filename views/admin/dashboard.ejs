@@ -148,7 +148,10 @@
                     <input type="text" id="collegeInput" />
                 </div>
                 <div>
+
                     <div class="container container-lsc" id="container-lsc-governor">
+                        <h2>Governor</h2>
+                        <button class="button button-add" onclick="addCandidateLSC('Governor')">Add</button>
                         <% candidates_lsc.forEach(college=> { %>
                             <% if (college.collegeAcronym==="CAFA" ) { %>
                                 <% if (college.positions["Governor"]) { %>
@@ -175,7 +178,10 @@
                                                     <% }); %>
 
                     </div>
+
                     <div class="container container-lsc" id="container-lsc-vice-governor">
+                        <h2>Vice Governor</h2>
+                        <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add</button>
                         <% candidates_lsc.forEach(college=> { %>
                             <% if (college.collegeAcronym==="CAFA" ) { %>
                                 <% if (college.positions["Vice Governor"]) { %>
@@ -202,7 +208,9 @@
                                                     <% }); %>
 
                     </div>
+
                     <div class="container container-lsc" id="container-lsc-board-member">
+                        <h2>Board Member</h2>
                         <% let cafa=candidates_lsc.find(college=> college.collegeAcronym === "CAFA");
                             if (cafa && cafa.positions["Board Member"]) {
                             let boardMembers = cafa.positions["Board Member"];
@@ -211,9 +219,13 @@
                                 <h3>
                                     <%= program %>
                                 </h3>
+                                <button class="button button-add"
+                                    onclick="addCandidateLSC('Board Member', '<%= program %>')">Add</button>
+
                                 <ul>
                                     <% boardMembers[program].forEach(candidate=> { %>
                                         <li>
+
                                             <img src="<%= candidate.image %>" alt="<%= candidate.name %>">
                                             <strong>
                                                 <%= candidate.name %>
@@ -252,13 +264,16 @@
         <div id="form-buttons">
             <button class="button" id="button-close-add-lsc" onclick="toggleForm('form-add-lsc')">Close</button>
 
-            <br><br>
             <h2 id="heading-position-add-lsc">Position</h2>
+
             <form method="POST" action="/add-candidate-lsc">
+                <input type="hidden" id="college-acronym-add-lsc" name="collegeAcronym">
+                <input type="hidden" id="program-add-lsc" name="program">
+
                 <label>(for backend):</label>
                 <input type="text" id="candidate-id-add-lsc" name="_id" readonly>
                 <input type="text" id="position-add-lsc" name="candidatePosition" readonly><br><br>
-                <img id="image-add-lsc" src="img/placeholder_admin_profile.png"
+                <img id="image-add" src="img/placeholder_admin_profile.png"
                     style="max-width: 200px; max-height: 200px;"><br><br>
 
                 <!-- Image Upload Input -->
@@ -267,11 +282,13 @@
 
                 <label for="name">Name:</label>
                 <input type="text" id="name-add-lsc" name="name" required><br><br>
+
                 <label for="party">Party:</label>
                 <select id="party-add-lsc" name="party">
                     <option value="KASAMA - BulSU">KASAMA - BulSU</option>
                     <option value="BulSUONE">BulSUONE</option>
                 </select><br><br>
+
                 <label for="more-info">Info:</label><br>
                 <textarea id="more-info-add-lsc" name="moreInfo"></textarea>
                 <br>
@@ -279,6 +296,7 @@
             </form>
         </div>
     </div>
+
 
     <div id="form-edit-lsc" class="form-container">
         <div id="form-buttons">
@@ -446,6 +464,53 @@
             } else {
                 profileImage.src = "img/placeholder_admin_profile.png";
             }
+        }
+
+        function addCandidateLSC(position, program = "") {
+            let formId = "form-add-lsc";
+            toggleForm(formId); // Show form before setting values
+
+            let selectedCollege = document.getElementById("collegeSelect");
+            let inputCollege = document.getElementById("college-acronym-add-lsc");
+            let inputPosition = document.getElementById("position-add-lsc");
+            let inputProgram = document.getElementById("program-add-lsc");
+            let inputCandidateId = document.getElementById("candidate-id-add-lsc");
+
+            // Ensure all elements exist before using them
+            if (!selectedCollege || !inputCollege || !inputPosition || !inputCandidateId) {
+                console.error("⚠️ Missing form elements! Check IDs in the HTML.");
+                return;
+            }
+
+            // Set values dynamically
+            inputCollege.value = selectedCollege.value;
+            inputPosition.value = position;
+            inputProgram.value = program || "";
+
+            // Fetch candidates to determine next ID
+            fetch(`/api/candidates-lsc?position=${encodeURIComponent(position)}&college=${selectedCollege.value}${program ? `&program=${encodeURIComponent(program)}` : ""}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.warn("API Error:", data.error);
+                        return;
+                    }
+
+                    let maxId = 0;
+                    data.candidates.forEach(candidate => {
+                        const match = candidate._id.match(/_(\d+)$/);
+                        if (match) {
+                            const num = parseInt(match[1], 10);
+                            if (num > maxId) {
+                                maxId = num;
+                            }
+                        }
+                    });
+
+                    // Generate new ID dynamically
+                    inputCandidateId.value = `${position.toLowerCase().replace(" ", "_")}_${maxId + 1}`;
+                })
+                .catch(error => console.error("Error fetching candidates:", error));
         }
 
     </script>
