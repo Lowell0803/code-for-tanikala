@@ -689,7 +689,7 @@
             }
         }
 
-        function handleImageUpload(imageUploadId, imagePreviewId, imageBase64InputId) {
+        function handleImageUpload(imageUploadId, imagePreviewId, imageBase64InputId, hiddenOriginalImageId = "") {
             document.getElementById(imageUploadId).addEventListener("change", function (event) {
                 let file = event.target.files[0];
                 if (file) {
@@ -733,15 +733,19 @@
                             document.getElementById(imageBase64InputId).value = base64String; // Store in hidden input
                         };
                     };
+                } else {
+                    if (hiddenOriginalImageId != "") {
+                        document.getElementById(imageBase64InputId).value = document.getElementById(hiddenOriginalImageId).value;
+                    }
                 }
             });
         }
 
         // Usage:
         handleImageUpload("image-upload-add", "image-add", "image-base64-add");
-        handleImageUpload("image-upload-edit", "image-edit", "image-base64-edit");
+        handleImageUpload("image-upload-edit", "image-edit", "image-base64-edit", "original-image-edit");
         handleImageUpload("image-upload-add-lsc", "image-add-lsc", "image-base64-add-lsc");
-        handleImageUpload("image-upload-edit-lsc", "image-edit-lsc", "image-base64-edit-lsc");
+        handleImageUpload("image-upload-edit-lsc", "image-edit-lsc", "image-base64-edit-lsc", "original-image-edit-lsc");
 
     </script>
 

@@ -319,7 +319,7 @@ const startServer = async () => {
 
     app.post("/update-candidate-lsc", async (req, res) => {
       try {
-        const {
+        let {
           _id,
           candidatePosition,
           party,
@@ -328,6 +328,7 @@ const startServer = async () => {
           image,
           collegeAcronym,
           program,
+          originalImage,
         } = req.body;
 
         if (!_id || !candidatePosition || !collegeAcronym) {
@@ -336,6 +337,10 @@ const startServer = async () => {
 
         console.log("🔍 Debugging update-candidate-lsc:");
         console.log("Received Data:", req.body);
+
+        if (!image || image.trim() === "") {
+          image = originalImage;
+        }
 
         // Find the college document based on the collegeAcronym
         const college = await db
