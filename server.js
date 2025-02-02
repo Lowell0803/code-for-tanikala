@@ -859,6 +859,96 @@ const startServer = async () => {
       }
     });
 
+    app.post("/delete-candidate-lsc", async (req, res) => {
+      try {
+        const { _id, candidatePosition, collegeAcronym, program } = req.body;
+
+        if (!_id || !candidatePosition || !collegeAcronym) {
+          return res.status(400).json({ error: "Missing required fields." });
+        }
+
+        console.log(`🔍 Attempting to delete candidate ID: ${_id}`);
+
+        // Find the college document
+        const college = await db
+          .collection("candidates_lsc")
+          .findOne({ collegeAcronym });
+
+        if (!college) {
+          return res
+            .status(404)
+            .json({ error: `College '${collegeAcronym}' not found.` });
+        }
+
+        console.log("✅ College Found:", college.collegeName);
+
+        let positionFound = college.positions.find(
+          (pos) => pos.position === candidatePosition
+        );
+
+        if (!positionFound) {
+          return res
+            .status(404)
+            .json({ error: `Position '${candidatePosition}' not found.` });
+        }
+
+        console.log("✅ Position Found:", candidatePosition);
+
+        let updated = false;
+
+        if (candidatePosition === "Board Member" && program) {
+          // Find the correct program within Board Member
+          let programFound = positionFound.programs.find(
+            (prog) => prog.program === program
+          );
+
+          if (!programFound) {
+            return res
+              .status(404)
+              .json({ error: `Program '${program}' not found.` });
+          }
+
+          console.log("✅ Program Found:", program);
+
+          // Remove the candidate
+          const newCandidates = programFound.candidates.filter(
+            (candidate) => candidate._id !== _id
+          );
+          if (newCandidates.length !== programFound.candidates.length) {
+            programFound.candidates = newCandidates;
+            updated = true;
+          }
+        } else {
+          // For Governor and Vice Governor
+          const newCandidates = positionFound.candidates.filter(
+            (candidate) => candidate._id !== _id
+          );
+          if (newCandidates.length !== positionFound.candidates.length) {
+            positionFound.candidates = newCandidates;
+            updated = true;
+          }
+        }
+
+        if (!updated) {
+          return res.status(404).json({ error: "Candidate not found." });
+        }
+
+        // Update database
+        await db
+          .collection("candidates_lsc")
+          .updateOne(
+            { collegeAcronym },
+            { $set: { positions: college.positions } }
+          );
+
+        console.log(`✅ Candidate '${_id}' deleted successfully.`);
+        res.redirect("/dashboard");
+      } catch (error) {
+        console.error("❌ Error deleting candidate:", error);
+        res.status(500).json({ error: "Internal server error." });
+      }
+    });
+
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
     });

@@ -301,7 +301,7 @@
     <div id="form-edit-lsc" class="form-container">
         <div id="form-buttons">
             <button class="button" id="button-close-edit-lsc" onclick="toggleForm('form-edit-lsc')">Close</button>
-            <button class="button" id="button-delete-edit-lsc" onclick="deleteCandidate()">Delete</button>
+            <button class="button" id="button-delete-edit-lsc" onclick="deleteCandidateLSC()">Delete</button>
 
             <br><br>
             test
@@ -375,7 +375,7 @@
     <div id="form-edit" class="form-container">
         <div id="form-buttons">
             <button class="button" id="button-close" onclick="toggleForm('form-edit')">Close</button>
-            <button class="button" id="button-delete" onclick="deleteCandidateLSC()">Delete</button>
+            <button class="button" id="button-delete" onclick="deleteCandidate()">Delete</button>
 
             <br><br>
             <h2 id="heading-position-edit">Position</h2>
@@ -513,6 +513,49 @@
                 .catch(error => console.error("Error fetching candidates:", error));
         }
 
+        async function deleteCandidateLSC() {
+            let candidateId = document.getElementById("candidate-id-edit-lsc").value;
+            let candidatePosition = document.getElementById("position-edit-lsc").value;
+            let candidateCollege = document.getElementById("college-acronym-edit-lsc").value;
+            let candidateProgram = document.getElementById("program-edit-lsc").value; // Only relevant for Board Members
+
+            if (!candidateId) {
+                alert("No candidate selected for deletion.");
+                return;
+            }
+
+            if (!confirm("Are you sure you want to delete this candidate?")) {
+                return;
+            }
+
+            try {
+                const response = await fetch("/delete-candidate-lsc", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        _id: candidateId,
+                        candidatePosition: candidatePosition,
+                        collegeAcronym: candidateCollege,
+                        program: candidateProgram,
+                    }),
+                });
+
+                if (response.ok) {
+                    alert("Candidate deleted successfully.");
+                    window.location.reload(); // Refresh the page to update the UI
+                } else {
+                    const errorMessage = await response.text();
+                    alert("Failed to delete candidate: " + errorMessage);
+                }
+            } catch (error) {
+                console.error("Error deleting candidate:", error);
+                alert("An error occurred while deleting the candidate.");
+            }
+        }
+
+
     </script>
 
 
@@ -612,7 +655,7 @@
             let inputName = document.getElementById("name-edit");
             let inputParty = document.getElementById("party-edit");
             let inputMoreInfo = document.getElementById("more-info-edit");
-            let hiddenOriginalImage = document.getElementById("original-image");
+            let hiddenOriginalImage = document.getElementById("original-image-edit");
 
             console.log("form is being opened");
             console.log(position, party, name);
