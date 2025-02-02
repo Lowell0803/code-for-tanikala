@@ -1,0 +1,31 @@
+
+### Update Candidate LSC
+POST http://localhost:3000/update-candidate-lsc HTTP/1.1
+Content-Type: application/json
+
+{
+  "_id": "12345",
+  "name": "John Doe",
+  "party": "Liberal Party",
+  "image": "http://example.com/images/john_doe.jpg",
+  "originalImage": "http://example.com/images/old_john_doe.jpg",
+  "moreInfo": "John is a candidate for Board Member with a focus on arts and culture.",
+  "candidatePosition": "Board Member"
+}
+
+### Get Dashboard
+GET http://localhost:3000/dashboard HTTP/1.1
+
+###
+POST http://localhost:3000/update-candidate-lsc
+Content-Type: application/x-www-form-urlencoded
+
+_id=governor_1
+image=img/candidates/placeholder-3.jpg
+originalImage=img/candidates/placeholder-3.jpg
+name=Dianne L. Flores
+party=KASAMA - BulSU
+moreInfo=Governor candidate for CAL under the KASAMA - BulSU party. Passionate about cultural enrichment.
+candidatePosition=Governor
+collegeAcronym=CAFA
+

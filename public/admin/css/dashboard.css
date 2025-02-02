@@ -47,11 +47,14 @@
 }
 
 #button-delete,
-#button-remove {
+#button-remove,
+#button-delete-edit-lsc,
+#button-remove-edit-lsc {
   background-color: var(--background-red);
 }
 
-#button-close {
+#button-close,
+#button-close-edit-lsc {
   color: black;
 }
 
@@ -59,7 +62,8 @@ body {
   position: relative;
 }
 
-#form-add {
+#form-add,
+#form-add-lsc {
   display: none;
   min-height: 60dvh;
   min-width: 60vw;
@@ -73,7 +77,8 @@ body {
   padding: 2%;
 }
 
-#form-edit {
+#form-edit,
+#form-edit-lsc {
   display: none;
   min-height: 60dvh;
   min-width: 60vw;
