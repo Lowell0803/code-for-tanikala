@@ -4,6 +4,7 @@
 
   --color-dirty-green: #58664e;
   --color-red: #a60212;
+  --color-blue: #004aad;
 
   --height-header: 16vh;
   --height-footer: 4vh;
@@ -120,6 +121,7 @@ h6 {
   text-align: center;
   display: flex;
   flex-direction: column;
+  width: 100%;
 
   flex-basis: var(--height-content);
 
@@ -154,9 +156,7 @@ h6 {
 
 .content-main {
   min-height: var(--height-content-main);
-  /* flex-grow: 1; */
-  width: 60%;
-  margin-left: 20%;
+  width: 80vw;
 }
 
 /* FOOTER */
@@ -166,4 +166,12 @@ h6 {
 
   flex-basis: var(--height-footer);
   background-color: var(--color-red);
+}
+
+.red-background {
+  background-color: var(--color-red);
+}
+
+.blue-background {
+  background-color: var(--color-blue);
 }

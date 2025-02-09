@@ -22,8 +22,8 @@
         </div>
         <nav class="header-nav">
             <ul class="header-nav-content">
-                <li><a href="vote.html" id="active-link">Vote</a></li>
-                <li><a href="review.html">Review</a></li>
+                <li><a href="/vote" id="active-link">Vote</a></li>
+                <li><a href="/review">Review</a></li>
                 <li><a href="verify.html">Verify</a></li>
             </ul>
         </nav>
@@ -53,28 +53,25 @@
 
                     <!-- President Candidates -->
                     <h3 class="ballot-header ballot-position">President</h3><br>
-                    <div class="container container-ssc" id="container-president">
-                        <h2>President</h2>
-                        <div>
-                            <% candidates.filter(candidate=> candidate._id.startsWith('president_'))
-                                .forEach((president, index) => { %>
-                                <div class="candidate">
-                                    <% if (president._id) { %>
-                                        <h3>
-                                            <%= president.name %>
-                                        </h3>
-                                        <p>Party: <%= president.party %>
-                                        </p>
-                                        <img src="<%= president.image %>" alt="<%= president.name %>">
-                                        <button class="button" id="button-edit"
-                                            onclick="toggleForm('<%= president._id %>', '<%= president.position %>', '<%= president.party %>', '<%= president.name %>', '<%= president.moreInfo %>')">Edit</button>
-                                        <% } else { %>
-                                            <p>No candidate</p>
-                                            <button class="button" id="button-add">Add</button>
-                                            <% } %>
-                                </div>
-                                <% }); %>
-                        </div>
+                    <div id="ballot-president" class="ballot-choices">
+                        <!-- Loop through all vice president candidates -->
+                        <% candidates .filter(candidate=> candidate.position === 'president')
+                            .forEach((president, index) => { %>
+                            <input id="president-<%= index + 1 %>" type="radio" name="president"
+                                value="<%= president._id %>">
+                            <label for="president-<%= index + 1 %>">
+                                <h4>
+                                    <%= president.party %>
+                                </h4>
+                                <img src="<%= president.image %>" alt="<%= president.name %>">
+                                <h4>
+                                    <%= president.name %>
+                                </h4>
+                                <p>
+                                    <%= president.moreInfo %>
+                                </p>
+                            </label>
+                            <% }); %>
                     </div>
 
 
@@ -115,7 +112,8 @@
 
                             sortedSenators.forEach((senator, index) => {
                             %>
-                            <input id="senator-<%= index + 1 %>" type="radio" name="senator" value="<%= senator._id %>">
+                            <input id="senator-<%= index + 1 %>" type="checkbox" name="senator"
+                                value="<%= senator._id %>">
                             <label for="senator-<%= index + 1 %>">
                                 <h4>
                                     <%= senator.party %>
@@ -132,6 +130,8 @@
                     </div>
 
                     <br>
+                </div>
+                <div class="ballot ballot-lsc">
                     <h3 class="ballot-header ballot-council">Local Student Council - <%= voterCollege %>
                     </h3><br>
                     <br>
@@ -216,14 +216,11 @@
                 </div>
             </div>
 
-
-
-
             <p>You still need to review and confirm your votes in the next page.</p>
             <input type="submit" value="Submit Ballot">
+        </form>
     </div>
-    </form>
-    </div>
+
 
 
     <div class="footer">

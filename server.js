@@ -29,15 +29,15 @@ const startServer = async () => {
     app.get("/vote", async (req, res) => {
       try {
         // Data from the logged in account
-        // const voterCollege = req.user ? req.user.college : "CAFA";
-        // const voterProgram = req.user
-        //   ? req.user.program
-        //   : "Bachelor of Fine Arts Major in Visual Communication";
-
-        const voterCollege = req.user ? req.user.college : "CAL";
+        const voterCollege = req.user ? req.user.college : "CAFA";
         const voterProgram = req.user
           ? req.user.program
-          : "Bachelor of Performing Arts";
+          : "Bachelor of Fine Arts Major in Visual Communication";
+
+        // const voterCollege = req.user ? req.user.college : "CAL";
+        // const voterProgram = req.user
+        //   ? req.user.program
+        //   : "Bachelor of Performing Arts";
 
         const collection = db.collection("candidates");
         const data = await collection.find({}).toArray();
@@ -94,6 +94,10 @@ const startServer = async () => {
         console.error("Error fetching candidates:", error);
         res.status(500).send("Failed to fetch candidates");
       }
+    });
+
+    app.get("/review", async (req, res) => {
+      res.render("voter/review");
     });
 
     app.get("/dashboard", async (req, res) => {

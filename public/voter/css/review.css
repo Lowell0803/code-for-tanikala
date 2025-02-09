@@ -1,0 +1,18 @@
+:root {
+  --color-lighter-yellow: #f1d5a8;
+  --color-yellow: #f4ab2a;
+  --color-red: #a60212;
+  --color-blue: #004aad;
+}
+
+.review {
+  width: 100;
+  background: var(--color-lighter-yellow);
+  border-radius: 2em;
+  min-height: 80dvh;
+  color: black;
+}
+
+.review h3 {
+  color: white;
+}
