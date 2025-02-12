@@ -45,7 +45,7 @@
 .ballot-choices input[type="radio"] {
   display: none;
 }
-.ballot-choices input[type="checkbox"] {
+#ballot-senator input[type="checkbox"] {
   display: none;
 }
 

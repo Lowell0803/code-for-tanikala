@@ -1,240 +1,188 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Voting System</title>
 
-    <link rel="stylesheet" type="text/css" href="voter/css/index_voter.css">
-    <link rel="stylesheet" type="text/css" href="voter/css/vote.css">
-    <link rel="stylesheet" type="text/css" href="voter/css/vote_choice.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap"
-        rel="stylesheet">
-</head>
+    <link rel="stylesheet" type="text/css" href="voter/css/index_voter.css" />
+    <link rel="stylesheet" type="text/css" href="voter/css/vote.css" />
+    <link rel="stylesheet" type="text/css" href="voter/css/vote_choice.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
 
-<body>
-
+  <body>
     <header class="header">
-        <div class="header-logo">
-            <img src="img/logo_tanikala.png" alt="Tanikala Voting System" />
-        </div>
-        <nav class="header-nav">
-            <ul class="header-nav-content">
-                <li><a href="/vote" id="active-link">Vote</a></li>
-                <li><a href="/review">Review</a></li>
-                <li><a href="verify.html">Verify</a></li>
-            </ul>
-        </nav>
-        <div class="header-bottom-line"></div>
+      <div class="header-logo">
+        <img src="img/logo_tanikala.png" alt="Tanikala Voting System" />
+      </div>
+      <nav class="header-nav">
+        <ul class="header-nav-content">
+          <li><a href="/vote" id="active-link">Vote</a></li>
+          <li><a href="/review">Review</a></li>
+          <li><a href="verify.html">Verify</a></li>
+        </ul>
+      </nav>
+      <div class="header-bottom-line"></div>
     </header>
 
     <div class="content">
-        <div class="content-header">
-            <div class="content-header-bulsu">
-                <img src="img/logo_bulsu.png">
-            </div>
-            <div class="content-header-text">
-                <h1>BulSU Student Government Elections<br>S.Y. 2025 - 2026</h1>
-            </div>
-            <div class="content-header-ucse">
-                <img src="img/logo_bulsu_ucse.png">
-            </div>
+      <div class="content-header">
+        <div class="content-header-bulsu">
+          <img src="img/logo_bulsu.png" />
         </div>
-        <form>
-            <div class="content-main">
+        <div class="content-header-text">
+          <h1>BulSU Student Government Elections<br />S.Y. 2025 - 2026</h1>
+        </div>
+        <div class="content-header-ucse">
+          <img src="img/logo_bulsu_ucse.png" />
+        </div>
+      </div>
+      <form action="/review" method="POST">
+        <div class="content-main">
+          <p>You can submit your votes by pressing the SUBMIT BALLOT button below.</p>
 
-                <p>You can submit your votes by pressing the SUBMIT BALLOT button below.</p>
+          <div class="ballot ballot-ssc">
+            <br />
+            <h3 class="ballot-header ballot-council">Supreme Student Council</h3>
+            <br />
 
-                <div class="ballot ballot-ssc">
-                    <br>
-                    <h3 class="ballot-header ballot-council">Supreme Student Council</h3><br>
+            <!-- President Candidates -->
+            <h3 class="ballot-header ballot-position">President</h3>
+            <br />
+            <div id="ballot-president" class="ballot-choices">
+              <!-- Loop through all vice president candidates -->
+              <% candidates .filter(candidate=> candidate.position === 'president') .forEach((president, index) => { %>
+              <input id="president-<%= index + 1 %>" type="radio" name="president" value="<%= JSON.stringify({ id: president._id, name: president.name }) %>" />
 
-                    <!-- President Candidates -->
-                    <h3 class="ballot-header ballot-position">President</h3><br>
-                    <div id="ballot-president" class="ballot-choices">
-                        <!-- Loop through all vice president candidates -->
-                        <% candidates .filter(candidate=> candidate.position === 'president')
-                            .forEach((president, index) => { %>
-                            <input id="president-<%= index + 1 %>" type="radio" name="president"
-                                value="<%= president._id %>">
-                            <label for="president-<%= index + 1 %>">
-                                <h4>
-                                    <%= president.party %>
-                                </h4>
-                                <img src="<%= president.image %>" alt="<%= president.name %>">
-                                <h4>
-                                    <%= president.name %>
-                                </h4>
-                                <p>
-                                    <%= president.moreInfo %>
-                                </p>
-                            </label>
-                            <% }); %>
-                    </div>
-
-
-
-                    <br>
-
-                    <!-- Vice President Candidates -->
-                    <h3 class="ballot-header ballot-position">Vice President</h3><br>
-                    <div id="ballot-vice-president" class="ballot-choices">
-                        <!-- Loop through all vice president candidates -->
-                        <% candidates .filter(candidate=> candidate.position === 'vice president')
-                            .forEach((vicePresident, index) => { %>
-                            <input id="vice-president-<%= index + 1 %>" type="radio" name="vice-president"
-                                value="<%= vicePresident._id %>">
-                            <label for="vice-president-<%= index + 1 %>">
-                                <h4>
-                                    <%= vicePresident.party %>
-                                </h4>
-                                <img src="<%= vicePresident.image %>" alt="<%= vicePresident.name %>">
-                                <h4>
-                                    <%= vicePresident.name %>
-                                </h4>
-                                <p>
-                                    <%= vicePresident.moreInfo %>
-                                </p>
-                            </label>
-                            <% }); %>
-                    </div>
-
-
-                    <br>
-
-                    <h3 class="ballot-header ballot-position">Senators</h3>
-                    <div id="ballot-senator" class="ballot-choices">
-                        <% const sortedSenators=candidates .filter(candidate=>
-                            candidate.position === 'senator')
-                            .sort((a, b) => a.party.localeCompare(b.party));
-
-                            sortedSenators.forEach((senator, index) => {
-                            %>
-                            <input id="senator-<%= index + 1 %>" type="checkbox" name="senator"
-                                value="<%= senator._id %>">
-                            <label for="senator-<%= index + 1 %>">
-                                <h4>
-                                    <%= senator.party %>
-                                </h4>
-                                <img src="<%= senator.image %>" alt="<%= senator.name %>">
-                                <h4>
-                                    <%= senator.name %>
-                                </h4>
-                                <p>
-                                    <%= senator.moreInfo %>
-                                </p>
-                            </label>
-                            <% }); %>
-                    </div>
-
-                    <br>
-                </div>
-                <div class="ballot ballot-lsc">
-                    <h3 class="ballot-header ballot-council">Local Student Council - <%= voterCollege %>
-                    </h3><br>
-                    <br>
-                    <h3 class="ballot-header ballot-position">Governor</h3><br>
-                    <div id="ballot-governor" class="ballot-choices">
-                        <% let governorCandidates=candidates_lsc.filter(candidate=>
-                            candidate.college === voterCollege &&
-                            candidate.position === 'governor'
-                            ); %>
-
-                            <% governorCandidates.forEach((candidate, index)=> { %>
-                                <input id="governor-<%= index + 1 %>" type="radio" name="governor"
-                                    value="governor-<%= candidate.party.toLowerCase().replace(/\s/g, '') %>">
-                                <label for="governor-<%= index + 1 %>">
-                                    <h4>
-                                        <%= candidate.party %>
-                                    </h4>
-                                    <img src="<%= candidate.image %>" alt="<%= candidate.name %>">
-                                    <h4>
-                                        <%= candidate.name %>
-                                    </h4>
-                                    <p>
-                                        <%= candidate.moreInfo %>
-                                    </p>
-                                </label>
-                                <% }) %>
-                    </div>
-
-                    <br>
-                    <h3 class="ballot-header ballot-position">Vice Governor</h3><br>
-                    <div id="ballot-vice-governor" class="ballot-choices">
-                        <% let viceGovernorCandidates=candidates_lsc.filter(candidate=>
-                            candidate.college === voterCollege &&
-                            candidate.position === 'vice governor'
-                            ); %>
-
-                            <% viceGovernorCandidates.forEach((candidate, index)=> { %>
-                                <input id="vice-governor-<%= index + 1 %>" type="radio" name="vice-governor"
-                                    value="<%= candidate.party.toLowerCase().replace(/\s/g, '') %>">
-                                <label for="vice-governor-<%= index + 1 %>">
-                                    <h4>
-                                        <%= candidate.party %>
-                                    </h4>
-                                    <img src="<%= candidate.image %>" alt="<%= candidate.name %>">
-                                    <h4>
-                                        <%= candidate.name %>
-                                    </h4>
-                                    <p>
-                                        <%= candidate.moreInfo %>
-                                    </p>
-                                </label>
-                                <% }) %>
-                    </div>
-
-                    <br>
-                    <h3 class="ballot-header ballot-position">Board Member</h3><br>
-                    <div id="ballot-board-member" class="ballot-choices">
-                        <% let boardMemberCandidates=lsc_board_members.filter(candidate=>
-                            candidate.college === voterCollege &&
-                            candidate.program === voterProgram
-                            ); %>
-
-                            <% boardMemberCandidates.forEach((candidate, index)=> { %>
-                                <input id="board-member-<%= index + 1 %>" type="radio" name="board-member"
-                                    value="<%= candidate.party.toLowerCase().replace(/\s/g, '') %>">
-                                <label for="board-member-<%= index + 1 %>">
-                                    <h4>
-                                        <%= candidate.party %>
-                                    </h4>
-                                    <img src="<%= candidate.image %>" alt="<%= candidate.name %>">
-                                    <h4>
-                                        <%= candidate.name %>
-                                    </h4>
-                                    <p>
-                                        <%= candidate.moreInfo %>
-                                    </p>
-                                </label>
-                                <% }) %>
-                    </div>
-
-                    <br>
-                </div>
+              <label for="president-<%= index + 1 %>">
+                <h4><%= president.party %></h4>
+                <img src="<%= president.image %>" alt="<%= president.name %>" />
+                <h4><%= president.name %></h4>
+                <p><%= president.moreInfo %></p>
+              </label>
+              <% }); %>
+              <input type="checkbox" id="abstain-president" name="president" value="Abstain" />
+              <label for="abstain-president">Abstain</label>
             </div>
 
-            <p>You still need to review and confirm your votes in the next page.</p>
-            <input type="submit" value="Submit Ballot">
-        </form>
+            <br />
+
+            <!-- Vice President Candidates -->
+            <h3 class="ballot-header ballot-position">Vice President</h3>
+            <br />
+            <div id="ballot-vice-president" class="ballot-choices">
+              <!-- Loop through all vice president candidates -->
+              <% candidates .filter(candidate=> candidate.position === 'vice president') .forEach((vicePresident, index) => { %>
+              <input id="vice-president-<%= index + 1 %>" type="radio" name="vicePresident" value="<%= JSON.stringify({ id: vicePresident._id, name: vicePresident.name }) %>" />
+
+              <label for="vice-president-<%= index + 1 %>">
+                <h4><%= vicePresident.party %></h4>
+                <img src="<%= vicePresident.image %>" alt="<%= vicePresident.name %>" />
+                <h4><%= vicePresident.name %></h4>
+                <p><%= vicePresident.moreInfo %></p>
+              </label>
+              <% }); %>
+              <input type="checkbox" id="abstain-vice-president" name="vicePresident" value="Abstain" />
+              <label for="abstain-vice-president">Abstain</label>
+            </div>
+
+            <br />
+
+            <h3 class="ballot-header ballot-position">Senators</h3>
+            <div id="ballot-senator" class="ballot-choices">
+              <% const sortedSenators=candidates .filter(candidate=> candidate.position === 'senator') .sort((a, b) => a.party.localeCompare(b.party)); sortedSenators.forEach((senator, index) => { %>
+              <input id="senator-<%= index + 1 %>" type="checkbox" name="senator" value="<%= JSON.stringify({ id: senator._id, name: senator.name }) %>" />
+
+              <label for="senator-<%= index + 1 %>">
+                <h4><%= senator.party %></h4>
+                <img src="<%= senator.image %>" alt="<%= senator.name %>" />
+                <h4><%= senator.name %></h4>
+                <p><%= senator.moreInfo %></p>
+              </label>
+              <% }); %>
+            </div>
+
+            <br />
+          </div>
+          <div class="ballot ballot-lsc">
+            <h3 class="ballot-header ballot-council">Local Student Council - <%= voterCollege %></h3>
+            <br />
+            <br />
+            <h3 class="ballot-header ballot-position">Governor</h3>
+            <br />
+            <div id="ballot-governor" class="ballot-choices">
+              <% let governorCandidates=candidates_lsc.filter(candidate=> candidate.college === voterCollege && candidate.position === 'governor' ); %> <% governorCandidates.forEach((candidate,
+              index)=> { %>
+              <input id="governor-<%= index + 1 %>" type="radio" name="governor" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name }) %>" />
+
+              <label for="governor-<%= index + 1 %>">
+                <h4><%= candidate.party %></h4>
+                <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
+                <h4><%= candidate.name %></h4>
+                <p><%= candidate.moreInfo %></p>
+              </label>
+              <% }) %>
+              <input type="checkbox" id="abstain-governor" name="governor" value="Abstain" />
+              <label for="abstain-governor">Abstain</label>
+            </div>
+
+            <br />
+            <h3 class="ballot-header ballot-position">Vice Governor</h3>
+            <br />
+            <div id="ballot-vice-governor" class="ballot-choices">
+              <% let viceGovernorCandidates=candidates_lsc.filter(candidate=> candidate.college === voterCollege && candidate.position === 'vice governor' ); %> <%
+              viceGovernorCandidates.forEach((candidate, index)=> { %>
+              <input id="vice-governor-<%= index + 1 %>" type="radio" name="viceGovernor" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name }) %>" />
+
+              <label for="vice-governor-<%= index + 1 %>">
+                <h4><%= candidate.party %></h4>
+                <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
+                <h4><%= candidate.name %></h4>
+                <p><%= candidate.moreInfo %></p>
+              </label>
+              <% }) %>
+              <input type="checkbox" id="abstain-vice-governor" name="viceGovernor" value="Abstain" />
+              <label for="abstain-vice-governor">Abstain</label>
+            </div>
+
+            <br />
+            <h3 class="ballot-header ballot-position">Board Member</h3>
+            <br />
+            <div id="ballot-board-member" class="ballot-choices">
+              <% let boardMemberCandidates=lsc_board_members.filter(candidate=> candidate.college === voterCollege && candidate.program === voterProgram ); %> <%
+              boardMemberCandidates.forEach((candidate, index)=> { %>
+              <input id="board-member-<%= index + 1 %>" type="radio" name="boardMember" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name }) %>" />
+
+              <label for="board-member-<%= index + 1 %>">
+                <h4><%= candidate.party %></h4>
+                <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
+                <h4><%= candidate.name %></h4>
+                <p><%= candidate.moreInfo %></p>
+              </label>
+              <% }) %>
+              <input type="checkbox" id="abstain-board-member" name="boardMember" value="Abstain" />
+              <label for="abstain-board-member">Abstain</label>
+            </div>
+
+            <br />
+          </div>
+        </div>
+
+        <p>You still need to review and confirm your votes in the next page.</p>
+        <input type="submit" value="Review Selections" />
+      </form>
     </div>
-
-
 
     <div class="footer">
-        <div class="footer-left">
-            <p>OCTOBER 23, 2024 - 04:17 AM</p>
-        </div>
-        <div class="footer-right">
-            <p>© 2024 - Fourmula 1</p>
-        </div>
+      <div class="footer-left">
+        <p>OCTOBER 23, 2024 - 04:17 AM</p>
+      </div>
+      <div class="footer-right">
+        <p>© 2024 - Fourmula 1</p>
+      </div>
     </div>
 
-    <script>
-    </script>
-
-</body>
-
+    <script></script>
+  </body>
 </html>

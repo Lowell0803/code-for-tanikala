@@ -30,9 +30,7 @@ const startServer = async () => {
       try {
         // Data from the logged in account
         const voterCollege = req.user ? req.user.college : "CAFA";
-        const voterProgram = req.user
-          ? req.user.program
-          : "Bachelor of Fine Arts Major in Visual Communication";
+        const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
 
         // const voterCollege = req.user ? req.user.college : "CAL";
         // const voterProgram = req.user
@@ -45,18 +43,12 @@ const startServer = async () => {
 
         const collectionLSC = db.collection("candidates_lsc");
         const dataLSC = await collectionLSC.find({}).toArray();
-        const allCandidatesLSC = dataLSC
-          .map((doc) =>
-            doc.positions.flatMap((position) => position.candidates || [])
-          )
-          .flat();
+        const allCandidatesLSC = dataLSC.map((doc) => doc.positions.flatMap((position) => position.candidates || [])).flat();
 
         const collectionLSCBoardMembers = db.collection("candidates_lsc");
 
         // Fetch all data from the collection
-        const dataLSCBoardmembers = await collectionLSCBoardMembers
-          .find({})
-          .toArray();
+        const dataLSCBoardmembers = await collectionLSCBoardMembers.find({}).toArray();
 
         const allBoardMembers = dataLSC
           .map((doc) =>
@@ -65,14 +57,14 @@ const startServer = async () => {
               .flatMap((position) => position.programs)
               .flatMap((program) => {
                 // Log each program before adding to the flatMap result
-                console.log("Program:", program);
+                // console.log("Program:", program);
 
                 // Add program.program inside each candidate object
                 program.candidates.forEach((candidate) => {
                   candidate.program = program.program; // Add program.program to each candidate
                 });
 
-                console.log("Updated candidates:", program.candidates);
+                // console.log("Updated candidates:", program.candidates);
 
                 return program.candidates;
               })
@@ -96,9 +88,9 @@ const startServer = async () => {
       }
     });
 
-    app.get("/review", async (req, res) => {
-      res.render("voter/review");
-    });
+    // app.get("/review", async (req, res) => {
+    //   res.render("voter/review");
+    // });
 
     app.get("/dashboard", async (req, res) => {
       try {
@@ -120,13 +112,10 @@ const startServer = async () => {
 
             // If it's a Board Member position, group by program
             if (position === "Board Member" && positionDoc.programs) {
-              college.positions[position] = positionDoc.programs.reduce(
-                (programMap, programDoc) => {
-                  programMap[programDoc.program] = programDoc.candidates;
-                  return programMap;
-                },
-                {}
-              );
+              college.positions[position] = positionDoc.programs.reduce((programMap, programDoc) => {
+                programMap[programDoc.program] = programDoc.candidates;
+                return programMap;
+              }, {});
             } else {
               // For other positions (Governor, Vice Governor), just map them normally
               college.positions[position] = positionDoc.candidates;
@@ -143,24 +132,14 @@ const startServer = async () => {
         });
       } catch (error) {
         console.error("Error fetching candidates for dashboard:", error);
-        res
-          .status(500)
-          .send("Failed to fetch candidates data for the dashboard");
+        res.status(500).send("Failed to fetch candidates data for the dashboard");
       }
     });
 
     app.post("/update-candidate", async (req, res) => {
       console.log("Form data:", req.body);
       try {
-        let {
-          _id,
-          image,
-          originalImage,
-          name,
-          party,
-          moreInfo,
-          candidatePosition,
-        } = req.body;
+        let { _id, image, originalImage, name, party, moreInfo, candidatePosition } = req.body;
 
         // If no new image is uploaded, use the original image
         if (!image || image === "") {
@@ -199,141 +178,9 @@ const startServer = async () => {
       }
     });
 
-    // app.post("/update-candidate-lsc", async (req, res) => {
-    //   try {
-    //     const {
-    //       _id,
-    //       candidatePosition,
-    //       party,
-    //       name,
-    //       moreInfo,
-    //       image,
-    //       collegeAcronym,
-    //       program,
-    //     } = req.body;
-
-    //     if (!_id || !candidatePosition || !collegeAcronym) {
-    //       return res.status(400).json({ error: "Missing required fields." });
-    //     }
-
-    //     console.log("🔍 Debugging update-candidate-lsc:");
-    //     console.log("Received Data:", req.body);
-
-    //     // Find the college document based on the collegeAcronym
-    //     const college = await db
-    //       .collection("candidates_lsc")
-    //       .findOne({ collegeAcronym });
-
-    //     if (!college) {
-    //       console.log(`❌ College with acronym '${collegeAcronym}' not found.`);
-    //       return res
-    //         .status(404)
-    //         .json({ error: `College '${collegeAcronym}' not found.` });
-    //     }
-
-    //     console.log("✅ College Found:", college.collegeName);
-
-    //     let updated = false;
-
-    //     console.log(`🔍 Searching position '${candidatePosition}'`);
-    //     console.log("🔍 Available Positions:", Object.keys(college.positions));
-
-    //     let convertedCandidatePosition = "0";
-    //     if (candidatePosition == "Governor") {
-    //       convertedCandidatePosition = "0";
-    //     }
-    //     if (candidatePosition == "Vice Governor") {
-    //       convertedCandidatePosition = "1";
-    //     }
-    //     if (candidatePosition == "Board Member") {
-    //       convertedCandidatePosition = "2";
-    //     }
-
-    //     if (convertedCandidatePosition === "2" && program) {
-    //       console.log(`🔍 Searching Board Member in program '${program}'`);
-
-    //       if (
-    //         college.positions["Board Member"] &&
-    //         college.positions["Board Member"][program]
-    //       ) {
-    //         console.log("✅ Program found inside Board Member.");
-
-    //         college.positions["Board Member"][program] = college.positions[
-    //           "Board Member"
-    //         ][program].map((candidate) => {
-    //           console.log(`Checking Candidate: ${candidate._id}`);
-    //           if (candidate._id === _id) {
-    //             console.log(
-    //               `✅ Match found for candidate ID: ${_id}, updating...`
-    //             );
-    //             updated = true;
-    //             return { ...candidate, party, name, moreInfo, image };
-    //           }
-    //           return candidate;
-    //         });
-    //       } else {
-    //         console.log(`❌ Program '${program}' not found in Board Member.`);
-    //       }
-    //     } else {
-    //       console.log(`🔍 Searching position '${convertedCandidatePosition}'`);
-    //       console.log(college.positions);
-    //       if (college.positions[convertedCandidatePosition]) {
-    //         console.log("✅ Position found.");
-
-    //         college.positions[convertedCandidatePosition] = college.positions[
-    //           convertedCandidatePosition
-    //         ].map((candidate) => {
-    //           console.log(`Checking Candidate: ${candidate._id}`);
-    //           if (candidate._id === _id) {
-    //             console.log(
-    //               `✅ Match found for candidate ID: ${_id}, updating...`
-    //             );
-    //             updated = true;
-    //             return { ...candidate, party, name, moreInfo, image };
-    //           }
-    //           return candidate;
-    //         });
-    //       } else {
-    //         console.log(
-    //           `❌ Position '${convertedCandidatePosition}' not found.`
-    //         );
-    //       }
-    //     }
-
-    //     if (!updated) {
-    //       console.log(`❌ Candidate with ID '${_id}' not found.`);
-    //       return res.status(404).json({ error: "Candidate not found." });
-    //     }
-
-    //     // Save the updated document back to the database
-    //     await db
-    //       .collection("candidates_lsc")
-    //       .updateOne(
-    //         { collegeAcronym },
-    //         { $set: { positions: college.positions } }
-    //       );
-
-    //     console.log("✅ Candidate updated successfully.");
-    //     res.status(200).json({ message: "Candidate updated successfully." });
-    //   } catch (error) {
-    //     console.error("❌ Error updating candidate:", error);
-    //     res.status(500).json({ error: "Internal server error." });
-    //   }
-    // });
-
     app.post("/update-candidate-lsc", async (req, res) => {
       try {
-        let {
-          _id,
-          candidatePosition,
-          party,
-          name,
-          moreInfo,
-          image,
-          collegeAcronym,
-          program,
-          originalImage,
-        } = req.body;
+        let { _id, candidatePosition, party, name, moreInfo, image, collegeAcronym, program, originalImage } = req.body;
 
         if (!_id || !candidatePosition || !collegeAcronym) {
           return res.status(400).json({ error: "Missing required fields." });
@@ -347,15 +194,11 @@ const startServer = async () => {
         }
 
         // Find the college document based on the collegeAcronym
-        const college = await db
-          .collection("candidates_lsc")
-          .findOne({ collegeAcronym });
+        const college = await db.collection("candidates_lsc").findOne({ collegeAcronym });
 
         if (!college) {
           console.log(`❌ College with acronym '${collegeAcronym}' not found.`);
-          return res
-            .status(404)
-            .json({ error: `College '${collegeAcronym}' not found.` });
+          return res.status(404).json({ error: `College '${collegeAcronym}' not found.` });
         }
 
         console.log("✅ College Found:", college.collegeName);
@@ -369,15 +212,11 @@ const startServer = async () => {
           college.positions.map((pos) => pos.position)
         );
 
-        let positionFound = college.positions.find(
-          (pos) => pos.position === candidatePosition
-        );
+        let positionFound = college.positions.find((pos) => pos.position === candidatePosition);
 
         if (!positionFound) {
           console.log(`❌ Position '${candidatePosition}' not found.`);
-          return res
-            .status(404)
-            .json({ error: `Position '${candidatePosition}' not found.` });
+          return res.status(404).json({ error: `Position '${candidatePosition}' not found.` });
         }
 
         console.log("✅ Position found:", positionFound);
@@ -387,26 +226,20 @@ const startServer = async () => {
           console.log(`🔍 Searching Board Member in program '${program}'`);
 
           if (positionFound.programs) {
-            const programFound = positionFound.programs.find(
-              (prog) => prog.program === program
-            );
+            const programFound = positionFound.programs.find((prog) => prog.program === program);
 
             if (programFound) {
               console.log("✅ Program found inside Board Member.");
 
               // Find and update the candidate within the program
-              programFound.candidates = programFound.candidates.map(
-                (candidate) => {
-                  if (candidate._id === _id) {
-                    console.log(
-                      `✅ Match found for candidate ID: ${_id}, updating...`
-                    );
-                    updated = true;
-                    return { ...candidate, party, name, moreInfo, image };
-                  }
-                  return candidate;
+              programFound.candidates = programFound.candidates.map((candidate) => {
+                if (candidate._id === _id) {
+                  console.log(`✅ Match found for candidate ID: ${_id}, updating...`);
+                  updated = true;
+                  return { ...candidate, party, name, moreInfo, image };
                 }
-              );
+                return candidate;
+              });
             } else {
               console.log(`❌ Program '${program}' not found in Board Member.`);
             }
@@ -415,18 +248,14 @@ const startServer = async () => {
           }
         } else {
           // Handle other positions (e.g., Governor, Vice Governor)
-          positionFound.candidates = positionFound.candidates.map(
-            (candidate) => {
-              if (candidate._id === _id) {
-                console.log(
-                  `✅ Match found for candidate ID: ${_id}, updating...`
-                );
-                updated = true;
-                return { ...candidate, party, name, moreInfo, image };
-              }
-              return candidate;
+          positionFound.candidates = positionFound.candidates.map((candidate) => {
+            if (candidate._id === _id) {
+              console.log(`✅ Match found for candidate ID: ${_id}, updating...`);
+              updated = true;
+              return { ...candidate, party, name, moreInfo, image };
             }
-          );
+            return candidate;
+          });
         }
 
         if (!updated) {
@@ -435,12 +264,7 @@ const startServer = async () => {
         }
 
         // Save the updated document back to the database
-        await db
-          .collection("candidates_lsc")
-          .updateOne(
-            { collegeAcronym },
-            { $set: { positions: college.positions } }
-          );
+        await db.collection("candidates_lsc").updateOne({ collegeAcronym }, { $set: { positions: college.positions } });
 
         // console.log("✅ Candidate updated successfully.");
         // res.status(200).json({ message: "Candidate updated successfully." });
@@ -473,16 +297,13 @@ const startServer = async () => {
         res.json(result);
       } catch (error) {
         console.error("Error fetching candidates:", error);
-        res
-          .status(500)
-          .json({ error: "Internal server error", details: error.message });
+        res.status(500).json({ error: "Internal server error", details: error.message });
       }
     });
 
     app.post("/add-candidate", async (req, res) => {
       try {
-        const { _id, name, image, party, moreInfo, candidatePosition } =
-          req.body;
+        const { _id, name, image, party, moreInfo, candidatePosition } = req.body;
 
         // If no new image is uploaded, use the original image
         if (!image || image === "") {
@@ -513,10 +334,7 @@ const startServer = async () => {
         console.log(newCandidate);
 
         // Push new candidate into the candidates array
-        const result = await collection.updateOne(
-          { position: candidatePosition },
-          { $push: { candidates: newCandidate } }
-        );
+        const result = await collection.updateOne({ position: candidatePosition }, { $push: { candidates: newCandidate } });
 
         if (result.modifiedCount > 0) {
           console.log(`Candidate ${name} added successfully.`);
@@ -530,169 +348,30 @@ const startServer = async () => {
       }
     });
 
-    // app.post("/add-candidate-lsc", async (req, res) => {
-    //   try {
-    //     const {
-    //       candidatePosition,
-    //       party,
-    //       name,
-    //       moreInfo,
-    //       image,
-    //       collegeAcronym,
-    //       program,
-    //     } = req.body;
-
-    //     if (!candidatePosition || !collegeAcronym || !name || !party) {
-    //       return res.status(400).json({ error: "Missing required fields." });
-    //     }
-
-    //     // Default image if none is provided
-    //     const candidateImage =
-    //       image && image !== "" ? image : "img/placeholder_admin_profile.png";
-
-    //     // Find the college document
-    //     const college = await db
-    //       .collection("candidates_lsc")
-    //       .findOne({ collegeAcronym });
-
-    //     if (!college) {
-    //       return res
-    //         .status(404)
-    //         .json({ error: `College '${collegeAcronym}' not found.` });
-    //     }
-
-    //     console.log("✅ College Found:", college.collegeName);
-
-    //     let positionFound = college.positions.find(
-    //       (pos) => pos.position === candidatePosition
-    //     );
-
-    //     if (!positionFound) {
-    //       return res
-    //         .status(404)
-    //         .json({ error: `Position '${candidatePosition}' not found.` });
-    //     }
-
-    //     console.log("✅ Position found:", positionFound);
-
-    //     let newCandidateId;
-    //     if (candidatePosition === "Board Member" && program) {
-    //       // Handle Board Member (check program first)
-    //       const programFound = positionFound.programs.find(
-    //         (prog) => prog.program === program
-    //       );
-
-    //       if (!programFound) {
-    //         return res
-    //           .status(404)
-    //           .json({ error: `Program '${program}' not found.` });
-    //       }
-
-    //       console.log("✅ Program found:", programFound.program);
-
-    //       // Find highest existing `_id`
-    //       const highestId = programFound.candidates.reduce((max, candidate) => {
-    //         const match = candidate._id.match(/_(\d+)$/);
-    //         return match ? Math.max(max, parseInt(match[1], 10)) : max;
-    //       }, 0);
-
-    //       newCandidateId = `board_member_${highestId + 1}`;
-
-    //       // Add new candidate
-    //       programFound.candidates.push({
-    //         _id: newCandidateId,
-    //         name,
-    //         party,
-    //         image: candidateImage,
-    //         moreInfo,
-    //         position: "board member",
-    //         college: collegeAcronym,
-    //         program,
-    //       });
-    //     } else {
-    //       // Handle Governor and Vice Governor
-    //       const highestId = positionFound.candidates.reduce(
-    //         (max, candidate) => {
-    //           const match = candidate._id.match(/_(\d+)$/);
-    //           return match ? Math.max(max, parseInt(match[1], 10)) : max;
-    //         },
-    //         0
-    //       );
-
-    //       newCandidateId = `${candidatePosition
-    //         .toLowerCase()
-    //         .replace(" ", "_")}_${highestId + 1}`;
-
-    //       positionFound.candidates.push({
-    //         _id: newCandidateId,
-    //         name,
-    //         party,
-    //         image: candidateImage,
-    //         moreInfo,
-    //         position: candidatePosition.toLowerCase(),
-    //         college: collegeAcronym,
-    //       });
-    //     }
-
-    //     // Update database
-    //     await db
-    //       .collection("candidates_lsc")
-    //       .updateOne(
-    //         { collegeAcronym },
-    //         { $set: { positions: college.positions } }
-    //       );
-
-    //     console.log(
-    //       `✅ New candidate '${name}' added with ID: ${newCandidateId}`
-    //     );
-    //     res.redirect("/dashboard");
-    //   } catch (error) {
-    //     console.error("❌ Error adding candidate:", error);
-    //     res.status(500).json({ error: "Internal server error." });
-    //   }
-    // });
-
     app.post("/add-candidate-lsc", async (req, res) => {
       try {
-        const {
-          candidatePosition,
-          party,
-          name,
-          moreInfo,
-          image,
-          collegeAcronym,
-          program,
-        } = req.body;
+        const { candidatePosition, party, name, moreInfo, image, collegeAcronym, program } = req.body;
 
         if (!candidatePosition || !collegeAcronym || !name || !party) {
           return res.status(400).json({ error: "Missing required fields." });
         }
 
         // Default image if none is provided
-        const candidateImage =
-          image && image !== "" ? image : "img/placeholder_admin_profile.png";
+        const candidateImage = image && image !== "" ? image : "img/placeholder_admin_profile.png";
 
         // Find the college document
-        const college = await db
-          .collection("candidates_lsc")
-          .findOne({ collegeAcronym });
+        const college = await db.collection("candidates_lsc").findOne({ collegeAcronym });
 
         if (!college) {
-          return res
-            .status(404)
-            .json({ error: `College '${collegeAcronym}' not found.` });
+          return res.status(404).json({ error: `College '${collegeAcronym}' not found.` });
         }
 
         console.log("✅ College Found:", college.collegeName);
 
-        let positionFound = college.positions.find(
-          (pos) => pos.position === candidatePosition
-        );
+        let positionFound = college.positions.find((pos) => pos.position === candidatePosition);
 
         if (!positionFound) {
-          return res
-            .status(404)
-            .json({ error: `Position '${candidatePosition}' not found.` });
+          return res.status(404).json({ error: `Position '${candidatePosition}' not found.` });
         }
 
         console.log("✅ Position found:", positionFound);
@@ -700,9 +379,7 @@ const startServer = async () => {
         let newCandidateId;
         if (candidatePosition === "Board Member" && program) {
           // Handle Board Member (check program first)
-          let programFound = positionFound.programs.find(
-            (prog) => prog.program === program
-          );
+          let programFound = positionFound.programs.find((prog) => prog.program === program);
 
           if (!programFound) {
             // If program not found, create a new one
@@ -734,17 +411,12 @@ const startServer = async () => {
           });
         } else {
           // Handle Governor and Vice Governor
-          const highestId = positionFound.candidates.reduce(
-            (max, candidate) => {
-              const match = candidate._id.match(/_(\d+)$/);
-              return match ? Math.max(max, parseInt(match[1], 10)) : max;
-            },
-            0
-          );
+          const highestId = positionFound.candidates.reduce((max, candidate) => {
+            const match = candidate._id.match(/_(\d+)$/);
+            return match ? Math.max(max, parseInt(match[1], 10)) : max;
+          }, 0);
 
-          newCandidateId = `${candidatePosition
-            .toLowerCase()
-            .replace(" ", "_")}_${highestId + 1}`;
+          newCandidateId = `${candidatePosition.toLowerCase().replace(" ", "_")}_${highestId + 1}`;
 
           positionFound.candidates.push({
             _id: newCandidateId,
@@ -758,16 +430,9 @@ const startServer = async () => {
         }
 
         // Update database
-        await db
-          .collection("candidates_lsc")
-          .updateOne(
-            { collegeAcronym },
-            { $set: { positions: college.positions } }
-          );
+        await db.collection("candidates_lsc").updateOne({ collegeAcronym }, { $set: { positions: college.positions } });
 
-        console.log(
-          `✅ New candidate '${name}' added with ID: ${newCandidateId}`
-        );
+        console.log(`✅ New candidate '${name}' added with ID: ${newCandidateId}`);
         res.redirect("/dashboard");
       } catch (error) {
         console.error("❌ Error adding candidate:", error);
@@ -780,33 +445,23 @@ const startServer = async () => {
         const { position, college, program } = req.query;
 
         if (!position || !college) {
-          return res
-            .status(400)
-            .json({ error: "Position and college are required." });
+          return res.status(400).json({ error: "Position and college are required." });
         }
 
         // Find the college document
-        const collegeDoc = await db
-          .collection("candidates_lsc")
-          .findOne({ collegeAcronym: college });
+        const collegeDoc = await db.collection("candidates_lsc").findOne({ collegeAcronym: college });
 
         if (!collegeDoc) {
-          return res
-            .status(404)
-            .json({ error: `College '${college}' not found.` });
+          return res.status(404).json({ error: `College '${college}' not found.` });
         }
 
         console.log("✅ College Found:", collegeDoc.collegeName);
 
         // Find the position
-        let positionFound = collegeDoc.positions.find(
-          (pos) => pos.position === position
-        );
+        let positionFound = collegeDoc.positions.find((pos) => pos.position === position);
 
         if (!positionFound) {
-          return res
-            .status(404)
-            .json({ error: `Position '${position}' not found.` });
+          return res.status(404).json({ error: `Position '${position}' not found.` });
         }
 
         console.log("✅ Position Found:", positionFound);
@@ -815,14 +470,10 @@ const startServer = async () => {
 
         if (position === "Board Member" && program) {
           // Handle Board Member with program filtering
-          const programFound = positionFound.programs.find(
-            (prog) => prog.program === program
-          );
+          const programFound = positionFound.programs.find((prog) => prog.program === program);
 
           if (!programFound) {
-            return res
-              .status(404)
-              .json({ error: `Program '${program}' not found.` });
+            return res.status(404).json({ error: `Program '${program}' not found.` });
           }
 
           console.log("✅ Program Found:", program);
@@ -850,10 +501,7 @@ const startServer = async () => {
         const collection = db.collection("candidates");
 
         // Find the document containing the candidate and remove them from the candidates array
-        const result = await collection.updateOne(
-          { "candidates._id": _id },
-          { $pull: { candidates: { _id: _id } } }
-        );
+        const result = await collection.updateOne({ "candidates._id": _id }, { $pull: { candidates: { _id: _id } } });
 
         if (result.modifiedCount > 0) {
           console.log(`Candidate with ID ${_id} deleted successfully.`);
@@ -879,26 +527,18 @@ const startServer = async () => {
         console.log(`🔍 Attempting to delete candidate ID: ${_id}`);
 
         // Find the college document
-        const college = await db
-          .collection("candidates_lsc")
-          .findOne({ collegeAcronym });
+        const college = await db.collection("candidates_lsc").findOne({ collegeAcronym });
 
         if (!college) {
-          return res
-            .status(404)
-            .json({ error: `College '${collegeAcronym}' not found.` });
+          return res.status(404).json({ error: `College '${collegeAcronym}' not found.` });
         }
 
         console.log("✅ College Found:", college.collegeName);
 
-        let positionFound = college.positions.find(
-          (pos) => pos.position === candidatePosition
-        );
+        let positionFound = college.positions.find((pos) => pos.position === candidatePosition);
 
         if (!positionFound) {
-          return res
-            .status(404)
-            .json({ error: `Position '${candidatePosition}' not found.` });
+          return res.status(404).json({ error: `Position '${candidatePosition}' not found.` });
         }
 
         console.log("✅ Position Found:", candidatePosition);
@@ -907,31 +547,23 @@ const startServer = async () => {
 
         if (candidatePosition === "Board Member" && program) {
           // Find the correct program within Board Member
-          let programFound = positionFound.programs.find(
-            (prog) => prog.program === program
-          );
+          let programFound = positionFound.programs.find((prog) => prog.program === program);
 
           if (!programFound) {
-            return res
-              .status(404)
-              .json({ error: `Program '${program}' not found.` });
+            return res.status(404).json({ error: `Program '${program}' not found.` });
           }
 
           console.log("✅ Program Found:", program);
 
           // Remove the candidate
-          const newCandidates = programFound.candidates.filter(
-            (candidate) => candidate._id !== _id
-          );
+          const newCandidates = programFound.candidates.filter((candidate) => candidate._id !== _id);
           if (newCandidates.length !== programFound.candidates.length) {
             programFound.candidates = newCandidates;
             updated = true;
           }
         } else {
           // For Governor and Vice Governor
-          const newCandidates = positionFound.candidates.filter(
-            (candidate) => candidate._id !== _id
-          );
+          const newCandidates = positionFound.candidates.filter((candidate) => candidate._id !== _id);
           if (newCandidates.length !== positionFound.candidates.length) {
             positionFound.candidates = newCandidates;
             updated = true;
@@ -943,12 +575,7 @@ const startServer = async () => {
         }
 
         // Update database
-        await db
-          .collection("candidates_lsc")
-          .updateOne(
-            { collegeAcronym },
-            { $set: { positions: college.positions } }
-          );
+        await db.collection("candidates_lsc").updateOne({ collegeAcronym }, { $set: { positions: college.positions } });
 
         console.log(`✅ Candidate '${_id}' deleted successfully.`);
         res.redirect("/dashboard");
@@ -974,22 +601,39 @@ const startServer = async () => {
           return res.json({ governor: [], viceGovernor: [], boardMembers: [] });
         }
 
-        const governor =
-          data.positions.find((pos) => pos.position === "Governor")
-            ?.candidates || [];
-        const viceGovernor =
-          data.positions.find((pos) => pos.position === "Vice Governor")
-            ?.candidates || [];
-        const boardMembers =
-          data.positions
-            .find((pos) => pos.position === "Board Member")
-            ?.programs.flatMap((program) => program.candidates) || [];
+        const governor = data.positions.find((pos) => pos.position === "Governor")?.candidates || [];
+        const viceGovernor = data.positions.find((pos) => pos.position === "Vice Governor")?.candidates || [];
+        const boardMembers = data.positions.find((pos) => pos.position === "Board Member")?.programs.flatMap((program) => program.candidates) || [];
 
         res.json({ governor, viceGovernor, boardMembers });
       } catch (error) {
         console.error("Error fetching LSC candidates:", error);
         res.status(500).json({ error: "Internal server error" });
       }
+    });
+
+    app.post("/review", (req, res) => {
+      const parseVote = (vote) => {
+        try {
+          return vote && vote !== "Abstain" ? JSON.parse(vote) : { id: "Abstain", name: "Abstain" };
+        } catch (error) {
+          console.error("Invalid JSON format:", vote, error);
+          return { id: "Invalid", name: "Invalid" }; // Handle invalid JSON cases
+        }
+      };
+
+      const votes = {
+        president: parseVote(req.body.president),
+        vicePresident: parseVote(req.body.vicePresident),
+        senator: req.body.senator ? (Array.isArray(req.body.senator) ? req.body.senator.map(parseVote) : [parseVote(req.body.senator)]) : [],
+        governor: parseVote(req.body.governor),
+        viceGovernor: parseVote(req.body.viceGovernor),
+        boardMember: parseVote(req.body.boardMember),
+      };
+
+      console.log(votes);
+
+      res.render("voter/review", { votes });
     });
 
     app.listen(PORT, () => {
