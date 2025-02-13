@@ -234,6 +234,15 @@
                 });
 
                 const data = await response.json();
+
+                if (data.transactions) {
+                  alert("✅ Vote Submitted! See console for transaction hashes.");
+                  console.log("📜 Transaction Hashes:", data.transactions);
+                  for (let [position, hash] of Object.entries(data.transactions)) {
+                    console.log(`📜 ${hash.txHash}`);
+                  }
+                }
+
                 alert(data.message);
               } catch (error) {
                 console.error("❌ Error submitting vote:", error);

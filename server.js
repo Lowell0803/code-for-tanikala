@@ -469,9 +469,6 @@ const startServer = async () => {
 
     // app.post("/submit-vote", async (req, res) => {
     //   const queuePosition = voteQueue.size;
-
-    //   res.json({ message: "Your vote is in queue!", queuePosition });
-
     //   voteQueue.add(async () => {
     //     try {
     //       const { votes } = req.body;
@@ -510,7 +507,10 @@ const startServer = async () => {
     //       }
 
     //       console.log("✅ All votes submitted successfully!");
-    //       res.json({ message: "Vote submitted successfully!", queuePosition });
+    //       res.status(200).json({
+    //         message: "Votes successfully submitted to blockchain!",
+    //         queuePosition: queuePosition,
+    //       });
     //     } catch (error) {
     //       console.error("❌ Error submitting votes:", error);
     //       res.status(500).json({ error: "Failed to submit votes." });
@@ -519,20 +519,15 @@ const startServer = async () => {
     // });
 
     app.post("/submit-vote", async (req, res) => {
-      // ✅ Get the queue position before adding to the queue
-      const queuePosition = voteQueue.size + 1; // Ensure it's the correct next position
-
-      // ✅ Send immediate response to client so the UI updates fast
-      res.json({ message: "Your vote is in queue!", queuePosition });
-
-      // ✅ Add the vote processing task to the queue
+      const queuePosition = voteQueue.size;
       voteQueue.add(async () => {
         try {
           const { votes } = req.body;
-          console.log(`📡 Processing vote submission (Queue #${queuePosition}):`, votes);
+          console.log("📡 Processing vote submission:", votes);
 
-          let nonce = await provider.getTransactionCount(wallet.address, "pending");
+          let nonce = await provider.getTransactionCount(wallet.address, "pending"); // ✅ Use "pending" for better concurrency
           const positions = Object.keys(votes);
+          const transactions = [];
 
           for (const position of positions) {
             const formattedPosition = formatPosition(position);
@@ -541,25 +536,39 @@ const startServer = async () => {
             if (Array.isArray(voteData)) {
               for (const candidate of voteData) {
                 const index = await findCandidateIndex(formattedPosition, candidate.name);
-                if (index === -1) continue;
-
+                if (index === -1) {
+                  console.log(`❌ Candidate ${candidate.name} not found in ${formattedPosition}! Skipping.`);
+                  continue;
+                }
                 console.log(`✅ Voting for ${candidate.name} in ${formattedPosition} (index ${index})`);
+
                 const tx = await contract.connect(wallet).vote(formattedPosition, index, { nonce: nonce++ });
                 await tx.wait();
+                transactions.push({ candidate: candidate.name, position: formattedPosition, txHash: tx.hash });
               }
             } else {
               const index = await findCandidateIndex(formattedPosition, voteData.name);
-              if (index === -1) continue;
-
+              if (index === -1) {
+                console.log(`❌ Candidate ${voteData.name} not found in ${formattedPosition}! Skipping.`);
+                continue;
+              }
               console.log(`✅ Voting for ${voteData.name} in ${formattedPosition} (index ${index})`);
+
               const tx = await contract.connect(wallet).vote(formattedPosition, index, { nonce: nonce++ });
               await tx.wait();
+              transactions.push({ candidate: voteData.name, position: formattedPosition, txHash: tx.hash });
             }
           }
 
-          console.log(`✅ Vote successfully submitted to blockchain! (Queue #${queuePosition})`);
+          console.log("✅ All votes submitted successfully!");
+          res.status(200).json({
+            message: "Votes successfully submitted to blockchain!",
+            queuePosition: queuePosition,
+            transactions: transactions, // Return transaction hashes
+          });
         } catch (error) {
           console.error("❌ Error submitting votes:", error);
+          res.status(500).json({ error: "Failed to submit votes." });
         }
       });
     });
