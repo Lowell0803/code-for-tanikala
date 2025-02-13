@@ -17,6 +17,7 @@ contract AdminCandidates {
     bool public isFinalized = false;
 
     event CandidatesSubmitted();
+    event CandidatesReset(); // ✅ Minimal Addition: Reset Candidates Event
     event VoteSubmitted(string position, string name, address voter);
 
     modifier onlyAdmin() {
@@ -91,5 +92,15 @@ contract AdminCandidates {
         }
 
         return allCandidates;
+    }
+
+    // ✅ Minimal Addition: Reset Candidates Function
+    function resetCandidates() public onlyAdmin {
+        for (uint256 i = 0; i < positionList.length; i++) {
+            delete candidates[positionList[i]];
+        }
+        delete positionList;
+        isFinalized = false;
+        emit CandidatesReset();
     }
 }

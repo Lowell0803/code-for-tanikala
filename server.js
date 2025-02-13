@@ -515,6 +515,12 @@ const startServer = async () => {
           });
         });
 
+        // ✅ Add "Abstain" to every position (MINIMAL CHANGE)
+        positions.forEach((pos, index) => {
+          names[index].push("Abstain");
+          parties[index].push("None"); // "None" indicates no party affiliation
+        });
+
         console.log("\n📌 FINAL SUBMISSION:");
         console.log({ positions, names, parties });
 
@@ -541,6 +547,10 @@ const startServer = async () => {
 
     app.get("/vote", async (req, res) => {
       try {
+        // Data from the logged in account
+        const voterCollege = req.user ? req.user.college : "CAFA";
+        const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
+
         const collection = db.collection("candidates");
         const data = await collection.find({}).toArray();
         const allCandidates = data.map((doc) => doc.candidates).flat();
@@ -1116,14 +1126,52 @@ const startServer = async () => {
       }
     });
 
+    // app.post("/review", (req, res) => {
+    //   // Data from the logged in account
+    //   const voterCollege = req.user ? req.user.college : "CAFA";
+    //   const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
+
+    //   const parseVote = (vote) => {
+    //     try {
+    //       return vote && vote !== "Abstain" ? JSON.parse(vote) : { id: "Abstain", name: "Abstain" };
+    //     } catch (error) {
+    //       console.error("Invalid JSON format:", vote, error);
+    //       return { id: "Invalid", name: "Invalid" }; // Handle invalid JSON cases
+    //     }
+    //   };
+
+    //   const votes = {
+    //     president: parseVote(req.body.president),
+    //     vicePresident: parseVote(req.body.vicePresident),
+    //     senator: req.body.senator ? (Array.isArray(req.body.senator) ? req.body.senator.map(parseVote) : [parseVote(req.body.senator)]) : [],
+    //     governor: parseVote(req.body.governor),
+    //     viceGovernor: parseVote(req.body.viceGovernor),
+    //     boardMember: parseVote(req.body.boardMember),
+    //   };
+
+    //   console.log(votes);
+
+    //   res.render("voter/review", { votes, voterCollege, voterProgram });
+    // });
+
     app.post("/review", (req, res) => {
-      // Data from the logged in account
+      // Data from the logged-in account
       const voterCollege = req.user ? req.user.college : "CAFA";
       const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
 
       const parseVote = (vote) => {
         try {
-          return vote && vote !== "Abstain" ? JSON.parse(vote) : { id: "Abstain", name: "Abstain" };
+          // ✅ If `vote` is `"Abstain"` or empty, return Abstain object
+          if (!vote || vote === "Abstain" || (Array.isArray(vote) && vote.length === 0)) {
+            return { id: "Abstain", name: "Abstain" };
+          }
+
+          // ✅ If `vote` is a string, parse it as JSON
+          if (typeof vote === "string") {
+            return JSON.parse(vote);
+          }
+
+          return vote; // If it's already an object, return as is
         } catch (error) {
           console.error("Invalid JSON format:", vote, error);
           return { id: "Invalid", name: "Invalid" }; // Handle invalid JSON cases
@@ -1133,7 +1181,7 @@ const startServer = async () => {
       const votes = {
         president: parseVote(req.body.president),
         vicePresident: parseVote(req.body.vicePresident),
-        senator: req.body.senator ? (Array.isArray(req.body.senator) ? req.body.senator.map(parseVote) : [parseVote(req.body.senator)]) : [],
+        senator: req.body.senator ? (Array.isArray(req.body.senator) ? req.body.senator.map(parseVote) : [parseVote(req.body.senator)]) : [{ id: "Abstain", name: "Abstain" }], // ✅ Ensure senator is always an array
         governor: parseVote(req.body.governor),
         viceGovernor: parseVote(req.body.viceGovernor),
         boardMember: parseVote(req.body.boardMember),
