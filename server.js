@@ -1,15 +1,15 @@
 const express = require("express");
 const path = require("path");
 const connectToDatabase = require("./db");
-
 const bodyParser = require("body-parser");
+const { ethers } = require("ethers");
+require("dotenv").config();
 
 const app = express();
 const PORT = 3000;
 
 app.use(express.static(path.join(__dirname, "public")));
-
-app.use(express.json({ limit: "10mb" })); // Adjust size if needed
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.set("view engine", "ejs");
@@ -25,6 +25,71 @@ const startServer = async () => {
     app.get("/", (req, res) => {
       res.sendFile(path.join(__dirname, "public", "index.html"));
     });
+
+    // TEST IF CANDIDATES IS SUBMITTED TO BLOCKCHAIN
+
+    app.get("/get-candidates", async (req, res) => {
+      try {
+        const positions = ["President", "Vice President"]; // Adjust based on your actual positions
+        let candidatesData = {};
+
+        for (const position of positions) {
+          const candidates = await contract.getCandidates(position);
+          candidatesData[position] = candidates.map((c) => ({
+            name: c.name,
+            party: c.party,
+            position: c.position,
+          }));
+        }
+
+        res.json({ success: true, candidates: candidatesData });
+      } catch (error) {
+        console.error("Error fetching candidates:", error);
+        res.status(500).json({ success: false, error: "Failed to fetch candidates." });
+      }
+    });
+
+    // ==========================
+    // BLOCKCHAIN SETUP (HARDHAT)
+    // ==========================
+
+    const provider = new ethers.JsonRpcProvider(process.env.HARDHAT_RPC_URL);
+    const wallet = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, provider);
+
+    const contractABI = require("./artifacts/contracts/AdminCandidates.sol/AdminCandidates.json").abi;
+    const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractABI, wallet);
+
+    // API Route: Submit Candidates from MongoDB to Blockchain
+    app.post("/submit-candidates", async (req, res) => {
+      try {
+        // Fetch candidates from MongoDB
+        const candidatesCollection = db.collection("candidates");
+        const candidatesData = await candidatesCollection.find({}).toArray();
+
+        let positions = [];
+        let names = [];
+        let parties = [];
+
+        candidatesData.forEach((group) => {
+          positions.push(group.position);
+          names.push(group.candidates.map((c) => c.name));
+          parties.push(group.candidates.map((c) => c.party));
+        });
+
+        // Send transaction to blockchain
+        const tx = await contract.submitCandidates(positions, names, parties);
+        await tx.wait();
+
+        res.json({ message: "Candidates successfully submitted to blockchain!" });
+      } catch (error) {
+        console.error("Error submitting candidates:", error);
+        res.status(500).json({ error: "Failed to submit candidates." });
+      }
+    });
+
+    // ==========================
+    // BACKEND SETUP (EXPRESS)
+    // ==========================
 
     app.get("/vote", async (req, res) => {
       try {

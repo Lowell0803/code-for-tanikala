@@ -1,0 +1,41 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\Lowell\\Documents\\PROJECTS\\tanikala-backend\\contracts\\AdminCandidates.sol": {
+      "lastModificationDate": 1739404523743,
+      "contentHash": "e38bd59ba77da025c1e6841d5fa9ec0b",
+      "sourceName": "contracts/AdminCandidates.sol",
+      "solcConfig": {
+        "version": "0.8.21",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.21"
+      ],
+      "artifacts": [
+        "AdminCandidates"
+      ]
+    }
+  }
+}
