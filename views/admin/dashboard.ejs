@@ -77,6 +77,20 @@
               }
             });
           </script>
+
+          <button id="resetCandidatesBtn">Reset Candidates</button>
+
+          <script>
+            document.getElementById("resetCandidatesBtn").addEventListener("click", async () => {
+              try {
+                const response = await fetch("/reset-candidates", { method: "POST" });
+                const data = await response.json();
+                alert(data.message);
+              } catch (error) {
+                alert("Failed to reset candidates.");
+              }
+            });
+          </script>
         </div>
         <div class="main-left">
           <h1>Supreme Student Council</h1>

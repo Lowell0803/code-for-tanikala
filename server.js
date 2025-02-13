@@ -30,10 +30,44 @@ const startServer = async () => {
 
     app.get("/get-candidates", async (req, res) => {
       try {
-        const positions = ["President", "Vice President"]; // Adjust based on your actual positions
+        const positions = ["President", "Vice President", "Senator"]; // Main positions
         let candidatesData = {};
 
+        // Fetch Main Candidates from Blockchain
         for (const position of positions) {
+          const candidates = await contract.getCandidates(position);
+          candidatesData[position] = candidates.map((c) => ({
+            name: c.name,
+            party: c.party,
+            position: c.position,
+          }));
+        }
+
+        // Fetch LSC Candidates from Blockchain
+        const lscRoles = ["Governor", "Vice Governor"];
+        for (const role of lscRoles) {
+          const candidates = await contract.getCandidates(role);
+          candidatesData[role] = candidates.map((c) => ({
+            name: c.name,
+            party: c.party,
+            position: c.position,
+          }));
+        }
+
+        // Fetch Board Members (by program)
+        const boardMemberPrograms = [
+          "Bachelor of Science in Architecture",
+          "Bachelor of Fine Arts Major in Visual Communication",
+          "Bachelor of Landscape Architecture",
+          "Bachelor of Arts in Broadcasting",
+          "Bachelor of Arts in Journalism",
+          "Bachelor of Performing Arts",
+          "Bachelor of Science in Accountancy/Accounting Information System",
+          "Bachelor of Science in Business Administration",
+          "Bachelor of Science in Entrepreneurship",
+        ];
+        for (const program of boardMemberPrograms) {
+          const position = `Board Member - ${program}`;
           const candidates = await contract.getCandidates(position);
           candidatesData[position] = candidates.map((c) => ({
             name: c.name,
@@ -46,6 +80,17 @@ const startServer = async () => {
       } catch (error) {
         console.error("Error fetching candidates:", error);
         res.status(500).json({ success: false, error: "Failed to fetch candidates." });
+      }
+    });
+
+    app.post("/reset-candidates", async (req, res) => {
+      try {
+        const tx = await contract.resetCandidates();
+        await tx.wait();
+        res.json({ message: "Candidates reset. You can now submit again." });
+      } catch (error) {
+        console.error("Error resetting candidates:", error);
+        res.status(500).json({ error: "Failed to reset candidates." });
       }
     });
 
@@ -62,27 +107,79 @@ const startServer = async () => {
     // API Route: Submit Candidates from MongoDB to Blockchain
     app.post("/submit-candidates", async (req, res) => {
       try {
-        // Fetch candidates from MongoDB
         const candidatesCollection = db.collection("candidates");
+        const candidatesLscCollection = db.collection("candidates_lsc");
+
+        // Fetch candidates from both collections
         const candidatesData = await candidatesCollection.find({}).toArray();
+        const candidatesLscData = await candidatesLscCollection.find({}).toArray();
+
+        console.log("\n🚀 SUBMIT-CANDIDATES API CALLED!");
+        console.log("✅ Main candidates fetched:", candidatesData.length);
+        console.log("✅ LSC candidates fetched:", candidatesLscData.length);
+        // console.log("📜 Raw LSC Data from MongoDB:\n", JSON.stringify(candidatesLscData, null, 2));
 
         let positions = [];
         let names = [];
         let parties = [];
 
+        // Process main candidates collection
         candidatesData.forEach((group) => {
-          positions.push(group.position);
-          names.push(group.candidates.map((c) => c.name));
-          parties.push(group.candidates.map((c) => c.party));
+          if (group.candidates.length === 0) {
+            console.log(`❌ Skipping ${group.position} (No candidates)`);
+          } else {
+            console.log(`✅ Adding ${group.position} with ${group.candidates.length} candidates`);
+            positions.push(group.position);
+            names.push(group.candidates.map((c) => c.name));
+            parties.push(group.candidates.map((c) => c.party));
+          }
         });
 
-        // Send transaction to blockchain
+        // Process LSC candidates collection
+        candidatesLscData.forEach((college) => {
+          console.log(`\n📌 Processing LSC College: ${college.collegeName}`);
+
+          college.positions.forEach((pos) => {
+            if (pos.position === "Board Member") {
+              pos.programs.forEach((program) => {
+                if (!program.candidates || program.candidates.length === 0) {
+                  console.log(`❌ Skipping Board Member - ${program.program} (No candidates)`);
+                } else {
+                  console.log(`✅ Adding Board Member - ${program.program} with ${program.candidates.length} candidates`);
+                  positions.push(`Board Member - ${program.program}`);
+                  names.push(program.candidates.map((c) => c.name));
+                  parties.push(program.candidates.map((c) => c.party));
+                }
+              });
+            } else {
+              if (!pos.candidates || pos.candidates.length === 0) {
+                console.log(`❌ Skipping ${pos.position} for ${college.collegeAcronym} (No candidates)`);
+              } else {
+                console.log(`✅ Adding ${pos.position} for ${college.collegeAcronym} with ${pos.candidates.length} candidates`);
+                positions.push(`${pos.position} - ${college.collegeAcronym}`);
+                names.push(pos.candidates.map((c) => c.name));
+                parties.push(pos.candidates.map((c) => c.party));
+              }
+            }
+          });
+        });
+
+        console.log("\n📌 FINAL SUBMISSION:");
+        console.log({ positions, names, parties });
+
+        if (positions.length === 0) {
+          console.log("⚠️ No candidates to submit!");
+          return res.status(400).json({ error: "No candidates to submit." });
+        }
+
+        console.log("📡 Sending transaction to blockchain...");
         const tx = await contract.submitCandidates(positions, names, parties);
         await tx.wait();
+        console.log("✅ Candidates submitted successfully!");
 
         res.json({ message: "Candidates successfully submitted to blockchain!" });
       } catch (error) {
-        console.error("Error submitting candidates:", error);
+        console.error("❌ ERROR submitting candidates:", error);
         res.status(500).json({ error: "Failed to submit candidates." });
       }
     });
@@ -189,7 +286,7 @@ const startServer = async () => {
           return college;
         });
 
-        console.log(structuredData);
+        // console.log(structuredData);
 
         res.render("admin/dashboard", {
           candidates: allCandidates,
