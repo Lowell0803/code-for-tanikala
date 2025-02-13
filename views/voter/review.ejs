@@ -8,6 +8,37 @@
     <link rel="stylesheet" type="text/css" href="voter/css/index_voter.css" />
     <link rel="stylesheet" type="text/css" href="voter/css/review.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+
+    <style>
+      .loading-bar-container {
+        width: 100%;
+        height: 5px;
+        background: #ddd;
+        position: relative;
+        overflow: hidden;
+        margin-top: 10px;
+      }
+
+      .loading-bar {
+        width: 0%;
+        height: 100%;
+        background: #007bff;
+        position: absolute;
+        animation: loading-animation 2s infinite linear;
+      }
+
+      @keyframes loading-animation {
+        0% {
+          width: 0%;
+        }
+        50% {
+          width: 50%;
+        }
+        100% {
+          width: 100%;
+        }
+      }
+    </style>
   </head>
 
   <body>
@@ -62,8 +93,16 @@
           </ul>
           <form id="voteForm">
             <input type="hidden" id="voteData" value="<%= JSON.stringify(votes) %>" />
-            <input type="button" value="Submit Votes to Blockchain" onclick="submitVote()" />
+            <input type="button" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" />
           </form>
+
+          <!-- Queue Position Indicator -->
+          <p id="queuePosition" style="font-weight: bold; color: #007bff; display: block">Queue Position: <span id="queueNumber"></span></p>
+
+          <!-- Loading Bar (Initially Hidden) -->
+          <div id="loading-bar" class="loading-bar-container" style="display: none">
+            <div class="loading-bar"></div>
+          </div>
 
           <!-- <script>
             async function submitVote() {
@@ -86,37 +125,40 @@
             }
           </script> -->
 
-          <script>
+          <!-- <script>
             async function submitVote() {
               let votes = JSON.parse(document.getElementById("voteData").value);
               console.log("📡 Original votes:", votes);
 
-              // ✅ Get logged-in voter's college and program (Ensure these values exist)
-              const voterCollege = "<%= voterCollege %>"; // Example: "CAFA"
-              const voterProgram = "<%= voterProgram %>"; // Example: "Bachelor of Fine Arts Major in Visual Communication"
+              // ✅ Get logged-in voter's college and program
+              const voterCollege = "<%= voterCollege %>";
+              const voterProgram = "<%= voterProgram %>";
 
               // ✅ Reformat LSC votes before submission
-              let formattedVotes = {};
+              let formattedVotes = {
+                President: votes.president,
+                "Vice President": votes.vicePresident,
+                Senator: votes.senator,
+              };
 
-              // ✅ Main positions (President, Vice President, Senator) remain the same
-              formattedVotes["President"] = votes.president;
-              formattedVotes["Vice President"] = votes.vicePresident;
-              formattedVotes["Senator"] = votes.senator;
-
-              // ✅ Fix LSC Positions (Governor & Vice Governor should use "Governor - CollegeAcronym")
               if (votes.governor) {
                 formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
               }
               if (votes.viceGovernor) {
                 formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
               }
-
-              // ✅ Fix Board Member (Should use "Board Member - Program Name")
               if (votes.boardMember) {
                 formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
               }
 
               console.log("📡 Reformatted votes:", formattedVotes);
+
+              // ✅ Show Loading Bar & Disable Button
+              let loadingBar = document.getElementById("loading-bar");
+              let submitBtn = document.getElementById("submitBtn");
+
+              loadingBar.style.display = "block"; // ✅ Ensure it's visible
+              submitBtn.disabled = true;
 
               try {
                 const response = await fetch("/submit-vote", {
@@ -130,6 +172,79 @@
               } catch (error) {
                 console.error("❌ Error submitting vote:", error);
                 alert("Failed to submit votes.");
+              } finally {
+                // ✅ Delay hiding the loading bar to ensure visibility
+                setTimeout(() => {
+                  loadingBar.style.display = "none";
+                  submitBtn.disabled = false;
+                }, 500); // Ensures visibility for at least 500ms
+              }
+            }
+          </script> -->
+
+          <script>
+            async function submitVote() {
+              let votes = JSON.parse(document.getElementById("voteData").value);
+              console.log("📡 Original votes:", votes);
+
+              // ✅ Get logged-in voter's college and program
+              const voterCollege = "<%= voterCollege %>";
+              const voterProgram = "<%= voterProgram %>";
+
+              // ✅ Reformat LSC votes before submission
+              let formattedVotes = {
+                President: votes.president,
+                "Vice President": votes.vicePresident,
+                Senator: votes.senator,
+              };
+
+              if (votes.governor) {
+                formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
+              }
+              if (votes.viceGovernor) {
+                formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
+              }
+              if (votes.boardMember) {
+                formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
+              }
+
+              console.log("📡 Reformatted votes:", formattedVotes);
+
+              // ✅ Show Loading Bar & Disable Button
+              let loadingBar = document.getElementById("loading-bar");
+              let submitBtn = document.getElementById("submitBtn");
+              let queuePosition = document.getElementById("queuePosition");
+              let queueNumber = document.getElementById("queueNumber");
+
+              loadingBar.style.display = "block"; // ✅ Ensure it's visible
+              submitBtn.disabled = true;
+              queuePosition.style.display = "block"; // ✅ Show queue position text
+              queueNumber.innerText = "🔄 Fetching queue position...";
+
+              try {
+                // ✅ Get queue position before submitting
+                let queueResponse = await fetch("/get-queue-position");
+                let queueData = await queueResponse.json();
+                queueNumber.innerText = queueData.position; // ✅ Update queue position
+
+                const response = await fetch("/submit-vote", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ votes: formattedVotes }),
+                });
+
+                const data = await response.json();
+                alert(data.message);
+              } catch (error) {
+                console.error("❌ Error submitting vote:", error);
+                alert("Failed to submit votes.");
+              } finally {
+                // ✅ Delay hiding the loading bar to ensure visibility
+                setTimeout(() => {
+                  loadingBar.style.display = "none";
+                  submitBtn.disabled = false;
+                  queuePosition.style.display = "none"; // ✅ Hide queue position after submission
+                }, 500); // Ensures visibility for at least 500ms
               }
             }
           </script>
