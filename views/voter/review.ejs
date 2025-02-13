@@ -60,10 +60,79 @@
             <li><b>Vice Governor:</b> <span><%= votes.viceGovernor.name %></span></li>
             <li><b>Board Member:</b> <span><%= votes.boardMember.name %></span></li>
           </ul>
-          <form action="/submit" method="POST">
-            <input type="hidden" name="votes" value="<%= JSON.stringify(votes) %>" />
-            <input type="submit" value="Submit Votes to Blockchain" />
+          <form id="voteForm">
+            <input type="hidden" id="voteData" value="<%= JSON.stringify(votes) %>" />
+            <input type="button" value="Submit Votes to Blockchain" onclick="submitVote()" />
           </form>
+
+          <!-- <script>
+            async function submitVote() {
+              const votes = JSON.parse(document.getElementById("voteData").value);
+              console.log("Submitting votes:", votes);
+
+              try {
+                const response = await fetch("/submit-vote", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ votes }),
+                });
+
+                const data = await response.json();
+                alert(data.message);
+              } catch (error) {
+                console.error("Error submitting vote:", error);
+                alert("Failed to submit votes.");
+              }
+            }
+          </script> -->
+
+          <script>
+            async function submitVote() {
+              let votes = JSON.parse(document.getElementById("voteData").value);
+              console.log("📡 Original votes:", votes);
+
+              // ✅ Get logged-in voter's college and program (Ensure these values exist)
+              const voterCollege = "<%= voterCollege %>"; // Example: "CAFA"
+              const voterProgram = "<%= voterProgram %>"; // Example: "Bachelor of Fine Arts Major in Visual Communication"
+
+              // ✅ Reformat LSC votes before submission
+              let formattedVotes = {};
+
+              // ✅ Main positions (President, Vice President, Senator) remain the same
+              formattedVotes["President"] = votes.president;
+              formattedVotes["Vice President"] = votes.vicePresident;
+              formattedVotes["Senator"] = votes.senator;
+
+              // ✅ Fix LSC Positions (Governor & Vice Governor should use "Governor - CollegeAcronym")
+              if (votes.governor) {
+                formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
+              }
+              if (votes.viceGovernor) {
+                formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
+              }
+
+              // ✅ Fix Board Member (Should use "Board Member - Program Name")
+              if (votes.boardMember) {
+                formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
+              }
+
+              console.log("📡 Reformatted votes:", formattedVotes);
+
+              try {
+                const response = await fetch("/submit-vote", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ votes: formattedVotes }),
+                });
+
+                const data = await response.json();
+                alert(data.message);
+              } catch (error) {
+                console.error("❌ Error submitting vote:", error);
+                alert("Failed to submit votes.");
+              }
+            }
+          </script>
         </div>
       </div>
     </div>

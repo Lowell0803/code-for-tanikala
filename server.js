@@ -22,20 +22,82 @@ const startServer = async () => {
     db = await connectToDatabase();
     console.log("Connected to the database successfully!");
 
+    // const voterCollege = req.user ? req.user.college : "CAL";
+    // const voterProgram = req.user
+    //   ? req.user.program
+    //   : "Bachelor of Performing Arts";
+
     app.get("/", (req, res) => {
       res.sendFile(path.join(__dirname, "public", "index.html"));
     });
 
     // TEST IF CANDIDATES IS SUBMITTED TO BLOCKCHAIN
 
+    // app.get("/get-candidates", async (req, res) => {
+    //   try {
+    //     const positions = ["President", "Vice President", "Senator"]; // Main positions
+    //     let candidatesData = {};
+
+    //     // Fetch Main Candidates from Blockchain
+    //     for (const position of positions) {
+    //       const candidates = await contract.getCandidates(position);
+    //       candidatesData[position] = candidates.map((c) => ({
+    //         name: c.name,
+    //         party: c.party,
+    //         position: c.position,
+    //       }));
+    //     }
+
+    //     // Fetch LSC Candidates from Blockchain
+    //     const lscRoles = ["Governor", "Vice Governor"];
+    //     for (const role of lscRoles) {
+    //       const candidates = await contract.getCandidates(role);
+    //       candidatesData[role] = candidates.map((c) => ({
+    //         name: c.name,
+    //         party: c.party,
+    //         position: c.position,
+    //       }));
+    //     }
+
+    //     // Fetch Board Members (by program)
+    //     const boardMemberPrograms = [
+    //       "Bachelor of Science in Architecture",
+    //       "Bachelor of Fine Arts Major in Visual Communication",
+    //       "Bachelor of Landscape Architecture",
+    //       "Bachelor of Arts in Broadcasting",
+    //       "Bachelor of Arts in Journalism",
+    //       "Bachelor of Performing Arts",
+    //       "Bachelor of Science in Accountancy/Accounting Information System",
+    //       "Bachelor of Science in Business Administration",
+    //       "Bachelor of Science in Entrepreneurship",
+    //     ];
+    //     for (const program of boardMemberPrograms) {
+    //       const position = `Board Member - ${program}`;
+    //       const candidates = await contract.getCandidates(position);
+    //       candidatesData[position] = candidates.map((c) => ({
+    //         name: c.name,
+    //         party: c.party,
+    //         position: c.position,
+    //       }));
+    //     }
+
+    //     res.json({ success: true, candidates: candidatesData });
+    //   } catch (error) {
+    //     console.error("Error fetching candidates:", error);
+    //     res.status(500).json({ success: false, error: "Failed to fetch candidates." });
+    //   }
+    // });
     app.get("/get-candidates", async (req, res) => {
       try {
-        const positions = ["President", "Vice President", "Senator"]; // Main positions
+        console.log("📡 Fetching candidates from blockchain...");
+
         let candidatesData = {};
 
-        // Fetch Main Candidates from Blockchain
-        for (const position of positions) {
+        // ✅ Main Election Positions (No Acronyms)
+        const mainPositions = ["President", "Vice President", "Senator"];
+        for (const position of mainPositions) {
           const candidates = await contract.getCandidates(position);
+          console.log(`✅ Retrieved ${candidates.length} candidates for ${position}`);
           candidatesData[position] = candidates.map((c) => ({
             name: c.name,
             party: c.party,
@@ -43,18 +105,23 @@ const startServer = async () => {
           }));
         }
 
-        // Fetch LSC Candidates from Blockchain
-        const lscRoles = ["Governor", "Vice Governor"];
-        for (const role of lscRoles) {
-          const candidates = await contract.getCandidates(role);
-          candidatesData[role] = candidates.map((c) => ({
-            name: c.name,
-            party: c.party,
-            position: c.position,
-          }));
+        // ✅ LSC Positions (Now Includes College Acronyms)
+        const collegeAcronyms = ["CAFA", "CAL", "CBEA"]; // Add more if needed
+        const lscPositions = ["Governor", "Vice Governor"];
+        for (const basePosition of lscPositions) {
+          for (const acronym of collegeAcronyms) {
+            const fullPosition = `${basePosition} - ${acronym}`;
+            const candidates = await contract.getCandidates(fullPosition);
+            console.log(`✅ Retrieved ${candidates.length} candidates for ${fullPosition}`);
+            candidatesData[fullPosition] = candidates.map((c) => ({
+              name: c.name,
+              party: c.party,
+              position: c.position,
+            }));
+          }
         }
 
-        // Fetch Board Members (by program)
+        // ✅ Board Members (Program-Specific)
         const boardMemberPrograms = [
           "Bachelor of Science in Architecture",
           "Bachelor of Fine Arts Major in Visual Communication",
@@ -67,21 +134,305 @@ const startServer = async () => {
           "Bachelor of Science in Entrepreneurship",
         ];
         for (const program of boardMemberPrograms) {
-          const position = `Board Member - ${program}`;
-          const candidates = await contract.getCandidates(position);
-          candidatesData[position] = candidates.map((c) => ({
+          const fullPosition = `Board Member - ${program}`;
+          const candidates = await contract.getCandidates(fullPosition);
+          console.log(`✅ Retrieved ${candidates.length} candidates for ${fullPosition}`);
+          candidatesData[fullPosition] = candidates.map((c) => ({
             name: c.name,
             party: c.party,
             position: c.position,
           }));
         }
 
+        console.log("📌 Final Candidates Data:", JSON.stringify(candidatesData, null, 2));
+
         res.json({ success: true, candidates: candidatesData });
       } catch (error) {
-        console.error("Error fetching candidates:", error);
+        console.error("❌ Error fetching candidates:", error);
         res.status(500).json({ success: false, error: "Failed to fetch candidates." });
       }
     });
+
+    app.get("/developer/debug-candidates", async (req, res) => {
+      try {
+        console.log("📡 Fetching candidates from blockchain...");
+        let candidatesData = {};
+
+        const positions = ["President", "Vice President", "Senator", "Governor", "Vice Governor", "Board Member"];
+        for (const position of positions) {
+          const candidates = await contract.getCandidates(position);
+          console.log(`✅ Candidates for ${position}:`, candidates);
+
+          candidatesData[position] = candidates.map((c) => ({
+            name: c.name,
+            party: c.party,
+            position: c.position,
+            votes: c.votes.toString(),
+          }));
+        }
+
+        res.json({ success: true, candidates: candidatesData });
+      } catch (error) {
+        console.error("❌ Error fetching candidates:", error);
+        res.status(500).json({ success: false, error: "Failed to fetch candidates." });
+      }
+    });
+
+    app.get("/developer/vote-counts", async (req, res) => {
+      try {
+        console.log("📡 Fetching vote counts...");
+        const candidates = await contract.getVoteCounts();
+
+        const results = candidates.map((c) => ({
+          candidate: c.name,
+          position: c.position,
+          votes: c.votes.toString(),
+        }));
+
+        console.log("✅ Vote counts retrieved:", results);
+        res.json({ success: true, results });
+      } catch (error) {
+        console.error("❌ Error fetching vote counts:", error);
+        res.status(500).json({ success: false, error: "Failed to fetch vote counts." });
+      }
+    });
+
+    // function formatPosition(position) {
+    //   // Ensure LSC positions match blockchain format
+    //   if (position.includes("Governor") || position.includes("Vice Governor") || position.includes("Board Member")) {
+    //     return position;
+    //   }
+
+    //   // Capitalize first letter of each word to match blockchain storage
+    //   return position
+    //     .split("_")
+    //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    //     .join(" ");
+    // }
+
+    // function formatPosition(position) {
+    //   // ✅ Ensure LSC positions match blockchain format exactly
+    //   const lscPositions = ["Governor", "Vice Governor", "Board Member"];
+    //   if (lscPositions.some((p) => position.includes(p))) {
+    //     return position; // Keep as is
+    //   }
+
+    //   // ✅ Fix spacing issues, especially for "Board Member - [Program]"
+    //   return position
+    //     .replace(/\s*-\s*/g, " - ") // Ensure correct spacing around dashes
+    //     .replace(/([a-z])([A-Z])/g, "$1 $2") // Add space between camelCase words
+    //     .split(" ") // Split by spaces
+    //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+    //     .join(" ");
+    // }
+
+    // function formatPosition(position) {
+    //   // ✅ Positions with "Governor" or "Board Member" should match exactly
+    //   if (position.includes("Governor") || position.includes("Vice Governor") || position.includes("Board Member")) {
+    //     return position; // Return as is (matches blockchain storage)
+    //   }
+    //   console.log("position: " + position);
+
+    //   // ✅ Convert underscore-separated positions like "vice_president" → "Vice President"
+    //   let newPosition = position
+    //     .replace(/_/g, " ") // Convert underscores to spaces
+    //     .replace(/\s*-\s*/g, " - ") // Ensure spacing around dashes
+    //     .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize each word
+    //   console.log("newPosition: " + position);
+    //   return newPosition;
+    // }
+
+    function formatPosition(position) {
+      console.log("🔍 Raw position input:", position);
+
+      const lscPositions = ["Governor", "Vice Governor"];
+      const boardMemberPrefix = "Board Member - ";
+
+      // ✅ Handle Board Members (e.g., "board_member_bachelor_of_science_in_architecture" → "Board Member - Bachelor of Science in Architecture")
+      if (position.toLowerCase().startsWith("board_member")) {
+        const programName = position.replace("board_member_", "").replace(/_/g, " ");
+        const formattedProgram = programName.replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize words
+        console.log("✅ Matched Board Member position:", `${boardMemberPrefix}${formattedProgram}`);
+        return `${boardMemberPrefix}${formattedProgram}`;
+      }
+
+      // ✅ Handle LSC Positions (Governor / Vice Governor with College Acronyms)
+      for (const base of lscPositions) {
+        if (position.toLowerCase().startsWith(base.toLowerCase().replace(" ", "_"))) {
+          const parts = position.split("_"); // Example: ["governor", "cafa"]
+          if (parts.length === 2) {
+            const acronym = parts[1].toUpperCase();
+            console.log("✅ Matched LSC position:", `${base} - ${acronym}`);
+            return `${base} - ${acronym}`;
+          }
+        }
+      }
+
+      // ✅ Convert other positions (e.g., "vice_president" → "Vice President")
+      let formattedPosition = position
+        .replace(/_/g, " ") // Convert underscores to spaces
+        .replace(/\s*-\s*/g, " - ") // Ensure proper spacing around dashes
+        .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize each word
+
+      console.log("✅ Final formatted position:", formattedPosition);
+      return position;
+    }
+
+    // app.post("/submit-vote", async (req, res) => {
+    //   try {
+    //     const { votes } = req.body;
+    //     console.log("📡 Processing vote submission:", votes);
+
+    //     const txArray = [];
+
+    //     const positions = Object.keys(votes);
+    //     for (const position of positions) {
+    //       const formattedPosition = formatPosition(position);
+    //       const voteData = votes[position];
+
+    //       if (Array.isArray(voteData)) {
+    //         for (const candidate of voteData) {
+    //           const index = await findCandidateIndex(formattedPosition, candidate.name);
+    //           if (index === -1) {
+    //             console.log(`❌ Candidate ${candidate.name} not found in ${formattedPosition}! Skipping.`);
+    //             continue;
+    //           }
+    //           console.log(`✅ Voting for ${candidate.name} in ${formattedPosition} (index ${index})`);
+    //           const tx = await contract.vote(formattedPosition, index);
+    //           txArray.push(tx.wait());
+    //         }
+    //       } else {
+    //         const index = await findCandidateIndex(formattedPosition, voteData.name);
+    //         if (index === -1) {
+    //           console.log(`❌ Candidate ${voteData.name} not found in ${formattedPosition}! Skipping.`);
+    //           continue;
+    //         }
+    //         console.log(`✅ Voting for ${voteData.name} in ${formattedPosition} (index ${index})`);
+    //         const tx = await contract.vote(formattedPosition, index);
+    //         txArray.push(tx.wait());
+    //       }
+    //     }
+
+    //     await Promise.all(txArray);
+    //     console.log("✅ All votes submitted successfully!");
+    //     res.json({ message: "Votes successfully submitted to blockchain!" });
+    //   } catch (error) {
+    //     console.error("❌ Error submitting votes:", error);
+    //     res.status(500).json({ error: "Failed to submit votes." });
+    //   }
+    // });
+
+    // app.post("/submit-vote", async (req, res) => {
+    //   try {
+    //     const { votes } = req.body;
+    //     console.log("📡 Processing vote submission:", votes);
+
+    //     let nonce = await provider.getTransactionCount(wallet.address, "latest"); // ✅ Get latest nonce
+
+    //     const txArray = [];
+    //     const positions = Object.keys(votes);
+
+    //     for (const position of positions) {
+    //       const formattedPosition = formatPosition(position);
+    //       const voteData = votes[position];
+
+    //       if (Array.isArray(voteData)) {
+    //         for (const candidate of voteData) {
+    //           const index = await findCandidateIndex(formattedPosition, candidate.name);
+    //           if (index === -1) {
+    //             console.log(`❌ Candidate ${candidate.name} not found in ${formattedPosition}! Skipping.`);
+    //             continue;
+    //           }
+    //           console.log(`✅ Voting for ${candidate.name} in ${formattedPosition} (index ${index})`);
+
+    //           const tx = await contract.connect(wallet).vote(formattedPosition, index, { nonce: nonce++ });
+    //           txArray.push(tx.wait());
+    //         }
+    //       } else {
+    //         const index = await findCandidateIndex(formattedPosition, voteData.name);
+    //         if (index === -1) {
+    //           console.log(`❌ Candidate ${voteData.name} not found in ${formattedPosition}! Skipping.`);
+    //           continue;
+    //         }
+    //         console.log(`✅ Voting for ${voteData.name} in ${formattedPosition} (index ${index})`);
+
+    //         const tx = await contract.connect(wallet).vote(formattedPosition, index, { nonce: nonce++ });
+    //         txArray.push(tx.wait());
+    //       }
+    //     }
+
+    //     await Promise.all(txArray);
+    //     console.log("✅ All votes submitted successfully!");
+    //     res.json({ message: "Votes successfully submitted to blockchain!" });
+    //   } catch (error) {
+    //     console.error("❌ Error submitting votes:", error);
+    //     res.status(500).json({ error: "Failed to submit votes." });
+    //   }
+    // });
+
+    app.post("/submit-vote", async (req, res) => {
+      try {
+        const { votes } = req.body;
+        console.log("📡 Processing vote submission:", votes);
+
+        let nonce = await provider.getTransactionCount(wallet.address, "latest"); // ✅ Get latest nonce
+        const txArray = [];
+        const positions = Object.keys(votes);
+
+        for (const position of positions) {
+          const formattedPosition = formatPosition(position); // ✅ Use fixed format
+          const voteData = votes[position];
+
+          if (Array.isArray(voteData)) {
+            for (const candidate of voteData) {
+              const index = await findCandidateIndex(formattedPosition, candidate.name);
+              if (index === -1) {
+                console.log(`❌ Candidate ${candidate.name} not found in ${formattedPosition}! Skipping.`);
+                continue;
+              }
+              console.log(`✅ Voting for ${candidate.name} in ${formattedPosition} (index ${index})`);
+
+              const tx = await contract.connect(wallet).vote(formattedPosition, index, { nonce: nonce++ });
+              await tx.wait();
+            }
+          } else {
+            const index = await findCandidateIndex(formattedPosition, voteData.name);
+            if (index === -1) {
+              console.log(`❌ Candidate ${voteData.name} not found in ${formattedPosition}! Skipping.`);
+              continue;
+            }
+            console.log(`✅ Voting for ${voteData.name} in ${formattedPosition} (index ${index})`);
+
+            const tx = await contract.connect(wallet).vote(formattedPosition, index, { nonce: nonce++ });
+            await tx.wait();
+          }
+        }
+
+        console.log("✅ All votes submitted successfully!");
+        res.json({ message: "Votes successfully submitted to blockchain!" });
+      } catch (error) {
+        console.error("❌ Error submitting votes:", error);
+        res.status(500).json({ error: "Failed to submit votes." });
+      }
+    });
+
+    // ✅ Helper Function to Get Candidate Index from Blockchain
+    async function findCandidateIndex(position, candidateName) {
+      const candidates = await contract.getCandidates(position);
+
+      console.log(`🔍 Searching for '${candidateName}' in ${position}...`);
+
+      for (let i = 0; i < candidates.length; i++) {
+        const storedName = candidates[i].name.trim().toLowerCase();
+        if (storedName === candidateName.trim().toLowerCase()) {
+          console.log(`✅ Found ${candidateName} at index ${i}`);
+          return i;
+        }
+      }
+
+      console.log(`❌ Candidate '${candidateName}' not found in ${position}`);
+      return -1;
+    }
 
     app.post("/reset-candidates", async (req, res) => {
       try {
@@ -190,15 +541,6 @@ const startServer = async () => {
 
     app.get("/vote", async (req, res) => {
       try {
-        // Data from the logged in account
-        const voterCollege = req.user ? req.user.college : "CAFA";
-        const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
-
-        // const voterCollege = req.user ? req.user.college : "CAL";
-        // const voterProgram = req.user
-        //   ? req.user.program
-        //   : "Bachelor of Performing Arts";
-
         const collection = db.collection("candidates");
         const data = await collection.find({}).toArray();
         const allCandidates = data.map((doc) => doc.candidates).flat();
@@ -775,6 +1117,10 @@ const startServer = async () => {
     });
 
     app.post("/review", (req, res) => {
+      // Data from the logged in account
+      const voterCollege = req.user ? req.user.college : "CAFA";
+      const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
+
       const parseVote = (vote) => {
         try {
           return vote && vote !== "Abstain" ? JSON.parse(vote) : { id: "Abstain", name: "Abstain" };
@@ -795,7 +1141,7 @@ const startServer = async () => {
 
       console.log(votes);
 
-      res.render("voter/review", { votes });
+      res.render("voter/review", { votes, voterCollege, voterProgram });
     });
 
     app.listen(PORT, () => {
