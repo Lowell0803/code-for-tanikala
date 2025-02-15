@@ -658,7 +658,7 @@ const startServer = async () => {
 
     app.post("/add-candidate", async (req, res) => {
       try {
-        const { _id, name, image, party, moreInfo, candidatePosition } = req.body;
+        let { _id, name, image, party, moreInfo, candidatePosition } = req.body;
 
         // If no new image is uploaded, use the original image
         if (!image || image === "") {
