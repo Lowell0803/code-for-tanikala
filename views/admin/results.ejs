@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>BulSU Voting System</title>
+
+    <link rel="stylesheet" type="text/css" href="css/index_admin.css" />
+    <link rel="stylesheet" type="text/css" href="css/results.css" />
+    <link rel="stylesheet" type="text/css" href="css/results_scc.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
+
+  <body>
+    <header class="header">
+      <div class="header-logo">
+        <img src="../img/logo_tanikala.png" />
+      </div>
+      <div class="header-content">
+        <h2>BulSU Student Government Election 2025-2026</h2>
+        <p>Current Period: <span>Voting</span> | <span>ELECTION ONGOING</span></p>
+        <p>Voting Period: <span>MM/DD/YYYY</span> - <span>MM/DD/YYYY</span></p>
+      </div>
+      <div class="header-user">
+        <img src="../img/placeholder_admin_profile.png" />
+        <div>Admin 1</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <aside class="aside">
+        <div class="aside-admin">
+          <img src="../img/placeholder_admin_profile.png" />
+          <h3>Admin 1</h3>
+        </div>
+        <nav class="aside-nav">
+          <ul class="nav-main">
+            <li><a href="voter_turnout.html">Voter Turnout</a></li>
+            <li><a href="results.html" id="active-link">Results</a></li>
+            <li><a href="voter_information.html">Voter Information</a></li>
+            <li><a>Settings</a></li>
+          </ul>
+          <ul class="nav-settings">
+            <li><a href="settings_edit_account.html">Edit Account</a></li>
+            <li><a href="settings_edit_candidates.html">Edit Candidates</a></li>
+            <li><a href="settings_edit_election.html">Edit Election</a></li>
+            <li><a href="settings_delete_election.html">Delete Election</a></li>
+          </ul>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="main-left">
+          <h1>Supreme Student Council</h1>
+          <div class="container-ssc" id="container-president"></div>
+          <div class="container-ssc" id="container-vice-president"></div>
+          <div class="container-ssc" id="container-secretary"></div>
+          <div class="container-ssc" id="container-treasurer"></div>
+          <div class="container-ssc" id="container-board-member"></div>
+        </div>
+        <div class="main-right">
+          <div class="main-right-header">
+            <h1>Local Student Council</h1>
+            <select class="select">
+              <option value="cafa">College of Architecture and Fine Arts (CAFA)</option>
+              <option value="cal">College of Arts and Letters (CAL)</option>
+              <option value="cbea">College of Business Education and Accountancy (CBEA)</option>
+            </select>
+          </div>
+          <div>
+            <div class="container-lsc" id="container-lsc-governor"></div>
+            <div class="container-lsc" id="container-lsc-vice-governor"></div>
+            <div class="container-lsc" id="container-lsc-secretary"></div>
+            <div class="container-lsc" id="container-lsc-treasurer"></div>
+            <div class="container-lsc" id="container-lsc-board-member"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-side"></div>
+      <div class="footer-center">© 2024 - Fourmula 1</div>
+      <div class="footer-side">OCTOBER 23, 2024 - 04:17 AM</div>
+    </footer>
+
+    <script src="js/results_ssc.js"></script>
+    <script src="js/results_lsc.js"></script>
+  </body>
+</html>
