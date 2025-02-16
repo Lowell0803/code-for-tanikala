@@ -57,7 +57,7 @@
               <% candidates.filter(candidate => candidate.position === 'president').sort((a, b) => a.party.localeCompare(b.party)).forEach((president, index) => { %>
 
               <div class="label-container label-president">
-                <input class="ballot-choice" id="president-<%= index + 1 %>" type="radio" name="president" value="<%= JSON.stringify({ id: president._id, name: president.name }) %>" />
+                <input class="ballot-choice" id="president-<%= index + 1 %>" type="radio" name="president" value="<%= JSON.stringify({ id: president._id, name: president.name, image: president.image, party: president.party, position: president.position, moreInfo: president.moreInfo }) %>" />
 
                 <label class="ballot-tile" for="president-<%= index + 1 %>">
                   <h4 class="party"><%= president.party %></h4>
@@ -90,7 +90,13 @@
               <!-- Loop through all vice president candidates -->
               <% candidates.filter(candidate => candidate.position === 'vice president').sort((a, b) => a.party.localeCompare(b.party)).forEach((vicePresident, index) => { %>
               <div class="label-container label-vice-president">
-                <input class="ballot-choice" id="vice-president-<%= index + 1 %>" type="radio" name="vicePresident" value="<%= JSON.stringify({ id: vicePresident._id, name: vicePresident.name }) %>" />
+                <input
+                  class="ballot-choice"
+                  id="vice-president-<%= index + 1 %>"
+                  type="radio"
+                  name="vicePresident"
+                  value="<%= JSON.stringify({ id: vicePresident._id, name: vicePresident.name, image: vicePresident.image, party: vicePresident.party, position: vicePresident.position, moreInfo: vicePresident.moreInfo }) %>"
+                />
 
                 <label class="ballot-tile" for="vice-president-<%= index + 1 %>">
                   <h4 class="party"><%= vicePresident.party %></h4>
@@ -118,7 +124,7 @@
             <div id="ballot-senator" class="ballot-choices">
               <% const sortedSenators=candidates .filter(candidate=> candidate.position === 'senator') .sort((a, b) => a.party.localeCompare(b.party)); sortedSenators.forEach((senator, index) => { %>
               <div class="label-container label-senator">
-                <input class="ballot-choice" id="senator-<%= index + 1 %>" type="checkbox" name="senator" value="<%= JSON.stringify({ id: senator._id, name: senator.name }) %>" />
+                <input class="ballot-choice" id="senator-<%= index + 1 %>" type="checkbox" name="senator" value="<%= JSON.stringify({ id: senator._id, name: senator.name, image: senator.image, party: senator.party, position: senator.position, moreInfo: senator.moreInfo }) %>" />
 
                 <label class="ballot-tile" for="senator-<%= index + 1 %>">
                   <h4 class="party"><%= senator.party %></h4>
@@ -146,7 +152,7 @@
               <% let governorCandidates = candidates_lsc.filter(candidate => candidate.college === voterCollege && candidate.position === 'governor').sort((a, b) => a.party.localeCompare(b.party)); governorCandidates.forEach((candidate, index) => { %>
 
               <div class="label-container label-governor">
-                <input class="ballot-choice" id="governor-<%= index + 1 %>" type="radio" name="governor" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name }) %>" />
+                <input class="ballot-choice" id="governor-<%= index + 1 %>" type="radio" name="governor" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name, image: candidate.image, party: candidate.party, position: candidate.position, moreInfo: candidate.moreInfo }) %>" />
 
                 <label class="ballot-tile" for="governor-<%= index + 1 %>">
                   <h4 class="party"><%= candidate.party %></h4>
@@ -175,7 +181,7 @@
               <% let viceGovernorCandidates = candidates_lsc.filter(candidate => candidate.college === voterCollege && candidate.position === 'vice governor').sort((a, b) => a.party.localeCompare(b.party)); viceGovernorCandidates.forEach((candidate, index) => { %>
 
               <div class="label-container label-vice-governor">
-                <input class="ballot-choice" id="vice-governor-<%= index + 1 %>" type="radio" name="viceGovernor" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name }) %>" />
+                <input class="ballot-choice" id="vice-governor-<%= index + 1 %>" type="radio" name="viceGovernor" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name, image: candidate.image, party: candidate.party, position: candidate.position, moreInfo: candidate.moreInfo }) %>" />
 
                 <label class="ballot-tile" for="vice-governor-<%= index + 1 %>">
                   <h4 class="party"><%= candidate.party %></h4>
@@ -204,7 +210,7 @@
               <% let boardMemberCandidates = lsc_board_members.filter(candidate => candidate.college === voterCollege && candidate.program === voterProgram).sort((a, b) => a.party.localeCompare(b.party)); boardMemberCandidates.forEach((candidate, index) => { %>
 
               <div class="label-container label-board-member">
-                <input class="ballot-choice" id="board-member-<%= index + 1 %>" type="radio" name="boardMember" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name }) %>" />
+                <input class="ballot-choice" id="board-member-<%= index + 1 %>" type="radio" name="boardMember" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name, image: candidate.image, party: candidate.party, position: candidate.position, moreInfo: candidate.moreInfo }) %>" />
 
                 <label class="ballot-tile" for="board-member-<%= index + 1 %>">
                   <h4 class="party"><%= candidate.party %></h4>

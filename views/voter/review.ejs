@@ -22,7 +22,7 @@
       .loading-bar {
         width: 0%;
         height: 100%;
-        background: #007bff;
+        background: black;
         position: absolute;
         animation: loading-animation 2s infinite linear;
       }
@@ -57,6 +57,7 @@
     </header>
 
     <div class="content">
+      <br />
       <div class="content-header">
         <div class="content-header-bulsu">
           <img src="img/logo_bulsu.png" />
@@ -70,39 +71,138 @@
       </div>
 
       <div class="content-main">
+        <p><i>Please REVIEW your votes before SUBMITTING BALLOT to the Blockchain</i></p>
+        <br />
         <div class="review">
           <br />
-          <h3 class="blue-background">Vote Summary</h3>
-          <br />
-          <h3 class="red-background">BulSU Supreme Student Council S.Y. 2025-2026</h3>
+          <h3 class="ballot-header ballot-council">Vote Summary</h3>
+
+          <h3 class="ballot-header ballot-position">BulSU Supreme Student Council S.Y. 2025-2026</h3>
           <br />
           <ul>
-            <li><b>President:</b> <span><%= votes.president.name %></span></li>
-            <li><b>Vice President:</b> <span><%= votes.vicePresident.name %></span></li>
             <li>
-              <b>Senators:</b>
-              <div>
+              <div class="card">
+                <div class="smallIcon">
+                  <div class="Icon"><img src="<%= votes.president.image %>" /></div>
+                  <div class="Name"><h2><%= votes.president.name %></h2></div>
+                  <div class="Roles"><h2><%= votes.president.position %></h2></div>
+                  <div class="Description"><p><%= votes.president.moreInfo %></p></div>
+                </div>
+              </div>
+            </li>
+            <br />
+            <li>
+              <div class="card">
+                <div class="smallIcon">
+                  <div class="Icon"><img src="<%= votes.vicePresident.image %>" /></div>
+                  <div class="Name"><h2><%= votes.vicePresident.name %></h2></div>
+                  <div class="Roles"><h2><%= votes.vicePresident.position %></h2></div>
+                  <div class="Description"><p><%= votes.vicePresident.moreInfo %></p></div>
+                </div>
+              </div>
+            </li>
+            <br />
+            <li>
+              <div class="senator-cards">
                 <% votes.senator.forEach((senator) => { %>
-                <span><%= senator.name %></span><br />
+                <div class="card">
+                  <div class="smallIcon">
+                    <div class="Icon"><img src="<%= senator.image %>" /></div>
+                    <div class="Name"><h2><%= senator.name %></h2></div>
+                    <div class="Roles"><h2><%= senator.position %></h2></div>
+                    <div class="Description"><p><%= senator.moreInfo %></p></div>
+                  </div>
+                </div>
+                <br />
                 <% }); %>
               </div>
             </li>
-            <li><b>Governor:</b> <span><%= votes.governor.name %></span></li>
-            <li><b>Vice Governor:</b> <span><%= votes.viceGovernor.name %></span></li>
-            <li><b>Board Member:</b> <span><%= votes.boardMember.name %></span></li>
+            <li>
+              <div class="card">
+                <div class="smallIcon">
+                  <div class="Icon"><img src="<%= votes.governor.image %>" /></div>
+                  <div class="Name"><h2><%= votes.governor.name %></h2></div>
+                  <div class="Roles"><h2><%= votes.governor.position %></h2></div>
+                  <div class="Description"><p><%= votes.governor.moreInfo %></p></div>
+                </div>
+              </div>
+            </li>
+            <br />
+            <li>
+              <div class="card">
+                <div class="smallIcon">
+                  <div class="Icon"><img src="<%= votes.viceGovernor.image %>" /></div>
+                  <div class="Name"><h2><%= votes.viceGovernor.name %></h2></div>
+                  <div class="Roles"><h2><%= votes.viceGovernor.position %></h2></div>
+                  <div class="Description"><p><%= votes.viceGovernor.moreInfo %></p></div>
+                </div>
+              </div>
+            </li>
+            <br />
+            <li>
+              <div class="card">
+                <div class="smallIcon">
+                  <div class="Icon"><img src="<%= votes.boardMember.image %>" /></div>
+                  <div class="Name"><h2><%= votes.boardMember.name %></h2></div>
+                  <div class="Roles"><h2><%= votes.boardMember.position %></h2></div>
+                  <div class="Description"><p><%= votes.boardMember.moreInfo %></p></div>
+                </div>
+              </div>
+            </li>
+            <br />
           </ul>
           <form id="voteForm">
-            <input type="hidden" id="voteData" value="<%= JSON.stringify(votes) %>" />
-            <input type="button" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" />
+            <div class="button-container">
+              <button class="button-back" type="button" onclick="window.location.href='/vote'">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12H4.5m0 0l6.75-6.75M4.5 12l6.75 6.75"></path>
+                </svg>
+
+                <div class="text">Go Back</div>
+              </button>
+
+              <input type="hidden" id="voteData" value="<%= JSON.stringify(votes) %>" />
+              <!-- <input type="button" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" /> -->
+              <!-- From Uiverse.io by ilkhoeri -->
+              <button type="submit" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" type="button" class="button">
+                <span class="fold"></span>
+
+                <div class="points_wrapper">
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                </div>
+
+                <span class="inner">
+                  <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5">
+                    <polyline points="13.18 1.37 13.18 9.64 21.45 9.64 10.82 22.63 10.82 14.36 2.55 14.36 13.18 1.37"></polyline>
+                  </svg>
+                  <span>Submit Votes</span>
+                </span>
+              </button>
+            </div>
           </form>
 
-          <!-- Queue Position Indicator -->
-          <p id="queuePosition" style="font-weight: bold; color: #007bff; display: block">Queue Position: <span id="queueNumber"></span></p>
+          <br /><br />
+          <hr />
 
-          <!-- Loading Bar (Initially Hidden) -->
+          <!-- Queue Position Indicator -->
+          <p id="queuePosition" style="font-weight: bold; color: black; display: block">Queue Position: <span id="queueNumber"></span></p>
+
+          <hr />
+          <br />
           <div id="loading-bar" class="loading-bar-container" style="display: none">
             <div class="loading-bar"></div>
           </div>
+          <br /><br /><br />
+          <!-- Loading Bar (Initially Hidden) -->
 
           <!-- <script>
             async function submitVote() {
