@@ -79,9 +79,9 @@
   background: var(--color-selected-bg);
 }
 
-.ballot-choices input[type="checkbox"] {
-  /* display: none; */
-}
+/* .ballot-choices input[type="checkbox"] {
+  display: none; 
+} */
 
 /* #ballot-senator {
   display: flex;
@@ -425,7 +425,11 @@
   font-size: 14px;
   font-weight: 500;
   line-height: 19px;
-  -webkit-appearance: none;
+  /* -webkit-appearance: none; */
+  appearance: none;
+  -webkit-appearance: none; /* For Safari and older versions of Chrome */
+  -moz-appearance: none; /* For Firefox */
+  -ms-appearance: none; /* For IE */
   -webkit-tap-highlight-color: transparent;
   padding: 17px 29px 17px 69px;
   transition: background 0.3s;
@@ -601,4 +605,9 @@
   --pby: -3px;
   --pbd: 0.15s;
   --pex: -24px;
+}
+
+.dimmed {
+  filter: brightness(50%);
+  transition: filter 0.3s ease-in-out;
 }

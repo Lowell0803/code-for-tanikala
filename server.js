@@ -974,17 +974,11 @@ const startServer = async () => {
 
       const parseVote = (vote) => {
         try {
-          // ✅ If `vote` is `"Abstain"` or empty, return Abstain object
-          if (!vote || vote === "Abstain" || (Array.isArray(vote) && vote.length === 0)) {
-            return { id: "Abstain", name: "Abstain" };
+          if (!vote || vote === "Abstain" || (Array.isArray(vote) && vote.includes("Abstain"))) {
+            return { id: "Abstain", name: "Abstain" }; // ✅ Prioritize abstain
           }
-
-          // ✅ If `vote` is a string, parse it as JSON
-          if (typeof vote === "string") {
-            return JSON.parse(vote);
-          }
-
-          return vote; // If it's already an object, return as is
+          if (typeof vote === "string") return JSON.parse(vote);
+          return vote; // If already an object, return as is
         } catch (error) {
           console.error("Invalid JSON format:", vote, error);
           return { id: "Invalid", name: "Invalid" }; // Handle invalid JSON cases
@@ -1000,10 +994,48 @@ const startServer = async () => {
         boardMember: parseVote(req.body.boardMember),
       };
 
-      console.log(votes);
+      console.log("Processed Votes:", votes);
 
       res.render("voter/review", { votes, voterCollege, voterProgram });
     });
+
+    // app.post("/review", (req, res) => {
+    //   // Data from the logged-in account
+    //   const voterCollege = req.user ? req.user.college : "CAFA";
+    //   const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
+
+    //   const parseVote = (vote) => {
+    //     try {
+    //       // ✅ If `vote` is `"Abstain"` or empty, return Abstain object
+    //       if (!vote || vote === "Abstain" || (Array.isArray(vote) && vote.length === 0)) {
+    //         return { id: "Abstain", name: "Abstain" };
+    //       }
+
+    //       // ✅ If `vote` is a string, parse it as JSON
+    //       if (typeof vote === "string") {
+    //         return JSON.parse(vote);
+    //       }
+
+    //       return vote; // If it's already an object, return as is
+    //     } catch (error) {
+    //       console.error("Invalid JSON format:", vote, error);
+    //       return { id: "Invalid", name: "Invalid" }; // Handle invalid JSON cases
+    //     }
+    //   };
+
+    //   const votes = {
+    //     president: parseVote(req.body.president),
+    //     vicePresident: parseVote(req.body.vicePresident),
+    //     senator: req.body.senator ? (Array.isArray(req.body.senator) ? req.body.senator.map(parseVote) : [parseVote(req.body.senator)]) : [{ id: "Abstain", name: "Abstain" }], // ✅ Ensure senator is always an array
+    //     governor: parseVote(req.body.governor),
+    //     viceGovernor: parseVote(req.body.viceGovernor),
+    //     boardMember: parseVote(req.body.boardMember),
+    //   };
+
+    //   console.log(votes);
+
+    //   res.render("voter/review", { votes, voterCollege, voterProgram });
+    // });
 
     // app.get("/results", async (req, res) => {
     //   try {
