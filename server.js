@@ -1080,11 +1080,7 @@ const startServer = async () => {
       const votes = {
         president: parseVote(req.body.president),
         vicePresident: parseVote(req.body.vicePresident),
-        senator: req.body.senator
-          ? Array.isArray(req.body.senator)
-            ? req.body.senator.map(parseVote)
-            : [parseVote(req.body.senator)]
-          : [{ id: "Abstain", name: "Abstain", image: "", party: "", position: "", moreInfo: "" }], // ✅ Ensure senator is always an array
+        senator: req.body.senator ? (Array.isArray(req.body.senator) ? req.body.senator.map(parseVote) : [parseVote(req.body.senator)]) : [{ id: "Abstain", name: "Abstain", image: "", party: "", position: "", moreInfo: "" }], // ✅ Ensure senator is always an array
         governor: parseVote(req.body.governor),
         viceGovernor: parseVote(req.body.viceGovernor),
         boardMember: parseVote(req.body.boardMember),
@@ -1093,6 +1089,10 @@ const startServer = async () => {
       console.log("Processed Votes:", votes);
 
       res.render("voter/review", { votes, voterCollege, voterProgram });
+    });
+
+    app.get("/election-management", async (req, res) => {
+      res.render("admin/election-management");
     });
 
     app.get("/results", async (req, res) => {

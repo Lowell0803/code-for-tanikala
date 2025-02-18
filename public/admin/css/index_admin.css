@@ -7,16 +7,14 @@
 
   /* main sizes */
   --height-header: 14vh;
-  --height-footer: 4vh;
+  --height-footer: 4.5vh;
   --height-content: calc(100vh - var(--height-header) - var(--height-footer));
-  --width-aside: 15vw;
+  --width-aside: 18vw;
 
   /* header sizes */
   --width-header-logo: 25vw;
   --width-header-user: 15vw;
-  --width-header-content: calc(
-    100vw - var(--width-header-logo) - var(--width-header-user)
-  );
+  --width-header-content: calc(100vw - var(--width-header-logo) - var(--width-header-user));
 
   /* footer sizes */
   --width-footer-side: 25vw;
@@ -30,12 +28,27 @@
 }
 
 body {
-  font-size: 1rem;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   height: 100vh; /* sus */
   font-family: "Poppins", "Century Gothic";
+}
+
+button {
+  cursor: pointer;
+}
+
+.nav-main a:hover {
+  color: var(--color-yellow);
+}
+
+.nav-settings a:hover {
+  color: var(--background-red);
+}
+
+#settings-active-link {
+  color: var(--background-red);
 }
 
 h1,
@@ -89,10 +102,22 @@ h6 {
   background-repeat: no-repeat;
 
   color: white;
+  /* border-bottom: 0.2rem solid var(--color-yellow); */
 }
 
 .header-logo {
   flex-basis: var(--width-header-logo);
+  /* border: 3px solid black; */
+}
+
+.header-user {
+  flex-basis: var(--width-header-user);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  /* border: 3px solid black; */
+  margin-right: 0.5rem;
 }
 
 .header-logo img {
@@ -103,22 +128,31 @@ h6 {
   flex-basis: var(--width-header-content);
 }
 
-.header-content h2,
-.header-content span {
+.header-content h2 {
   color: var(--color-yellow);
 }
 
-.header-user {
-  flex-basis: var(--width-header-user);
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
+.election-status {
+  font-weight: bold;
+  color: #369f2c;
 }
 
+.election-status2 {
+  font-weight: bold;
+  font-style: italic;
+  color: var(--color-yellow);
+}
+
+.period {
+  color: var(--background-yellow);
+}
+
+.dropdown-menu a:hover {
+  color: var(--background-red);
+}
 .header-user img {
   padding-right: 5%;
-  width: 16%;
+  width: 20%;
 }
 
 /* CONTENT */
@@ -141,7 +175,7 @@ h6 {
 }
 
 .aside-admin {
-  margin-top: 30%;
+  margin-top: 13%;
 }
 
 .aside-admin img {
@@ -149,7 +183,7 @@ h6 {
 }
 
 .aside-nav {
-  margin-top: 20%;
+  margin-top: 2.5%;
 }
 
 .aside-nav ul {
@@ -170,63 +204,326 @@ h6 {
 
 /* links for voter turnout, results, ... */
 .nav-main li {
-  padding: 6% 0%;
-  margin: 3% 10%;
+  padding: 4% 0%;
+  margin: 5% 10%;
 
   border-radius: 1.25em;
 
-  background: radial-gradient(circle, #550c0a, #310505);
+  background: linear-gradient(#550c0a, #310505);
   background-position: 50% 50%;
   background-repeat: no-repeat;
 }
 
 .nav-main a {
   color: white;
+  font-size: 0.85rem;
 }
 
 /* links for edit account, edit candidates, ... */
 .nav-settings li {
   padding: 2% 0%;
+  font-size: 0.65rem;
+}
+
+.nav-settings hr {
+  /* display: flex;
+  justify-content: center;
+  align-items: center; */
+  border: none;
+  width: 71%;
+  height: 0.07rem;
+  background-color: #423a2c;
+  opacity: 60%;
+  margin: 0 auto;
+}
+
+/* Triangle button for dropdown */
+.dropdown {
+  width: 0;
+  height: 0;
+  border-left: 0.62rem solid transparent;
+  border-right: 0.62rem solid transparent;
+  border-top: 0.63rem solid #e1ae5b;
+  display: inline-block;
+  margin-left: 0.7rem;
+}
+
+.dropdown-line {
+  border: none;
+  width: 85%;
+  height: 0.05rem;
+  background-color: #423a2c;
+
+  opacity: 60%;
+  margin: 0 auto;
+}
+/* Dropdown Menu (initially hidden) */
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background-color: #e1ae5b;
+  width: 15%;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  border-radius: 0.5rem;
+  margin-top: 12.5%;
+  margin-right: 2.5%;
+  padding: 0.5rem;
+}
+
+/* Style for the links inside the dropdown */
+.dropdown-menu a {
+  color: #480404;
+  padding: 0.7rem 2rem;
+  text-decoration: none;
+  display: block;
+}
+
+/* Hover effect for links
+.dropdown-menu a:hover {
+  background-color: black;
+} */
+
+/* Show dropdown when the .active class is added */
+.dropdown.active + .dropdown-menu {
+  display: block;
+}
+
+.admin-name {
+  color: white;
+}
+
+.admin {
+  color: #480404;
+}
+
+.nav-settings {
+  display: none;
 }
 
 .nav-settings a {
-  color: black;
+  color: #480404;
+}
+
+#settings-button {
+  color: var(--color-yellow);
 }
 
 .main {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  /* flex-grow: 1; */
+  width: 100%;
+  /* flex-basis: calc(100vw-var(--width-aside)); */
 
-  align-items: center;
-  justify-content: center;
-
-  background-color: var(--background-lighter-yellow);
+  /* align-items: center; */
+  /* justify-content: center; */
 
   overflow-y: auto;
-  max-height: 100%;
+  position: relative;
+
+  /* overflow-x: hidden;  */
+  /* max-height: 100%;
+  max-width: 100%; */
+  padding: 1.5rem;
+  background-color: #faf2db;
+}
+
+.container-overlay {
+  padding: 1.5rem;
+}
+
+/* BUTTONS */
+.action-buttons {
+  padding: 0.6rem;
+  margin: 1rem;
+  border-radius: 1rem;
+  border: none;
+  color: white;
+  font-weight: bold;
+}
+
+.edit-button {
+  background-color: #0024e4;
+}
+
+.save-button {
+  background-color: #369f2c;
+}
+
+#cancel-button {
+  background-color: #c11515;
+}
+
+.blockchain-button {
+  background-color: #503a96;
+}
+
+.button-container {
+  text-align: right;
+  width: 100%;
+}
+
+.button-container-center {
+  text-align: center;
+  width: 100%;
+}
+
+/* POPUPS */
+#darken-background {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  flex-grow: 1;
+  min-height: 100%;
+  width: 100%;
+
+  background-color: black;
+  opacity: 60%;
+  z-index: 1;
+}
+
+.popup-form {
+  position: absolute;
+  display: none;
+  background-color: #e1ae5b;
+  border-radius: 1.5rem;
+  border: 0.1rem solid #370606;
+  text-align: center;
+  padding: 2rem;
+
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+
+  max-height: 90%;
   max-width: 100%;
+  overflow-y: auto;
+}
+
+.flex-column-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-field {
+  background-color: #fff3c8;
+  border: 0.15rem solid #370606;
+  height: 2rem;
+  width: 27rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  /* border-style: none; */
+  padding: 0.5rem;
+  /* margin: 0.5rem; */
+}
+
+.flex-column-container label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #370606;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.container-exit {
+  position: absolute;
+  /* border: 1px solid black; */
+  left: calc(100% - 2.5em);
+  bottom: calc(100% - 2.5em);
+}
+
+.popup-form img {
+  width: 1rem;
 }
 
 /* FOOTER */
 .footer {
-  flex-basis: var(--height-footer);
-
   display: flex;
   flex-direction: row;
   text-align: center;
   align-items: center;
+  flex-basis: var(--height-footer);
 
   background-color: var(--background-red);
   color: white;
 }
 
-.footer-side {
+.footer-left,
+.footer-center,
+.footer-right {
+  display: flex;
+  font-size: 0.85rem;
+  flex-direction: row;
+  /* border: 3px solid black; */
+}
+
+.footer-left {
   flex-basis: var(--width-footer-side);
-  text-align: right;
-  padding-right: 2%;
+  justify-content: flex-start;
+  padding-left: 2rem;
 }
 
 .footer-center {
   flex-basis: var(--width-footer-center);
+  justify-content: center;
+}
+
+.footer-right {
+  display: flex;
+  flex-basis: var(--width-footer-side);
+  justify-content: flex-end;
+  padding-right: 2rem;
+}
+
+.footer-img {
+  height: 2.7vh;
+  padding-right: 0.35rem;
+  margin-top: 0.08rem;
+
+  text-align: center;
+  width: auto;
+}
+
+#info-img {
+  height: 2.85vh;
+  margin-top: 0;
+  width: 2.08vw;
+}
+
+#copyright-img {
+  margin-top: 0.159rem;
+  height: 2.3vh;
+}
+
+.footer a {
+  text-decoration: none;
+  color: #529af8;
+}
+
+.overlay {
+  position: relative;
+  /* border: 1px dashed red; */
+}
+
+.overlay:after {
+  content: "\A";
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: all 0.5s;
+  -webkit-transition: all 0.5s;
+  opacity: 1;
+}
+
+.settings-title {
+  color: var(--color-brown);
 }

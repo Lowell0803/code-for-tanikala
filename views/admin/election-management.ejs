@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>BulSU Voting System</title>
+
+    <link rel="stylesheet" type="text/css" href="admin/css/index_admin.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/election-management.css" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
+
+  <body>
+    <header class="header" id="header">
+      <div class="header-logo">
+        <img src="../img/logo_tanikala.png" />
+      </div>
+      <div class="header-content">
+        <h2><span>BulSU Student Government Elections 2025-2026</span></h2>
+        <p>
+          Current Election Status:&nbsp;
+          <span class="election-status">ELECTION ONGOING</span>
+          |
+          <span class="election-status2">Voting</span>
+        </p>
+        <p>
+          Voting Period:&nbsp;
+          <span class="period">MM/DD/YYYY</span>
+          -
+          <span class="period">MM/DD/YYYY</span>
+        </p>
+      </div>
+      <div class="header-user">
+        <img src="../img/placeholder_admin_profile.png" />
+        <div class="admin-name">Admin 1</div>
+        <div class="dropdown" onclick="toggleDropdown()"></div>
+        <div class="dropdown-menu">
+          <a href="#">View Account</a>
+          <hr class="dropdown-line" />
+          <a href="#">Log Out</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <aside class="aside">
+        <div class="aside-admin">
+          <img src="../img/placeholder_admin_profile.png" />
+          <h3 class="admin">Admin 1</h3>
+        </div>
+        <nav class="aside-nav">
+          <ul class="nav-main">
+            <li>
+              <a href="dashboard.html">Dashboard</a>
+            </li>
+            <li>
+              <a href="voter_turnout.html">Voter Turnout</a>
+            </li>
+            <li>
+              <a href="results.html">Results</a>
+            </li>
+            <li>
+              <a href="voter_information.html">Voter Information</a>
+            </li>
+            <li>
+              <a href="#" onclick="showSettings()" id="active-link">Settings</a>
+            </li>
+          </ul>
+          <ul class="nav-settings" id="settings-menu">
+            <li>
+              <a href="settings_view_history.html">View History</a>
+            </li>
+            <hr />
+            <li>
+              <a href="settings_edit_account.html">Edit Account</a>
+            </li>
+            <li>
+              <a href="settings_manage_accounts.html">Manage Accounts</a>
+            </li>
+            <hr />
+            <li>
+              <a href="settings_election_management.html" id="settings-active-link">Election Management</a>
+            </li>
+            <li>
+              <a href="settings_blockchain_management.html">Blockchain Management</a>
+            </li>
+            <li>
+              <hr />
+              <a href="settings_reset_election.html">Reset Election</a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+      <main class="main" id="main">
+        <div id="container-overlay">
+          <div class="page-title">
+            <h1 class="settings-title">Election Management</h1>
+            <div class="smart">
+              <h4>Smart Contract Status: Not Deployed | Deployed</h4>
+            </div>
+          </div>
+          <div class="first-main">
+            <div class="form" id="election-configuration">
+              <h3 class="center">Election Configurations</h3>
+              <br />
+              <p>
+                <b>Election Name:</b>
+                <span> BulSU Student Government Elections 2025-2026 </span>
+              </p>
+              <div class="button-container">
+                <button class="action-buttons edit-button" onclick="showPopup('edit-election-name-popup')">Edit Election Name</button>
+              </div>
+
+              <p><b>Registration Period:</b></p>
+              <p>&nbsp;&nbsp;Start Date: <span>February 20, 2025 - 12:00 AM</span></p>
+              <p>&nbsp;&nbsp;End Date: <span>March 20, 2025 - 11:00 PM</span></p>
+              <div class="button-container">
+                <button class="action-buttons edit-button" onclick="showPopup('edit-registration-period-popup')">Edit Registration Period</button>
+              </div>
+
+              <p><b>Voting Period:</b></p>
+              <p>&nbsp;&nbsp;Start Date: <span>April 20, 2025 - 8:00 AM</span></p>
+              <p>&nbsp;&nbsp;End Date: <span>April 20, 2025 - 11:00 PM</span></p>
+              <div class="button-container">
+                <button class="action-buttons edit-button" onclick="showPopup('edit-registration-period-popup')">Edit Voting Period</button>
+              </div>
+
+              <p>
+                <b>Total Number of Elections: </b>
+                <span>14</span>
+              </p>
+              <br />
+
+              <p>
+                <b>Total Number of Party Lists: </b>
+                <span>2</span>
+              </p>
+
+              <ul class="election-configuration">
+                <li>BulSUONE</li>
+                <li>KASAMA - BulSU</li>
+              </ul>
+              <div class="button-container">
+                <button class="action-buttons" id="edit-button" onclick="showPopup('edit-partylist-popup')">Manage Partylists</button>
+              </div>
+
+              <p>
+                <b>Total Number of Candidates: </b>
+                <span>20</span>
+              </p>
+              <div class="button-container">
+                <button class="action-buttons" id="edit-button" onclick="location.href='#candidates'">Manage Candidates</button>
+              </div>
+
+              <p>
+                <b>Total Number of Voters: </b>
+                <span>45,000</span>
+              </p>
+              <br />
+
+              <p>
+                <b>List of Elections and Their Number of Students (Voters):</b>
+              </p>
+              <br />
+
+              <ol class="election-configuration">
+                <li>
+                  <p>
+                    <b>Supreme Student Council (SSC) - BulSU Main: </b>
+                    <span> 45,000 students </span>
+                  </p>
+                </li>
+                <br />
+                <p>
+                  <b>Local Student Councils (LSCs) - BulSU Main:</b>
+                </p>
+                <br />
+
+                <li>
+                  <p>
+                    <b>College of Architecture and Fine Arts (CAFA): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Arts and Letters (CAL): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Business Education and Accountancy (CBEA): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Criminal Justice Education (CCJE): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Engineering (COE): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Education (COED): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Hospitality and Tourism Management (CHTM): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Industrial Technology (CIT): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Information and Communications Technology (CICT): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Nursing (CON): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Science (CS): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Social Sciences and Philosophy (CSSP): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>College of Sports, Exercise, and Recreation (CSER): </b>
+                    <span>549 students</span>
+                  </p>
+                </li>
+              </ol>
+              <div class="button-container">
+                <button class="action-buttons" id="edit-button" onclick="showPopup('edit-student-totals-popup')">Edit Total Number of Students</button>
+              </div>
+            </div>
+
+            <div class="right-side">
+              <div class="form" id="election-settings">
+                <h3 class="center">Election Settings</h3>
+                <br />
+                <p>
+                  <b>Current Election Status: </b>
+                </p>
+                <br />
+                <div class="center">
+                  <p>
+                    <span>ELECTION ONGOING</span>
+                    <span class="separator">|</span>Voting
+                  </p>
+                </div>
+                <br />
+                <div>
+                  <input type="checkbox" id="disable-system" name="disable-system" />
+                  <label for="disable-system">Temporarily Disable System</label>
+                </div>
+                <br />
+                <hr class="full-line" />
+                <br />
+                <p>
+                  <b>NEW ELECTION SETUP</b>
+                </p>
+                <br />
+                <div>
+                  <input type="radio" id="election-not-active" name="election-status" value="election-not-active" />
+                  <label for="election-not-active">Election Not Active</label>
+                </div>
+                <br />
+                <hr class="full-line" />
+                <br />
+
+                <p>
+                  <b>ELECTION ONGOING</b>
+                </p>
+                <br />
+
+                <div>
+                  <input type="radio" id="registration-period" name="election-status" value="registration-period" />
+                  <label for="registration-period">Registration Period</label>
+                </div>
+
+                <div>
+                  <input type="radio" id="voting-period" name="election-status" value="voting-period" />
+                  <label for="voting-period">Voting Period</label>
+                </div>
+
+                <br />
+                <hr class="full-line" />
+                <br />
+                <p>
+                  <b>ELECTION ENDED</b>
+                </p>
+                <br />
+
+                <div>
+                  <input type="radio" id="results-tabulation" name="election-status" value="results-tabulation" />
+                  <label for="results-tabulation">Results Tabulation in Progress</label>
+                </div>
+
+                <div>
+                  <input type="radio" id="results-out" name="election-status" value="results-out" />
+                  <label for="results-out">Results are out</label>
+                </div>
+
+                <br />
+              </div>
+            </div>
+          </div>
+          <div class="form" id="candidates-title">
+            <h3 id="candidates">CANDIDATES</h3>
+          </div>
+          <div class="button-container-center">
+            <button class="action-buttons blockchain-button" onclick="showPopup('deploy-smart-contract-popup')">Send Election Configurations to Blockchain</button>
+          </div>
+        </div>
+        <!--  END OF CONTAINER container-overlay -->
+
+        <!-- Popups -->
+
+        <!-- Edit Election Name -->
+        <div class="popup-form" id="edit-election-name-popup">
+          <div class="container-exit"><img src="img/exit.png" alt="Exit" onclick="showPopup('edit-election-name-popup')" /></div>
+
+          <div class="flex-column-container">
+            <label for="election-name" class="text-field-label">Election Name:</label>
+            <input type="text" id="election-name" class="text-field" name="election-name" value="BulSU Student Government Elections 2025-2026" />
+
+            <button class="action-buttons save-button">Save</button>
+          </div>
+        </div>
+
+        <!-- Edit Student Totals -->
+        <div class="popup-form" id="edit-student-totals-popup">
+          <div class="container-exit">
+            <img src="img/exit.png" alt="Exit" onclick="showPopup('edit-student-totals-popup')" />
+          </div>
+
+          <div class="flex-column-container">
+            <table class="student-totals">
+              <thead>
+                <th>Student Population for Bulacan State University</th>
+
+                <tr>
+                  <td class="college-column">1. Bulacan State University - Malolos (Main)</td>
+                  <td><input type="number" id="bulsu-no-of-students" class="no-of-students-column" name="bulsu-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">2. College of Architecture and Fine Arts (CAFA)</td>
+                  <td><input type="number" id="#-no-of-students" class="no-of-students-column" name="#-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">3. College of Arts and Letters (CAL)</td>
+                  <td><input type="number" id="cal-no-of-students" class="no-of-students-column" name="cal-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">4. College of Business Education and Accountancy (CBEA)</td>
+                  <td><input type="number" id="cbea-no-of-students" class="no-of-students-column" name="cbea-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">5. College of Criminal Justice Education (CCJE)</td>
+                  <td><input type="number" id="ccje-no-of-students" class="no-of-students-column" name="ccje-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">6. College of Engineering (COE)</td>
+                  <td><input type="number" id="coe-no-of-students" class="no-of-students-column" name="coe-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">7. College of Education (COED)</td>
+                  <td><input type="number" id="coed-no-of-students" class="no-of-students-column" name="coed-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">8. College of Hospitality and Tourism Management (CHTM)</td>
+                  <td><input type="number" id="chtm-no-of-students" class="no-of-students-column" name="chtm-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">9. College of Industrial Technology (CIT)</td>
+                  <td><input type="number" id="cit-no-of-students" class="no-of-students-column" name="cit-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">10. College of Information and Communications Technology (CICT)</td>
+                  <td><input type="number" id="cict-no-of-students" class="no-of-students-column" name="cict-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">11. College of Nursing (CON)</td>
+                  <td><input type="number" id="con-no-of-students" class="no-of-students-column" name="con-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">12. College of Science (CS)</td>
+                  <td><input type="number" id="cs-no-of-students" class="no-of-students-column" name="cs-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">13. College of Social Sciences and Philosophy (CSSP)</td>
+                  <td><input type="number" id="cssp-no-of-students" class="no-of-students-column" name="cssp-no-of-students" /></td>
+                </tr>
+                <tr>
+                  <td class="college-column">14. College of Sports, Exercise, and Recreation (CSER)</td>
+                  <td><input type="number" id="cser-no-of-students" class="no-of-students-column" name="cser-no-of-students" /></td>
+                </tr>
+              </thead>
+            </table>
+          </div>
+
+          <button class="action-buttons save-button">Save</button>
+        </div>
+
+        <!-- Edit Partylists -->
+        <div class="popup-form" id="edit-partylist-popup">
+          <div class="container-exit">
+            <img src="img/exit.png" alt="Exit" onclick="showPopup('edit-partylist-popup')" />
+          </div>
+
+          <div class="flex-column-container">
+            <label for="partylist-one" class="text-field-label">Name of Partylist 1: </label>
+            <input type="text" id="partylist-one" class="text-field" name="partylist-one" required />
+
+            <label for="partylist-one" class="text-field-label">Name of Partylist 2: </label>
+            <input type="text" id="partylist-two" class="text-field" name="partylist-two" required />
+
+            <button class="action-buttons save-button">Save</button>
+          </div>
+        </div>
+
+        <!-- Edit Registration Period -->
+        <div class="popup-form" id="edit-registration-period-popup">
+          <div class="container-exit">
+            <img src="img/exit.png" alt="Exit" onclick="showPopup('edit-registration-period-popup')" />
+          </div>
+
+          <div class="flex-column-container">
+            <h2>Registration Period</h2>
+            <label for="registratio-start-date" class="text-field-label">Start Date:</label>
+            <input type="datetime-local" id="registration-start-date" class="text-field" name="registration-start-date" />
+            <div class="flex-column-container">
+              <label for="registratio-end-date" class="text-field-label">End Date:</label>
+              <input type="datetime-local" id="registration-end-date" class="text-field" name="registration-end-date" />
+              <button class="action-buttons" id="save-button">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Voting Period -->
+        <div class="popup-form" id="edit-registration-period-popup">
+          <div class="container-exit"><img src="img/exit.png" alt="Exit" onclick="showPopup('edit-registration-period-popup')" /></div>
+
+          <div class="flex-column-container">
+            <h2>Voting Period</h2>
+            <label for="voting-start-date" class="text-field-label">Start Date:</label>
+            <input type="datetime-local" id="voting-start-date" class="text-field" name="voting-start-date" />
+            <div class="flex-column-container">
+              <label for="voting-end-date" class="text-field-label">End Date:</label>
+              <input type="datetime-local" id="voting-end-date" class="text-field" name="voting-end-date" />
+              <button class="action-buttons save-button">Save</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-left">
+        <img src="img/calendar.png" class="footer-img" />
+        <p id="datetime">OCTOBER 23, 2024 - 04:17 AM</p>
+      </div>
+
+      <div class="footer-center">
+        <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+        <p>2025 - Fourmula 1</p>
+      </div>
+      <div class="footer-right">
+        <img src="img/info.png" class="footer-img" id="info-img" />
+        <p>Need help? Click&nbsp;</p>
+        <a href="help_page"> here.</a>
+      </div>
+    </footer>
+
+    <script src="admin/js/index_admin.js"></script>
+  </body>
+</html>

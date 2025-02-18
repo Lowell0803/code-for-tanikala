@@ -1,0 +1,145 @@
+.form {
+  border-radius: 1.5rem;
+  /* border: .2rem solid; */
+}
+
+.first-main {
+  display: flex;
+  flex-direction: row;
+  flex-basis: 100%;
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+#election-configuration {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 55%;
+  background-color: #b8e5ff;
+  margin-right: 1.5rem;
+  padding: 1.5rem;
+}
+
+.election-configuration {
+  padding-left: 1.5rem;
+}
+
+.right-side {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 45%;
+  /* background-color: #c6cee7; */
+}
+
+.quick-actions-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+#quick-actions {
+  background-color: #ffbc97;
+  color: #c24703;
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.quick-actions-buttons {
+  background-color: #ffbc97;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  border-radius: 1.5rem;
+  font-size: 0.7rem;
+  padding: 0.35rem;
+  width: 22%;
+}
+
+.quick-buttons {
+  width: 30%;
+  height: auto;
+}
+
+.view-export {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.separator {
+  margin: 0 0.4rem;
+}
+
+.indent {
+  text-indent: 20rem;
+}
+
+#voter-turnout {
+  display: flex;
+  height: 60vh;
+  background-color: #f8d69e;
+  justify-content: center;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+#election-settings {
+  display: flex;
+  background-color: #c0edbc;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.5rem;
+}
+
+.center {
+  text-align: center;
+  width: 100%;
+}
+
+.full-line {
+  width: 100%;
+  height: 0.19rem;
+  background-color: #58664e;
+}
+
+#candidates-title {
+  background-color: #ffe1ab;
+  color: #bb7e15;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.edit-student-totals-popup {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100vw;
+}
+
+.page-title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.smart {
+  display: flex;
+  flex-direction: row;
+  flex-basis: 60%;
+  justify-content: flex-end;
+  /* border: 1px solid black; */
+}
+
+.center {
+  text-align: center;
+}
