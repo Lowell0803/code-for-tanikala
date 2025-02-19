@@ -153,13 +153,34 @@
         <div class="title">
           <h2>Admin Account Management</h2>
           <span class="indent">
-            <button type="button" class="save-button action-buttons" id="button-add-accounts">Add Admin Accounts</button>
+            <!-- <button type="button" class="save-button action-buttons" id="button-add-accounts">Add Admin Accounts</button> -->
           </span>
         </div>
+        <form id="add-admin-form" action="/admin-accounts/add" method="POST">
+          <label>Name:</label>
+          <input type="text" name="name" required />
+
+          <label>Username:</label>
+          <input type="text" name="username" required />
+
+          <label>Password:</label>
+          <input type="password" name="password" required />
+
+          <br />
+          <label>Image:</label>
+          <input type="file" accept="image/*" onchange="convertImageToBase64(event)" required />
+
+          <input type="hidden" name="imgBase64" id="imgBase64" />
+
+          <input type="hidden" name="role" value="admin" />
+          <button type="submit">Add Admin</button>
+        </form>
+        <br />
         <div class="table-container">
           <table>
             <thead>
               <tr>
+                <th>Image</th>
                 <th>Name</th>
                 <th>Role</th>
                 <th>Username</th>
@@ -168,20 +189,29 @@
               </tr>
             </thead>
             <tbody>
+              <% admins.forEach(admin => { %>
               <tr>
-                <td>Zarina Dungo</td>
-                <td>Admin</td>
-                <td></td>
-                <td></td>
-                <td><button class="edit-button action-buttons">Edit</button>&nbsp;&nbsp;&nbsp;&nbsp;<button class="delete-button action-buttons">Delete</button></td>
+                <td>
+                  <img src="<%= admin.img %>" width="50" height="50" alt="Profile Picture" />
+                </td>
+                <td><%= admin.name %></td>
+                <td><%= admin.role %></td>
+                <td><%= admin.username %></td>
+                <td>
+                  <% if (userRole === "superadmin") { %>
+                  <span class="password" data-password="<%= admin.password %>">********</span>
+                  <button onclick="togglePassword(this)">Show</button>
+                  <% } else { %> ******** <% } %>
+                </td>
+                <td>
+                  <% if (userRole === "superadmin") { %>
+                  <form action="/admin-accounts/delete/<%= admin._id %>" method="POST">
+                    <button type="submit">Delete</button>
+                  </form>
+                  <% } %>
+                </td>
               </tr>
-              <tr>
-                <td>Yvan Lowell Trillanes</td>
-                <td>Admin</td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
+              <% }) %>
             </tbody>
           </table>
         </div>
@@ -204,6 +234,32 @@
         <a href="help_page"> here.</a>
       </div>
     </footer>
+
+    <script>
+      function convertImageToBase64(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function () {
+          document.getElementById("imgBase64").value = reader.result;
+        };
+
+        if (file) {
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function togglePassword(button) {
+        const span = button.previousElementSibling;
+        if (span.textContent === "********") {
+          span.textContent = span.dataset.password;
+          button.textContent = "Hide";
+        } else {
+          span.textContent = "********";
+          button.textContent = "Show";
+        }
+      }
+    </script>
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>

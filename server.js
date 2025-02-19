@@ -4,6 +4,7 @@ const connectToDatabase = require("./db");
 const bodyParser = require("body-parser");
 const { ethers } = require("ethers");
 require("dotenv").config();
+const bcrypt = require("bcrypt");
 
 const app = express();
 const PORT = 3000;
@@ -1081,9 +1082,59 @@ const startServer = async () => {
     app.get("/edit-account", async (req, res) => {
       res.render("admin/system-edit-account");
     });
-    app.get("/manage-account", async (req, res) => {
-      res.render("admin/system-manage-accounts");
+    // app.get("/manage-account", async (req, res) => {
+    //   res.render("admin/system-manage-accounts");
+    // });
+    app.get("/manage-accounts", async (req, res) => {
+      try {
+        const userRole = req.query.role || "admin"; // Get user role from session/auth
+        const admins = await db.collection("admin_accounts").find().toArray();
+        res.render("admin/system-manage-accounts", { admins, userRole });
+      } catch (error) {
+        console.error("Error fetching admin accounts:", error);
+        res.status(500).send("Internal Server Error");
+      }
     });
+
+    // Add New Admin (Base64 Image)
+    app.post("/admin-accounts/add", async (req, res) => {
+      try {
+        const { name, username, password, role, imgBase64 } = req.body;
+
+        if (role !== "admin") {
+          return res.status(403).json({ error: "Only Admins can be created" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newAdmin = {
+          name,
+          username,
+          password: hashedPassword,
+          role,
+          img: imgBase64, // Store base64 image directly
+        };
+
+        await db.collection("admin_accounts").insertOne(newAdmin);
+        res.redirect("/admin-accounts");
+      } catch (error) {
+        console.error("Error adding admin:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // Delete Admin
+    app.post("/admin-accounts/delete/:id", async (req, res) => {
+      try {
+        const adminId = req.params.id;
+        await db.collection("admin_accounts").deleteOne({ _id: new ObjectId(adminId) });
+        res.redirect("/admin-accounts");
+      } catch (error) {
+        console.error("Error deleting admin:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
     app.get("/help-page", async (req, res) => {
       res.render("admin/system-help-page");
     });
