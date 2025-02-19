@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const { ethers } = require("ethers");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
+const session = require("express-session");
 
 const app = express();
 const PORT = 3000;
@@ -15,6 +16,15 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET_KEY, // Use .env secret or fallback
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }, // Set to true if using HTTPS
+  })
+);
 
 let db;
 
@@ -1087,9 +1097,27 @@ const startServer = async () => {
     // });
     app.get("/manage-accounts", async (req, res) => {
       try {
-        const userRole = req.query.role || "admin"; // Get user role from session/auth
+        console.log("Accessing /manage-accounts");
+        console.log("Session data:", req.session.admin);
+
+        if (!req.session.admin) {
+          console.log("No admin session found. Redirecting to login.");
+          return res.redirect("/admin-login"); // Redirect if not logged in
+        }
+
+        if (req.session.admin.role !== "admin" && req.session.admin.role !== "superadmin") {
+          console.log("Unauthorized access attempt by:", req.session.admin.email);
+          return res.redirect("/admin-login"); // Redirect non-admins to login
+        }
+
         const admins = await db.collection("admin_accounts").find().toArray();
-        res.render("admin/system-manage-accounts", { admins, userRole });
+        console.log("Fetched admins:", admins.length);
+
+        res.render("admin/system-manage-accounts", {
+          admins,
+          admin: req.session.admin,
+          userRole: req.session.admin.role,
+        });
       } catch (error) {
         console.error("Error fetching admin accounts:", error);
         res.status(500).send("Internal Server Error");
@@ -1175,6 +1203,56 @@ const startServer = async () => {
 
     app.get("/admin-login", async (req, res) => {
       res.render("admin/admin-login");
+    });
+
+    app.post("/admin-login", async (req, res) => {
+      try {
+        const { email, password } = req.body;
+        console.log("Login attempt for email:", email);
+
+        const admin = await db.collection("admin_accounts").findOne({ email });
+
+        if (!admin) {
+          console.log("Admin not found for email:", email);
+          return res.redirect("/admin-login"); // Redirect on invalid login
+        }
+
+        console.log("Admin found:", admin);
+
+        const passwordMatch = await bcrypt.compare(password, admin.password);
+        console.log("Password match:", passwordMatch);
+
+        if (!passwordMatch) {
+          console.log("Incorrect password for email:", email);
+          return res.redirect("/admin-login"); // Redirect on incorrect password
+        }
+
+        // Store admin details in session
+        req.session.admin = {
+          id: admin._id,
+          name: admin.name,
+          email: admin.email,
+          username: admin.username,
+          role: admin.role,
+          img: admin.img,
+        };
+
+        console.log("Session set for admin:", req.session.admin);
+
+        res.redirect("/manage-accounts"); // Redirect to dashboard after login
+      } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.get("/logout", (req, res) => {
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).send("Error logging out");
+        }
+        res.redirect("/admin-login");
+      });
     });
 
     app.get("/api/programs", async (req, res) => {

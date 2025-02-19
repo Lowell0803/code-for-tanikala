@@ -38,13 +38,13 @@
         </p>
       </div>
       <div class="header-user">
-        <img src="../img/placeholder_admin_profile.png" />
-        <div class="admin-name">Admin 1</div>
+        <img src="<%= admin.img %>" />
+        <div class="admin-name"><%= admin.name %></div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="#">View Account</a>
           <hr class="dropdown-line" />
-          <a href="#">Log Out</a>
+          <a href="/logout">Log Out</a>
         </div>
       </div>
     </header>
@@ -52,8 +52,8 @@
     <div class="content">
       <div class="sidebar close">
         <div class="user-details">
-          <img src="img/dungo.jpeg" />
-          <span class="user-name">Zarina Dungo</span>
+          <img src="<%= admin.img %>" />
+          <span class="user-name"><%= admin.name %></span>
         </div>
 
         <ul class="nav-links">
