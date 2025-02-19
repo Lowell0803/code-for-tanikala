@@ -32,17 +32,21 @@
         <img src="../img/logo_bulsu_ucse.png" class="logo" alt="BulSU UCSE Logo" />
       </div>
       <div class="main-second">
+        <a href="/auth/microsoft" class="microsoft-login-button">
+          <img src="img/microsoft-logo.png" width="20" height="20" />
+          Login with Microsoft
+        </a>
         <form id="form-registration" action="/register" method="POST" onsubmit="formatEmail(event)">
           <h1>Registration Form</h1>
 
           <div class="form-input-container">
             <label for="full-name" class="form-label">Name: </label>
-            <input type="text" id="full-name" class="form-input" name="fullName" placeholder="e.g. Yvan Lowell Aquino" required />
+            <input type="text" id="full-name" class="form-input" name="fullName" value="<%= user ? user.name : '' %>" placeholder="e.g. Yvan Lowell Aquino" required />
           </div>
 
           <div class="form-input-container">
-            <label for="email" class="form-label">BulSU MS Account: </label>
-            <input type="email" id="bulsu-account" class="form-input" name="email" placeholder="e.g. 2021100291@ms.bulsu.edu.ph" readonly />
+            <label for="bulsu-account" class="form-label">BulSU Email: </label>
+            <input type="email" id="bulsu-account" class="form-input" name="email" value="<%= user ? user.email : '' %>" placeholder="e.g. 2021100291@ms.bulsu.edu.ph" readonly />
           </div>
 
           <div class="form-input-container">

@@ -7,15 +7,15 @@ require("dotenv").config();
 const bcrypt = require("bcrypt");
 const session = require("express-session");
 
+const passport = require("passport");
+const AzureOAuth2Strategy = require("passport-azure-ad-oauth2").Strategy;
+
 const app = express();
 const PORT = 3000;
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
 
 app.use(
   session({
@@ -25,6 +25,51 @@ app.use(
     cookie: { secure: false }, // Set to true if using HTTPS
   })
 );
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(
+  new AzureOAuth2Strategy(
+    {
+      clientID: process.env.MICROSOFT_CLIENT_ID,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+      callbackURL: "http://localhost:3000/auth/microsoft/callback",
+      tenant: process.env.MICROSOFT_TENANT_ID,
+      resource: "https://graph.microsoft.com",
+    },
+    async (accessToken, refreshToken, params, profile, done) => {
+      try {
+        // Decode the JWT token from Microsoft
+        const decodedToken = JSON.parse(Buffer.from(params.id_token.split(".")[1], "base64"));
+
+        // Extract the email from different possible fields
+        const userEmail = decodedToken.email || decodedToken.preferred_username || decodedToken.upn;
+        const userName = decodedToken.name;
+
+        // Log the user details for debugging
+        console.log("Authenticated User:", { name: userName, email: userEmail });
+
+        const user = { name: userName, email: userEmail };
+        done(null, user);
+      } catch (error) {
+        console.error("Error decoding Microsoft user info:", error);
+        done(error, null);
+      }
+    }
+  )
+);
+
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 let db;
 
@@ -38,6 +83,12 @@ const startServer = async () => {
   try {
     db = await connectToDatabase();
     console.log("Connected to the database successfully!");
+
+    app.get("/auth/microsoft", passport.authenticate("azure_ad_oauth2"));
+
+    app.get("/auth/microsoft/callback", passport.authenticate("azure_ad_oauth2", { failureRedirect: "/register" }), (req, res) => {
+      res.redirect("/register");
+    });
 
     // const voterCollege = req.user ? req.user.college : "CAL";
     // const voterProgram = req.user
@@ -1197,8 +1248,8 @@ const startServer = async () => {
       }
     });
 
-    app.get("/register", async (req, res) => {
-      res.render("voter/register");
+    app.get("/register", (req, res) => {
+      res.render("voter/register", { user: req.user || null }); // Pass user info if logged in
     });
 
     app.get("/admin-login", async (req, res) => {
