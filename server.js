@@ -1002,7 +1002,7 @@ const startServer = async () => {
     app.get("/configuration", async (req, res) => {
       try {
         const electionConfig = await db.collection("election_config").findOne({});
-        res.render("admin/election-configuration", { electionConfig });
+        res.render("admin/configuration", { electionConfig });
       } catch (error) {
         res.status(500).send("Failed to load election management page.");
       }
@@ -1040,7 +1040,7 @@ const startServer = async () => {
           };
         });
 
-        res.render("admin/results", { voterCounts });
+        res.render("admin/election-results", { voterCounts });
       } catch (error) {
         console.error("Error fetching voter counts:", error);
         res.status(500).send("Internal Server Error");
@@ -1050,18 +1050,25 @@ const startServer = async () => {
     app.get("/dashboard", async (req, res) => {
       res.render("admin/dashboard");
     });
-    app.get("/blockchain", async (req, res) => {
-      res.render("admin/blockchain");
+    app.get("/blockchain-management", async (req, res) => {
+      res.render("admin/blockchain-management");
+    });
+    app.get("/blockchain-activity-log", async (req, res) => {
+      res.render("admin/blockchain-activity-log");
     });
 
     app.get("/voter-info", async (req, res) => {
-      res.render("admin/election-voter-info");
+      try {
+        const voters = await db.collection("registered_voters").find().toArray();
+        res.render("admin/election-voter-info", { voters }); // Pass voters to EJS template
+      } catch (error) {
+        console.error("Error fetching registered voters:", error);
+        res.status(500).send("Internal Server Error");
+      }
     });
+
     app.get("/voter-turnout", async (req, res) => {
       res.render("admin/election-voter-turnout");
-    });
-    app.get("/results", async (req, res) => {
-      res.render("admin/election-results");
     });
     app.get("/reset", async (req, res) => {
       res.render("admin/election-reset");
@@ -1072,13 +1079,67 @@ const startServer = async () => {
     });
 
     app.get("/edit-account", async (req, res) => {
-      res.render("admin/settings-edit-account");
+      res.render("admin/system-edit-account");
+    });
+    app.get("/manage-account", async (req, res) => {
+      res.render("admin/system-manage-accounts");
     });
     app.get("/help-page", async (req, res) => {
-      res.render("admin/settings-help-page");
+      res.render("admin/system-help-page");
     });
-    app.get("/system-history", async (req, res) => {
-      res.render("admin/system-history");
+    app.get("/activity-log", async (req, res) => {
+      res.render("admin/system-activity-log");
+    });
+
+    app.post("/register", async (req, res) => {
+      try {
+        const { fullName, email, studentNumber, campus, college, program } = req.body;
+
+        if (!fullName || !email || !studentNumber || !campus || !college || !program) {
+          return res.status(400).json({ error: "All fields are required" });
+        }
+
+        const newVoter = {
+          name: fullName,
+          email: email,
+          student_number: studentNumber,
+          campus: campus,
+          college: college,
+          program: program,
+          status: "Registered",
+        };
+
+        await db.collection("registered_voters").insertOne(newVoter);
+
+        res.redirect("/register"); // Redirect to voter info page
+      } catch (error) {
+        console.error("Error registering voter:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.get("/register", async (req, res) => {
+      res.render("voter/register");
+    });
+
+    app.get("/admin-login", async (req, res) => {
+      res.render("admin/admin-login");
+    });
+
+    app.get("/api/programs", async (req, res) => {
+      try {
+        const collegeName = req.query.college;
+        if (!collegeName) return res.status(400).json({ error: "College is required" });
+
+        const college = await db.collection("colleges").findOne({ college: collegeName });
+
+        if (!college) return res.status(404).json({ error: "College not found" });
+
+        res.json({ programs: college.programs });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
     });
 
     app.post("/submit-voters", async (req, res) => {

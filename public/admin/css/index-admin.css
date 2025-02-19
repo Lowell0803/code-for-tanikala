@@ -28,7 +28,7 @@
   box-sizing: border-box;
 }
 
-.home-section {
+body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -348,11 +348,13 @@ h6 {
   background-color: #0024e4;
 }
 
-.save-button {
+.save-button,
+.add-button {
   background-color: #369f2c;
 }
 
-#cancel-button {
+.delete-button,
+.cancel-button {
   background-color: #c11515;
 }
 

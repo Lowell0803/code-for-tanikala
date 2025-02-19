@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TANIKALA Voting System</title>
+
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" type="text/css" href="voter/css/register.css" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-logo">
+        <img src="../img/logo_tanikala.png" alt="Tanikala Voting System" />
+      </div>
+      <div class="header-nav">
+        <ul class="header-nav-content">
+          <li>Voter Registration</li>
+        </ul>
+      </div>
+      <div class="header-bottom-line"></div>
+    </header>
+
+    <div class="content">
+      <div class="main-first">
+        <img src="../img/logo_bulsu.png" class="logo" alt="BulSU Logo" />
+        <div class="first-text">
+          <h1>BulSU Student Government Elections<br />2024 - 2025</h1>
+        </div>
+        <img src="../img/logo_bulsu_ucse.png" class="logo" alt="BulSU UCSE Logo" />
+      </div>
+      <div class="main-second">
+        <form id="form-registration" action="/register" method="POST" onsubmit="formatEmail(event)">
+          <h1>Registration Form</h1>
+
+          <div class="form-input-container">
+            <label for="full-name" class="form-label">Name: </label>
+            <input type="text" id="full-name" class="form-input" name="fullName" placeholder="e.g. Yvan Lowell Aquino" required />
+          </div>
+
+          <div class="form-input-container">
+            <label for="email" class="form-label">BulSU MS Account: </label>
+            <input type="email" id="bulsu-account" class="form-input" name="email" placeholder="e.g. 2021100291@ms.bulsu.edu.ph" readonly />
+          </div>
+
+          <div class="form-input-container">
+            <label for="student-number" class="form-label">Student Number: </label>
+            <input type="number" id="student-number" class="form-input" name="studentNumber" placeholder="e.g. 2021100291" required />
+          </div>
+
+          <div class="form-input-container">
+            <label for="campus" class="form-label">Campus: </label>
+            <select name="campus" id="campus" required>
+              <option disabled selected>Select Campus</option>
+              <option value="Malolos (Main) Campus">Malolos (Main) Campus</option>
+            </select>
+          </div>
+
+          <div class="form-input-container">
+            <label for="college" class="form-label">College: </label>
+            <select name="college" id="college" required>
+              <option disabled selected>Select College</option>
+              <option value="College of Architecture and Fine Arts (CAFA)">College of Architecture and Fine Arts (CAFA)</option>
+              <option value="College of Arts and Letters (CAL)">College of Arts and Letters (CAL)</option>
+              <option value="College of Business Education and Accountancy (CBEA)">College of Business Education and Accountancy (CBEA)</option>
+              <option value="College of Criminal Justice Education (CCJE)">College of Criminal Justice Education (CCJE)</option>
+              <option value="College of Hospitality and Tourism Management (CHTM)">College of Hospitality and Tourism Management (CHTM)</option>
+              <option value="College of Information and Communications Technology (CICT)">College of Information and Communications Technology (CICT)</option>
+              <option value="College of Industrial Technology (CIT)">College of Industrial Technology (CIT)</option>
+              <option value="College of Nursing (CN)">College of Nursing (CN)</option>
+              <option value="College of Engineering (COE)">College of Engineering (COE)</option>
+              <option value="College of Education (COED)">College of Education (COED)</option>
+              <option value="College of Science (CS)">College of Science (CS)</option>
+              <option value="College of Sports, Exercise, and Recreation (CSER)">College of Sports, Exercise, and Recreation (CSER)</option>
+              <option value="College of Social Sciences and Philosophy (CSSP)">College of Social Sciences and Philosophy (CSSP)</option>
+            </select>
+            <br />
+          </div>
+
+          <div class="form-input-container">
+            <label for="program" class="form-label">Program: </label>
+            <select name="program" id="program" required>
+              <option disabled selected>Select a College First</option>
+            </select>
+          </div>
+
+          <div class="form-button">
+            <input type="reset" value="RESET" />
+            <input type="submit" value="SUBMIT" />
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function formatEmail(event) {
+        const studentNumber = document.getElementById("student-number").value.trim();
+        const emailField = document.getElementById("bulsu-account");
+
+        if (!emailField.value.trim() && studentNumber) {
+          emailField.value = `${studentNumber}@ms.bulsu.edu.ph`;
+        }
+      }
+
+      document.getElementById("college").addEventListener("change", async function () {
+        const college = this.value;
+        const programSelect = document.getElementById("program");
+
+        programSelect.innerHTML = "<option disabled selected>Loading...</option>";
+
+        try {
+          const response = await fetch(`/api/programs?college=${encodeURIComponent(college)}`);
+          const data = await response.json();
+
+          if (data.programs) {
+            programSelect.innerHTML = "<option disabled selected>Select Program</option>";
+            data.programs.forEach((program) => {
+              const option = document.createElement("option");
+              option.value = program;
+              option.textContent = program;
+              programSelect.appendChild(option);
+            });
+          } else {
+            programSelect.innerHTML = "<option disabled>No programs available</option>";
+          }
+        } catch (error) {
+          console.error("Error fetching programs:", error);
+          programSelect.innerHTML = "<option disabled>Error loading programs</option>";
+        }
+      });
+    </script>
+
+    <script>
+      document.getElementById("college").addEventListener("change", async function () {
+        const college = this.value;
+        const programSelect = document.getElementById("program");
+
+        programSelect.innerHTML = "<option disabled selected>Loading...</option>";
+
+        try {
+          const response = await fetch(`/api/programs?college=${encodeURIComponent(college)}`);
+          const data = await response.json();
+
+          if (data.programs) {
+            programSelect.innerHTML = "<option disabled selected>Select Program</option>";
+            data.programs.forEach((program) => {
+              const option = document.createElement("option");
+              option.value = program;
+              option.textContent = program;
+              programSelect.appendChild(option);
+            });
+          } else {
+            programSelect.innerHTML = "<option disabled>No programs available</option>";
+          }
+        } catch (error) {
+          console.error("Error fetching programs:", error);
+          programSelect.innerHTML = "<option disabled>Error loading programs</option>";
+        }
+      });
+    </script>
+
+    <footer class="footer">
+      <p>Footer</p>
+    </footer>
+  </body>
+</html>
