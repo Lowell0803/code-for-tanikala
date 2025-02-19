@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>BulSU Voting System</title>
+
+    <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/election-management.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
+
+    <!-- Boxicons CDN Link -->
+    <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
+
+  <body>
+    <div class="sidebar close">
+      <!-- <div class="logo-details">
+        <div class="header-logo">
+          <img src="img/logo_tanikala_notext.png" />
+          <span class="logo_name">
+            <img src="../img/logo_tanikala_text.png" />
+          </span>
+        </div>
+      </div> -->
+      <div class="logo-details">
+        <img src="img/logo_tanikala_notext.png" />
+        <span class="logo_name"><img src="img/logo_tanikala_text.png" /></span>
+      </div>
+
+      <ul class="nav-links">
+        <hr />
+        <li>
+          <a href="#">
+            <i class="bx bx-menu"></i>
+            <span class="link_name">Menu</span>
+          </a>
+        </li>
+        <hr />
+        <li>
+          <a href="dashboard">
+            <i class="bx bxs-dashboard"></i>
+            <span class="link_name">Dashboard</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="dashboard">Dashboard</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="configuration">
+            <i class="fa fa-cogs"></i>
+            <span class="link_name">Configuration</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="configuration">Configuration</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="candidates">
+            <i class="fa fa-users"></i>
+            <span class="link_name">Candidates</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="candidates">Candidates</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="blockchain">
+            <i class="fa fa-link"></i>
+            <span class="link_name">Blockchain</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="blockchain">Blockchain</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="icon-link">
+            <a href="voter-info">
+              <i class="fa fa-bar-chart"></i>
+              <span class="link_name">Election</span>
+            </a>
+            <i class="bx bxs-chevron-down arrow"></i>
+          </div>
+          <ul class="sub-menu">
+            <li><a class="link_name" href="voter-info">(Election Name)</a></li>
+            <li><a href="voter-info">Voter Info</a></li>
+            <li><a href="voter-turnout">Voter Turnout</a></li>
+            <li><a href="results">Results</a></li>
+            <li><a href="reset">Reset Election</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="archives">
+            <i class="bx bx-archive"></i>
+            <span class="link_name">Election Archives</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="archives">Election Archives</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="icon-link">
+            <a href="edit-account">
+              <i class="fa fa-tasks"></i>
+              <span class="link_name">System</span>
+            </a>
+            <i class="bx bxs-chevron-down arrow"></i>
+          </div>
+          <ul class="sub-menu">
+            <li><a class="link_name" href="edit-account">System</a></li>
+            <li><a href="edit-account">Edit Account</a></li>
+            <li><a href="help-page">Help Page</a></li>
+            <li><a href="history">System History</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="profile-details">
+            <div class="profile-content">
+              <img src="img/dungo.jpeg" alt="profileImg" />
+            </div>
+            <div class="name-job">
+              <div class="profile_name">Zarina Dungo</div>
+              <div class="job">System Developer</div>
+            </div>
+            <i class="bx bx-log-out"></i>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <section class="home-section">
+      <header class="header" id="header">
+        <div class="header-content">
+          <h2><span>BulSU Student Government Elections 2025-2026</span></h2>
+          <p>
+            Current Election Status:&nbsp;
+            <span class="election-status">ELECTION ONGOING</span>
+            |
+            <span class="election-status2">Voting</span>
+          </p>
+          <p>
+            Voting Period:&nbsp;
+            <span class="period">MM/DD/YYYY</span>
+            -
+            <span class="period">MM/DD/YYYY</span>
+          </p>
+        </div>
+      </header>
+
+      <div class="content">
+        <main class="main" id="main">
+          <div id="container-overlay">
+            <div class="page-title">
+              <h1 class="settings-title">Election Management</h1>
+              <div class="smart">
+                <h4>Smart Contract Status: Not Deployed | Deployed</h4>
+              </div>
+            </div>
+            <div class="first-main">
+              <div class="form" id="election-configuration">
+                <h3 class="center">Election Configurations</h3>
+
+                <p><b>Election Name:</b> <span id="election-name"><%= electionConfig.electionName %></span></p>
+                <div class="button-container">
+                  <button class="action-buttons edit-button" onclick="editElectionName()">Edit Election Name</button>
+                </div>
+
+                <p><b>Registration Period:</b></p>
+                <p>Start Date: <span id="reg-start"><%= electionConfig.registrationPeriod.start %></span></p>
+                <p>End Date: <span id="reg-end"><%= electionConfig.registrationPeriod.end %></span></p>
+                <div class="button-container">
+                  <button class="action-buttons edit-button" onclick="editRegistrationPeriod()">Edit Registration Period</button>
+                </div>
+
+                <p><b>Voting Period:</b></p>
+                <p>Start Date: <span id="vote-start"><%= electionConfig.votingPeriod.start %></span></p>
+                <p>End Date: <span id="vote-end"><%= electionConfig.votingPeriod.end %></span></p>
+                <div class="button-container">
+                  <button class="action-buttons edit-button" onclick="editVotingPeriod()">Edit Voting Period</button>
+                </div>
+
+                <p><b>Total Number of Elections:</b> <span><%= electionConfig.totalElections %></span></p>
+
+                <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.totalPartylists %></span></p>
+                <ul class="election-configuration">
+                  <% electionConfig.partylists.forEach(partylist => { %>
+                  <li><%= partylist %></li>
+                  <% }); %>
+                </ul>
+                <div class="button-container">
+                  <button class="action-buttons edit-button" onclick="editPartylists()">Manage Partylists</button>
+                </div>
+
+                <p>
+                  <b>Total Number of Voters: </b>
+                  <span id="total-voters"> <%= electionConfig.listOfElections.reduce((sum, election) => sum + election.voters, 0) %> </span>
+                </p>
+                <br />
+
+                <p>
+                  <b>List of Elections and Their Number of Students (Voters):</b>
+                </p>
+                <br />
+
+                <ol class="election-configuration">
+                  <% electionConfig.listOfElections.forEach((election, index) => { %>
+                  <li>
+                    <p>
+                      <b><%= election.name %>: </b>
+                      <span id="voter-count-<%= index %>"><%= election.voters %> students</span>
+                    </p>
+                  </li>
+                  <% }); %>
+                </ol>
+
+                <div class="button-container">
+                  <button class="action-buttons edit-button" onclick="editStudentTotals()">Edit Total Number of Students</button>
+                </div>
+              </div>
+
+              <script>
+                // Open Election Name Popup
+                function editElectionName() {
+                  document.getElementById("election-name-input").value = document.getElementById("election-name").innerText;
+                  showPopup("edit-election-name-popup");
+                }
+
+                // Save Election Name
+                function saveElectionName() {
+                  const newName = document.getElementById("election-name-input").value;
+                  if (newName.trim()) {
+                    updateElectionConfig({ electionName: newName });
+                    showPopup("edit-election-name-popup"); // Hide popup after saving
+                  }
+                }
+
+                // Open Registration Period Popup
+                function editRegistrationPeriod() {
+                  document.getElementById("reg-start-input").value = document.getElementById("reg-start").innerText;
+                  document.getElementById("reg-end-input").value = document.getElementById("reg-end").innerText;
+                  showPopup("edit-registration-period-popup");
+                }
+
+                // Save Registration Period
+                function saveRegistrationPeriod() {
+                  const newStart = document.getElementById("reg-start-input").value;
+                  const newEnd = document.getElementById("reg-end-input").value;
+                  if (newStart && newEnd) {
+                    updateElectionConfig({ registrationPeriod: { start: newStart, end: newEnd } });
+                    showPopup("edit-registration-period-popup"); // Hide popup after saving
+                  }
+                }
+
+                // Open Voting Period Popup
+                function editVotingPeriod() {
+                  document.getElementById("vote-start-input").value = document.getElementById("vote-start").innerText;
+                  document.getElementById("vote-end-input").value = document.getElementById("vote-end").innerText;
+                  showPopup("edit-voting-period-popup");
+                }
+
+                // Save Voting Period
+                function saveVotingPeriod() {
+                  const newStart = document.getElementById("vote-start-input").value;
+                  const newEnd = document.getElementById("vote-end-input").value;
+                  if (newStart && newEnd) {
+                    updateElectionConfig({ votingPeriod: { start: newStart, end: newEnd } });
+                    showPopup("edit-voting-period-popup"); // Hide popup after saving
+                  }
+                }
+
+                // Open Partylists Popup
+                function editPartylists() {
+                  document.getElementById("partylist-input").value = "<%= electionConfig.partylists.join(', ') %>";
+                  showPopup("edit-partylist-popup");
+                }
+
+                // Save Partylists
+                function savePartylists() {
+                  const newPartylists = document.getElementById("partylist-input").value;
+                  if (newPartylists.trim()) {
+                    updateElectionConfig({ partylists: newPartylists.split(",").map((p) => p.trim()) });
+                    showPopup("edit-partylist-popup"); // Hide popup after saving
+                  }
+                }
+
+                // Open Student Totals Popup
+                function editStudentTotals() {
+                  showPopup("edit-student-totals-popup");
+                }
+
+                // Save the updated student totals
+                function saveStudentTotals() {
+                  let updatedListOfElections = [];
+                  const rows = document.querySelectorAll("#student-totals-body tr");
+
+                  rows.forEach((row, index) => {
+                    const collegeName = row.querySelector(".college-column").innerText.split(". ")[1];
+                    const voterCount = parseInt(row.querySelector("input").value, 10) || 0;
+
+                    updatedListOfElections.push({
+                      name: collegeName,
+                      voters: voterCount,
+                    });
+
+                    // Update UI immediately
+                    document.getElementById(`voter-count-${index}`).innerText = `${voterCount} students`;
+                  });
+
+                  // Update total voters in the UI
+                  document.getElementById("total-voters").innerText = updatedListOfElections.reduce((sum, election) => sum + election.voters, 0);
+
+                  // Send updated data to MongoDB
+                  updateElectionConfig({ listOfElections: updatedListOfElections });
+
+                  showPopup("edit-student-totals-popup"); // Hide popup after saving
+                }
+
+                // API Call to Update MongoDB
+                async function updateElectionConfig(updatedData) {
+                  const response = await fetch("/api/election-config", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(updatedData),
+                  });
+
+                  if (response.ok) {
+                    alert("Election configuration updated!");
+                    location.reload();
+                  } else {
+                    alert("Failed to update election configuration.");
+                  }
+                }
+              </script>
+
+              <div class="right-side">
+                <div class="form" id="election-settings">
+                  <h3 class="center">Election Settings</h3>
+                  <br />
+                  <p>
+                    <b>Current Election Status: </b>
+                  </p>
+                  <br />
+                  <div class="center">
+                    <p>
+                      <span>ELECTION ONGOING</span>
+                      <span class="separator">|</span>Voting
+                    </p>
+                  </div>
+                  <br />
+                  <div>
+                    <input type="checkbox" id="disable-system" name="disable-system" />
+                    <label for="disable-system">Temporarily Disable System</label>
+                  </div>
+                  <br />
+                  <hr class="full-line" />
+                  <br />
+                  <p>
+                    <b>NEW ELECTION SETUP</b>
+                  </p>
+                  <br />
+                  <div>
+                    <input type="radio" id="election-not-active" name="election-status" value="election-not-active" />
+                    <label for="election-not-active">Election Not Active</label>
+                  </div>
+                  <br />
+                  <hr class="full-line" />
+                  <br />
+
+                  <p>
+                    <b>ELECTION ONGOING</b>
+                  </p>
+                  <br />
+
+                  <div>
+                    <input type="radio" id="registration-period" name="election-status" value="registration-period" />
+                    <label for="registration-period">Registration Period</label>
+                  </div>
+
+                  <div>
+                    <input type="radio" id="voting-period" name="election-status" value="voting-period" />
+                    <label for="voting-period">Voting Period</label>
+                  </div>
+
+                  <br />
+                  <hr class="full-line" />
+                  <br />
+                  <p>
+                    <b>ELECTION ENDED</b>
+                  </p>
+                  <br />
+
+                  <div>
+                    <input type="radio" id="results-tabulation" name="election-status" value="results-tabulation" />
+                    <label for="results-tabulation">Results Tabulation in Progress</label>
+                  </div>
+
+                  <div>
+                    <input type="radio" id="results-out" name="election-status" value="results-out" />
+                    <label for="results-out">Results are out</label>
+                  </div>
+
+                  <br />
+                </div>
+              </div>
+            </div>
+            <div class="form" id="candidates-title">
+              <h3 id="candidates">CANDIDATES</h3>
+            </div>
+            <div class="button-container-center">
+              <button class="action-buttons blockchain-button" onclick="showPopup('deploy-smart-contract-popup')">Send Election Configurations to Blockchain</button>
+            </div>
+          </div>
+          <!--  END OF CONTAINER container-overlay -->
+
+          <!-- Popups -->
+
+          <!-- Edit Election Name -->
+          <!-- Edit Election Name -->
+          <div class="popup-form" id="edit-election-name-popup" style="display: none">
+            <div class="container-exit">
+              <img src="img/exit.png" alt="Exit" onclick="showPopup('edit-election-name-popup')" />
+            </div>
+            <div class="flex-column-container">
+              <label for="election-name-input" class="text-field-label">Election Name:</label>
+              <input type="text" id="election-name-input" class="text-field" />
+              <button class="action-buttons save-button" onclick="saveElectionName()">Save</button>
+            </div>
+          </div>
+
+          <!-- Edit Registration Period -->
+          <div class="popup-form" id="edit-registration-period-popup" style="display: none">
+            <div class="container-exit">
+              <img src="img/exit.png" alt="Exit" onclick="showPopup('edit-registration-period-popup')" />
+            </div>
+            <div class="flex-column-container">
+              <label>Start Date:</label>
+              <input type="datetime-local" id="reg-start-input" class="text-field" />
+              <label>End Date:</label>
+              <input type="datetime-local" id="reg-end-input" class="text-field" />
+              <button class="action-buttons save-button" onclick="saveRegistrationPeriod()">Save</button>
+            </div>
+          </div>
+
+          <!-- Edit Voting Period -->
+          <div class="popup-form" id="edit-voting-period-popup" style="display: none">
+            <div class="container-exit">
+              <img src="img/exit.png" alt="Exit" onclick="showPopup('edit-voting-period-popup')" />
+            </div>
+            <div class="flex-column-container">
+              <label>Start Date:</label>
+              <input type="datetime-local" id="vote-start-input" class="text-field" />
+              <label>End Date:</label>
+              <input type="datetime-local" id="vote-end-input" class="text-field" />
+              <button class="action-buttons save-button" onclick="saveVotingPeriod()">Save</button>
+            </div>
+          </div>
+
+          <!-- Edit Partylists -->
+          <div class="popup-form" id="edit-partylist-popup" style="display: none">
+            <div class="container-exit">
+              <img src="img/exit.png" alt="Exit" onclick="showPopup('edit-partylist-popup')" />
+            </div>
+            <div class="flex-column-container">
+              <label>Party Lists (comma-separated):</label>
+              <input type="text" id="partylist-input" class="text-field" />
+              <button class="action-buttons save-button" onclick="savePartylists()">Save</button>
+            </div>
+          </div>
+
+          <!-- Edit Student Totals -->
+          <!-- Edit Student Totals -->
+          <div class="popup-form" id="edit-student-totals-popup" style="display: none">
+            <div class="container-exit">
+              <img src="img/exit.png" alt="Exit" onclick="showPopup('edit-student-totals-popup')" />
+            </div>
+
+            <div class="flex-column-container">
+              <table class="student-totals">
+                <thead>
+                  <tr>
+                    <th>Student Population for Bulacan State University</th>
+                  </tr>
+                </thead>
+                <tbody id="student-totals-body">
+                  <% electionConfig.listOfElections.forEach((election, index) => { %>
+                  <tr>
+                    <td class="college-column"><%= index + 1 %>. <%= election.name %></td>
+                    <td><input type="number" class="no-of-students-column" id="voters-<%= index %>" value="<%= election.voters %>" /></td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+
+            <button class="action-buttons save-button" onclick="saveStudentTotals()">Save</button>
+          </div>
+        </main>
+      </div>
+
+      <footer class="footer">
+        <div class="footer-left">
+          <img src="img/calendar.png" class="footer-img" />
+          <p id="datetime">OCTOBER 23, 2024 - 04:17 AM</p>
+        </div>
+
+        <div class="footer-center">
+          <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+          <p>2025 - Fourmula 1</p>
+        </div>
+        <div class="footer-right">
+          <img src="img/info.png" class="footer-img" id="info-img" />
+          <p>Need help? Click&nbsp;</p>
+          <a href="help_page"> here.</a>
+        </div>
+      </footer>
+    </section>
+    <script>
+      let arrow = document.querySelectorAll(".arrow");
+      for (var i = 0; i < arrow.length; i++) {
+        arrow[i].addEventListener("click", (e) => {
+          let arrowParent = e.target.parentElement.parentElement; //selecting main parent of arrow
+          arrowParent.classList.toggle("showMenu");
+        });
+      }
+      let sidebar = document.querySelector(".sidebar");
+      let sidebarBtn = document.querySelector(".bx-menu");
+      console.log(sidebarBtn);
+      sidebarBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("close");
+      });
+    </script>
+
+    <script src="admin/js/index_admin.js"></script>
+  </body>
+</html>

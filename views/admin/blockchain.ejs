@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>BulSU Voting System</title>
+
+    <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/blockchain.css" />
+
+    <!-- Boxicons CDN Link -->
+    <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
+
+  <body>
+    <div class="sidebar close">
+      <!-- <div class="logo-details">
+        <div class="header-logo">
+          <img src="img/logo_tanikala_notext.png" />
+          <span class="logo_name">
+            <img src="../img/logo_tanikala_text.png" />
+          </span>
+        </div>
+      </div> -->
+      <div class="logo-details">
+        <img src="img/logo_tanikala_notext.png" />
+        <span class="logo_name"><img src="img/logo_tanikala_text.png" /></span>
+      </div>
+
+      <ul class="nav-links">
+        <hr />
+        <li>
+          <a href="#">
+            <i class="bx bx-menu"></i>
+            <span class="link_name">Menu</span>
+          </a>
+        </li>
+        <hr />
+        <li>
+          <a href="dashboard">
+            <i class="bx bxs-dashboard"></i>
+            <span class="link_name">Dashboard</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="dashboard">Dashboard</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="configuration">
+            <i class="fa fa-cogs"></i>
+            <span class="link_name">Configuration</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="configuration">Configuration</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="candidates">
+            <i class="fa fa-users"></i>
+            <span class="link_name">Candidates</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="candidates">Candidates</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="blockchain">
+            <i class="fa fa-link"></i>
+            <span class="link_name">Blockchain</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="blockchain">Blockchain</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="icon-link">
+            <a href="voter-info">
+              <i class="fa fa-bar-chart"></i>
+              <span class="link_name">Election</span>
+            </a>
+            <i class="bx bxs-chevron-down arrow"></i>
+          </div>
+          <ul class="sub-menu">
+            <li><a class="link_name" href="voter-info">(Election Name)</a></li>
+            <li><a href="voter-info">Voter Info</a></li>
+            <li><a href="voter-turnout">Voter Turnout</a></li>
+            <li><a href="results">Results</a></li>
+            <li><a href="reset">Reset Election</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="archives">
+            <i class="bx bx-archive"></i>
+            <span class="link_name">Election Archives</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="archives">Election Archives</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="icon-link">
+            <a href="edit-account">
+              <i class="fa fa-tasks"></i>
+              <span class="link_name">System</span>
+            </a>
+            <i class="bx bxs-chevron-down arrow"></i>
+          </div>
+          <ul class="sub-menu">
+            <li><a class="link_name" href="edit-account">System</a></li>
+            <li><a href="edit-account">Edit Account</a></li>
+            <li><a href="help-page">Help Page</a></li>
+            <li><a href="history">System History</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="profile-details">
+            <div class="profile-content">
+              <img src="img/dungo.jpeg" alt="profileImg" />
+            </div>
+            <div class="name-job">
+              <div class="profile_name">Zarina Dungo</div>
+              <div class="job">System Developer</div>
+            </div>
+            <i class="bx bx-log-out"></i>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <section class="home-section">
+      <header class="header" id="header">
+        <div class="header-content">
+          <h2><span>BulSU Student Government Elections 2025-2026</span></h2>
+          <p>
+            Current Election Status:&nbsp;
+            <span class="election-status">ELECTION ONGOING</span>
+            |
+            <span class="election-status2">Voting</span>
+          </p>
+          <p>
+            Voting Period:&nbsp;
+            <span class="period">MM/DD/YYYY</span>
+            -
+            <span class="period">MM/DD/YYYY</span>
+          </p>
+        </div>
+      </header>
+
+      <div class="content">
+        <main class="main">
+          <div id="container-overlay">
+            <h1 class="settings-title">Blockchain Management</h1>
+            <div class="page-title">
+              <div class="blockchain">
+                <h4>Blockchain Link: <span>No data available yet</span></h4>
+                <h4>Live Transaction Queue Count: <span>No data available yet</span></h4>
+              </div>
+              <div class="smart">
+                <h4>Smart Contract Status: Not Deployed | Deployed</h4>
+
+                <h4>Voting Status: Not Open | Open</h4>
+              </div>
+            </div>
+            <div class="first-main">
+              <div class="left">
+                <h2>Blockchain Information</h2>
+                <br />
+                <p><b>Blockchain Network: </b>Polygon</p>
+                <p><b>Consensus Mechanism: </b>Proof-of-Stake (PoS)</p>
+                <p><b>Average Transaction Speed: </b>2000 - 4000 TPS</p>
+                <p><b>Maximum Throughput: </b>7000 TPS</p>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <h2>Smart Contract & Transaction Overview</h2>
+                <br />
+                <p><b>Smart Contract Status: </b>Not Deployed | Deployed</p>
+                <br />
+                <p><b>No. of Smart Contracts Deployed: </b><span> 1</span></p>
+                <p><b>Smart Contract Address: </b><span>No data available yet.</span></p>
+                <br />
+                <p><b>No. of Vote Transactions: </b><span>7000</span></p>
+                <p><b>Blockchain Link: </b>No data available yet.</p>
+                <br />
+                <p><b>Total No. of Blockchain Transactions: </b><span>7001</span></p>
+              </div>
+              <div class="right">
+                <h2>Admin Wallet Information</h2>
+                <br />
+                <p><b>Network Type: </b>Amoy</p>
+                <p><b>Username (Public Key): </b><span>No data available yet.</span></p>
+                <p><b>Password (Private Key): </b><span>No data available yet.</span></p>
+                <div class="button-container">
+                  <button class="action-buttons edit-button" onclick="showPopup('change-admin-wallet')">Change Admin Wallet</button>
+                </div>
+
+                <!-- Change Admin Wallet -->
+                <div class="popup-form" id="change-admin-wallet">
+                  <div class="container-exit">
+                    <img src="../img/exit.png" alt="Exit" onclick="showPopup('change-admin-wallet')" />
+                  </div>
+
+                  <div class="flex-column-container">
+                    <label for="election-name" class="text-field-label">Election Name:</label>
+                    <input type="text" id="election-name" class="text-field" name="election-name" value="BulSU Student Government Elections 2025-2026" />
+
+                    <button class="action-buttons save-button">Save</button>
+                  </div>
+                </div>
+                <br />
+                <hr />
+                <br />
+                <h2>Fund Management</h2>
+                <br />
+                <p><b>Current Fund: </b><span>₱50,000</span></p>
+                <br />
+                <p><b>Total Deposit: </b><span>₱100,000</span></p>
+                <p><b>Last Deposit Date: </b><span>February 18, 2025 - 5:05 PM</span></p>
+                <br />
+                <p><b>Total Expense: </b><span>₱50,000</span></p>
+                <p><b>Last Expense Date: </b><span>February 18, 2025 - 5:05 PM</span></p>
+                <br />
+                <div class="button-container">
+                  <a href="">Fund Wallet on Binance</a>
+                </div>
+                <br />
+                <p><b>Live Transaction Fee Estimate: </b><span>No data available yet.</span></p>
+                <br />
+                <p><b>Recommended Fund Estimate: </b><span>No data available yet.</span></p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <footer class="footer">
+        <div class="footer-left">
+          <img src="img/calendar.png" class="footer-img" />
+          <p id="datetime">OCTOBER 23, 2024 - 04:17 AM</p>
+        </div>
+
+        <div class="footer-center">
+          <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+          <p>2025 - Fourmula 1</p>
+        </div>
+        <div class="footer-right">
+          <img src="img/info.png" class="footer-img" id="info-img" />
+          <p>Need help? Click&nbsp;</p>
+          <a href="help_page"> here.</a>
+        </div>
+      </footer>
+    </section>
+
+    <script src="admin/js/sidebar.js"></script>
+    <script src="admin/js/index_admin.js"></script>
+  </body>
+</html>

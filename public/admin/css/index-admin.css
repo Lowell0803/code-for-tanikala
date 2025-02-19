@@ -14,7 +14,8 @@
   /* header sizes */
   --width-header-logo: 25vw;
   --width-header-user: 15vw;
-  --width-header-content: calc(100vw - var(--width-header-logo) - var(--width-header-user));
+  /* --width-header-content: calc(100vw - var(--width-header-logo) - var(--width-header-user)); */
+  --width-header-content: 100vw;
 
   /* footer sizes */
   --width-footer-side: 25vw;
@@ -27,7 +28,7 @@
   box-sizing: border-box;
 }
 
-body {
+.home-section {
   display: flex;
   flex-direction: column;
   min-height: 100vh;

@@ -434,7 +434,7 @@ const startServer = async () => {
     //   res.render("voter/review");
     // });
 
-    app.get("/dashboard", async (req, res) => {
+    app.get("/candidates", async (req, res) => {
       try {
         const collection = db.collection("candidates");
         const data = await collection.find({}).toArray();
@@ -480,7 +480,7 @@ const startServer = async () => {
           };
         });
 
-        res.render("admin/dashboard", {
+        res.render("admin/candidates", {
           candidates: allCandidates,
           candidates_lsc: structuredData,
           voterCounts,
@@ -967,98 +967,6 @@ const startServer = async () => {
       }
     });
 
-    // app.post("/review", (req, res) => {
-    //   // Data from the logged-in account
-    //   const voterCollege = req.user ? req.user.college : "CAFA";
-    //   const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
-
-    //   const parseVote = (vote) => {
-    //     try {
-    //       if (!vote || vote === "Abstain" || (Array.isArray(vote) && vote.includes("Abstain"))) {
-    //         return { id: "Abstain", name: "Abstain" }; // ✅ Prioritize abstain
-    //       }
-    //       if (typeof vote === "string") return JSON.parse(vote);
-    //       return vote; // If already an object, return as is
-    //     } catch (error) {
-    //       console.error("Invalid JSON format:", vote, error);
-    //       return { id: "Invalid", name: "Invalid" }; // Handle invalid JSON cases
-    //     }
-    //   };
-
-    //   const votes = {
-    //     president: parseVote(req.body.president),
-    //     vicePresident: parseVote(req.body.vicePresident),
-    //     senator: req.body.senator ? (Array.isArray(req.body.senator) ? req.body.senator.map(parseVote) : [parseVote(req.body.senator)]) : [{ id: "Abstain", name: "Abstain" }], // ✅ Ensure senator is always an array
-    //     governor: parseVote(req.body.governor),
-    //     viceGovernor: parseVote(req.body.viceGovernor),
-    //     boardMember: parseVote(req.body.boardMember),
-    //   };
-
-    //   console.log("Processed Votes:", votes);
-
-    //   res.render("voter/review", { votes, voterCollege, voterProgram });
-    // });
-
-    // app.post("/review", (req, res) => {
-    //   // Data from the logged-in account
-    //   const voterCollege = req.user ? req.user.college : "CAFA";
-    //   const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
-
-    //   const parseVote = (vote) => {
-    //     try {
-    //       // ✅ If `vote` is `"Abstain"` or empty, return Abstain object
-    //       if (!vote || vote === "Abstain" || (Array.isArray(vote) && vote.length === 0)) {
-    //         return { id: "Abstain", name: "Abstain" };
-    //       }
-
-    //       // ✅ If `vote` is a string, parse it as JSON
-    //       if (typeof vote === "string") {
-    //         return JSON.parse(vote);
-    //       }
-
-    //       return vote; // If it's already an object, return as is
-    //     } catch (error) {
-    //       console.error("Invalid JSON format:", vote, error);
-    //       return { id: "Invalid", name: "Invalid" }; // Handle invalid JSON cases
-    //     }
-    //   };
-
-    //   const votes = {
-    //     president: parseVote(req.body.president),
-    //     vicePresident: parseVote(req.body.vicePresident),
-    //     senator: req.body.senator ? (Array.isArray(req.body.senator) ? req.body.senator.map(parseVote) : [parseVote(req.body.senator)]) : [{ id: "Abstain", name: "Abstain" }], // ✅ Ensure senator is always an array
-    //     governor: parseVote(req.body.governor),
-    //     viceGovernor: parseVote(req.body.viceGovernor),
-    //     boardMember: parseVote(req.body.boardMember),
-    //   };
-
-    //   console.log(votes);
-
-    //   res.render("voter/review", { votes, voterCollege, voterProgram });
-    // });
-
-    // app.get("/results", async (req, res) => {
-    //   try {
-    //     const positions = ["President", "Vice President", "Senator", "Governor", "Vice Governor", "Board Member"];
-    //     const results = {};
-
-    //     for (const position of positions) {
-    //       const candidates = await contract.getCandidates(position);
-    //       results[position] = candidates.map((c) => ({
-    //         name: c.name,
-    //         party: c.party,
-    //         position: c.position,
-    //         votes: c.votes.toString(),
-    //       }));
-    //     }
-
-    //     res.render("admin/results", { results });
-    //   } catch (error) {
-    //     console.error("Error fetching results:", error);
-    //     res.status(500).send("Failed to fetch results.");
-    //   }
-    // });
-
     app.post("/review", (req, res) => {
       // Data from the logged-in account
       const voterCollege = req.user ? req.user.college : "CAFA";
@@ -1091,8 +999,32 @@ const startServer = async () => {
       res.render("voter/review", { votes, voterCollege, voterProgram });
     });
 
-    app.get("/election-management", async (req, res) => {
-      res.render("admin/election-management");
+    app.get("/configuration", async (req, res) => {
+      try {
+        const electionConfig = await db.collection("election_config").findOne({});
+        res.render("admin/election-configuration", { electionConfig });
+      } catch (error) {
+        res.status(500).send("Failed to load election management page.");
+      }
+    });
+
+    app.get("/api/election-config", async (req, res) => {
+      try {
+        const electionConfig = await db.collection("election_config").findOne({});
+        res.json(electionConfig);
+      } catch (error) {
+        res.status(500).json({ error: "Failed to fetch election configurations" });
+      }
+    });
+
+    app.post("/api/election-config", async (req, res) => {
+      try {
+        const updatedConfig = req.body;
+        await db.collection("election_config").updateOne({}, { $set: updatedConfig }, { upsert: true });
+        res.json({ success: true, message: "Election configurations updated" });
+      } catch (error) {
+        res.status(500).json({ error: "Failed to update election configurations" });
+      }
     });
 
     app.get("/results", async (req, res) => {
@@ -1113,6 +1045,40 @@ const startServer = async () => {
         console.error("Error fetching voter counts:", error);
         res.status(500).send("Internal Server Error");
       }
+    });
+
+    app.get("/dashboard", async (req, res) => {
+      res.render("admin/dashboard");
+    });
+    app.get("/blockchain", async (req, res) => {
+      res.render("admin/blockchain");
+    });
+
+    app.get("/voter-info", async (req, res) => {
+      res.render("admin/election-voter-info");
+    });
+    app.get("/voter-turnout", async (req, res) => {
+      res.render("admin/election-voter-turnout");
+    });
+    app.get("/results", async (req, res) => {
+      res.render("admin/election-results");
+    });
+    app.get("/reset", async (req, res) => {
+      res.render("admin/election-reset");
+    });
+
+    app.get("/archives", async (req, res) => {
+      res.render("admin/archives");
+    });
+
+    app.get("/edit-account", async (req, res) => {
+      res.render("admin/settings-edit-account");
+    });
+    app.get("/help-page", async (req, res) => {
+      res.render("admin/settings-help-page");
+    });
+    app.get("/system-history", async (req, res) => {
+      res.render("admin/system-history");
     });
 
     app.post("/submit-voters", async (req, res) => {

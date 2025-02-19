@@ -1,0 +1,107 @@
+:root {
+  --background-light-yellow: #f2ddb4;
+  --background-lighter-yellow: #faf2db;
+  --background-yellow: #e1ae5b;
+  --background-green: #57ac4f;
+  --background-brown: #370606;
+  --background-form: #d8ac65;
+  --background-red: #a60212;
+}
+
+.main {
+  flex-direction: column;
+}
+
+.main-content {
+  display: flex;
+  width: 100%;
+}
+
+.container,
+.form-container {
+  border: 3px solid rgb(0, 0, 0, 0.5);
+}
+
+.container img {
+  width: 5em;
+  height: auto;
+  border-radius: 0.5em;
+}
+
+.button {
+  font-weight: bold;
+  color: white;
+  padding: 1em 3em;
+  border-radius: 5em;
+  border: none;
+}
+
+/* #form-edit {
+    position: relative;
+  }
+  
+  #form-buttons {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  } */
+
+.button-edit {
+  background-color: var(--background-brown);
+}
+
+.button-add,
+.button-save {
+  background-color: var(--background-green);
+}
+
+#button-delete,
+#button-remove,
+#button-delete-edit-lsc,
+#button-remove-edit-lsc {
+  background-color: var(--background-red);
+}
+
+#button-close,
+#button-close-edit-lsc {
+  color: black;
+}
+
+body {
+  position: relative;
+}
+
+#form-add,
+#form-add-lsc {
+  display: none;
+  min-height: 60dvh;
+  min-width: 60vw;
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--background-form);
+  border-radius: 1em;
+  padding: 2%;
+}
+
+#form-edit,
+#form-edit-lsc {
+  display: none;
+  min-height: 60dvh;
+  min-width: 60vw;
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--background-form);
+  border-radius: 1em;
+  padding: 2%;
+}
+
+form img {
+  width: 5em;
+  height: auto;
+}

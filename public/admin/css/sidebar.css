@@ -1,0 +1,337 @@
+/* Google Fonts Import Link */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 20vw; /* changed from 260px to 20vw */
+  /* background: #11101d; */
+  background: #e1ae5b;
+
+  z-index: 100;
+  transition: all 0.5s ease;
+}
+
+.sidebar i,
+.sidebar hr,
+.sidebar span {
+  color: black !important;
+}
+
+hr {
+  border: black;
+}
+.profile-details i {
+  color: white !important;
+}
+
+.sidebar.close {
+  width: 6vw; /* changed from 78px to 6vw */
+}
+
+.sidebar .logo-details {
+  height: 6rem; /* changed from 60px to 6rem */
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar .logo-details img {
+  width: 6rem;
+  padding: 1rem;
+}
+.sidebar .logo-details span img {
+  width: 10rem;
+  /* padding: 1rem; */
+  padding-top: 2rem;
+}
+
+.sidebar .logo-details i {
+  font-size: 1.875rem; /* changed from 30px to 1.875rem */
+  color: #fff;
+  height: 3rem; /* changed from 50px to 3rem */
+  min-width: 6rem; /* changed from 78px to 6rem */
+  text-align: center;
+  line-height: 3rem; /* changed from 50px to 3rem */
+}
+
+.sidebar .logo-details .logo_name {
+  font-size: 1.375rem; /* changed from 22px to 1.375rem */
+  color: #fff;
+  font-weight: 600;
+  transition: 0.3s ease;
+  transition-delay: 0.1s;
+}
+
+.sidebar.close .logo-details .logo_name {
+  transition-delay: 0s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar .nav-links {
+  height: 100%;
+  padding: 3rem 0 9rem 0; /* changed from 30px to 3rem and 150px to 9rem */
+  overflow: auto;
+}
+
+.sidebar.close .nav-links {
+  overflow: visible;
+}
+
+.sidebar .nav-links::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebar .nav-links li {
+  position: relative;
+  list-style: none;
+  transition: all 0.4s ease;
+}
+
+.sidebar .nav-links li:hover {
+  background: #1d1b31;
+}
+
+.sidebar .nav-links li .icon-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar.close .nav-links li .icon-link {
+  display: block;
+}
+
+.sidebar .nav-links li i {
+  height: 3rem; /* changed from 50px to 3rem */
+  min-width: 6rem; /* changed from 78px to 6rem */
+  text-align: center;
+  line-height: 3rem; /* changed from 50px to 3rem */
+  color: #fff;
+  font-size: 1.25rem; /* changed from 20px to 1.25rem */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  /* changed from 0 to -2rem */
+}
+
+.sidebar .nav-links li.showMenu i.arrow {
+  transform: rotate(-180deg);
+}
+
+.sidebar.close .nav-links i.arrow {
+  display: none;
+}
+
+.sidebar .nav-links li a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.sidebar .nav-links li a .link_name {
+  font-size: 1.125rem; /* changed from 18px to 1.125rem */
+  font-weight: 400;
+  color: #fff;
+  transition: all 0.4s ease;
+}
+
+.sidebar.close .nav-links li a .link_name {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar .nav-links li .sub-menu {
+  padding: 0.375rem 0.375rem 0.875rem 5rem; /* changed from 6px to 0.375rem and 80px to 5rem */
+  margin-top: -0.625rem; /* changed from -10px to -0.625rem */
+  background: #1d1b31;
+  display: none;
+}
+
+.sidebar .nav-links li.showMenu .sub-menu {
+  display: block;
+}
+
+.sidebar .nav-links li .sub-menu a {
+  color: #fff;
+  font-size: 0.9375rem; /* changed from 15px to 0.9375rem */
+  padding: 0.3125rem 0; /* changed from 5px to 0.3125rem */
+  white-space: nowrap;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.sidebar .nav-links li .sub-menu a:hover {
+  opacity: 1;
+}
+
+.sidebar.close .nav-links li .sub-menu {
+  position: absolute;
+  left: 100%;
+  top: -0.625rem; /* changed from -10px to -0.625rem */
+  margin-top: 0;
+  padding: 0.625rem 1.25rem; /* changed from 10px 20px to 0.625rem 1.25rem */
+  border-radius: 0 0.375rem 0.375rem 0; /* changed from 0 6px 6px 0 to 0 0.375rem 0.375rem 0 */
+  opacity: 0;
+  display: block;
+  pointer-events: none;
+  transition: 0s;
+}
+
+.sidebar.close .nav-links li:hover .sub-menu {
+  top: 0;
+  opacity: 1;
+  pointer-events: auto;
+  transition: all 0.4s ease;
+}
+
+.sidebar .nav-links li .sub-menu .link_name {
+  display: none;
+}
+
+.sidebar.close .nav-links li .sub-menu .link_name {
+  font-size: 1.125rem; /* changed from 18px to 1.125rem */
+  opacity: 1;
+  display: block;
+}
+
+.sidebar .nav-links li .sub-menu.blank {
+  opacity: 1;
+  pointer-events: auto;
+  padding: 0.1875rem 1.25rem 0.375rem 1rem; /* changed from 3px 20px 6px 16px to 0.1875rem 1.25rem 0.375rem 1rem */
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar .nav-links li:hover .sub-menu.blank {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.sidebar .profile-details {
+  position: fixed;
+  bottom: 0;
+  width: 20vw; /* changed from 260px to 20vw */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1d1b31;
+  padding: 0.75rem 0; /* changed from 12px to 0.75rem */
+  transition: all 0.5s ease;
+}
+
+.sidebar.close .profile-details {
+  background: none;
+}
+
+.sidebar.close .profile-details {
+  width: 6vw; /* changed from 78px to 6vw */
+}
+
+.sidebar .profile-details .profile-content {
+  display: flex;
+  align-items: center;
+}
+
+.sidebar .profile-details img {
+  height: 3.25rem; /* changed from 52px to 3.25rem */
+  width: 3.25rem; /* changed from 52px to 3.25rem */
+  object-fit: cover;
+  border-radius: 1rem; /* changed from 16px to 1rem */
+  margin: 0 0.875rem 0 0.75rem; /* changed from 14px 0 0 12px to 0.875rem 0 0 0.75rem */
+  background: #1d1b31;
+  transition: all 0.5s ease;
+}
+
+.sidebar.close .profile-details img {
+  padding: 0.625rem; /* changed from 10px to 0.625rem */
+}
+
+.sidebar .profile-details .profile_name,
+.sidebar .profile-details .job {
+  color: #fff;
+  font-size: 1.125rem; /* changed from 18px to 1.125rem */
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.sidebar.close .profile-details i,
+.sidebar.close .profile-details .profile_name,
+.sidebar.close .profile-details .job {
+  display: none;
+}
+
+.sidebar .profile-details .job {
+  font-size: 0.75rem; /* changed from 12px to 0.75rem */
+}
+
+.home-section {
+  position: relative;
+  background: #e4e9f7;
+  height: 100vh;
+  left: 20vw; /* changed from 260px to 20vw */
+  width: calc(100% - 20vw); /* changed from 100% - 260px to 100% - 20vw */
+  transition: all 0.5s ease;
+}
+
+.sidebar.close ~ .home-section {
+  left: 6vw; /* changed from 78px to 6vw */
+  width: calc(100% - 6vw); /* changed from 100% - 78px to 100% - 6vw */
+}
+
+.home-section .home-content {
+  height: 4rem; /* changed from 60px to 4rem */
+  display: flex;
+  align-items: center;
+}
+
+.home-section .home-content .bx-menu,
+.home-section .home-content .text {
+  color: #11101d;
+  font-size: 2.1875rem; /* changed from 35px to 2.1875rem */
+}
+
+.home-section .home-content .bx-menu {
+  margin: 0 0.9375rem; /* changed from 15px to 0.9375rem */
+  cursor: pointer;
+}
+
+.home-section .home-content .text {
+  font-size: 1.625rem; /* changed from 26px to 1.625rem */
+  font-weight: 600;
+}
+
+@media (max-width: 25em) {
+  /* changed from 400px to 25em for better scaling */
+  .sidebar.close .nav-links li .sub-menu {
+    display: none;
+  }
+
+  .sidebar {
+    width: 6vw; /* changed from 78px to 6vw */
+  }
+
+  .sidebar.close {
+    width: 0;
+  }
+
+  .home-section {
+    left: 6vw; /* changed from 78px to 6vw */
+    width: calc(100% - 6vw); /* changed from 100% - 78px to 100% - 6vw */
+    z-index: 100;
+  }
+
+  .sidebar.close ~ .home-section {
+    width: 100%;
+    left: 0;
+  }
+}
