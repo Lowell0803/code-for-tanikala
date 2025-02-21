@@ -37,23 +37,40 @@ passport.use(
       callbackURL: "http://localhost:3000/auth/microsoft/callback",
       tenant: process.env.MICROSOFT_TENANT_ID,
       resource: "https://graph.microsoft.com",
+      scope: ["openid", "email", "profile", "User.Read"],
     },
     async (accessToken, refreshToken, params, profile, done) => {
       try {
         // Decode the JWT token from Microsoft
         const decodedToken = JSON.parse(Buffer.from(params.id_token.split(".")[1], "base64"));
 
-        // Extract the email from different possible fields
+        // Extract basic details
         const userEmail = decodedToken.email || decodedToken.preferred_username || decodedToken.upn;
         const userName = decodedToken.name;
 
-        // Log the user details for debugging
-        console.log("Authenticated User:", { name: userName, email: userEmail });
+        console.log("Decoded Token:", decodedToken); // Logs all available token details
 
-        const user = { name: userName, email: userEmail };
+        // Call Microsoft Graph API for additional user details
+        const response = await fetch("https://graph.microsoft.com/v1.0/me", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        const userProfile = await response.json();
+        console.log("Microsoft Graph User Profile:", userProfile);
+
+        const user = {
+          name: userProfile.displayName || userName,
+          email: userProfile.mail || userEmail,
+          jobTitle: userProfile.jobTitle || "N/A",
+          department: userProfile.department || "N/A",
+          school: userProfile.officeLocation || "N/A",
+        };
+
+        console.log("Final User Object:", user);
+
         done(null, user);
       } catch (error) {
-        console.error("Error decoding Microsoft user info:", error);
+        console.error("Error fetching Microsoft user info:", error);
         done(error, null);
       }
     }

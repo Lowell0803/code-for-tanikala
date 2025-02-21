@@ -58,7 +58,7 @@
             <label for="campus" class="form-label">Campus: </label>
             <select name="campus" id="campus" required>
               <option disabled selected>Select Campus</option>
-              <option value="Malolos (Main) Campus">Malolos (Main) Campus</option>
+              <option value="Malolos (Main) Campus" selected>Malolos (Main) Campus</option>
             </select>
           </div>
 
@@ -99,6 +99,38 @@
     </div>
 
     <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const jobTitle = "<%= user ? user.jobTitle : '' %>";
+        const collegeSelect = document.getElementById("college");
+
+        if (jobTitle) {
+          const collegeAcronym = jobTitle.split(" - ")[1];
+
+          const collegeMap = {
+            CAFA: "College of Architecture and Fine Arts (CAFA)",
+            CAL: "College of Arts and Letters (CAL)",
+            CBEA: "College of Business Education and Accountancy (CBEA)",
+            CCJE: "College of Criminal Justice Education (CCJE)",
+            CHTM: "College of Hospitality and Tourism Management (CHTM)",
+            CICT: "College of Information and Communications Technology (CICT)",
+            CIT: "College of Industrial Technology (CIT)",
+            CN: "College of Nursing (CN)",
+            COE: "College of Engineering (COE)",
+            COED: "College of Education (COED)",
+            CS: "College of Science (CS)",
+            CSER: "College of Sports, Exercise, and Recreation (CSER)",
+            CSSP: "College of Social Sciences and Philosophy (CSSP)",
+          };
+
+          if (collegeAcronym in collegeMap) {
+            collegeSelect.value = collegeMap[collegeAcronym];
+            collegeSelect.dispatchEvent(new Event("change")); // Trigger program update
+          }
+        }
+      });
+    </script>
+
+    <script>
       function formatEmail(event) {
         const studentNumber = document.getElementById("student-number").value.trim();
         const emailField = document.getElementById("bulsu-account");
@@ -132,6 +164,20 @@
         } catch (error) {
           console.error("Error fetching programs:", error);
           programSelect.innerHTML = "<option disabled>Error loading programs</option>";
+        }
+      });
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const emailField = document.getElementById("bulsu-account");
+        const studentNumberField = document.getElementById("student-number");
+
+        if (emailField.value) {
+          const match = emailField.value.match(/^(\d{10})@ms\.bulsu\.edu\.ph$/);
+          if (match) {
+            studentNumberField.value = match[1];
+          }
         }
       });
     </script>
