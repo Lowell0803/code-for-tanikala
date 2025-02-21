@@ -1078,32 +1078,139 @@ const startServer = async () => {
       res.render("voter/review", { votes, voterCollege, voterProgram });
     });
 
+    // app.get("/configuration", async (req, res) => {
+    //   try {
+    //     const electionConfig = await db.collection("election_config").findOne({});
+    //     res.render("admin/configuration", { electionConfig });
+    //   } catch (error) {
+    //     res.status(500).send("Failed to load election management page.");
+    //   }
+    // });
+
+    // app.get("/api/election-config", async (req, res) => {
+    //   try {
+    //     const electionConfig = await db.collection("election_config").findOne({});
+    //     res.json(electionConfig);
+    //   } catch (error) {
+    //     res.status(500).json({ error: "Failed to fetch election configurations" });
+    //   }
+    // });
+
+    // app.post("/api/election-config", async (req, res) => {
+    //   try {
+    //     const updatedConfig = req.body;
+    //     await db.collection("election_config").updateOne({}, { $set: updatedConfig }, { upsert: true });
+    //     res.json({ success: true, message: "Election configurations updated" });
+    //   } catch (error) {
+    //     res.status(500).json({ error: "Failed to update election configurations" });
+    //   }
+    // });
+
     app.get("/configuration", async (req, res) => {
-      try {
-        const electionConfig = await db.collection("election_config").findOne({});
-        res.render("admin/configuration", { electionConfig });
-      } catch (error) {
-        res.status(500).send("Failed to load election management page.");
+      let electionConfig = await db.collection("election_config").findOne({});
+
+      // If no electionConfig exists, provide default values to prevent errors
+      if (!electionConfig) {
+        electionConfig = {
+          electionName: "",
+          registrationPeriod: { start: "", end: "" },
+          votingPeriod: { start: "", end: "" },
+          totalElections: 0,
+          totalPartylists: 0,
+          partylists: [], // Ensure this is always an array
+          totalCandidates: 0,
+          listOfElections: [],
+        };
       }
+
+      res.render("admin/configuration", { electionConfig });
     });
 
-    app.get("/api/election-config", async (req, res) => {
-      try {
-        const electionConfig = await db.collection("election_config").findOne({});
-        res.json(electionConfig);
-      } catch (error) {
-        res.status(500).json({ error: "Failed to fetch election configurations" });
+    // API to create a new election
+    app.post("/api/create-election", async (req, res) => {
+      const { electionName, registrationStart, registrationEnd, votingStart, votingEnd } = req.body;
+
+      // Validate date logic
+      const now = new Date();
+      if (new Date(registrationStart) < now || new Date(registrationEnd) < now || new Date(votingStart) < now || new Date(votingEnd) < now) {
+        return res.status(400).json({ message: "Dates cannot be in the past!" });
       }
+      if (new Date(votingStart) < new Date(registrationEnd)) {
+        return res.status(400).json({ message: "Voting must start after registration ends!" });
+      }
+
+      // Reset existing election (if any)
+      await db.collection("election_config").deleteMany({});
+
+      const newElection = {
+        electionName,
+        registrationPeriod: { start: registrationStart, end: registrationEnd },
+        votingPeriod: { start: votingStart, end: votingEnd },
+        phase: "Waiting for Registration",
+        createdAt: new Date(),
+      };
+
+      await db.collection("election_config").insertOne(newElection);
+      res.json({ message: "Election created successfully!" });
     });
 
-    app.post("/api/election-config", async (req, res) => {
-      try {
-        const updatedConfig = req.body;
-        await db.collection("election_config").updateOne({}, { $set: updatedConfig }, { upsert: true });
-        res.json({ success: true, message: "Election configurations updated" });
-      } catch (error) {
-        res.status(500).json({ error: "Failed to update election configurations" });
+    // API to update election dates
+    app.post("/api/update-election", async (req, res) => {
+      const { electionId, registrationStart, registrationEnd, votingStart, votingEnd } = req.body;
+
+      const now = new Date();
+      if (new Date(registrationStart) < now || new Date(registrationEnd) < now || new Date(votingStart) < now || new Date(votingEnd) < now) {
+        return res.status(400).json({ message: "Dates cannot be in the past!" });
       }
+      if (new Date(votingStart) < new Date(registrationEnd)) {
+        return res.status(400).json({ message: "Voting must start after registration ends!" });
+      }
+
+      await db.collection("election_config").updateOne(
+        { _id: new ObjectId(electionId) },
+        {
+          $set: {
+            "registrationPeriod.start": registrationStart,
+            "registrationPeriod.end": registrationEnd,
+            "votingPeriod.start": votingStart,
+            "votingPeriod.end": votingEnd,
+          },
+        }
+      );
+
+      res.json({ message: "Election updated successfully!" });
+    });
+
+    // API to reset the election
+    app.post("/api/reset-election", async (req, res) => {
+      await db.collection("electionConfig").deleteMany({});
+      await db.collection("electionConfig").insertOne({
+        electionName: "",
+        registrationPeriod: { start: "", end: "" },
+        votingPeriod: { start: "", end: "" },
+        totalElections: 14,
+        totalPartylists: 0,
+        partylists: [],
+        totalCandidates: 0,
+        listOfElections: [
+          { name: "Supreme Student Council (SSC) - BulSU Main", voters: 0 },
+          { name: "College of Architecture and Fine Arts (CAFA)", voters: 0 },
+          { name: "College of Arts and Letters (CAL)", voters: 0 },
+          { name: "College of Business Education and Accountancy (CBEA)", voters: 0 },
+          { name: "College of Criminal Justice Education (CCJE)", voters: 0 },
+          { name: "College of Engineering (COE)", voters: 0 },
+          { name: "College of Education (COED)", voters: 0 },
+          { name: "College of Hospitality and Tourism Management (CHTM)", voters: 0 },
+          { name: "College of Industrial Technology (CIT)", voters: 0 },
+          { name: "College of Information and Communications Technology (CICT)", voters: 0 },
+          { name: "College of Nursing (CON)", voters: 0 },
+          { name: "College of Science (CS)", voters: 0 },
+          { name: "College of Social Sciences and Philosophy (CSSP)", voters: 0 },
+          { name: "College of Sports, Exercise, and Recreation (CSER)", voters: 0 },
+        ],
+      });
+
+      res.json({ message: "Election has been reset!" });
     });
 
     app.get("/results", async (req, res) => {

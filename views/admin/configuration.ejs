@@ -160,6 +160,10 @@
           <div class="first-main">
             <div class="form" id="election-configuration">
               <h3 class="center">Election Configurations</h3>
+              <button class="action-buttons add-button" onclick="createElection()">Create Election</button>
+              <button class="action-buttons edit-button" onclick="updateElection(`<%= electionConfig ? electionConfig._id.toString() : '' %>`)">Update</button>
+
+              <button class="action-buttons delete-button" onclick="resetElection()">Reset Election</button>
 
               <p><b>Election Name:</b> <span id="election-name"><%= electionConfig.electionName %></span></p>
               <div class="button-container">
@@ -184,7 +188,7 @@
 
               <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.totalPartylists %></span></p>
               <ul class="election-configuration">
-                <% electionConfig.partylists.forEach(partylist => { %>
+                <% (electionConfig.partylists || []).forEach(partylist => { %>
                 <li><%= partylist %></li>
                 <% }); %>
               </ul>
@@ -220,6 +224,7 @@
             </div>
 
             <script>
+              let updatedElectionData = {};
               // Open Election Name Popup
               function editElectionName() {
                 document.getElementById("election-name-input").value = document.getElementById("election-name").innerText;
@@ -229,10 +234,9 @@
               // Save Election Name
               function saveElectionName() {
                 const newName = document.getElementById("election-name-input").value;
-                if (newName.trim()) {
-                  updateElectionConfig({ electionName: newName });
-                  showPopup("edit-election-name-popup"); // Hide popup after saving
-                }
+                updatedElectionData.electionName = newName;
+                document.getElementById("election-name").innerText = newName;
+                showPopup("edit-election-name-popup"); // Close popup
               }
 
               // Open Registration Period Popup
@@ -246,10 +250,10 @@
               function saveRegistrationPeriod() {
                 const newStart = document.getElementById("reg-start-input").value;
                 const newEnd = document.getElementById("reg-end-input").value;
-                if (newStart && newEnd) {
-                  updateElectionConfig({ registrationPeriod: { start: newStart, end: newEnd } });
-                  showPopup("edit-registration-period-popup"); // Hide popup after saving
-                }
+                updatedElectionData.registrationPeriod = { start: newStart, end: newEnd };
+                document.getElementById("reg-start").innerText = newStart;
+                document.getElementById("reg-end").innerText = newEnd;
+                showPopup("edit-registration-period-popup");
               }
 
               // Open Voting Period Popup
@@ -263,10 +267,10 @@
               function saveVotingPeriod() {
                 const newStart = document.getElementById("vote-start-input").value;
                 const newEnd = document.getElementById("vote-end-input").value;
-                if (newStart && newEnd) {
-                  updateElectionConfig({ votingPeriod: { start: newStart, end: newEnd } });
-                  showPopup("edit-voting-period-popup"); // Hide popup after saving
-                }
+                updatedElectionData.votingPeriod = { start: newStart, end: newEnd };
+                document.getElementById("vote-start").innerText = newStart;
+                document.getElementById("vote-end").innerText = newEnd;
+                showPopup("edit-voting-period-popup");
               }
 
               // Open Partylists Popup
@@ -277,11 +281,12 @@
 
               // Save Partylists
               function savePartylists() {
-                const newPartylists = document.getElementById("partylist-input").value;
-                if (newPartylists.trim()) {
-                  updateElectionConfig({ partylists: newPartylists.split(",").map((p) => p.trim()) });
-                  showPopup("edit-partylist-popup"); // Hide popup after saving
-                }
+                const newPartylists = document
+                  .getElementById("partylist-input")
+                  .value.split(",")
+                  .map((p) => p.trim());
+                updatedElectionData.partylists = newPartylists;
+                showPopup("edit-partylist-popup");
               }
 
               // Open Student Totals Popup
@@ -298,22 +303,13 @@
                   const collegeName = row.querySelector(".college-column").innerText.split(". ")[1];
                   const voterCount = parseInt(row.querySelector("input").value, 10) || 0;
 
-                  updatedListOfElections.push({
-                    name: collegeName,
-                    voters: voterCount,
-                  });
-
-                  // Update UI immediately
+                  updatedListOfElections.push({ name: collegeName, voters: voterCount });
                   document.getElementById(`voter-count-${index}`).innerText = `${voterCount} students`;
                 });
 
-                // Update total voters in the UI
+                updatedElectionData.listOfElections = updatedListOfElections;
                 document.getElementById("total-voters").innerText = updatedListOfElections.reduce((sum, election) => sum + election.voters, 0);
-
-                // Send updated data to MongoDB
-                updateElectionConfig({ listOfElections: updatedListOfElections });
-
-                showPopup("edit-student-totals-popup"); // Hide popup after saving
+                showPopup("edit-student-totals-popup");
               }
 
               // API Call to Update MongoDB
@@ -514,7 +510,104 @@
       </div>
     </footer>
 
+    <script>
+      async function updateElection(electionId) {
+        if (Object.keys(updatedElectionData).length === 0) {
+          alert("No changes made.");
+          return;
+        }
+
+        const response = await fetch("/api/update-election", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ electionId, ...updatedElectionData }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert("Election updated successfully!");
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      }
+    </script>
+
+    <script>
+      async function createElection() {
+        const electionName = document.getElementById("election-name-input").value;
+        const registrationStart = document.getElementById("reg-start-input").value;
+        const registrationEnd = document.getElementById("reg-end-input").value;
+        const votingStart = document.getElementById("vote-start-input").value;
+        const votingEnd = document.getElementById("vote-end-input").value;
+
+        if (!electionName || !registrationStart || !registrationEnd || !votingStart || !votingEnd) {
+          alert("Please fill in all fields.");
+          return;
+        }
+
+        const response = await fetch("/api/create-election", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ electionName, registrationStart, registrationEnd, votingStart, votingEnd }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert(data.message);
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      }
+
+      async function updateElection(electionId) {
+        const registrationStart = document.getElementById("reg-start-input").value;
+        const registrationEnd = document.getElementById("reg-end-input").value;
+        const votingStart = document.getElementById("vote-start-input").value;
+        const votingEnd = document.getElementById("vote-end-input").value;
+
+        if (!registrationStart || !registrationEnd || !votingStart || !votingEnd) {
+          alert("Please fill in all fields.");
+          return;
+        }
+
+        const response = await fetch("/api/update-election", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ electionId, registrationStart, registrationEnd, votingStart, votingEnd }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert(data.message);
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      }
+
+      async function resetElection() {
+        if (!confirm("Are you sure you want to reset the election? This will delete all current election data.")) {
+          return;
+        }
+
+        const response = await fetch("/api/reset-election", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert(data.message);
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      }
+    </script>
+
     <script src="admin/js/sidebar.js"></script>
-    <script src="admin/js/index_admin.js"></script>
+    <script src="admin/js/index-admin.js"></script>
   </body>
 </html>
