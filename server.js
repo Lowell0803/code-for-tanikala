@@ -1120,84 +1120,102 @@ const startServer = async () => {
           partylists: [],
           totalCandidates: 0,
           listOfElections: [],
+          phase: "Election Inactive", // Ensure phase is set
         };
       }
 
-      res.render("admin/configuration", { electionConfig });
+      console.log("🟢 Sending Election Config:", electionConfig);
+      console.log("📌 Simulated Date (Server):", simulatedDate ? simulatedDate.toISOString() : "Real Current Date");
+
+      res.render("admin/configuration", {
+        electionConfig,
+        simulatedDate: simulatedDate ? simulatedDate.toISOString() : null, // Pass simulated date
+      });
     });
 
-    // API to create a new election
+    const getElectionPhase = (registrationPeriod, votingPeriod, currentDate) => {
+      console.log("🟢 Checking Election Phase...");
+      console.log("📅 Current Date:", currentDate);
+      console.log("📌 Registration Start:", registrationPeriod.start);
+      console.log("📌 Registration End:", registrationPeriod.end);
+      console.log("📌 Voting Start:", votingPeriod.start);
+      console.log("📌 Voting End:", votingPeriod.end);
+
+      if (!registrationPeriod.start || !votingPeriod.start) {
+        console.log("❌ No registration/voting period found. Setting phase to 'Election Inactive'.");
+        return "Election Inactive";
+      }
+
+      const regStart = new Date(registrationPeriod.start);
+      const regEnd = new Date(registrationPeriod.end);
+      const voteStart = new Date(votingPeriod.start);
+      const voteEnd = new Date(votingPeriod.end);
+
+      let phase = "Election Inactive";
+
+      if (currentDate < regStart) {
+        console.log("✅ Election is Active, but registration hasn't started yet.");
+        phase = "Election Active";
+      } else if (currentDate >= regStart && currentDate <= regEnd) {
+        console.log("🟡 Registration phase is ongoing.");
+        phase = "Election Active | Registration Phase";
+      } else if (currentDate > regEnd && currentDate < voteStart) {
+        console.log("🔵 Registration ended. Waiting for voting to begin.");
+        phase = "Election Active | Waiting for Voting";
+      } else if (currentDate >= voteStart && currentDate <= voteEnd) {
+        console.log("🟢 Voting phase is ongoing.");
+        phase = "Election Active | Voting Phase";
+      } else {
+        console.log("🟠 Voting period ended. Entering vote checking period.");
+        phase = "Vote Checking Period";
+      }
+
+      console.log("🟣 Final Computed Phase:", phase);
+      return phase;
+    };
+
+    // Modify the `/api/create-election` API:
     app.post("/api/create-election", async (req, res) => {
       try {
-        console.log("Received request to create election:", req.body);
+        console.log("🟢 Received request to create election:", req.body);
 
         const { electionName, registrationStart, registrationEnd, votingStart, votingEnd } = req.body;
 
         if (!electionName || !registrationStart || !registrationEnd || !votingStart || !votingEnd) {
+          console.log("❌ Missing required fields.");
           return res.status(400).json({ message: "Missing required fields." });
         }
 
-        if (!db) {
-          return res.status(500).json({ message: "Database connection not initialized" });
-        }
+        const currentDate = getCurrentDate();
+        console.log("📌 Current Date for Phase Calculation:", currentDate);
 
-        // Fetch existing election config to preserve data
-        const existingConfig = await db.collection("election_config").findOne({});
+        const phase = getElectionPhase({ start: registrationStart, end: registrationEnd }, { start: votingStart, end: votingEnd }, currentDate);
 
-        // Default values
-        const defaultElections = [
-          { name: "Supreme Student Council (SSC) - BulSU Main", voters: 0 },
-          { name: "College of Architecture and Fine Arts (CAFA)", voters: 0 },
-          { name: "College of Arts and Letters (CAL)", voters: 0 },
-          { name: "College of Business Education and Accountancy (CBEA)", voters: 0 },
-          { name: "College of Criminal Justice Education (CCJE)", voters: 0 },
-          { name: "College of Engineering (COE)", voters: 0 },
-          { name: "College of Education (COED)", voters: 0 },
-          { name: "College of Hospitality and Tourism Management (CHTM)", voters: 0 },
-          { name: "College of Industrial Technology (CIT)", voters: 0 },
-          { name: "College of Information and Communications Technology (CICT)", voters: 0 },
-          { name: "College of Nursing (CON)", voters: 0 },
-          { name: "College of Science (CS)", voters: 0 },
-          { name: "College of Social Sciences and Philosophy (CSSP)", voters: 0 },
-          { name: "College of Sports, Exercise, and Recreation (CSER)", voters: 0 },
-        ];
+        console.log("🟠 Computed Phase:", phase);
 
         const electionConfig = {
           electionName,
           registrationPeriod: { start: registrationStart, end: registrationEnd },
           votingPeriod: { start: votingStart, end: votingEnd },
-          totalElections: 14,
-          totalPartylists: existingConfig?.totalPartylists || 0, // Keep previous total if exists
-          totalCandidates: existingConfig?.totalCandidates || 0, // Keep previous total if exists
-          phase: "Waiting for Registration",
-          partylists: existingConfig?.partylists || [], // Preserve existing partylists
-          listOfElections: existingConfig?.listOfElections || defaultElections, // Preserve voters
+          phase,
         };
 
-        // Update the document, preserving fields that shouldn't be overwritten
         const result = await db.collection("election_config").updateOne({}, { $set: electionConfig }, { upsert: true });
 
-        console.log("Election config updated:", result);
+        console.log("✅ Election created/updated in DB:", result);
         res.json({ message: "Election created/updated successfully!" });
       } catch (error) {
-        console.error("Error creating election:", error);
+        console.error("❌ Error creating election:", error);
         res.status(500).json({ message: "Error creating election", error: error.message });
       }
     });
 
-    const { ObjectId } = require("mongodb"); // Import ObjectId
-
+    // Modify the `/api/update-election` API:
     app.post("/api/update-election", async (req, res) => {
       try {
-        if (!db) {
-          return res.status(500).json({ message: "Database connection not initialized" });
-        }
-
         const { electionId, ...updatedFields } = req.body;
 
-        if (!electionId) {
-          return res.status(400).json({ message: "Election ID is missing" });
-        }
+        if (!electionId) return res.status(400).json({ message: "Election ID is missing" });
 
         let objectId;
         try {
@@ -1206,46 +1224,18 @@ const startServer = async () => {
           return res.status(400).json({ message: "Invalid Election ID format" });
         }
 
-        console.log("Received update request:", updatedFields);
-
         const existingElection = await db.collection("election_config").findOne({ _id: objectId });
 
-        if (!existingElection) {
-          return res.status(404).json({ message: "Election not found" });
-        }
+        if (!existingElection) return res.status(404).json({ message: "Election not found" });
 
-        let updates = {};
+        const currentDate = new Date(); // Change to a frontend-input date for testing
 
-        // Check if the received data is different from the database data
-        for (let key in updatedFields) {
-          if (JSON.stringify(existingElection[key]) !== JSON.stringify(updatedFields[key])) {
-            updates[key] = updatedFields[key];
-          }
-        }
+        updatedFields.phase = getElectionPhase(updatedFields.registrationPeriod || existingElection.registrationPeriod, updatedFields.votingPeriod || existingElection.votingPeriod, currentDate);
 
-        if (Object.keys(updates).length === 0) {
-          return res.status(200).json({ message: "No changes detected, nothing updated." });
-        }
-
-        // Ensure arrays are handled correctly
-        if (Array.isArray(updatedFields.partylists)) {
-          updates.partylists = updatedFields.partylists;
-        }
-
-        if (Array.isArray(updatedFields.listOfElections)) {
-          updates.listOfElections = updatedFields.listOfElections;
-        }
-
-        // Apply updates
-        const result = await db.collection("election_config").updateOne({ _id: objectId }, { $set: updates });
-
-        if (result.modifiedCount === 0) {
-          return res.status(500).json({ message: "Update failed, no modifications made." });
-        }
+        const result = await db.collection("election_config").updateOne({ _id: objectId }, { $set: updatedFields });
 
         res.json({ message: "Election updated successfully!" });
       } catch (error) {
-        console.error("Error updating election:", error);
         res.status(500).json({ message: "Error updating election", error: error.message });
       }
     });
@@ -1262,7 +1252,7 @@ const startServer = async () => {
           totalPartylists: 0,
           partylists: [],
           totalCandidates: 0,
-          phase: "No election created",
+          phase: "Election Inactive",
           listOfElections: [
             { name: "Supreme Student Council (SSC) - BulSU Main", voters: 0 },
             { name: "College of Architecture and Fine Arts (CAFA)", voters: 0 },
@@ -1286,6 +1276,56 @@ const startServer = async () => {
         res.status(500).json({ message: "Error resetting election", error: error.message });
       }
     });
+
+    app.post("/api/confirm-results", async (req, res) => {
+      try {
+        const result = await db.collection("election_config").updateOne({}, { $set: { phase: "Results Are Out" } });
+
+        if (result.modifiedCount === 0) {
+          return res.status(500).json({ message: "Update failed, no modifications made." });
+        }
+
+        console.log("🟢 Election phase updated to 'Results Are Out'");
+        res.json({ message: "Election phase updated to 'Results Are Out'!" });
+      } catch (error) {
+        console.error("❌ Error updating election phase:", error);
+        res.status(500).json({ message: "Error updating election phase", error: error.message });
+      }
+    });
+
+    let simulatedDate = null; // Store simulated date globally
+
+    app.post("/api/update-simulated-date", async (req, res) => {
+      try {
+        simulatedDate = req.body.simulatedDate ? new Date(req.body.simulatedDate) : null;
+        console.log("🟢 Simulated Date Updated:", simulatedDate ? simulatedDate.toISOString() : "Using Real Date");
+
+        // Fetch current election data
+        const electionConfig = await db.collection("election_config").findOne({});
+        if (!electionConfig) {
+          return res.status(404).json({ message: "No election found" });
+        }
+
+        // Recalculate election phase using the new simulated date
+        const newPhase = getElectionPhase(electionConfig.registrationPeriod, electionConfig.votingPeriod, simulatedDate || new Date());
+
+        // Update election phase in database
+        await db.collection("election_config").updateOne({}, { $set: { phase: newPhase } });
+
+        console.log("🔄 Phase Recalculated After Simulated Date Change:", newPhase);
+        res.json({ message: "Simulated date updated and phase recalculated." });
+      } catch (error) {
+        console.error("❌ Error updating simulated date:", error);
+        res.status(500).json({ message: "Error updating simulated date", error: error.message });
+      }
+    });
+
+    // Function to get the current date (real or simulated)
+    const getCurrentDate = () => {
+      const currentDate = simulatedDate ? simulatedDate : new Date();
+      console.log("📌 Using Date for Calculations:", currentDate);
+      return currentDate;
+    };
 
     app.get("/results", async (req, res) => {
       try {

@@ -22,21 +22,85 @@
       <div class="header-logo">
         <img src="../img/logo_tanikala.png" />
       </div>
+      <script>
+        console.log("🟢 Loading election configuration...");
+        console.log("📌 Election Name:", "<%= electionConfig.electionName ? electionConfig.electionName : 'Tanikala Voting System' %>");
+        console.log("📌 Current Phase:", "<%= electionConfig.phase ? electionConfig.phase : 'Election Inactive' %>");
+        console.log("📌 Registration Start:", "<%= electionConfig.registrationPeriod.start %>");
+        console.log("📌 Registration End:", "<%= electionConfig.registrationPeriod.end %>");
+        console.log("📌 Voting Start:", "<%= electionConfig.votingPeriod.start %>");
+        console.log("📌 Voting End:", "<%= electionConfig.votingPeriod.end %>");
+
+        function updateElectionPhase() {
+          const now = new Date();
+          const regStart = "<%= electionConfig.registrationPeriod.start %>" ? new Date("<%= electionConfig.registrationPeriod.start %>") : null;
+          const regEnd = "<%= electionConfig.registrationPeriod.end %>" ? new Date("<%= electionConfig.registrationPeriod.end %>") : null;
+          const voteStart = "<%= electionConfig.votingPeriod.start %>" ? new Date("<%= electionConfig.votingPeriod.start %>") : null;
+          const voteEnd = "<%= electionConfig.votingPeriod.end %>" ? new Date("<%= electionConfig.votingPeriod.end %>") : null;
+
+          console.log("🟢 Current Date:", now);
+          console.log("📌 Registration Start:", regStart);
+          console.log("📌 Registration End:", regEnd);
+          console.log("📌 Voting Start:", voteStart);
+          console.log("📌 Voting End:", voteEnd);
+
+          if (now < regStart) {
+            // Before Registration - Show Countdown
+            const diff = regStart - now;
+            const hours = Math.floor(diff / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            document.getElementById("time-until-registration").innerText = `${hours} hours, ${minutes} minutes`;
+          } else if (now >= regStart && now <= regEnd) {
+            // Registration Ongoing
+            document.getElementById("time-until-registration").innerText = "Registration has started!";
+          } else {
+            // Hide if not in Registration Phase
+            document.getElementById("time-until-registration").innerText = "";
+          }
+
+          // Show Confirm Results button only after voting ends
+          if (voteEnd && now > voteEnd) {
+            document.getElementById("results-button").style.display = "block";
+          } else {
+            document.getElementById("results-button").style.display = "none";
+          }
+        }
+
+        updateElectionPhase();
+        setInterval(updateElectionPhase, 60000); // Refresh every minute
+
+        async function confirmResults() {
+          const response = await fetch("/api/confirm-results", {
+            method: "POST",
+          });
+
+          if (response.ok) {
+            location.reload();
+          } else {
+            console.error("❌ Failed to confirm results");
+          }
+        }
+      </script>
+
       <div class="header-content">
-        <h2><span><%= electionConfig ? electionConfig.electionName : 'Tanikala Voting System' %></span></h2>
+        <h2><span><%= electionConfig.electionName ? electionConfig.electionName : 'Tanikala Voting System' %></span></h2>
         <p>
           Current Election Status:&nbsp;
-          <span class="election-status">ELECTION ONGOING</span>
-          |
-          <span class="election-status2">Voting</span>
+          <span class="election-status"> <%= electionConfig.phase ? electionConfig.phase : "Election Inactive" %> </span>
         </p>
-        <p>
-          Voting Period:&nbsp;
-          <span class="period">MM/DD/YYYY</span>
-          -
-          <span class="period">MM/DD/YYYY</span>
-        </p>
+
+        <% if (electionConfig.phase === "Election Active") { %>
+        <p>Time Until Registration: <span id="time-until-registration"></span></p>
+        <% } else if (electionConfig.phase.includes("Registration Phase")) { %>
+        <p>Registration Period: <span class="period"><%= electionConfig.registrationPeriod.start %></span> - <span class="period"><%= electionConfig.registrationPeriod.end %></span></p>
+        <% } else if (electionConfig.phase.includes("Voting Phase")) { %>
+        <p>Voting Period: <span class="period"><%= electionConfig.votingPeriod.start %></span> - <span class="period"><%= electionConfig.votingPeriod.end %></span></p>
+        <% } else if (electionConfig.phase.includes("Vote Checking Period")) { %>
+        <p>Vote Checking Period is in progress.</p>
+        <button id="results-button" onclick="confirmResults()" style="display: none">Confirm Results Are Out</button>
+        <% } %>
       </div>
+
       <div class="header-user">
         <img src="../img/placeholder_admin_profile.png" />
         <div class="admin-name">Admin 1</div>
@@ -357,6 +421,39 @@
                   <b>Current Election Status: </b>
                 </p>
                 <br />
+                <% if (electionConfig.phase === "Vote Checking Period") { %>
+                <button onclick="confirmResults()">Move to 'Results Are Out'</button>
+                <% } %>
+
+                <script>
+                  async function confirmResults() {
+                    const response = await fetch("/api/confirm-results", { method: "POST" });
+
+                    if (response.ok) {
+                      alert("Election phase updated to 'Results Are Out'");
+                      location.reload();
+                    } else {
+                      alert("Failed to update election phase.");
+                    }
+                  }
+                </script>
+
+                <label>Simulated Current Date:</label>
+                <input type="datetime-local" id="simulatedDate" onchange="updateSimulatedDate()" />
+
+                <script>
+                  function updateSimulatedDate() {
+                    const newDate = document.getElementById("simulatedDate").value;
+                    console.log("🟢 Simulated Date Changed:", newDate);
+
+                    fetch("/api/update-simulated-date", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ simulatedDate: newDate }),
+                    }).then(() => location.reload());
+                  }
+                </script>
+
                 <div class="center">
                   <p>
                     <span>ELECTION ONGOING</span>
