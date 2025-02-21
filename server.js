@@ -1109,7 +1109,7 @@ const startServer = async () => {
     app.get("/configuration", async (req, res) => {
       let electionConfig = await db.collection("election_config").findOne({});
 
-      // If no electionConfig exists, provide default values to prevent errors
+      // Provide default values to prevent errors
       if (!electionConfig) {
         electionConfig = {
           electionName: "",
@@ -1117,7 +1117,7 @@ const startServer = async () => {
           votingPeriod: { start: "", end: "" },
           totalElections: 0,
           totalPartylists: 0,
-          partylists: [], // Ensure this is always an array
+          partylists: [],
           totalCandidates: 0,
           listOfElections: [],
         };
@@ -1128,71 +1128,24 @@ const startServer = async () => {
 
     // API to create a new election
     app.post("/api/create-election", async (req, res) => {
-      const { electionName, registrationStart, registrationEnd, votingStart, votingEnd } = req.body;
+      try {
+        console.log("Received request to create election:", req.body);
 
-      // Validate date logic
-      const now = new Date();
-      if (new Date(registrationStart) < now || new Date(registrationEnd) < now || new Date(votingStart) < now || new Date(votingEnd) < now) {
-        return res.status(400).json({ message: "Dates cannot be in the past!" });
-      }
-      if (new Date(votingStart) < new Date(registrationEnd)) {
-        return res.status(400).json({ message: "Voting must start after registration ends!" });
-      }
+        const { electionName, registrationStart, registrationEnd, votingStart, votingEnd } = req.body;
 
-      // Reset existing election (if any)
-      await db.collection("election_config").deleteMany({});
-
-      const newElection = {
-        electionName,
-        registrationPeriod: { start: registrationStart, end: registrationEnd },
-        votingPeriod: { start: votingStart, end: votingEnd },
-        phase: "Waiting for Registration",
-        createdAt: new Date(),
-      };
-
-      await db.collection("election_config").insertOne(newElection);
-      res.json({ message: "Election created successfully!" });
-    });
-
-    // API to update election dates
-    app.post("/api/update-election", async (req, res) => {
-      const { electionId, registrationStart, registrationEnd, votingStart, votingEnd } = req.body;
-
-      const now = new Date();
-      if (new Date(registrationStart) < now || new Date(registrationEnd) < now || new Date(votingStart) < now || new Date(votingEnd) < now) {
-        return res.status(400).json({ message: "Dates cannot be in the past!" });
-      }
-      if (new Date(votingStart) < new Date(registrationEnd)) {
-        return res.status(400).json({ message: "Voting must start after registration ends!" });
-      }
-
-      await db.collection("election_config").updateOne(
-        { _id: new ObjectId(electionId) },
-        {
-          $set: {
-            "registrationPeriod.start": registrationStart,
-            "registrationPeriod.end": registrationEnd,
-            "votingPeriod.start": votingStart,
-            "votingPeriod.end": votingEnd,
-          },
+        if (!electionName || !registrationStart || !registrationEnd || !votingStart || !votingEnd) {
+          return res.status(400).json({ message: "Missing required fields." });
         }
-      );
 
-      res.json({ message: "Election updated successfully!" });
-    });
+        if (!db) {
+          return res.status(500).json({ message: "Database connection not initialized" });
+        }
 
-    // API to reset the election
-    app.post("/api/reset-election", async (req, res) => {
-      await db.collection("electionConfig").deleteMany({});
-      await db.collection("electionConfig").insertOne({
-        electionName: "",
-        registrationPeriod: { start: "", end: "" },
-        votingPeriod: { start: "", end: "" },
-        totalElections: 14,
-        totalPartylists: 0,
-        partylists: [],
-        totalCandidates: 0,
-        listOfElections: [
+        // Fetch existing election config to preserve data
+        const existingConfig = await db.collection("election_config").findOne({});
+
+        // Default values
+        const defaultElections = [
           { name: "Supreme Student Council (SSC) - BulSU Main", voters: 0 },
           { name: "College of Architecture and Fine Arts (CAFA)", voters: 0 },
           { name: "College of Arts and Letters (CAL)", voters: 0 },
@@ -1207,10 +1160,131 @@ const startServer = async () => {
           { name: "College of Science (CS)", voters: 0 },
           { name: "College of Social Sciences and Philosophy (CSSP)", voters: 0 },
           { name: "College of Sports, Exercise, and Recreation (CSER)", voters: 0 },
-        ],
-      });
+        ];
 
-      res.json({ message: "Election has been reset!" });
+        const electionConfig = {
+          electionName,
+          registrationPeriod: { start: registrationStart, end: registrationEnd },
+          votingPeriod: { start: votingStart, end: votingEnd },
+          totalElections: 14,
+          totalPartylists: existingConfig?.totalPartylists || 0, // Keep previous total if exists
+          totalCandidates: existingConfig?.totalCandidates || 0, // Keep previous total if exists
+          phase: "Waiting for Registration",
+          partylists: existingConfig?.partylists || [], // Preserve existing partylists
+          listOfElections: existingConfig?.listOfElections || defaultElections, // Preserve voters
+        };
+
+        // Update the document, preserving fields that shouldn't be overwritten
+        const result = await db.collection("election_config").updateOne({}, { $set: electionConfig }, { upsert: true });
+
+        console.log("Election config updated:", result);
+        res.json({ message: "Election created/updated successfully!" });
+      } catch (error) {
+        console.error("Error creating election:", error);
+        res.status(500).json({ message: "Error creating election", error: error.message });
+      }
+    });
+
+    const { ObjectId } = require("mongodb"); // Import ObjectId
+
+    app.post("/api/update-election", async (req, res) => {
+      try {
+        if (!db) {
+          return res.status(500).json({ message: "Database connection not initialized" });
+        }
+
+        const { electionId, ...updatedFields } = req.body;
+
+        if (!electionId) {
+          return res.status(400).json({ message: "Election ID is missing" });
+        }
+
+        let objectId;
+        try {
+          objectId = new ObjectId(electionId);
+        } catch (error) {
+          return res.status(400).json({ message: "Invalid Election ID format" });
+        }
+
+        console.log("Received update request:", updatedFields);
+
+        const existingElection = await db.collection("election_config").findOne({ _id: objectId });
+
+        if (!existingElection) {
+          return res.status(404).json({ message: "Election not found" });
+        }
+
+        let updates = {};
+
+        // Check if the received data is different from the database data
+        for (let key in updatedFields) {
+          if (JSON.stringify(existingElection[key]) !== JSON.stringify(updatedFields[key])) {
+            updates[key] = updatedFields[key];
+          }
+        }
+
+        if (Object.keys(updates).length === 0) {
+          return res.status(200).json({ message: "No changes detected, nothing updated." });
+        }
+
+        // Ensure arrays are handled correctly
+        if (Array.isArray(updatedFields.partylists)) {
+          updates.partylists = updatedFields.partylists;
+        }
+
+        if (Array.isArray(updatedFields.listOfElections)) {
+          updates.listOfElections = updatedFields.listOfElections;
+        }
+
+        // Apply updates
+        const result = await db.collection("election_config").updateOne({ _id: objectId }, { $set: updates });
+
+        if (result.modifiedCount === 0) {
+          return res.status(500).json({ message: "Update failed, no modifications made." });
+        }
+
+        res.json({ message: "Election updated successfully!" });
+      } catch (error) {
+        console.error("Error updating election:", error);
+        res.status(500).json({ message: "Error updating election", error: error.message });
+      }
+    });
+
+    // API to reset the election
+    app.post("/api/reset-election", async (req, res) => {
+      try {
+        await db.collection("election_config").deleteMany({});
+        await db.collection("election_config").insertOne({
+          electionName: "",
+          registrationPeriod: { start: "", end: "" },
+          votingPeriod: { start: "", end: "" },
+          totalElections: 14,
+          totalPartylists: 0,
+          partylists: [],
+          totalCandidates: 0,
+          phase: "No election created",
+          listOfElections: [
+            { name: "Supreme Student Council (SSC) - BulSU Main", voters: 0 },
+            { name: "College of Architecture and Fine Arts (CAFA)", voters: 0 },
+            { name: "College of Arts and Letters (CAL)", voters: 0 },
+            { name: "College of Business Education and Accountancy (CBEA)", voters: 0 },
+            { name: "College of Criminal Justice Education (CCJE)", voters: 0 },
+            { name: "College of Engineering (COE)", voters: 0 },
+            { name: "College of Education (COED)", voters: 0 },
+            { name: "College of Hospitality and Tourism Management (CHTM)", voters: 0 },
+            { name: "College of Industrial Technology (CIT)", voters: 0 },
+            { name: "College of Information and Communications Technology (CICT)", voters: 0 },
+            { name: "College of Nursing (CON)", voters: 0 },
+            { name: "College of Science (CS)", voters: 0 },
+            { name: "College of Social Sciences and Philosophy (CSSP)", voters: 0 },
+            { name: "College of Sports, Exercise, and Recreation (CSER)", voters: 0 },
+          ],
+        });
+
+        res.json({ message: "Election has been reset!" });
+      } catch (error) {
+        res.status(500).json({ message: "Error resetting election", error: error.message });
+      }
     });
 
     app.get("/results", async (req, res) => {

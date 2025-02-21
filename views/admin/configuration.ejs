@@ -23,7 +23,7 @@
         <img src="../img/logo_tanikala.png" />
       </div>
       <div class="header-content">
-        <h2><span>BulSU Student Government Elections 2025-2026</span></h2>
+        <h2><span><%= electionConfig ? electionConfig.electionName : 'Tanikala Voting System' %></span></h2>
         <p>
           Current Election Status:&nbsp;
           <span class="election-status">ELECTION ONGOING</span>
@@ -187,11 +187,16 @@
               <p><b>Total Number of Elections:</b> <span><%= electionConfig.totalElections %></span></p>
 
               <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.totalPartylists %></span></p>
-              <ul class="election-configuration">
+
+              <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.totalPartylists %></span></p>
+
+              <!-- ✅ Separate Partylist Section (No Inputs Added) -->
+              <ul class="election-configuration partylist-section">
                 <% (electionConfig.partylists || []).forEach(partylist => { %>
-                <li><%= partylist %></li>
+                <li class="partylist-item"><%= partylist %></li>
                 <% }); %>
               </ul>
+
               <div class="button-container">
                 <button class="action-buttons edit-button" onclick="editPartylists()">Manage Partylists</button>
               </div>
@@ -207,9 +212,10 @@
               </p>
               <br />
 
-              <ol class="election-configuration">
+              <!-- ✅ Separate Election Section (No Inputs Added) -->
+              <ol class="election-configuration election-section">
                 <% electionConfig.listOfElections.forEach((election, index) => { %>
-                <li>
+                <li class="election-item">
                   <p>
                     <b><%= election.name %>: </b>
                     <span id="voter-count-<%= index %>"><%= election.voters %> students</span>
@@ -275,18 +281,29 @@
 
               // Open Partylists Popup
               function editPartylists() {
-                document.getElementById("partylist-input").value = "<%= electionConfig.partylists.join(', ') %>";
+                // Get the current partylists from the frontend instead of using EJS inside JS
+                const partylistItems = document.querySelectorAll(".partylist-section .partylist-item");
+                const partylistArray = Array.from(partylistItems).map((item) => item.innerText.trim());
+
+                document.getElementById("partylist-input").value = partylistArray.join(", ");
                 showPopup("edit-partylist-popup");
               }
 
+              // Save Partylists
               // Save Partylists
               function savePartylists() {
                 const newPartylists = document
                   .getElementById("partylist-input")
                   .value.split(",")
                   .map((p) => p.trim());
+
                 updatedElectionData.partylists = newPartylists;
-                showPopup("edit-partylist-popup");
+
+                // ✅ Fix: Ensure only the partylists section updates (not elections)
+                const listContainer = document.querySelector(".partylist-section");
+                listContainer.innerHTML = newPartylists.map((partylist) => `<li class="partylist-item">${partylist}</li>`).join("");
+
+                showPopup("edit-partylist-popup"); // Close popup
               }
 
               // Open Student Totals Popup
@@ -297,6 +314,8 @@
               // Save the updated student totals
               function saveStudentTotals() {
                 let updatedListOfElections = [];
+                let totalVoters = 0;
+
                 const rows = document.querySelectorAll("#student-totals-body tr");
 
                 rows.forEach((row, index) => {
@@ -305,10 +324,11 @@
 
                   updatedListOfElections.push({ name: collegeName, voters: voterCount });
                   document.getElementById(`voter-count-${index}`).innerText = `${voterCount} students`;
+                  totalVoters += voterCount;
                 });
 
                 updatedElectionData.listOfElections = updatedListOfElections;
-                document.getElementById("total-voters").innerText = updatedListOfElections.reduce((sum, election) => sum + election.voters, 0);
+                document.getElementById("total-voters").innerText = totalVoters;
                 showPopup("edit-student-totals-popup");
               }
 
@@ -511,29 +531,6 @@
     </footer>
 
     <script>
-      async function updateElection(electionId) {
-        if (Object.keys(updatedElectionData).length === 0) {
-          alert("No changes made.");
-          return;
-        }
-
-        const response = await fetch("/api/update-election", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ electionId, ...updatedElectionData }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          alert("Election updated successfully!");
-          location.reload();
-        } else {
-          alert(data.message);
-        }
-      }
-    </script>
-
-    <script>
       async function createElection() {
         const electionName = document.getElementById("election-name-input").value;
         const registrationStart = document.getElementById("reg-start-input").value;
@@ -554,7 +551,15 @@
 
         const data = await response.json();
         if (response.ok) {
-          alert(data.message);
+          alert("Election created successfully!");
+
+          // Update UI dynamically
+          document.getElementById("election-name").innerText = electionName;
+          document.getElementById("reg-start").innerText = registrationStart;
+          document.getElementById("reg-end").innerText = registrationEnd;
+          document.getElementById("vote-start").innerText = votingStart;
+          document.getElementById("vote-end").innerText = votingEnd;
+
           location.reload();
         } else {
           alert(data.message);
@@ -562,28 +567,80 @@
       }
 
       async function updateElection(electionId) {
-        const registrationStart = document.getElementById("reg-start-input").value;
-        const registrationEnd = document.getElementById("reg-end-input").value;
-        const votingStart = document.getElementById("vote-start-input").value;
-        const votingEnd = document.getElementById("vote-end-input").value;
+        console.log("🟢 updateElection() called with electionId:", electionId);
 
-        if (!registrationStart || !registrationEnd || !votingStart || !votingEnd) {
-          alert("Please fill in all fields.");
-          return;
-        }
+        let updatedData = {};
 
-        const response = await fetch("/api/update-election", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ electionId, registrationStart, registrationEnd, votingStart, votingEnd }),
+        // Get values from static fields
+        const getValue = (id) => {
+          const element = document.getElementById(id);
+          return element ? element.innerText.trim() : "";
+        };
+
+        const newElectionName = getValue("election-name");
+        const newRegStart = getValue("reg-start");
+        const newRegEnd = getValue("reg-end");
+        const newVoteStart = getValue("vote-start");
+        const newVoteEnd = getValue("vote-end");
+
+        console.log("📌 New electionName:", newElectionName);
+        console.log("📌 New registrationPeriod:", newRegStart, "to", newRegEnd);
+        console.log("📌 New votingPeriod:", newVoteStart, "to", newVoteEnd);
+
+        // ✅ Get partylists correctly
+        let newPartylists = [];
+        document.querySelectorAll(".partylist-item").forEach((item) => {
+          const partylistName = item.innerText.trim();
+          if (partylistName) newPartylists.push(partylistName);
         });
 
-        const data = await response.json();
-        if (response.ok) {
-          alert(data.message);
-          location.reload();
-        } else {
-          alert(data.message);
+        console.log("📌 New partylists:", newPartylists);
+
+        // ✅ Extract Voter Counts from `<span>` elements
+        let updatedListOfElections = [];
+        document.querySelectorAll(".election-item").forEach((item, index) => {
+          const collegeName = item.querySelector("b").innerText.replace(":", "").trim();
+
+          // Extract the voter count from the span text (e.g., "500 students" → 500)
+          const voterText = item.querySelector(`#voter-count-${index}`).innerText;
+          const voterCount = parseInt(voterText.replace(/\D/g, ""), 10) || 0;
+
+          updatedListOfElections.push({ name: collegeName, voters: voterCount });
+
+          console.log(`📌 College: ${collegeName}, Voters: ${voterCount}`);
+        });
+
+        console.log("📌 Final listOfElections:", updatedListOfElections);
+
+        // ✅ Add values to updatedData only if they exist
+        if (newElectionName) updatedData.electionName = newElectionName;
+        if (newRegStart) updatedData.registrationPeriod = { start: newRegStart, end: newRegEnd };
+        if (newVoteStart) updatedData.votingPeriod = { start: newVoteStart, end: newVoteEnd };
+        if (newPartylists.length > 0) updatedData.partylists = newPartylists;
+        if (updatedListOfElections.length > 0) updatedData.listOfElections = updatedListOfElections;
+
+        console.log("📝 Final updatedData object:", updatedData);
+
+        // ✅ Send updated data to API
+        try {
+          const response = await fetch("/api/update-election", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ electionId, ...updatedData }),
+          });
+
+          const data = await response.json();
+          console.log("🟢 Server response:", data);
+
+          if (response.ok) {
+            alert("Election updated successfully!");
+            location.reload();
+          } else {
+            alert(data.message);
+          }
+        } catch (error) {
+          console.error("❌ Fetch error:", error);
+          alert("Failed to update election. Check the console for errors.");
         }
       }
 
