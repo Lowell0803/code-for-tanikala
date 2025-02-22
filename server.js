@@ -209,6 +209,25 @@ const startServer = async () => {
       }
     });
 
+    // app.get("/developer/vote-counts", async (req, res) => {
+    //   try {
+    //     console.log("📡 Fetching vote counts...");
+    //     const candidates = await contract.getVoteCounts();
+
+    //     const results = candidates.map((c) => ({
+    //       candidate: c.name,
+    //       position: c.position,
+    //       votes: c.votes.toString(),
+    //     }));
+
+    //     console.log("✅ Vote counts retrieved:", results);
+    //     res.json({ success: true, results });
+    //   } catch (error) {
+    //     console.error("❌ Error fetching vote counts:", error);
+    //     res.status(500).json({ success: false, error: "Failed to fetch vote counts." });
+    //   }
+    // });
+
     app.get("/developer/vote-counts", async (req, res) => {
       try {
         console.log("📡 Fetching vote counts...");
@@ -218,6 +237,7 @@ const startServer = async () => {
           candidate: c.name,
           position: c.position,
           votes: c.votes.toString(),
+          voterHashes: c.voterHashes || [], // Assuming `voterHashes` is an array in your contract
         }));
 
         console.log("✅ Vote counts retrieved:", results);
@@ -264,16 +284,226 @@ const startServer = async () => {
       return position;
     }
 
+    // app.post("/submit-vote", async (req, res) => {
+    //   const queuePosition = voteQueue.size;
+    //   voteQueue.add(async () => {
+    //     try {
+    //       const { votes } = req.body;
+    //       console.log("📡 Processing vote submission:", votes);
+
+    //       let nonce = await provider.getTransactionCount(wallet.address, "pending");
+    //       const positions = Object.keys(votes);
+    //       const batchVotes = [];
+
+    //       for (const position of positions) {
+    //         const formattedPosition = formatPosition(position);
+    //         const voteData = votes[position];
+
+    //         if (Array.isArray(voteData)) {
+    //           for (const candidate of voteData) {
+    //             const index = await findCandidateIndex(formattedPosition, candidate.name);
+    //             if (index === -1) {
+    //               console.log(`❌ Candidate ${candidate.name} not found in ${formattedPosition}! Skipping.`);
+    //               continue;
+    //             }
+    //             batchVotes.push({ position: formattedPosition, index });
+    //           }
+    //         } else {
+    //           const index = await findCandidateIndex(formattedPosition, voteData.name);
+    //           if (index === -1) {
+    //             console.log(`❌ Candidate ${voteData.name} not found in ${formattedPosition}! Skipping.`);
+    //             continue;
+    //           }
+    //           batchVotes.push({ position: formattedPosition, index });
+    //         }
+    //       }
+
+    //       if (batchVotes.length === 0) {
+    //         return res.status(400).json({ error: "No valid votes to submit." });
+    //       }
+
+    //       // console.log("✅ Submitting batch vote transaction:", batchVotes);
+    //       // const tx = await contract.connect(wallet).batchVote(batchVotes, { nonce: nonce++ });
+    //       // await tx.wait();
+
+    //       console.log("✅ All votes submitted successfully in one transaction!");
+    //       res.status(200).json({
+    //         message: "Votes successfully submitted to blockchain!",
+    //         queuePosition: queuePosition,
+    //         transactionHash: tx.hash,
+    //       });
+    //     } catch (error) {
+    //       console.error("❌ Error submitting votes:", error);
+    //       res.status(500).json({ error: "Failed to submit votes." });
+    //     }
+    //   });
+    // });
+
+    // app.post("/submit-vote", async (req, res) => {
+    //   const queuePosition = voteQueue.size;
+    //   voteQueue.add(async () => {
+    //     try {
+    //       const { votes, voterHash } = req.body;
+    //       if (!voterHash) return res.status(400).json({ error: "Missing voter hash!" });
+
+    //       console.log("📡 Processing vote submission:", votes);
+
+    //       let nonce = await provider.getTransactionCount(wallet.address, "pending");
+    //       const positions = Object.keys(votes);
+    //       const batchVotes = [];
+
+    //       for (const position of positions) {
+    //         const formattedPosition = formatPosition(position);
+    //         const voteData = votes[position];
+
+    //         if (Array.isArray(voteData)) {
+    //           for (const candidate of voteData) {
+    //             const index = await findCandidateIndex(formattedPosition, candidate.name);
+    //             if (index === -1) {
+    //               console.log(`❌ Candidate ${candidate.name} not found in ${formattedPosition}! Skipping.`);
+    //               continue;
+    //             }
+    //             batchVotes.push({ position: formattedPosition, index });
+    //           }
+    //         } else {
+    //           const index = await findCandidateIndex(formattedPosition, voteData.name);
+    //           if (index === -1) {
+    //             console.log(`❌ Candidate ${voteData.name} not found in ${formattedPosition}! Skipping.`);
+    //             continue;
+    //           }
+    //           batchVotes.push({ position: formattedPosition, index });
+    //         }
+    //       }
+
+    //       if (batchVotes.length === 0) {
+    //         return res.status(400).json({ error: "No valid votes to submit." });
+    //       }
+
+    //       console.log("✅ Submitting batch vote transaction:", batchVotes);
+    //       const positionsArray = batchVotes.map((vote) => vote.position);
+    //       const indicesArray = batchVotes.map((vote) => vote.index);
+
+    //       const tx = await contract.connect(wallet).batchVote(positionsArray, indicesArray, voterHash, { nonce: nonce++ });
+
+    //       // const tx = await contract.connect(wallet).batchVote(batchVotes, { nonce: nonce++ });
+    //       await tx.wait();
+
+    //       console.log("✅ All votes submitted successfully in one transaction!");
+    //       res.status(200).json({
+    //         message: "Votes successfully submitted to blockchain!",
+    //         queuePosition: queuePosition,
+    //         transactionHash: tx.hash,
+    //       });
+    //     } catch (error) {
+    //       console.error("❌ Error submitting votes:", error);
+    //       res.status(500).json({ error: "Failed to submit votes." });
+    //     }
+    //   });
+    // });
+
+    // app.post("/submit-vote", async (req, res) => {
+    //   const queuePosition = voteQueue.size;
+    //   voteQueue.add(async () => {
+    //     try {
+    //       const { votes, voterHash } = req.body;
+    //       if (!voterHash) return res.status(400).json({ error: "Missing voter hash!" });
+
+    //       console.log("📡 Received vote submission request...");
+    //       console.log("📡 Raw votes object:", JSON.stringify(votes, null, 2));
+    //       console.log("📡 Voter Hash:", voterHash);
+
+    //       let nonce = await provider.getTransactionCount(wallet.address, "pending");
+    //       console.log("📡 Current nonce:", nonce);
+
+    //       const positions = Object.keys(votes);
+    //       const batchVotes = [];
+
+    //       for (const position of positions) {
+    //         const formattedPosition = formatPosition(position);
+    //         const voteData = votes[position];
+
+    //         console.log(`🔍 Raw position input: ${position}`);
+    //         console.log(`✅ Final formatted position: ${formattedPosition}`);
+
+    //         if (Array.isArray(voteData)) {
+    //           for (const candidate of voteData) {
+    //             const index = await findCandidateIndex(formattedPosition, candidate.name);
+    //             console.log(`🔍 Searching for '${candidate.name}' in ${formattedPosition}...`);
+
+    //             if (index === -1) {
+    //               console.log(`❌ Candidate '${candidate.name}' not found in ${formattedPosition}! Skipping.`);
+    //               continue;
+    //             }
+
+    //             console.log(`✅ Found '${candidate.name}' at index ${index}`);
+    //             batchVotes.push({ position: formattedPosition, index });
+    //           }
+    //         } else {
+    //           console.log(`🔍 Searching for '${voteData.name}' in ${formattedPosition}...`);
+    //           const index = await findCandidateIndex(formattedPosition, voteData.name);
+
+    //           if (index === -1) {
+    //             console.log(`❌ Candidate '${voteData.name}' not found in ${formattedPosition}! Skipping.`);
+    //             continue;
+    //           }
+
+    //           console.log(`✅ Found '${voteData.name}' at index ${index}`);
+    //           batchVotes.push({ position: formattedPosition, index });
+    //         }
+    //       }
+
+    //       if (batchVotes.length === 0) {
+    //         console.log("❌ No valid votes found. Aborting transaction.");
+    //         return res.status(400).json({ error: "No valid votes to submit." });
+    //       }
+
+    //       console.log("✅ Final batchVotes array:", JSON.stringify(batchVotes, null, 2));
+
+    //       const positionsArray = batchVotes.map((vote) => vote.position);
+    //       const indicesArray = batchVotes.map((vote) => vote.index);
+
+    //       console.log("📡 Positions Array:", positionsArray);
+    //       console.log("📡 Indices Array:", indicesArray);
+
+    //       const tx = await contract.connect(wallet).batchVote(positionsArray, indicesArray, voterHash, { nonce: nonce++ });
+
+    //       console.log("📡 Transaction submitted! Waiting for confirmation...");
+    //       console.log("🔗 Transaction Hash:", tx.hash);
+
+    //       await tx.wait();
+    //       console.log("✅ All votes submitted successfully in one transaction!");
+
+    //       res.status(200).json({
+    //         message: "Votes successfully submitted to blockchain!",
+    //         queuePosition: queuePosition,
+    //         transactionHash: tx.hash,
+    //       });
+    //     } catch (error) {
+    //       console.error("❌ Error submitting votes:", error);
+    //       res.status(500).json({ error: "Failed to submit votes." });
+    //     }
+    //   });
+    // });
+
     app.post("/submit-vote", async (req, res) => {
       const queuePosition = voteQueue.size;
       voteQueue.add(async () => {
         try {
-          const { votes } = req.body;
-          console.log("📡 Processing vote submission:", votes);
+          const { votes, voterHash } = req.body;
 
-          let nonce = await provider.getTransactionCount(wallet.address, "pending"); // ✅ Use "pending" for better concurrency
+          if (!voterHash || typeof voterHash !== "string") {
+            console.log("❌ Invalid voterHash received:", voterHash);
+            return res.status(400).json({ error: "Invalid voter hash!" });
+          }
+
+          console.log("📡 Received Hashed Voter Hash:", voterHash);
+
+          // ✅ Proceed with blockchain submission
+          let nonce = await provider.getTransactionCount(wallet.address, "pending");
+          console.log("📡 Current nonce:", nonce);
+
           const positions = Object.keys(votes);
-          const transactions = [];
+          const batchVotes = [];
 
           for (const position of positions) {
             const formattedPosition = formatPosition(position);
@@ -282,35 +512,36 @@ const startServer = async () => {
             if (Array.isArray(voteData)) {
               for (const candidate of voteData) {
                 const index = await findCandidateIndex(formattedPosition, candidate.name);
-                if (index === -1) {
-                  console.log(`❌ Candidate ${candidate.name} not found in ${formattedPosition}! Skipping.`);
-                  continue;
-                }
-                console.log(`✅ Voting for ${candidate.name} in ${formattedPosition} (index ${index})`);
-
-                const tx = await contract.connect(wallet).vote(formattedPosition, index, { nonce: nonce++ });
-                await tx.wait();
-                transactions.push({ candidate: candidate.name, position: formattedPosition, txHash: tx.hash });
+                if (index === -1) continue;
+                batchVotes.push({ position: formattedPosition, index });
               }
             } else {
               const index = await findCandidateIndex(formattedPosition, voteData.name);
-              if (index === -1) {
-                console.log(`❌ Candidate ${voteData.name} not found in ${formattedPosition}! Skipping.`);
-                continue;
-              }
-              console.log(`✅ Voting for ${voteData.name} in ${formattedPosition} (index ${index})`);
-
-              const tx = await contract.connect(wallet).vote(formattedPosition, index, { nonce: nonce++ });
-              await tx.wait();
-              transactions.push({ candidate: voteData.name, position: formattedPosition, txHash: tx.hash });
+              if (index === -1) continue;
+              batchVotes.push({ position: formattedPosition, index });
             }
           }
 
-          console.log("✅ All votes submitted successfully!");
+          if (batchVotes.length === 0) {
+            return res.status(400).json({ error: "No valid votes to submit." });
+          }
+
+          console.log("✅ Final batchVotes array:", JSON.stringify(batchVotes, null, 2));
+
+          const positionsArray = batchVotes.map((vote) => vote.position);
+          const indicesArray = batchVotes.map((vote) => vote.index);
+
+          console.log("📡 Submitting transaction...");
+          const tx = await contract.connect(wallet).batchVote(positionsArray, indicesArray, voterHash, { nonce });
+
+          console.log("📡 Transaction submitted! Hash:", tx.hash);
+          await tx.wait();
+          console.log("✅ Transaction confirmed!");
+
           res.status(200).json({
             message: "Votes successfully submitted to blockchain!",
             queuePosition: queuePosition,
-            transactions: transactions, // Return transaction hashes
+            transactionHash: tx.hash,
           });
         } catch (error) {
           console.error("❌ Error submitting votes:", error);
@@ -323,7 +554,67 @@ const startServer = async () => {
       res.json({ position: voteQueue.size + 1 });
     });
 
+    // app.post("/submit-vote", async (req, res) => {
+    //   const queuePosition = voteQueue.size;
+    //   voteQueue.add(async () => {
+    //     try {
+    //       const { votes } = req.body;
+    //       console.log("📡 Processing vote submission:", votes);
+
+    //       let nonce = await provider.getTransactionCount(wallet.address, "pending"); // ✅ Use "pending" for better concurrency
+    //       const positions = Object.keys(votes);
+    //       const transactions = [];
+
+    //       for (const position of positions) {
+    //         const formattedPosition = formatPosition(position);
+    //         const voteData = votes[position];
+
+    //         if (Array.isArray(voteData)) {
+    //           for (const candidate of voteData) {
+    //             const index = await findCandidateIndex(formattedPosition, candidate.name);
+    //             if (index === -1) {
+    //               console.log(`❌ Candidate ${candidate.name} not found in ${formattedPosition}! Skipping.`);
+    //               continue;
+    //             }
+    //             console.log(`✅ Voting for ${candidate.name} in ${formattedPosition} (index ${index})`);
+
+    //             const tx = await contract.connect(wallet).vote(formattedPosition, index, { nonce: nonce++ });
+    //             await tx.wait();
+    //             transactions.push({ candidate: candidate.name, position: formattedPosition, txHash: tx.hash });
+    //           }
+    //         } else {
+    //           const index = await findCandidateIndex(formattedPosition, voteData.name);
+    //           if (index === -1) {
+    //             console.log(`❌ Candidate ${voteData.name} not found in ${formattedPosition}! Skipping.`);
+    //             continue;
+    //           }
+    //           console.log(`✅ Voting for ${voteData.name} in ${formattedPosition} (index ${index})`);
+
+    //           const tx = await contract.connect(wallet).vote(formattedPosition, index, { nonce: nonce++ });
+    //           await tx.wait();
+    //           transactions.push({ candidate: voteData.name, position: formattedPosition, txHash: tx.hash });
+    //         }
+    //       }
+
+    //       console.log("✅ All votes submitted successfully!");
+    //       res.status(200).json({
+    //         message: "Votes successfully submitted to blockchain!",
+    //         queuePosition: queuePosition,
+    //         transactions: transactions, // Return transaction hashes
+    //       });
+    //     } catch (error) {
+    //       console.error("❌ Error submitting votes:", error);
+    //       res.status(500).json({ error: "Failed to submit votes." });
+    //     }
+    //   });
+    // });
+
+    // app.get("/get-queue-position", (req, res) => {
+    //   res.json({ position: voteQueue.size + 1 });
+    // });
+
     // ✅ Helper Function to Get Candidate Index from Blockchain
+
     async function findCandidateIndex(position, candidateName) {
       const candidates = await contract.getCandidates(position);
 
@@ -1051,6 +1342,9 @@ const startServer = async () => {
       const voterCollege = req.user ? req.user.college : "CAFA";
       const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
 
+      const voterHash = "123";
+      console.log(voterHash);
+
       const parseVote = (vote) => {
         try {
           if (!vote || vote === "Abstain" || (Array.isArray(vote) && vote.includes("Abstain"))) {
@@ -1075,7 +1369,7 @@ const startServer = async () => {
 
       console.log("Processed Votes:", votes);
 
-      res.render("voter/review", { votes, voterCollege, voterProgram });
+      res.render("voter/review", { votes, voterCollege, voterProgram, voterHash });
     });
 
     // app.get("/configuration", async (req, res) => {

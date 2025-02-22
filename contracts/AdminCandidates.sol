@@ -6,19 +6,20 @@ contract AdminCandidates {
         string name;
         string party;
         string position;
-        uint256 votes; // ✅ Track votes per candidate
+        uint256 votes;
+        string[] voterHashes; // ✅ Stores hashes of voters
     }
 
-    mapping(string => Candidate[]) private candidates; // ✅ Position => List of Candidates
-    mapping(address => bool) private hasVoted; // ✅ Track if a voter has voted
-    string[] private positionList; // ✅ Store positions in an array
+    mapping(string => Candidate[]) private candidates;
+    mapping(address => bool) private hasVoted;
+    string[] private positionList;
 
     address public admin;
     bool public isFinalized = false;
 
     event CandidatesSubmitted();
-    event CandidatesReset(); // ✅ Minimal Addition: Reset Candidates Event
-    event VoteSubmitted(string position, string name, address voter);
+    event CandidatesReset();
+    event VoteSubmitted(string position, string name, string voterHash);
 
     modifier onlyAdmin() {
         require(msg.sender == admin, "Only admin can perform this action");
@@ -48,7 +49,8 @@ contract AdminCandidates {
                     name: _names[i][j],
                     party: _parties[i][j],
                     position: _positions[i],
-                    votes: 0
+                    votes: 0,
+                    voterHashes: new string[](0) // ✅ Correct empty array initialization
                 }));
             }
         }
@@ -56,18 +58,18 @@ contract AdminCandidates {
         emit CandidatesSubmitted();
     }
 
-    function vote(string memory _position, uint256 _index) public {
+    function batchVote(string[] memory _positions, uint256[] memory _indices, string memory _voterHash) public {
         require(isFinalized, "Voting cannot start until candidates are finalized!");
+        require(!hasVoted[msg.sender], "You have already voted!");
+        require(_positions.length == _indices.length, "Mismatched input lengths");
 
-        // 🚨 Temporarily disabled for development (Uncomment for real deployment)
-        // require(!hasVoted[msg.sender], "You have already voted!");
+        for (uint256 i = 0; i < _positions.length; i++) {
+            candidates[_positions[i]][_indices[i]].votes++;
+            candidates[_positions[i]][_indices[i]].voterHashes.push(_voterHash);
+            emit VoteSubmitted(_positions[i], candidates[_positions[i]][_indices[i]].name, _voterHash);
+        }
 
-        candidates[_position][_index].votes++;
-
-        // 🚨 Temporarily disabled for development (Uncomment for real deployment)
-        // hasVoted[msg.sender] = true;
-
-        emit VoteSubmitted(_position, candidates[_position][_index].name, msg.sender);
+        hasVoted[msg.sender] = true;
     }
 
     function getCandidates(string memory _position) public view returns (Candidate[] memory) {
@@ -94,7 +96,6 @@ contract AdminCandidates {
         return allCandidates;
     }
 
-    // ✅ Minimal Addition: Reset Candidates Function
     function resetCandidates() public onlyAdmin {
         for (uint256 i = 0; i < positionList.length; i++) {
             delete candidates[positionList[i]];
