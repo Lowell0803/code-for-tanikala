@@ -58,19 +58,26 @@ contract AdminCandidates {
         emit CandidatesSubmitted();
     }
 
-    function batchVote(string[] memory _positions, uint256[] memory _indices, string memory _voterHash) public {
-        require(isFinalized, "Voting cannot start until candidates are finalized!");
-        require(!hasVoted[msg.sender], "You have already voted!");
-        require(_positions.length == _indices.length, "Mismatched input lengths");
+    mapping(string => bool) private hasVotedHash; // ✅ Track votes using voterHash
 
-        for (uint256 i = 0; i < _positions.length; i++) {
-            candidates[_positions[i]][_indices[i]].votes++;
-            candidates[_positions[i]][_indices[i]].voterHashes.push(_voterHash);
-            emit VoteSubmitted(_positions[i], candidates[_positions[i]][_indices[i]].name, _voterHash);
-        }
+function batchVote(
+    string[] memory _positions,
+    uint256[] memory _indices,
+    string memory _voterHash
+) public {
+    require(isFinalized, "Voting cannot start until candidates are finalized!");
+    require(!hasVotedHash[_voterHash], "You have already voted!"); // ✅ Use voterHash instead of msg.sender
+    require(_positions.length == _indices.length, "Mismatched input lengths");
 
-        hasVoted[msg.sender] = true;
+    for (uint256 i = 0; i < _positions.length; i++) {
+        candidates[_positions[i]][_indices[i]].votes++;
+        candidates[_positions[i]][_indices[i]].voterHashes.push(_voterHash);
+        emit VoteSubmitted(_positions[i], candidates[_positions[i]][_indices[i]].name, _voterHash);
     }
+
+    hasVotedHash[_voterHash] = true; // ✅ Mark voterHash as used
+}
+
 
     function getCandidates(string memory _position) public view returns (Candidate[] memory) {
         return candidates[_position];

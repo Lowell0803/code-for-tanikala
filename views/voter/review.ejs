@@ -152,7 +152,7 @@
             <br />
           </ul>
           <form id="voteForm">
-            <input type="hidden" id="voterHash" value="2021100291@ms.bulsu.edu.ph" />
+            <input type="hidden" id="voterHash" value="2021200246@ms.bulsu.edu.ph" />
 
             <div class="button-container">
               <button class="button-back" type="button" onclick="window.location.href='/vote'">
@@ -361,7 +361,7 @@
             }
           </script> -->
 
-          <script>
+          <!-- <script>
             async function submitVote() {
               let votes = JSON.parse(document.getElementById("voteData").value);
               console.log("📡 Original votes:", votes);
@@ -419,6 +419,92 @@
               } catch (error) {
                 console.error("❌ Error submitting vote:", error);
                 alert("Failed to submit votes.");
+              }
+            }
+
+            // ✅ SHA-256 Hash Function
+            async function sha256(input) {
+              const encoder = new TextEncoder();
+              const data = encoder.encode(input);
+              const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+              const hashArray = Array.from(new Uint8Array(hashBuffer));
+              return hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+            }
+          </script> -->
+
+          <script>
+            async function submitVote() {
+              let votes = JSON.parse(document.getElementById("voteData").value);
+              console.log("📡 Original votes:", votes);
+
+              // ✅ Get the voter hash from the hidden input field
+              let voterHash = document.getElementById("voterHash").value;
+              console.log("📡 Voter Email for Hashing:", voterHash);
+
+              if (!voterHash) {
+                alert("❌ Missing voter hash!");
+                return;
+              }
+
+              // ✅ Hash the voter email before sending it to the server
+              let hashedVoterHash = await sha256(voterHash);
+              console.log("🔐 Hashed Voter Hash:", hashedVoterHash);
+
+              // ✅ Get logged-in voter's college and program
+              const voterCollege = "<%= voterCollege %>";
+              const voterProgram = "<%= voterProgram %>";
+
+              // ✅ Reformat LSC votes before submission
+              let formattedVotes = {
+                President: votes.president,
+                "Vice President": votes.vicePresident,
+                Senator: votes.senator,
+              };
+
+              if (votes.governor) {
+                formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
+              }
+              if (votes.viceGovernor) {
+                formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
+              }
+              if (votes.boardMember) {
+                formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
+              }
+
+              console.log("📡 Reformatted votes:", formattedVotes);
+
+              try {
+                // ✅ Show Loading Indicator
+                let loadingBar = document.getElementById("loading-bar");
+                let submitBtn = document.getElementById("submitBtn");
+                loadingBar.style.display = "block";
+                submitBtn.disabled = true;
+
+                const response = await fetch("/submit-vote", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ votes: formattedVotes, voterHash: hashedVoterHash }),
+                });
+
+                // ✅ Wait for the response and check status
+                const data = await response.json();
+
+                if (response.ok) {
+                  console.log("✅ Transaction Successful:", data.transactionHash);
+                  alert("✅ Vote Submitted! Transaction Hash: " + data.transactionHash);
+                } else {
+                  console.error("❌ Submission failed:", data.error);
+                  alert("❌ Submission failed: " + data.error);
+                }
+              } catch (error) {
+                console.error("❌ Error submitting vote:", error);
+                alert("❌ Failed to submit votes. Please check the console for details.");
+              } finally {
+                // ✅ Hide Loading Indicator After Completion
+                setTimeout(() => {
+                  loadingBar.style.display = "none";
+                  submitBtn.disabled = false;
+                }, 500);
               }
             }
 

@@ -485,6 +485,71 @@ const startServer = async () => {
     //   });
     // });
 
+    // app.post("/submit-vote", async (req, res) => {
+    //   const queuePosition = voteQueue.size;
+    //   voteQueue.add(async () => {
+    //     try {
+    //       const { votes, voterHash } = req.body;
+
+    //       if (!voterHash || typeof voterHash !== "string") {
+    //         console.log("❌ Invalid voterHash received:", voterHash);
+    //         return res.status(400).json({ error: "Invalid voter hash!" });
+    //       }
+
+    //       console.log("📡 Received Hashed Voter Hash:", voterHash);
+
+    //       // ✅ Proceed with blockchain submission
+    //       let nonce = await provider.getTransactionCount(wallet.address, "pending");
+    //       console.log("📡 Current nonce:", nonce);
+
+    //       const positions = Object.keys(votes);
+    //       const batchVotes = [];
+
+    //       for (const position of positions) {
+    //         const formattedPosition = formatPosition(position);
+    //         const voteData = votes[position];
+
+    //         if (Array.isArray(voteData)) {
+    //           for (const candidate of voteData) {
+    //             const index = await findCandidateIndex(formattedPosition, candidate.name);
+    //             if (index === -1) continue;
+    //             batchVotes.push({ position: formattedPosition, index });
+    //           }
+    //         } else {
+    //           const index = await findCandidateIndex(formattedPosition, voteData.name);
+    //           if (index === -1) continue;
+    //           batchVotes.push({ position: formattedPosition, index });
+    //         }
+    //       }
+
+    //       if (batchVotes.length === 0) {
+    //         return res.status(400).json({ error: "No valid votes to submit." });
+    //       }
+
+    //       console.log("✅ Final batchVotes array:", JSON.stringify(batchVotes, null, 2));
+
+    //       const positionsArray = batchVotes.map((vote) => vote.position);
+    //       const indicesArray = batchVotes.map((vote) => vote.index);
+
+    //       console.log("📡 Submitting transaction...");
+    //       const tx = await contract.connect(wallet).batchVote(positionsArray, indicesArray, voterHash, { nonce });
+
+    //       console.log("📡 Transaction submitted! Hash:", tx.hash);
+    //       await tx.wait();
+    //       console.log("✅ Transaction confirmed!");
+
+    //       res.status(200).json({
+    //         message: "Votes successfully submitted to blockchain!",
+    //         queuePosition: queuePosition,
+    //         transactionHash: tx.hash,
+    //       });
+    //     } catch (error) {
+    //       console.error("❌ Error submitting votes:", error);
+    //       res.status(500).json({ error: "Failed to submit votes." });
+    //     }
+    //   });
+    // });
+
     app.post("/submit-vote", async (req, res) => {
       const queuePosition = voteQueue.size;
       voteQueue.add(async () => {
@@ -535,14 +600,21 @@ const startServer = async () => {
           const tx = await contract.connect(wallet).batchVote(positionsArray, indicesArray, voterHash, { nonce });
 
           console.log("📡 Transaction submitted! Hash:", tx.hash);
-          await tx.wait();
-          console.log("✅ Transaction confirmed!");
 
-          res.status(200).json({
-            message: "Votes successfully submitted to blockchain!",
-            queuePosition: queuePosition,
-            transactionHash: tx.hash,
-          });
+          // ✅ Send a response **only after confirmation**
+          tx.wait()
+            .then(() => {
+              console.log("✅ Transaction confirmed!");
+              res.status(200).json({
+                message: "Votes successfully submitted to blockchain!",
+                queuePosition: queuePosition,
+                transactionHash: tx.hash,
+              });
+            })
+            .catch((error) => {
+              console.error("❌ Transaction failed:", error);
+              res.status(500).json({ error: "Transaction failed after submission." });
+            });
         } catch (error) {
           console.error("❌ Error submitting votes:", error);
           res.status(500).json({ error: "Failed to submit votes." });
