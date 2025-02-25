@@ -1253,7 +1253,34 @@ const startServer = async () => {
       res.render("voter/review", { votes, voterCollege, voterProgram, voterHash });
     });
 
-    // GET route for configuration
+    // Helper to calculate the current period based on configuration and current date
+    function calculateCurrentPeriod(config, now) {
+      if (!config.registrationStart || !config.registrationEnd || !config.votingStart || !config.votingEnd) {
+        return { name: "Election Not Active", duration: "Configuration Incomplete", waitingFor: null };
+      }
+      const regStart = new Date(config.registrationStart);
+      const regEnd = new Date(config.registrationEnd);
+      const voteStart = new Date(config.votingStart);
+      const voteEnd = new Date(config.votingEnd);
+      if (now < regStart) {
+        return { name: "Waiting for Registration Period", duration: `${now.toLocaleString()} to ${regStart.toLocaleString()}`, waitingFor: "Registration" };
+      } else if (now >= regStart && now <= regEnd) {
+        return { name: "Registration Period", duration: `${regStart.toLocaleString()} to ${regEnd.toLocaleString()}` };
+      } else if (now > regEnd && now < voteStart) {
+        return { name: "Waiting for Voting Period", duration: `${regEnd.toLocaleString()} to ${voteStart.toLocaleString()}`, waitingFor: "Voting" };
+      } else if (now >= voteStart && now <= voteEnd) {
+        return { name: "Voting Period", duration: `${voteStart.toLocaleString()} to ${voteEnd.toLocaleString()}` };
+      } else if (now > voteEnd) {
+        if (config.electionStatus === "Results Are Out") {
+          return { name: "Results Are Out Period", duration: `${voteEnd.toLocaleString()} to (manual)` };
+        } else {
+          return { name: "Results Double Checking Period", duration: `${voteEnd.toLocaleString()} to (manual trigger)` };
+        }
+      }
+      return { name: "Election Not Active", duration: "N/A" };
+    }
+
+    // GET /configuration
     app.get("/configuration", async (req, res) => {
       let electionConfig = (await db.collection("election_config").findOne({})) || {
         electionName: "",
@@ -1264,27 +1291,16 @@ const startServer = async () => {
         partylists: [],
         colleges: {},
         fakeCurrentDate: null,
-        // Default status when no configuration is found
         electionStatus: "Election Not Active",
-        currentPeriod: {
-          name: "Election Not Active",
-          duration: "",
-          nextPeriod: { name: "", remainingDays: 0 },
-        },
+        currentPeriod: { name: "Election Not Active", duration: "", waitingFor: null },
       };
-
-      const simulatedDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : null;
-
-      console.log("Sending Config:", electionConfig);
-      console.log("Simulated Date:", simulatedDate ? simulatedDate.toISOString() : "Real Date");
-
-      res.render("admin/configuration", {
-        electionConfig,
-        simulatedDate: simulatedDate ? simulatedDate.toISOString() : null,
-      });
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+      const simulatedDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).toISOString() : null;
+      res.render("admin/configuration", { electionConfig, simulatedDate });
     });
 
-    // POST route to create/update election configuration
+    // POST /configuration
     app.post("/configuration", async (req, res) => {
       try {
         const { electionName, registrationStart, registrationEnd, votingStart, votingEnd, partylists, colleges } = req.body;
@@ -1304,26 +1320,24 @@ const startServer = async () => {
           partylists: partylistsArray,
           colleges,
           totalStudents,
-          // When updating configuration, default status is set based on dates.
-          // (The client will recalc the current phase.)
-          electionStatus: "Registration Open",
-          currentPeriod: {
-            name: "Registration Open",
-            duration: "",
-            nextPeriod: { name: "", remainingDays: 0 },
-          },
+          // Default electionStatus and currentPeriod can be computed on GET based on dates
+          electionStatus: "Registration Period",
+          currentPeriod: { name: "Registration Period", duration: "", waitingFor: null },
           updatedAt: new Date(),
         };
         await db.collection("election_config").updateOne({}, { $set: update, $setOnInsert: { createdAt: new Date() } }, { upsert: true });
-        res.redirect("/configuration");
+        // Query and output the saved configuration
+        const savedConfig = await db.collection("election_config").findOne({});
+        console.log("Saved Configuration:", savedConfig);
+        res.redirect("configuration");
       } catch (error) {
         console.error("Error updating configuration:", error);
         res.status(500).send("Internal Server Error");
       }
     });
 
-    // POST route to update the fake current date and current phase
-    app.post("/setTestDate", async (req, res) => {
+    // POST /set-test-date (update fake current date and current phase)
+    app.post("/set-test-date", async (req, res) => {
       try {
         const { fakeCurrentDate, period } = req.body;
         await db.collection("election_config").updateOne({}, { $set: { fakeCurrentDate, currentPeriod: period, updatedAt: new Date() } }, { upsert: true });
@@ -1334,16 +1348,12 @@ const startServer = async () => {
       }
     });
 
-    // POST route to temporarily close the election
-    app.post("/temporarilyClosed", async (req, res) => {
+    // POST /temporarily-closed
+    app.post("/temporarily-closed", async (req, res) => {
       try {
         const update = {
           electionStatus: "Temporarily Closed",
-          currentPeriod: {
-            name: "Temporarily Closed",
-            duration: "",
-            nextPeriod: { name: "", remainingDays: 0 },
-          },
+          currentPeriod: { name: "Temporarily Closed", duration: "", waitingFor: null },
           updatedAt: new Date(),
         };
         await db.collection("election_config").updateOne({}, { $set: update });
@@ -1354,16 +1364,16 @@ const startServer = async () => {
       }
     });
 
-    // POST route to resume election from a temporarily closed state
-    app.post("/resumeElection", async (req, res) => {
+    // POST /resume-election
+    app.post("/resume-election", async (req, res) => {
       try {
+        // When resuming, you may want to recalc the current phase based on dates.
+        const config = await db.collection("election_config").findOne({});
+        const now = config.fakeCurrentDate ? new Date(config.fakeCurrentDate) : new Date();
+        const currentPeriod = calculateCurrentPeriod(config, now);
         const update = {
-          electionStatus: "Election Active",
-          currentPeriod: {
-            name: "Election Active",
-            duration: "",
-            nextPeriod: { name: "", remainingDays: 0 },
-          },
+          electionStatus: currentPeriod.name, // e.g. "Registration Period" or as computed
+          currentPeriod,
           updatedAt: new Date(),
         };
         await db.collection("election_config").updateOne({}, { $set: update });
@@ -1374,16 +1384,12 @@ const startServer = async () => {
       }
     });
 
-    // POST route to transition to the "Results Are Out" phase (from double checking)
-    app.post("/setResultsOut", async (req, res) => {
+    // POST /set-results-out
+    app.post("/set-results-out", async (req, res) => {
       try {
         const update = {
           electionStatus: "Results Are Out",
-          currentPeriod: {
-            name: "Results Are Out",
-            duration: "",
-            nextPeriod: { name: "", remainingDays: 0 },
-          },
+          currentPeriod: { name: "Results Are Out Period", duration: "", waitingFor: null },
           updatedAt: new Date(),
         };
         await db.collection("election_config").updateOne({}, { $set: update });
@@ -1394,48 +1400,6 @@ const startServer = async () => {
       }
     });
 
-    // POST route to reset the election: archive current config and then reset the main config
-    // app.post("/resetElection", async (req, res) => {
-    //   try {
-    //     // First, get the current configuration from the database
-    //     const currentConfig = await db.collection("election_config").findOne({});
-    //     if (currentConfig) {
-    //       // Remove the _id field to avoid duplicate key error in the archive collection
-    //       const { _id, ...configWithoutId } = currentConfig;
-
-    //       // Insert the config without _id into the election_archive with an archivedAt timestamp
-    //       await db.collection("election_archive").insertOne({
-    //         ...configWithoutId,
-    //         archivedAt: new Date(),
-    //       });
-    //     }
-
-    //     // Reset election_config to default empty values
-    //     const defaultConfig = {
-    //       electionName: "",
-    //       registrationStart: "",
-    //       registrationEnd: "",
-    //       votingStart: "",
-    //       votingEnd: "",
-    //       partylists: [],
-    //       colleges: {},
-    //       fakeCurrentDate: null,
-    //       electionStatus: "Election Not Active",
-    //       currentPeriod: {
-    //         name: "Election Not Active",
-    //         duration: "",
-    //         nextPeriod: { name: "", remainingDays: 0 },
-    //       },
-    //       updatedAt: new Date(),
-    //     };
-
-    //     await db.collection("election_config").updateOne({}, { $set: defaultConfig });
-    //     res.redirect("/configuration");
-    //   } catch (error) {
-    //     console.error("Error resetting election:", error);
-    //     res.status(500).send("Internal Server Error");
-    //   }
-    // });
     app.post("/api/reset-election", async (req, res) => {
       try {
         console.log("Reset election initiated.");

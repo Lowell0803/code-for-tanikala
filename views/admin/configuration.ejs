@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BulSU Voting System</title>
+    <title>BulSU Voting System Configuration</title>
     <link rel="stylesheet" href="admin/css/index-admin.css" />
     <link rel="stylesheet" href="admin/css/election-management.css" />
     <link rel="stylesheet" href="admin/css/sidebar.css" />
@@ -11,14 +11,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
     <style>
-      .test-date {
-        background: #f5f5f5;
-        padding: 10px;
+      .period-info {
         margin: 10px 0;
-        border: 1px dashed #ccc;
+        padding: 10px;
+        border: 1px solid #ccc;
+        background: #f9f9f9;
       }
-      .test-date label {
-        font-weight: bold;
+      .period-info h3 {
+        margin: 0 0 5px;
       }
     </style>
   </head>
@@ -32,21 +32,13 @@
           <span><%= electionConfig.electionName || "Tanikala Voting System" %></span>
         </h2>
         <p>
-          Current Election Status:&nbsp;
+          <strong>Election Status:</strong>
           <span class="election-status"><%= electionConfig.electionStatus %></span>
-          |
-          <span class="election-status2" id="currentPeriodDisplay"> <%= electionConfig.currentPeriod.name %> <% if (electionConfig.currentPeriod.timeUntil) { %> (<%= electionConfig.currentPeriod.timeUntil %>) <% } %> </span>
         </p>
-        <p><strong>Current Phase:</strong> <%= electionConfig.currentPeriod.name %></p>
-        <p>
-          <strong>Duration:</strong>
-          <span id="currentPeriodDuration"><%= electionConfig.currentPeriod.duration %></span>
-        </p>
-        <% if (electionConfig.currentPeriod.nextPeriod && electionConfig.currentPeriod.nextPeriod.name) { %>
-        <p>
-          <strong>Time until <%= electionConfig.currentPeriod.nextPeriod.name %>:</strong>
-          <%= electionConfig.currentPeriod.nextPeriod.remainingDays %> days
-        </p>
+        <h3>Current Phase: <span id="currentPeriodDisplay"><%= electionConfig.currentPeriod.name %></span></h3>
+        <p><strong>Time Range:</strong> <span id="currentPeriodDuration"><%= electionConfig.currentPeriod.duration %></span></p>
+        <% if (electionConfig.currentPeriod.waitingFor) { %>
+        <p><em>Waiting for <%= electionConfig.currentPeriod.waitingFor %> to start.</em></p>
         <% } %>
       </div>
       <div class="header-user">
@@ -63,6 +55,7 @@
 
     <div class="content">
       <div class="sidebar close">
+        <!-- Sidebar remains unchanged -->
         <div class="user-details">
           <img src="img/dungo.jpeg" />
           <span class="user-name">Zarina Dungo</span>
@@ -85,6 +78,7 @@
               <li><a class="link_name" href="dashboard">Dashboard</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <a href="configuration">
               <i class="fa fa-cogs"></i>
@@ -94,6 +88,7 @@
               <li><a class="link_name" href="configuration">Configuration</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <a href="candidates">
               <i class="fa fa-users"></i>
@@ -103,6 +98,7 @@
               <li><a class="link_name" href="candidates">Candidates</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <div class="icon-link">
               <a href="blockchain-management">
@@ -117,6 +113,7 @@
               <li><a href="blockchain-activity-log">Activity Log</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <div class="icon-link">
               <a href="voter-info">
@@ -133,6 +130,7 @@
               <li><a href="reset">Reset Election</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <a href="archives">
               <i class="bx bx-archive"></i>
@@ -142,6 +140,7 @@
               <li><a class="link_name" href="archives">Election Archives</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <div class="icon-link">
               <a href="edit-account">
@@ -175,17 +174,6 @@
           <p>
             <strong>Voting Period:</strong>
             <%= new Date(electionConfig.votingStart).toLocaleString() %> - <%= new Date(electionConfig.votingEnd).toLocaleString() %>
-          </p>
-          <% } %>
-          <p><strong>Current Phase:</strong> <%= electionConfig.currentPeriod.name %></p>
-          <p>
-            <strong>Duration:</strong>
-            <span id="currentPeriodDuration"><%= electionConfig.currentPeriod.duration %></span>
-          </p>
-          <% if (electionConfig.currentPeriod.nextPeriod && electionConfig.currentPeriod.nextPeriod.name) { %>
-          <p>
-            <strong>Time until <%= electionConfig.currentPeriod.nextPeriod.name %>:</strong>
-            <%= electionConfig.currentPeriod.nextPeriod.remainingDays %> days
           </p>
           <% } %>
         </section>
@@ -227,31 +215,28 @@
               </div>
               <% }); %>
             </fieldset>
-            <button type="submit">Save Election</button>
+            <button type="submit">Save Election Configuration</button>
           </form>
 
-          <!-- Button to Temporarily Close or Resume Election -->
-          <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
-          <form action="/resumeElection" method="POST" style="margin-top: 10px">
-            <button type="submit" style="background-color: #4caf50; color: #fff">Resume Election</button>
-          </form>
-          <% } else { %>
-          <form action="/temporarilyClosed" method="POST" style="margin-top: 10px">
-            <button type="submit" style="background-color: #f44336; color: #fff">Temporarily Close Election</button>
-          </form>
-          <% } %>
-
-          <!-- Button to Set Results Are Out (only shown if voting is over and not already set) -->
-          <% var effectiveDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date(); var voteEnd = electionConfig.votingEnd ? new Date(electionConfig.votingEnd) : null; if (voteEnd && effectiveDate > voteEnd && electionConfig.electionStatus !== "Results Are Out" && electionConfig.electionStatus !== "Temporarily Closed") { %>
-          <form action="/setResultsOut" method="POST" style="margin-top: 10px">
-            <button type="submit" style="background-color: #4caf50; color: #fff">Set Results Are Out</button>
-          </form>
-          <% } %>
-
-          <!-- Button to Reset Election (archives current config and empties values) -->
-          <form action="/api/reset-election" method="POST" style="margin-top: 10px">
-            <button type="submit" style="background-color: #000; color: #fff">Reset Election</button>
-          </form>
+          <!-- Action Buttons -->
+          <div style="margin-top: 20px">
+            <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
+            <form action="/resume-election" method="POST">
+              <button type="submit" style="background-color: #4caf50; color: #fff">Resume Election</button>
+            </form>
+            <% } else { %>
+            <form action="/temporarily-closed" method="POST">
+              <button type="submit" style="background-color: #f44336; color: #fff">Temporarily Close Election</button>
+            </form>
+            <% } %> <% if (electionConfig.votingEnd && new Date() > new Date(electionConfig.votingEnd) && electionConfig.electionStatus !== "Results Are Out") { %>
+            <form action="/set-results-out" method="POST">
+              <button type="submit" style="background-color: #4caf50; color: #fff">Set Results Are Out</button>
+            </form>
+            <% } %>
+            <form action="/api/reset-election" method="POST">
+              <button type="submit" style="background-color: #000; color: #fff">Reset Election</button>
+            </form>
+          </div>
         </section>
 
         <!-- Test Date Picker for simulating the current date -->
@@ -285,69 +270,42 @@
       // Embed the electionConfig object from the server
       let electionConfig = <%- JSON.stringify(electionConfig) %>;
 
-      // Return the effective current date (fake if set, otherwise real)
       function getEffectiveCurrentDate() {
         return electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       }
 
-      // Compute the current phase based on the dates and current status
-      function getCurrentPeriod(now) {
-        // If the election is temporarily closed, return that state immediately.
-        if (electionConfig.electionStatus === "Temporarily Closed") {
-          return { name: "Temporarily Closed", duration: "", timeUntil: null };
-        }
-        if (!electionConfig.registrationStart ||
-            !electionConfig.registrationEnd ||
-            !electionConfig.votingStart ||
-            !electionConfig.votingEnd) {
-          return { name: "Election Not Active", duration: "Not set", timeUntil: null };
+      function calculateCurrentPeriod() {
+        const now = getEffectiveCurrentDate();
+        if (!electionConfig.registrationStart || !electionConfig.registrationEnd || !electionConfig.votingStart || !electionConfig.votingEnd) {
+          return { name: "Election Not Active", duration: "Configuration Incomplete", waitingFor: null };
         }
         const regStart = new Date(electionConfig.registrationStart);
         const regEnd = new Date(electionConfig.registrationEnd);
         const voteStart = new Date(electionConfig.votingStart);
         const voteEnd = new Date(electionConfig.votingEnd);
-        const daysUntil = (future) => Math.ceil((future - now) / (1000 * 60 * 60 * 24));
-
         if (now < regStart) {
-          return {
-            name: "Waiting for Registration",
-            duration: regStart.toLocaleString() + " - " + regEnd.toLocaleString(),
-            timeUntil: daysUntil(regStart) + " days until registration",
-          };
+          return { name: "Waiting for Registration Period", duration: `${now.toLocaleString()} to ${regStart.toLocaleString()}`, waitingFor: "Registration" };
         } else if (now >= regStart && now <= regEnd) {
-          return {
-            name: "Registration Open",
-            duration: regStart.toLocaleString() + " - " + regEnd.toLocaleString(),
-            timeUntil: null,
-          };
+          return { name: "Registration Period", duration: `${regStart.toLocaleString()} to ${regEnd.toLocaleString()}` };
         } else if (now > regEnd && now < voteStart) {
-          return {
-            name: "Waiting for Election",
-            duration: voteStart.toLocaleString() + " - " + voteEnd.toLocaleString(),
-            timeUntil: daysUntil(voteStart) + " days until election",
-          };
+          return { name: "Waiting for Voting Period", duration: `${regEnd.toLocaleString()} to ${voteStart.toLocaleString()}`, waitingFor: "Voting" };
         } else if (now >= voteStart && now <= voteEnd) {
-          return {
-            name: "Election Open",
-            duration: voteStart.toLocaleString() + " - " + voteEnd.toLocaleString(),
-            timeUntil: null,
-          };
+          return { name: "Voting Period", duration: `${voteStart.toLocaleString()} to ${voteEnd.toLocaleString()}` };
         } else if (now > voteEnd) {
           if (electionConfig.electionStatus === "Results Are Out") {
-            return { name: "Results Are Out", duration: "", timeUntil: null };
+            return { name: "Results Are Out Period", duration: `${voteEnd.toLocaleString()} to (manual)` };
           } else {
-            return { name: "Results Double Checking", duration: "", timeUntil: "Awaiting manual trigger" };
+            return { name: "Results Double Checking Period", duration: `${voteEnd.toLocaleString()} to (manual trigger)` };
           }
         }
-        return { name: "Unknown Phase", duration: "N/A", timeUntil: null };
+        return { name: "Election Not Active", duration: "N/A" };
       }
 
-      // Called when the test date changes; updates the fake date and phase on the server
       function updateCurrentPeriod() {
         const testDateInput = document.getElementById("testDatePicker").value;
         const testDate = testDateInput ? new Date(testDateInput) : new Date();
-        const period = getCurrentPeriod(testDate);
-        fetch("/setTestDate", {
+        const period = calculateCurrentPeriod();
+        fetch("/set-test-date", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fakeCurrentDate: testDate.toISOString(), period }),
@@ -355,11 +313,11 @@
           .then((res) => res.json())
           .then((data) => {
             if (data.success) {
-              electionConfig.fakeCurrentDate = data.fakeCurrentDate;
-              electionConfig.currentPeriod = data.period;
-              document.getElementById("currentPeriodDisplay").innerText = data.period.name;
-              document.getElementById("currentPeriodDuration").innerText =
-                data.period.duration || data.period.timeUntil;
+              // electionConfig.fakeCurrentDate = data.fakeCurrentDate;
+              // electionConfig.currentPeriod = data.period;
+              // document.getElementById("currentPeriodDisplay").innerText = data.period.name;
+              // document.getElementById("currentPeriodDuration").innerText = data.period.duration;
+              window.location.reload();
             }
           })
           .catch((err) => console.error("Error updating test date:", err));
@@ -367,10 +325,9 @@
 
       window.addEventListener("load", () => {
         const effectiveDate = getEffectiveCurrentDate();
-        const period = getCurrentPeriod(effectiveDate);
+        const period = calculateCurrentPeriod();
         document.getElementById("currentPeriodDisplay").innerText = period.name;
-        document.getElementById("currentPeriodDuration").innerText =
-          period.duration || period.timeUntil;
+        document.getElementById("currentPeriodDuration").innerText = period.duration;
       });
     </script>
   </body>
