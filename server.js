@@ -1466,7 +1466,7 @@ const startServer = async () => {
         });
         console.log("Election configuration reset complete.");
 
-        res.json({ message: "Election has been reset!" });
+        res.redirect("configuration");
       } catch (error) {
         console.error("Error resetting election:", error);
         res.status(500).json({ message: "Error resetting election", error: error.message });
@@ -1643,7 +1643,7 @@ const startServer = async () => {
       return currentDate;
     };
 
-    app.get("/results", async (req, res) => {
+    app.get("/vote-tally", async (req, res) => {
       try {
         const votersCollection = db.collection("voters");
         const colleges = await votersCollection.find({}).toArray();

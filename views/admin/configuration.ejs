@@ -152,7 +152,7 @@
             <ul class="sub-menu">
               <li><a class="link_name" href="edit-account">System</a></li>
               <li><a href="edit-account">Edit Account</a></li>
-              <li><a href="manage-account">Manage Accounts</a></li>
+              <li><a href="manage-accounts">Manage Accounts</a></li>
               <li><a href="help-page">Help Page</a></li>
               <li><a href="history">System Activity Log</a></li>
             </ul>
@@ -218,6 +218,7 @@
             <button type="submit">Save Election Configuration</button>
           </form>
 
+          <% const effectiveDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date(); %>
           <!-- Action Buttons -->
           <div style="margin-top: 20px">
             <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
@@ -228,7 +229,7 @@
             <form action="/temporarily-closed" method="POST">
               <button type="submit" style="background-color: #f44336; color: #fff">Temporarily Close Election</button>
             </form>
-            <% } %> <% if (electionConfig.votingEnd && new Date() > new Date(electionConfig.votingEnd) && electionConfig.electionStatus !== "Results Are Out") { %>
+            <% } %> <% if (electionConfig.votingEnd && effectiveDate > new Date(electionConfig.votingEnd) && electionConfig.electionStatus !== "Results Are Out") { %>
             <form action="/set-results-out" method="POST">
               <button type="submit" style="background-color: #4caf50; color: #fff">Set Results Are Out</button>
             </form>
