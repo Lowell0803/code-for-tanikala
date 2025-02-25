@@ -1103,10 +1103,11 @@ const startServer = async () => {
       res.render("voter/review", { votes, voterCollege, voterProgram, voterHash });
     });
 
+    // GET route for configuration
     app.get("/configuration", async (req, res) => {
       let electionConfig = await db.collection("election_config").findOne({});
 
-      // Provide default values to prevent errors
+      // Provide default values to prevent errors if no config exists
       if (!electionConfig) {
         electionConfig = {
           electionName: "",
@@ -1121,13 +1122,78 @@ const startServer = async () => {
         };
       }
 
+      // If a fake current date is stored, use it; otherwise, use the real current date
+      let simulatedDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : null;
+
       console.log("🟢 Sending Election Config:", electionConfig);
       console.log("📌 Simulated Date (Server):", simulatedDate ? simulatedDate.toISOString() : "Real Current Date");
 
       res.render("admin/configuration", {
         electionConfig,
-        simulatedDate: simulatedDate ? simulatedDate.toISOString() : null, // Pass simulated date
+        simulatedDate: simulatedDate ? simulatedDate.toISOString() : null,
       });
+    });
+
+    // POST route to handle election creation/update from the configuration form
+    app.post("/configuration", async (req, res) => {
+      try {
+        const { electionName, registrationStart, registrationEnd, votingStart, votingEnd, partylists, colleges } = req.body;
+        const partylistsArray = partylists ? partylists.split(",").map((item) => item.trim()) : [];
+        const regStartDate = registrationStart ? new Date(registrationStart) : null;
+        const regEndDate = registrationEnd ? new Date(registrationEnd) : null;
+        const voteStartDate = votingStart ? new Date(votingStart) : null;
+        const voteEndDate = votingEnd ? new Date(votingEnd) : null;
+
+        let totalStudents = 0;
+        if (colleges) {
+          for (const key in colleges) {
+            totalStudents += parseInt(colleges[key], 10) || 0;
+          }
+        }
+
+        const updatedElectionConfig = {
+          electionName,
+          electionStatus: "Election Active",
+          registrationStart: regStartDate,
+          registrationEnd: regEndDate,
+          votingStart: voteStartDate,
+          votingEnd: voteEndDate,
+          partylists: partylistsArray,
+          colleges,
+          totalStudents,
+          currentPeriod: {
+            name: "Election Active", // This may be recalculated later based on date logic
+            periodRange: "",
+            nextPeriod: { name: "", remainingDays: 0 },
+          },
+          updatedAt: new Date(),
+        };
+
+        // Update existing document or insert if not found
+        await db.collection("election_config").updateOne(
+          {}, // No filter condition: update the (only) configuration document.
+          { $set: updatedElectionConfig, $setOnInsert: { createdAt: new Date() } },
+          { upsert: true }
+        );
+
+        res.redirect("/configuration");
+      } catch (error) {
+        console.error("Error updating election configuration:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // New POST route to set a simulated (fake) current date for testing purposes
+    app.post("/setTestDate", async (req, res) => {
+      const { fakeCurrentDate } = req.body;
+      try {
+        // Update the election_config document with the fake current date
+        await db.collection("election_config").updateOne({}, { $set: { fakeCurrentDate: fakeCurrentDate, updatedAt: new Date() } }, { upsert: true });
+        res.json({ success: true, fakeCurrentDate });
+      } catch (error) {
+        console.error("Error setting fake current date:", error);
+        res.status(500).json({ success: false });
+      }
     });
 
     const getElectionPhase = (registrationPeriod, votingPeriod, currentDate) => {
@@ -1614,4 +1680,4 @@ async function processVotes() {
   }
 }
 // Run processVotes every 10 seconds
-setInterval(processVotes, 10000);
+// setInterval(processVotes, 10000);
