@@ -135,51 +135,50 @@ const startServer = async () => {
 
       if (now < regStart) {
         return {
-          name: "Waiting for Registration",
+          name: "Waiting for Registration Period",
           duration: regStart.toLocaleString() + " - " + regEnd.toLocaleString(),
           timeUntil: daysUntil(regStart) + " days until registration",
         };
       } else if (now >= regStart && now <= regEnd) {
         return {
-          name: "Registration Open",
+          name: "Registration Period",
           duration: regStart.toLocaleString() + " - " + regEnd.toLocaleString(),
           timeUntil: null,
         };
       } else if (now > regEnd && now < voteStart) {
         return {
-          name: "Waiting for Election",
+          name: "Waiting for Voting Period",
           duration: voteStart.toLocaleString() + " - " + voteEnd.toLocaleString(),
-          timeUntil: daysUntil(voteStart) + " days until election",
+          timeUntil: daysUntil(voteStart) + " days until voting",
         };
       } else if (now >= voteStart && now <= voteEnd) {
         return {
-          name: "Election Open",
+          name: "Voting Period",
           duration: voteStart.toLocaleString() + " - " + voteEnd.toLocaleString(),
           timeUntil: null,
         };
       } else if (now > voteEnd) {
         if (electionConfig.electionStatus === "Results Are Out") {
-          return { name: "Results Are Out", duration: "", timeUntil: null };
+          return { name: "Results Are Out Period", duration: "", timeUntil: null };
         } else {
-          return { name: "Results Double Checking", duration: "", timeUntil: "Awaiting manual trigger" };
+          return { name: "Results Double Checking Period", duration: "", timeUntil: "Awaiting manual trigger" };
         }
       }
       return { name: "Unknown Phase", duration: "N/A", timeUntil: null };
     }
 
-    // Helper function: map current period name to a homepage view
     function getHomepageView(periodName) {
       console.log("getHomepageView: periodName =", periodName);
       switch (periodName) {
-        case "Waiting for Registration":
-        case "Registration Open":
+        case "Waiting for Registration Period":
+        case "Registration Period":
           return "homepages/index-registration-period";
-        case "Waiting for Election":
-        case "Election Open":
-          return "homepages/index-election-period";
-        case "Results Double Checking":
+        case "Waiting for Voting Period":
+        case "Voting Period":
+          return "homepages/index-voting-period";
+        case "Results Double Checking Period":
           return "homepages/index-vote-checking-period";
-        case "Results Are Out":
+        case "Results Are Out Period":
           return "homepages/index-results-are-out-period";
         case "Temporarily Closed":
           return "homepages/index-system-temporarily-closed";
@@ -204,22 +203,13 @@ const startServer = async () => {
       };
 
       console.log("Dynamic Index Route: Raw electionConfig from DB:", electionConfig);
-
-      // Use fake current date if available; otherwise, use real date
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       console.log("Dynamic Index Route: Using current date =", now);
-
-      // Compute current period based on the configuration and current date
       const currentPeriod = computeCurrentPeriod(electionConfig, now);
       console.log("Dynamic Index Route: Computed current period =", currentPeriod);
-
-      // Update electionConfig.currentPeriod with computed value
       electionConfig.currentPeriod = currentPeriod;
-
-      // Determine which homepage view to render based on the current period name.
       const homepageView = getHomepageView(currentPeriod.name);
       console.log("Dynamic Index Route: Rendering view =", homepageView);
-
       res.render(homepageView, { electionConfig, currentDate: now.toISOString() });
     });
 

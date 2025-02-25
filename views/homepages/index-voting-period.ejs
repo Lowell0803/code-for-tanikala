@@ -32,28 +32,28 @@
 
       <div class="content-main">
         <div class="content-main-left">
-          <img src="img/logo_bulsu.png" alt="BulSU Logo" class="logo-opacity" /> <br />
+          <img src="img/logo_bulsu.png" alt="BulSU Logo" class="logo-opacity" /><br />
           <p class="montserrat" id="be-heard">Be Heard! Your Vote is Your Power!</p>
         </div>
 
         <div class="content-main-center">
-          <!-- The heading will change based on the state -->
-          <h1 class="montserrat h1" id="election-period">Registration Period:</h1>
+          <!-- Heading that updates dynamically -->
+          <h1 class="montserrat h1" id="election-period">Voting Period:</h1>
           <br />
           <!-- Countdown date range display -->
-          <span> <h2 class="date-period"></h2> </span> <br />
-          <!-- Label for the countdown -->
-          <h1 id="time-left" class="h1">Left to Register</h1>
+          <span><h2 class="date-period"></h2></span><br />
+          <!-- Countdown label -->
+          <h1 id="time-left" class="h1">Left to Vote</h1>
           <br />
           <!-- Countdown timer -->
-          <span> <h1 class="montserrat h1" id="countdown">00 00 00 00</h1> </span> <br />
+          <span><h1 class="montserrat h1" id="countdown">00 00 00 00</h1></span><br />
           <br />
-          <!-- The register button uses an id for stable reference -->
-          <button id="register-button" class="button-rounded-yellow">REGISTER NOW</button>
+          <!-- Vote button (only visible during voting period) -->
+          <button id="vote-button" class="button-rounded-yellow">LOG IN TO VOTE</button>
         </div>
 
         <div class="content-main-right">
-          <img src="img/logo_bulsu_ucse.png" alt="BulSU UCSE Logo" class="logo-opacity" /> <br />
+          <img src="img/logo_bulsu_ucse.png" alt="BulSU UCSE Logo" class="logo-opacity" /><br />
           <p class="montserrat" id="vote-now">Vote Now for the Student Government Elections!</p>
         </div>
       </div>
@@ -76,44 +76,56 @@
     </footer>
     <script src="js/index.js"></script>
     <script>
-      // Get registration start/end from the server-side configuration (assumed to be passed via electionConfig)
-      const registrationStart = new Date("<%= electionConfig.registrationStart %>").getTime();
-      const registrationEnd = new Date("<%= electionConfig.registrationEnd %>").getTime();
+      // Use fakeCurrentDate if provided; otherwise use the real current time.
+      const fakeCurrentDateStr = "<%= electionConfig.fakeCurrentDate ? electionConfig.fakeCurrentDate : '' %>";
+      const baseNow = fakeCurrentDateStr ? new Date(fakeCurrentDateStr).getTime() : new Date().getTime();
+      let elapsed = 0;
+      function getCurrentTime() {
+        return baseNow + elapsed;
+      }
 
-      // Update the date range display
+      // Get voting start and end dates from server config
+      const votingStart = new Date("<%= electionConfig.votingStart %>").getTime();
+      const votingEnd = new Date("<%= electionConfig.votingEnd %>").getTime();
+
+      // Update the date range display for voting period
       const datePeriodElem = document.querySelector(".date-period");
-      datePeriodElem.textContent = new Date(registrationStart).toLocaleDateString() + " - " + new Date(registrationEnd).toLocaleDateString();
+      datePeriodElem.textContent = new Date(votingStart).toLocaleDateString() + " - " + new Date(votingEnd).toLocaleDateString();
 
-      // Grab elements by id
+      // Grab elements by their IDs
       const electionPeriodElem = document.getElementById("election-period");
       const countdownElem = document.getElementById("countdown");
       const timeLeftElem = document.getElementById("time-left");
-      const registerButton = document.getElementById("register-button");
+      const voteButton = document.getElementById("vote-button");
 
       function updatePhase() {
-        const now = new Date().getTime();
+        const now = getCurrentTime();
         let distance = 0;
-        if (now < registrationStart) {
-          electionPeriodElem.textContent = "Waiting for Registration Period:";
+        if (now < votingStart) {
+          electionPeriodElem.textContent = "Waiting for Voting Period:";
           timeLeftElem.textContent = "Starts In:";
-          distance = registrationStart - now;
-          registerButton.style.display = "none";
-        } else if (now >= registrationStart && now <= registrationEnd) {
-          electionPeriodElem.textContent = "Registration Period:";
-          timeLeftElem.textContent = "Time Left to Register:";
-          distance = registrationEnd - now;
-          registerButton.style.display = "block";
+          distance = votingStart - now;
+          voteButton.style.display = "none";
+        } else if (now >= votingStart && now <= votingEnd) {
+          electionPeriodElem.textContent = "Voting Period:";
+          timeLeftElem.textContent = "Time Left to Vote:";
+          distance = votingEnd - now;
+          voteButton.style.display = "block";
         } else {
-          electionPeriodElem.textContent = "Registration Ended";
+          electionPeriodElem.textContent = "Voting Ended";
           timeLeftElem.textContent = "";
           distance = 0;
-          registerButton.style.display = "none";
+          voteButton.style.display = "none";
         }
         return distance;
       }
 
       const interval = setInterval(() => {
         const distance = updatePhase();
+        // Simulate time progression if using fakeCurrentDate:
+        if (fakeCurrentDateStr) {
+          elapsed += 1000;
+        }
         if (distance <= 0) {
           clearInterval(interval);
           countdownElem.textContent = "00 00 00 00";
