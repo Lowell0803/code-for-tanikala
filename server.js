@@ -112,9 +112,120 @@ const startServer = async () => {
     //   ? req.user.program
     //   : "Bachelor of Performing Arts";
 
-    app.get("/", (req, res) => {
-      res.sendFile(path.join(__dirname, "public", "index.html"));
+    // Helper function to compute current period (same logic as client-side)
+    // Helper function: compute current period based on electionConfig and current date
+    function computeCurrentPeriod(electionConfig, now = new Date()) {
+      console.log("computeCurrentPeriod: now =", now);
+      if (electionConfig.electionStatus === "Temporarily Closed") {
+        console.log("computeCurrentPeriod: election is temporarily closed");
+        return { name: "Temporarily Closed", duration: "", timeUntil: null };
+      }
+      if (!electionConfig.registrationStart || !electionConfig.registrationEnd || !electionConfig.votingStart || !electionConfig.votingEnd) {
+        console.log("computeCurrentPeriod: one or more date values are missing");
+        return { name: "Election Not Active", duration: "Not set", timeUntil: null };
+      }
+      const regStart = new Date(electionConfig.registrationStart);
+      const regEnd = new Date(electionConfig.registrationEnd);
+      const voteStart = new Date(electionConfig.votingStart);
+      const voteEnd = new Date(electionConfig.votingEnd);
+      const daysUntil = (future) => Math.ceil((future - now) / (1000 * 60 * 60 * 24));
+
+      console.log("computeCurrentPeriod: regStart =", regStart, ", regEnd =", regEnd);
+      console.log("computeCurrentPeriod: voteStart =", voteStart, ", voteEnd =", voteEnd);
+
+      if (now < regStart) {
+        return {
+          name: "Waiting for Registration",
+          duration: regStart.toLocaleString() + " - " + regEnd.toLocaleString(),
+          timeUntil: daysUntil(regStart) + " days until registration",
+        };
+      } else if (now >= regStart && now <= regEnd) {
+        return {
+          name: "Registration Open",
+          duration: regStart.toLocaleString() + " - " + regEnd.toLocaleString(),
+          timeUntil: null,
+        };
+      } else if (now > regEnd && now < voteStart) {
+        return {
+          name: "Waiting for Election",
+          duration: voteStart.toLocaleString() + " - " + voteEnd.toLocaleString(),
+          timeUntil: daysUntil(voteStart) + " days until election",
+        };
+      } else if (now >= voteStart && now <= voteEnd) {
+        return {
+          name: "Election Open",
+          duration: voteStart.toLocaleString() + " - " + voteEnd.toLocaleString(),
+          timeUntil: null,
+        };
+      } else if (now > voteEnd) {
+        if (electionConfig.electionStatus === "Results Are Out") {
+          return { name: "Results Are Out", duration: "", timeUntil: null };
+        } else {
+          return { name: "Results Double Checking", duration: "", timeUntil: "Awaiting manual trigger" };
+        }
+      }
+      return { name: "Unknown Phase", duration: "N/A", timeUntil: null };
+    }
+
+    // Helper function: map current period name to a homepage view
+    function getHomepageView(periodName) {
+      console.log("getHomepageView: periodName =", periodName);
+      switch (periodName) {
+        case "Waiting for Registration":
+        case "Registration Open":
+          return "homepages/index-registration-period";
+        case "Waiting for Election":
+        case "Election Open":
+          return "homepages/index-election-period";
+        case "Results Double Checking":
+          return "homepages/index-vote-checking-period";
+        case "Results Are Out":
+          return "homepages/index-results-are-out-period";
+        case "Temporarily Closed":
+          return "homepages/index-system-temporarily-closed";
+        default:
+          return "homepages/index-election-not-active";
+      }
+    }
+
+    // New dynamic index route: render homepage based on current period.
+    app.get("/", async (req, res) => {
+      let electionConfig = (await db.collection("election_config").findOne({})) || {
+        electionName: "",
+        registrationStart: "",
+        registrationEnd: "",
+        votingStart: "",
+        votingEnd: "",
+        partylists: [],
+        colleges: {},
+        fakeCurrentDate: null,
+        electionStatus: "Election Not Active",
+        currentPeriod: { name: "Election Not Active", duration: "", nextPeriod: { name: "", remainingDays: 0 } },
+      };
+
+      console.log("Dynamic Index Route: Raw electionConfig from DB:", electionConfig);
+
+      // Use fake current date if available; otherwise, use real date
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      console.log("Dynamic Index Route: Using current date =", now);
+
+      // Compute current period based on the configuration and current date
+      const currentPeriod = computeCurrentPeriod(electionConfig, now);
+      console.log("Dynamic Index Route: Computed current period =", currentPeriod);
+
+      // Update electionConfig.currentPeriod with computed value
+      electionConfig.currentPeriod = currentPeriod;
+
+      // Determine which homepage view to render based on the current period name.
+      const homepageView = getHomepageView(currentPeriod.name);
+      console.log("Dynamic Index Route: Rendering view =", homepageView);
+
+      res.render(homepageView, { electionConfig, currentDate: now.toISOString() });
     });
+
+    // app.get("/", (req, res) => {
+    //   res.sendFile(path.join(__dirname, "public", "index.ht  ml"));
+    // });
 
     // TEST IF CANDIDATES IS SUBMITTED TO BLOCKCHAIN
 
@@ -367,6 +478,11 @@ const startServer = async () => {
       try {
         const tx = await contract.resetCandidates();
         await tx.wait();
+
+        const statusCollection = db.collection("system_status");
+
+        // **Reset status in MongoDB**
+        await statusCollection.updateOne({ _id: "candidate_submission" }, { $set: { submitted: false } }, { upsert: true });
         res.json({ message: "Candidates reset. You can now submit again." });
       } catch (error) {
         console.error("Error resetting candidates:", error);
@@ -463,10 +579,44 @@ const startServer = async () => {
         await tx.wait();
         console.log("✅ Candidates submitted successfully!");
 
+        const statusCollection = db.collection("system_status");
+
+        // **Update status in MongoDB**
+        await statusCollection.updateOne({ _id: "candidate_submission" }, { $set: { submitted: true } }, { upsert: true });
+
         res.json({ message: "Candidates successfully submitted to blockchain!" });
       } catch (error) {
         console.error("❌ ERROR submitting candidates:", error);
         res.status(500).json({ error: "Failed to submit candidates." });
+      }
+    });
+
+    const JSZip = require("jszip");
+    const { ObjectId } = require("mongodb");
+
+    app.get("/api/export-archive/:id", async (req, res) => {
+      try {
+        const archiveId = req.params.id;
+        const archive = await db.collection("election_archive").findOne({ _id: new ObjectId(archiveId) });
+
+        if (!archive) {
+          return res.status(404).json({ message: "Archive not found" });
+        }
+
+        // Create a new zip archive
+        const zip = new JSZip();
+        // Add two separate JSON files to the zip
+        zip.file("candidates.json", JSON.stringify(archive.candidates, null, 2));
+        zip.file("candidatesLsc.json", JSON.stringify(archive.candidatesLsc, null, 2));
+
+        // Generate the zip file as a node buffer
+        const zipContent = await zip.generateAsync({ type: "nodebuffer" });
+        // Set response headers to download the zip file
+        res.setHeader("Content-Disposition", `attachment; filename=archive-${archiveId}.zip`);
+        res.setHeader("Content-Type", "application/zip");
+        res.send(zipContent);
+      } catch (error) {
+        res.status(500).json({ message: "Error exporting archive", error: error.message });
       }
     });
 
@@ -1245,40 +1395,127 @@ const startServer = async () => {
     });
 
     // POST route to reset the election: archive current config and then reset the main config
-    app.post("/resetElection", async (req, res) => {
+    // app.post("/resetElection", async (req, res) => {
+    //   try {
+    //     // First, get the current configuration from the database
+    //     const currentConfig = await db.collection("election_config").findOne({});
+    //     if (currentConfig) {
+    //       // Remove the _id field to avoid duplicate key error in the archive collection
+    //       const { _id, ...configWithoutId } = currentConfig;
+
+    //       // Insert the config without _id into the election_archive with an archivedAt timestamp
+    //       await db.collection("election_archive").insertOne({
+    //         ...configWithoutId,
+    //         archivedAt: new Date(),
+    //       });
+    //     }
+
+    //     // Reset election_config to default empty values
+    //     const defaultConfig = {
+    //       electionName: "",
+    //       registrationStart: "",
+    //       registrationEnd: "",
+    //       votingStart: "",
+    //       votingEnd: "",
+    //       partylists: [],
+    //       colleges: {},
+    //       fakeCurrentDate: null,
+    //       electionStatus: "Election Not Active",
+    //       currentPeriod: {
+    //         name: "Election Not Active",
+    //         duration: "",
+    //         nextPeriod: { name: "", remainingDays: 0 },
+    //       },
+    //       updatedAt: new Date(),
+    //     };
+
+    //     await db.collection("election_config").updateOne({}, { $set: defaultConfig });
+    //     res.redirect("/configuration");
+    //   } catch (error) {
+    //     console.error("Error resetting election:", error);
+    //     res.status(500).send("Internal Server Error");
+    //   }
+    // });
+    app.post("/api/reset-election", async (req, res) => {
       try {
-        // Get current configuration
-        const currentConfig = await db.collection("election_config").findOne({});
-        if (currentConfig) {
-          // Insert current config into archive with an archivedAt timestamp
-          await db.collection("election_archive").insertOne({
-            ...currentConfig,
+        console.log("Reset election initiated.");
+
+        // Check if candidates have been submitted
+        console.log("Checking candidate submission status...");
+        const submissionStatus = await db.collection("system_status").findOne({ _id: "candidate_submission" });
+        console.log("Submission status retrieved:", submissionStatus);
+
+        if (submissionStatus && submissionStatus.submitted === true) {
+          console.log("Candidates have been submitted. Archiving candidate data...");
+
+          // Archive candidates data from "candidates" and "candidates_lsc"
+          const candidatesData = await db.collection("candidates").find({}).toArray();
+          console.log("Candidates data count:", candidatesData.length);
+          const candidatesLscData = await db.collection("candidates_lsc").find({}).toArray();
+          console.log("Candidates LSC data count:", candidatesLscData.length);
+
+          const archiveResult = await db.collection("election_archive").insertOne({
+            electionName: "", // Customize as needed
+            registrationStart: "", // If applicable
+            registrationEnd: "",
+            votingStart: "",
+            votingEnd: "",
+            electionStatus: "Candidates Submitted",
             archivedAt: new Date(),
+            candidates: candidatesData,
+            candidatesLsc: candidatesLscData,
           });
+          console.log("Candidate data archived. Archive ID:", archiveResult.insertedId);
+
+          // Trigger reset-candidates (e.g., call your blockchain function)
+          console.log("Triggering contract.resetCandidates()...");
+          const tx = await contract.resetCandidates();
+          await tx.wait();
+          console.log("Blockchain candidate reset confirmed.");
+
+          // Update the submission status to false
+          console.log("Updating candidate submission status in the database to false...");
+          // await db.collection("system_status").updateOne({ _id: "candidate_submission" }, { $set: { submitted: false } });
+          console.log("Candidate submission status updated to false.");
+        } else {
+          console.log("Candidate submission status is not true. Skipping candidate archiving and blockchain reset.");
         }
-        // Reset election_config to default empty values
-        const defaultConfig = {
+
+        // Original election configuration reset logic (DO NOT OMIT ANYTHING)
+        console.log("Resetting election configuration...");
+        await db.collection("election_config").deleteMany({});
+        await db.collection("election_config").insertOne({
           electionName: "",
-          registrationStart: "",
-          registrationEnd: "",
-          votingStart: "",
-          votingEnd: "",
+          registrationPeriod: { start: "", end: "" },
+          votingPeriod: { start: "", end: "" },
+          totalElections: 14,
+          totalPartylists: 0,
           partylists: [],
-          colleges: {},
-          fakeCurrentDate: null,
-          electionStatus: "Election Not Active",
-          currentPeriod: {
-            name: "Election Not Active",
-            duration: "",
-            nextPeriod: { name: "", remainingDays: 0 },
-          },
-          updatedAt: new Date(),
-        };
-        await db.collection("election_config").updateOne({}, { $set: defaultConfig });
-        res.redirect("/configuration");
+          totalCandidates: 0,
+          phase: "Election Inactive",
+          listOfElections: [
+            { name: "Supreme Student Council (SSC) - BulSU Main", voters: 0 },
+            { name: "College of Architecture and Fine Arts (CAFA)", voters: 0 },
+            { name: "College of Arts and Letters (CAL)", voters: 0 },
+            { name: "College of Business Education and Accountancy (CBEA)", voters: 0 },
+            { name: "College of Criminal Justice Education (CCJE)", voters: 0 },
+            { name: "College of Engineering (COE)", voters: 0 },
+            { name: "College of Education (COED)", voters: 0 },
+            { name: "College of Hospitality and Tourism Management (CHTM)", voters: 0 },
+            { name: "College of Industrial Technology (CIT)", voters: 0 },
+            { name: "College of Information and Communications Technology (CICT)", voters: 0 },
+            { name: "College of Nursing (CON)", voters: 0 },
+            { name: "College of Science (CS)", voters: 0 },
+            { name: "College of Social Sciences and Philosophy (CSSP)", voters: 0 },
+            { name: "College of Sports, Exercise, and Recreation (CSER)", voters: 0 },
+          ],
+        });
+        console.log("Election configuration reset complete.");
+
+        res.json({ message: "Election has been reset!" });
       } catch (error) {
         console.error("Error resetting election:", error);
-        res.status(500).send("Internal Server Error");
+        res.status(500).json({ message: "Error resetting election", error: error.message });
       }
     });
 
@@ -1401,41 +1638,6 @@ const startServer = async () => {
     });
 
     // API to reset the election
-    app.post("/api/reset-election", async (req, res) => {
-      try {
-        await db.collection("election_config").deleteMany({});
-        await db.collection("election_config").insertOne({
-          electionName: "",
-          registrationPeriod: { start: "", end: "" },
-          votingPeriod: { start: "", end: "" },
-          totalElections: 14,
-          totalPartylists: 0,
-          partylists: [],
-          totalCandidates: 0,
-          phase: "Election Inactive",
-          listOfElections: [
-            { name: "Supreme Student Council (SSC) - BulSU Main", voters: 0 },
-            { name: "College of Architecture and Fine Arts (CAFA)", voters: 0 },
-            { name: "College of Arts and Letters (CAL)", voters: 0 },
-            { name: "College of Business Education and Accountancy (CBEA)", voters: 0 },
-            { name: "College of Criminal Justice Education (CCJE)", voters: 0 },
-            { name: "College of Engineering (COE)", voters: 0 },
-            { name: "College of Education (COED)", voters: 0 },
-            { name: "College of Hospitality and Tourism Management (CHTM)", voters: 0 },
-            { name: "College of Industrial Technology (CIT)", voters: 0 },
-            { name: "College of Information and Communications Technology (CICT)", voters: 0 },
-            { name: "College of Nursing (CON)", voters: 0 },
-            { name: "College of Science (CS)", voters: 0 },
-            { name: "College of Social Sciences and Philosophy (CSSP)", voters: 0 },
-            { name: "College of Sports, Exercise, and Recreation (CSER)", voters: 0 },
-          ],
-        });
-
-        res.json({ message: "Election has been reset!" });
-      } catch (error) {
-        res.status(500).json({ message: "Error resetting election", error: error.message });
-      }
-    });
 
     app.post("/api/confirm-results", async (req, res) => {
       try {

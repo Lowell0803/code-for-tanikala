@@ -160,6 +160,8 @@
                 <th>Voting Period</th>
                 <th>Status</th>
                 <th>Archived At</th>
+                <!-- New column for exporting candidate data -->
+                <th>Export Candidates</th>
               </tr>
             </thead>
             <tbody>
@@ -170,6 +172,10 @@
                 <td><%= archive.votingStart ? new Date(archive.votingStart).toLocaleString() : "N/A" %> - <%= archive.votingEnd ? new Date(archive.votingEnd).toLocaleString() : "N/A" %></td>
                 <td><%= archive.electionStatus %></td>
                 <td><%= archive.archivedAt ? new Date(archive.archivedAt).toLocaleString() : "N/A" %></td>
+                <!-- Export button/link -->
+                <td>
+                  <a href="/api/export-archive/<%= archive._id %>" target="_blank">Export</a>
+                </td>
               </tr>
               <% }); %>
             </tbody>

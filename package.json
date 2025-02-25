@@ -9,6 +9,7 @@
     "ethers": "^6.13.5",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "jszip": "^3.10.1",
     "mongodb": "^6.12.0",
     "p-queue": "^8.1.0",
     "passport": "^0.7.0",
