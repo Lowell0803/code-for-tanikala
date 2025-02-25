@@ -152,7 +152,7 @@
             <br />
           </ul>
           <form id="voteForm">
-            <input type="hidden" id="voterHash" value="2021200246@ms.bulsu.edu.ph" />
+            <input type="hidden" id="voterHash" value="20292002480@ms.bulsu.edu.ph" />
 
             <div class="button-container">
               <button class="button-back" type="button" onclick="window.location.href='/vote'">
@@ -166,7 +166,7 @@
               <input type="hidden" id="voteData" value="<%= JSON.stringify(votes) %>" />
               <!-- <input type="button" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" /> -->
               <!-- From Uiverse.io by ilkhoeri -->
-              <button type="submit" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" type="button" class="button">
+              <button type="button" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" type="button" class="button">
                 <span class="fold"></span>
 
                 <div class="points_wrapper">
@@ -195,7 +195,6 @@
           <br /><br />
           <hr />
 
-          <!-- Queue Position Indicator -->
           <p id="queuePosition" style="font-weight: bold; color: black; display: block">Queue Position: <span id="queueNumber"></span></p>
 
           <hr />
@@ -204,257 +203,205 @@
             <div class="loading-bar"></div>
           </div>
           <br /><br /><br />
-          <!-- Loading Bar (Initially Hidden) -->
-
-          <!-- <script>
-            async function submitVote() {
-              const votes = JSON.parse(document.getElementById("voteData").value);
-              console.log("Submitting votes:", votes);
-
-              try {
-                const response = await fetch("/submit-vote", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ votes }),
-                });
-
-                const data = await response.json();
-                alert(data.message);
-              } catch (error) {
-                console.error("Error submitting vote:", error);
-                alert("Failed to submit votes.");
-              }
-            }
-          </script> -->
-
-          <!-- <script>
-            async function submitVote() {
-              let votes = JSON.parse(document.getElementById("voteData").value);
-              console.log("📡 Original votes:", votes);
-
-              // ✅ Get logged-in voter's college and program
-              const voterCollege = "<%= voterCollege %>";
-              const voterProgram = "<%= voterProgram %>";
-
-              // ✅ Reformat LSC votes before submission
-              let formattedVotes = {
-                President: votes.president,
-                "Vice President": votes.vicePresident,
-                Senator: votes.senator,
-              };
-
-              if (votes.governor) {
-                formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
-              }
-              if (votes.viceGovernor) {
-                formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
-              }
-              if (votes.boardMember) {
-                formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
-              }
-
-              console.log("📡 Reformatted votes:", formattedVotes);
-
-              // ✅ Show Loading Bar & Disable Button
-              let loadingBar = document.getElementById("loading-bar");
-              let submitBtn = document.getElementById("submitBtn");
-
-              loadingBar.style.display = "block"; // ✅ Ensure it's visible
-              submitBtn.disabled = true;
-
-              try {
-                const response = await fetch("/submit-vote", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ votes: formattedVotes }),
-                });
-
-                const data = await response.json();
-                alert(data.message);
-              } catch (error) {
-                console.error("❌ Error submitting vote:", error);
-                alert("Failed to submit votes.");
-              } finally {
-                // ✅ Delay hiding the loading bar to ensure visibility
-                setTimeout(() => {
-                  loadingBar.style.display = "none";
-                  submitBtn.disabled = false;
-                }, 500); // Ensures visibility for at least 500ms
-              }
-            }
-          </script> -->
-
-          <!-- <script>
-            async function submitVote() {
-              let votes = JSON.parse(document.getElementById("voteData").value);
-              console.log("📡 Original votes:", votes);
-
-              // ✅ Get logged-in voter's college and program
-              const voterCollege = "<%= voterCollege %>";
-              const voterProgram = "<%= voterProgram %>";
-
-              // ✅ Reformat LSC votes before submission
-              let formattedVotes = {
-                President: votes.president,
-                "Vice President": votes.vicePresident,
-                Senator: votes.senator,
-              };
-
-              if (votes.governor) {
-                formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
-              }
-              if (votes.viceGovernor) {
-                formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
-              }
-              if (votes.boardMember) {
-                formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
-              }
-
-              console.log("📡 Reformatted votes:", formattedVotes);
-
-              // ✅ Show Loading Bar & Disable Button
-              let loadingBar = document.getElementById("loading-bar");
-              let submitBtn = document.getElementById("submitBtn");
-              let queuePosition = document.getElementById("queuePosition");
-              let queueNumber = document.getElementById("queueNumber");
-
-              loadingBar.style.display = "block"; // ✅ Ensure it's visible
-              submitBtn.disabled = true;
-              queuePosition.style.display = "block"; // ✅ Show queue position text
-              queueNumber.innerText = "🔄 Fetching queue position...";
-
-              try {
-                // ✅ Get queue position before submitting
-                let queueResponse = await fetch("/get-queue-position");
-                let queueData = await queueResponse.json();
-                queueNumber.innerText = queueData.position; // ✅ Update queue position
-
-                const response = await fetch("/submit-vote", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  // body: JSON.stringify({ votes: formattedVotes }),
-                  body: JSON.stringify({ votes: formattedVotes, voterHash }),
-                });
-
-                const data = await response.json();
-
-                if (data.transactions) {
-                  alert("✅ Vote Submitted! See console for transaction hashes.");
-                  console.log("📜 Transaction Hashes:", data.transactions);
-                  for (let [position, hash] of Object.entries(data.transactions)) {
-                    console.log(`📜 ${hash.txHash}`);
-                  }
-                }
-
-                alert(data.message);
-              } catch (error) {
-                console.error("❌ Error submitting vote:", error);
-                alert("Failed to submit votes.");
-              } finally {
-                // ✅ Delay hiding the loading bar to ensure visibility
-                setTimeout(() => {
-                  loadingBar.style.display = "none";
-                  submitBtn.disabled = false;
-                  queuePosition.style.display = "none"; // ✅ Hide queue position after submission
-                }, 500); // Ensures visibility for at least 500ms
-              }
-            }
-          </script> -->
-
-          <!-- <script>
-            async function submitVote() {
-              let votes = JSON.parse(document.getElementById("voteData").value);
-              console.log("📡 Original votes:", votes);
-
-              // ✅ Get the voter hash from the hidden input field
-              let voterHash = document.getElementById("voterHash").value;
-              console.log("📡 Voter Email for Hashing:", voterHash);
-
-              if (!voterHash) {
-                alert("❌ Missing voter hash!");
-                return;
-              }
-
-              // ✅ Hash the voter email before sending it to the server
-              let hashedVoterHash = await sha256(voterHash);
-              console.log("🔐 Hashed Voter Hash:", hashedVoterHash);
-
-              // ✅ Get logged-in voter's college and program
-              const voterCollege = "<%= voterCollege %>";
-              const voterProgram = "<%= voterProgram %>";
-
-              // ✅ Reformat LSC votes before submission
-              let formattedVotes = {
-                President: votes.president,
-                "Vice President": votes.vicePresident,
-                Senator: votes.senator,
-              };
-
-              if (votes.governor) {
-                formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
-              }
-              if (votes.viceGovernor) {
-                formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
-              }
-              if (votes.boardMember) {
-                formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
-              }
-
-              console.log("📡 Reformatted votes:", formattedVotes);
-
-              try {
-                const response = await fetch("/submit-vote", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ votes: formattedVotes, voterHash: hashedVoterHash }),
-                });
-
-                const data = await response.json();
-
-                if (data.transactionHash) {
-                  alert("✅ Vote Submitted! Transaction Hash: " + data.transactionHash);
-                } else {
-                  alert("❌ Submission failed: " + data.error);
-                }
-              } catch (error) {
-                console.error("❌ Error submitting vote:", error);
-                alert("Failed to submit votes.");
-              }
-            }
-
-            // ✅ SHA-256 Hash Function
-            async function sha256(input) {
-              const encoder = new TextEncoder();
-              const data = encoder.encode(input);
-              const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-              const hashArray = Array.from(new Uint8Array(hashBuffer));
-              return hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
-            }
-          </script> -->
 
           <script>
-            async function submitVote() {
-              let votes = JSON.parse(document.getElementById("voteData").value);
-              console.log("📡 Original votes:", votes);
+            // async function submitVote() {
+            //   let votes = JSON.parse(document.getElementById("voteData").value);
+            //   console.log("📡 Original votes:", votes);
 
-              // ✅ Get the voter hash from the hidden input field
+            //   // ✅ Get the voter hash from the hidden input field
+            //   let voterHash = document.getElementById("voterHash").value;
+            //   console.log("📡 Voter Email for Hashing:", voterHash);
+
+            //   if (!voterHash) {
+            //     alert("❌ Missing voter hash!");
+            //     return;
+            //   }
+
+            //   // ✅ Hash the voter email before sending it to the server
+            //   let hashedVoterHash = await sha256(voterHash);
+            //   console.log("🔐 Hashed Voter Hash:", hashedVoterHash);
+
+            //   // ✅ Get logged-in voter's college and program
+            //   const voterCollege = "<%= voterCollege %>";
+            //   const voterProgram = "<%= voterProgram %>";
+
+            //   // ✅ Reformat LSC votes before submission
+            //   let formattedVotes = {
+            //     President: votes.president,
+            //     "Vice President": votes.vicePresident,
+            //     Senator: votes.senator,
+            //   };
+
+            //   if (votes.governor) {
+            //     formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
+            //   }
+            //   if (votes.viceGovernor) {
+            //     formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
+            //   }
+            //   if (votes.boardMember) {
+            //     formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
+            //   }
+
+            //   console.log("📡 Reformatted votes:", formattedVotes);
+
+            //   try {
+            //     // ✅ Show Loading Indicator
+            //     let loadingBar = document.getElementById("loading-bar");
+            //     let submitBtn = document.getElementById("submitBtn");
+            //     loadingBar.style.display = "block";
+            //     submitBtn.disabled = true;
+
+            //     // ✅ Send vote data to the server
+            //     const response = await fetch("/submit-vote", {
+            //       method: "POST",
+            //       headers: { "Content-Type": "application/json" },
+            //       body: JSON.stringify({ votes: formattedVotes, voterHash: hashedVoterHash }),
+            //     });
+
+            //     // ✅ Wait for the response and check status
+            //     const data = await response.json();
+
+            //     if (response.ok) {
+            //       console.log("✅ Transaction Successful:", data.transactionHash);
+            //       alert("✅ Vote Submitted! Transaction Hash: " + data.transactionHash);
+            //     } else {
+            //       console.error("❌ Submission failed:", data.error);
+            //       alert("❌ Submission failed: " + data.error);
+            //     }
+            //   } catch (error) {
+            //     console.error("❌ Error submitting vote:", error);
+            //     alert("❌ Failed to submit votes. Please check the console for details.");
+            //   } finally {
+            //     // ✅ Hide Loading Indicator After Completion
+            //     setTimeout(() => {
+            //       loadingBar.style.display = "none";
+            //       submitBtn.disabled = false;
+            //     }, 500);
+            //   }
+            // }
+
+            // ✅ SHA-256 Hash Function
+            // async function submitVote() {
+            //   let votes = JSON.parse(document.getElementById("voteData").value);
+            //   let voterHash = document.getElementById("voterHash").value;
+
+            //   if (!voterHash) {
+            //     alert("❌ Missing voter hash!");
+            //     return;
+            //   }
+
+            //   let hashedVoterHash = await sha256(voterHash);
+
+            //   const voterCollege = "<%= voterCollege %>";
+            //   const voterProgram = "<%= voterProgram %>";
+
+            //   let formattedVotes = {
+            //     President: votes.president,
+            //     "Vice President": votes.vicePresident,
+            //     Senator: votes.senator,
+            //   };
+
+            //   if (votes.governor) {
+            //     formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
+            //   }
+            //   if (votes.viceGovernor) {
+            //     formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
+            //   }
+            //   if (votes.boardMember) {
+            //     formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
+            //   }
+
+            //   try {
+            //     let response = await fetch("/submit-vote", {
+            //       method: "POST",
+            //       headers: { "Content-Type": "application/json" },
+            //       body: JSON.stringify({ votes: formattedVotes, voterHash: hashedVoterHash }),
+            //     });
+
+            //     if (response.ok) {
+            //       window.location.href = `/vote-status?voterHash=${hashedVoterHash}`;
+            //     } else {
+            //       let data = await response.json();
+            //       alert("❌ Submission failed: " + data.error);
+            //     }
+            //   } catch (error) {
+            //     alert("❌ Failed to submit votes. Please check the console for details.");
+            //     console.error(error);
+            //   }
+            // }
+
+            // async function submitVote(event) {
+            //   if (event) event.preventDefault(); // Prevent form from submitting normally
+
+            //   let votes = JSON.parse(document.getElementById("voteData").value);
+            //   let voterHash = document.getElementById("voterHash").value;
+
+            //   if (!voterHash) {
+            //     alert("❌ Missing voter hash!");
+            //     return;
+            //   }
+
+            //   const voterCollege = "<%= voterCollege %>";
+            //   const voterProgram = "<%= voterProgram %>";
+
+            //   let hashedVoterHash = await sha256(voterHash);
+
+            //   let formattedVotes = {
+            //     President: votes.president,
+            //     "Vice President": votes.vicePresident,
+            //     Senator: votes.senator,
+            //   };
+
+            //   if (votes.governor) {
+            //     formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
+            //   }
+            //   if (votes.viceGovernor) {
+            //     formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
+            //   }
+            //   if (votes.boardMember) {
+            //     formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
+            //   }
+
+            //   try {
+            //     let response = await fetch("/submit-vote", {
+            //       method: "POST",
+            //       headers: { "Content-Type": "application/json" },
+            //       body: JSON.stringify({ votes: formattedVotes, voterHash: hashedVoterHash }),
+            //     });
+
+            //     if (response.ok) {
+            //       // 🚀 Immediately redirect to the waiting page
+            //       window.location.href = `/vote-status?voterHash=${hashedVoterHash}`;
+            //     } else {
+            //       let data = await response.json();
+            //       alert("❌ Submission failed: " + data.error);
+            //     }
+            //   } catch (error) {
+            //     alert("❌ Failed to submit votes. Please check the console for details.");
+            //     console.error(error);
+            //   }
+            // }
+
+            async function submitVote(event) {
+              if (event) event.preventDefault(); // Prevent form submission
+
+              let votes = JSON.parse(document.getElementById("voteData").value);
               let voterHash = document.getElementById("voterHash").value;
-              console.log("📡 Voter Email for Hashing:", voterHash);
+
+              console.log("📡 Submitting Vote - Voter Hash:", voterHash); // Debug log
 
               if (!voterHash) {
                 alert("❌ Missing voter hash!");
                 return;
               }
 
-              // ✅ Hash the voter email before sending it to the server
               let hashedVoterHash = await sha256(voterHash);
               console.log("🔐 Hashed Voter Hash:", hashedVoterHash);
 
-              // ✅ Get logged-in voter's college and program
               const voterCollege = "<%= voterCollege %>";
               const voterProgram = "<%= voterProgram %>";
 
-              // ✅ Reformat LSC votes before submission
               let formattedVotes = {
                 President: votes.president,
                 "Vice President": votes.vicePresident,
@@ -471,44 +418,31 @@
                 formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
               }
 
-              console.log("📡 Reformatted votes:", formattedVotes);
+              console.log("📡 Sending Request to Server:", formattedVotes);
 
               try {
-                // ✅ Show Loading Indicator
-                let loadingBar = document.getElementById("loading-bar");
-                let submitBtn = document.getElementById("submitBtn");
-                loadingBar.style.display = "block";
-                submitBtn.disabled = true;
-
-                const response = await fetch("/submit-vote", {
+                let response = await fetch("/submit-vote", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ votes: formattedVotes, voterHash: hashedVoterHash }),
                 });
 
-                // ✅ Wait for the response and check status
-                const data = await response.json();
+                console.log("📡 Server Response:", response.status, response.statusText);
 
                 if (response.ok) {
-                  console.log("✅ Transaction Successful:", data.transactionHash);
-                  alert("✅ Vote Submitted! Transaction Hash: " + data.transactionHash);
+                  console.log("✅ Redirecting to /vote-status...");
+                  window.location.href = `/vote-status?voterHash=${hashedVoterHash}`;
                 } else {
+                  let data = await response.json();
                   console.error("❌ Submission failed:", data.error);
                   alert("❌ Submission failed: " + data.error);
                 }
               } catch (error) {
                 console.error("❌ Error submitting vote:", error);
                 alert("❌ Failed to submit votes. Please check the console for details.");
-              } finally {
-                // ✅ Hide Loading Indicator After Completion
-                setTimeout(() => {
-                  loadingBar.style.display = "none";
-                  submitBtn.disabled = false;
-                }, 500);
               }
             }
 
-            // ✅ SHA-256 Hash Function
             async function sha256(input) {
               const encoder = new TextEncoder();
               const data = encoder.encode(input);

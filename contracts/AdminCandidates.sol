@@ -66,7 +66,6 @@ function batchVote(
     string memory _voterHash
 ) public {
     require(isFinalized, "Voting cannot start until candidates are finalized!");
-    require(!hasVotedHash[_voterHash], "You have already voted!"); // ✅ Use voterHash instead of msg.sender
     require(_positions.length == _indices.length, "Mismatched input lengths");
 
     for (uint256 i = 0; i < _positions.length; i++) {
@@ -74,9 +73,8 @@ function batchVote(
         candidates[_positions[i]][_indices[i]].voterHashes.push(_voterHash);
         emit VoteSubmitted(_positions[i], candidates[_positions[i]][_indices[i]].name, _voterHash);
     }
-
-    hasVotedHash[_voterHash] = true; // ✅ Mark voterHash as used
 }
+
 
 
     function getCandidates(string memory _position) public view returns (Candidate[] memory) {
