@@ -3,21 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
     <title>BulSU Voting System</title>
-
-    <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
-    <link rel="stylesheet" type="text/css" href="admin/css/election-management.css" />
-    <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
-
-    <!-- Boxicons CDN Link -->
+    <link rel="stylesheet" href="admin/css/index-admin.css" />
+    <link rel="stylesheet" href="admin/css/election-management.css" />
+    <link rel="stylesheet" href="admin/css/sidebar.css" />
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
-
     <style>
-      /* Simple styling for the test date picker area */
       .test-date {
         background: #f5f5f5;
         padding: 10px;
@@ -29,32 +22,29 @@
       }
     </style>
   </head>
-
   <body>
     <header class="header" id="header">
       <div class="header-logo">
-        <img src="../img/logo_tanikala.png" />
+        <img src="../img/logo_tanikala.png" alt="Tanikala Logo" />
       </div>
       <div class="header-content">
         <h2>
-          <span><%= electionConfig.electionName || "2025-2026" %></span>
+          <span><%= electionConfig.electionName || "Tanikala Voting System" %></span>
         </h2>
         <p>
           Current Election Status:&nbsp;
           <span class="election-status"><%= electionConfig.electionStatus %></span>
           |
-          <span class="election-status2" id="currentPeriodDisplay"><%= electionConfig.currentPeriod.name %></span>
+          <span class="election-status2" id="currentPeriodDisplay"> <%= electionConfig.currentPeriod.name %> <% if (electionConfig.currentPeriod.timeUntil) { %> (<%= electionConfig.currentPeriod.timeUntil %>) <% } %> </span>
         </p>
+        <p><strong>Current Phase:</strong> <%= electionConfig.currentPeriod.name %></p>
         <p>
-          Duration:&nbsp;
-          <span class="period" id="currentPeriodDuration"> <% if(electionConfig.currentPeriod.periodRange) { %> <%= electionConfig.currentPeriod.periodRange %> <% } else { %> Not set <% } %> </span>
+          <strong>Duration:</strong>
+          <span id="currentPeriodDuration"><%= electionConfig.currentPeriod.duration %></span>
         </p>
-
-        <!-- Test Date Picker for simulating the current date -->
       </div>
-
       <div class="header-user">
-        <img src="../img/placeholder_admin_profile.png" />
+        <img src="../img/placeholder_admin_profile.png" alt="Admin Profile" />
         <div class="admin-name">Admin 1</div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
@@ -71,7 +61,6 @@
           <img src="img/dungo.jpeg" />
           <span class="user-name">Zarina Dungo</span>
         </div>
-
         <ul class="nav-links">
           <hr />
           <li>
@@ -182,10 +171,12 @@
             <%= new Date(electionConfig.votingStart).toLocaleString() %> - <%= new Date(electionConfig.votingEnd).toLocaleString() %>
           </p>
           <% } %>
-          <p><strong>Current Period:</strong> <%= electionConfig.currentPeriod.name %></p>
-          <% if (electionConfig.currentPeriod.periodRange) { %>
-          <p><strong>Period Range:</strong> <%= electionConfig.currentPeriod.periodRange %></p>
-          <% } %> <% if (electionConfig.currentPeriod.nextPeriod.name) { %>
+          <p><strong>Current Phase:</strong> <%= electionConfig.currentPeriod.name %></p>
+          <p>
+            <strong>Duration:</strong>
+            <span id="currentPeriodDuration"><%= electionConfig.currentPeriod.duration %></span>
+          </p>
+          <% if (electionConfig.currentPeriod.nextPeriod && electionConfig.currentPeriod.nextPeriod.name) { %>
           <p>
             <strong>Time until <%= electionConfig.currentPeriod.nextPeriod.name %>:</strong>
             <%= electionConfig.currentPeriod.nextPeriod.remainingDays %> days
@@ -223,16 +214,41 @@
             </div>
             <fieldset>
               <legend>Number of Students Per College</legend>
-              <% const colleges = ['CAFA', 'CAL', 'CBEA', 'CCJE', 'COE', 'COED', 'CHTM', 'CIT', 'CICT', 'CON', 'CS', 'CSSP', 'CSER']; %> <% colleges.forEach(function(college) { %>
+              <% const collegesList = ['CAFA', 'CAL', 'CBEA', 'CCJE', 'COE', 'COED', 'CHTM', 'CIT', 'CICT', 'CON', 'CS', 'CSSP', 'CSER']; %> <% collegesList.forEach(function(college) { %>
               <div>
                 <label for="<%= college %>"><%= college %>:</label>
-                <input type="number" id="<%= college %>" name="colleges[<%= college %>]" value="<%= electionConfig.colleges[college] %>" min="0" required />
+                <input type="number" id="<%= college %>" name="colleges[<%= college %>]" value="<%= electionConfig.colleges && electionConfig.colleges[college] ? electionConfig.colleges[college] : 0 %>" min="0" required />
               </div>
               <% }); %>
             </fieldset>
             <button type="submit">Save Election</button>
           </form>
+
+          <!-- Button to Temporarily Close or Resume Election -->
+          <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
+          <form action="/resumeElection" method="POST" style="margin-top: 10px">
+            <button type="submit" style="background-color: #4caf50; color: #fff">Resume Election</button>
+          </form>
+          <% } else { %>
+          <form action="/temporarilyClosed" method="POST" style="margin-top: 10px">
+            <button type="submit" style="background-color: #f44336; color: #fff">Temporarily Close Election</button>
+          </form>
+          <% } %>
+
+          <!-- Button to Set Results Are Out (only shown if voting is over and not already set) -->
+          <% var effectiveDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date(); var voteEnd = electionConfig.votingEnd ? new Date(electionConfig.votingEnd) : null; if (voteEnd && effectiveDate > voteEnd && electionConfig.electionStatus !== "Results Are Out" && electionConfig.electionStatus !== "Temporarily Closed") { %>
+          <form action="/setResultsOut" method="POST" style="margin-top: 10px">
+            <button type="submit" style="background-color: #4caf50; color: #fff">Set Results Are Out</button>
+          </form>
+          <% } %>
         </section>
+
+        <!-- Test Date Picker for simulating the current date -->
+        <div class="test-date">
+          <label for="testDatePicker">Test Current Date:</label>
+          <input type="datetime-local" id="testDatePicker" onchange="updateCurrentPeriod()" />
+          <small>(Select a datetime to simulate the current date and update the phase)</small>
+        </div>
       </main>
     </div>
 
@@ -248,103 +264,102 @@
       <div class="footer-right">
         <img src="img/info.png" class="footer-img" id="info-img" />
         <p>Need help? Click&nbsp;</p>
-        <a href="help_page"> here.</a>
+        <a href="help_page">here.</a>
       </div>
     </footer>
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
-
-    <!-- Test Date Picker for simulating the current date with datetime-local -->
-    <div class="test-date">
-      <label for="testDatePicker">Test Current Date:</label>
-      <input type="datetime-local" id="testDatePicker" onchange="updateCurrentPeriod()" />
-      <small>(Select a datetime to simulate the current date and update the period)</small>
-    </div>
-
     <script>
-      // Embed the electionConfig object for testing purposes.
+      // Embed the electionConfig object from the server
       let electionConfig = <%- JSON.stringify(electionConfig) %>;
 
-      // Use the fake current date if it exists, otherwise use the real date.
+      // Return the effective current date (fake if set, otherwise real)
       function getEffectiveCurrentDate() {
         return electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       }
 
+      // Compute the current phase based on the dates and current status
       function getCurrentPeriod(now) {
-        // Make sure all required dates are present
-        if (!electionConfig.registrationStart || !electionConfig.registrationEnd ||
-            !electionConfig.votingStart || !electionConfig.votingEnd) {
+        // If the election is temporarily closed, return that state immediately.
+        if (electionConfig.electionStatus === "Temporarily Closed") {
+          return { name: "Temporarily Closed", duration: "", timeUntil: null };
+        }
+        if (!electionConfig.registrationStart ||
+            !electionConfig.registrationEnd ||
+            !electionConfig.votingStart ||
+            !electionConfig.votingEnd) {
           return { name: "Election Not Active", duration: "Not set", timeUntil: null };
         }
         const regStart = new Date(electionConfig.registrationStart);
         const regEnd = new Date(electionConfig.registrationEnd);
         const voteStart = new Date(electionConfig.votingStart);
         const voteEnd = new Date(electionConfig.votingEnd);
-
-        const daysUntil = (futureDate) => Math.ceil((futureDate - now) / (1000 * 60 * 60 * 24));
+        const daysUntil = (future) => Math.ceil((future - now) / (1000 * 60 * 60 * 24));
 
         if (now < regStart) {
           return {
-            name: "Upcoming Registration",
+            name: "Waiting for Registration",
             duration: regStart.toLocaleString() + " - " + regEnd.toLocaleString(),
-            timeUntil: daysUntil(regStart) + " days until registration"
+            timeUntil: daysUntil(regStart) + " days until registration",
           };
         } else if (now >= regStart && now <= regEnd) {
           return {
             name: "Registration Open",
             duration: regStart.toLocaleString() + " - " + regEnd.toLocaleString(),
-            timeUntil: null
+            timeUntil: null,
           };
         } else if (now > regEnd && now < voteStart) {
           return {
-            name: "Upcoming Voting",
+            name: "Waiting for Election",
             duration: voteStart.toLocaleString() + " - " + voteEnd.toLocaleString(),
-            timeUntil: daysUntil(voteStart) + " days until voting"
+            timeUntil: daysUntil(voteStart) + " days until election",
           };
         } else if (now >= voteStart && now <= voteEnd) {
           return {
-            name: "Voting Open",
+            name: "Election Open",
             duration: voteStart.toLocaleString() + " - " + voteEnd.toLocaleString(),
-            timeUntil: null
+            timeUntil: null,
           };
         } else if (now > voteEnd) {
-          // If manual intervention hasn't changed phase, default to "Results Checking Period"
-          return { name: "Results Checking Period", duration: "", timeUntil: "Awaiting manual trigger" };
-        }
-        return { name: "Unknown Period", duration: "N/A", timeUntil: null };
-      }
-
-      function updateCurrentPeriod() {
-        var testDateInput = document.getElementById("testDatePicker").value;
-        var testDate = testDateInput ? new Date(testDateInput) : new Date();
-
-        // Update the fake current date in the database via AJAX
-        fetch('/setTestDate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fakeCurrentDate: testDate.toISOString() })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            // Update the local electionConfig with the new fake date
-            electionConfig.fakeCurrentDate = data.fakeCurrentDate;
-            // Recalculate the current period
-            var period = getCurrentPeriod(testDate);
-            document.getElementById("currentPeriodDisplay").innerText = period.name;
-            document.getElementById("currentPeriodDuration").innerText = period.duration || period.timeUntil;
+          if (electionConfig.electionStatus === "Results Are Out") {
+            return { name: "Results Are Out", duration: "", timeUntil: null };
+          } else {
+            return { name: "Results Double Checking", duration: "", timeUntil: "Awaiting manual trigger" };
           }
-        })
-        .catch(err => console.error("Error updating test date:", err));
+        }
+        return { name: "Unknown Phase", duration: "N/A", timeUntil: null };
       }
 
-      // On page load, update the header using the effective current date.
-      window.addEventListener('load', function() {
+      // Called when the test date changes; updates the fake date and phase on the server
+      function updateCurrentPeriod() {
+        const testDateInput = document.getElementById("testDatePicker").value;
+        const testDate = testDateInput ? new Date(testDateInput) : new Date();
+        const period = getCurrentPeriod(testDate);
+        fetch("/setTestDate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fakeCurrentDate: testDate.toISOString(), period }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              electionConfig.fakeCurrentDate = data.fakeCurrentDate;
+              electionConfig.currentPeriod = data.period;
+              document.getElementById("currentPeriodDisplay").innerText = data.period.name;
+              document.getElementById("currentPeriodDuration").innerText =
+                data.period.duration || data.period.timeUntil;
+            }
+          })
+          .catch((err) => console.error("Error updating test date:", err));
+      }
+
+      window.addEventListener("load", () => {
         const effectiveDate = getEffectiveCurrentDate();
         const period = getCurrentPeriod(effectiveDate);
         document.getElementById("currentPeriodDisplay").innerText = period.name;
-        document.getElementById("currentPeriodDuration").innerText = period.duration || period.timeUntil;
+        document.getElementById("currentPeriodDuration").innerText =
+          period.duration || period.timeUntil;
       });
     </script>
   </body>
