@@ -1244,6 +1244,55 @@ const startServer = async () => {
       }
     });
 
+    // POST route to reset the election: archive current config and then reset the main config
+    app.post("/resetElection", async (req, res) => {
+      try {
+        // Get current configuration
+        const currentConfig = await db.collection("election_config").findOne({});
+        if (currentConfig) {
+          // Insert current config into archive with an archivedAt timestamp
+          await db.collection("election_archive").insertOne({
+            ...currentConfig,
+            archivedAt: new Date(),
+          });
+        }
+        // Reset election_config to default empty values
+        const defaultConfig = {
+          electionName: "",
+          registrationStart: "",
+          registrationEnd: "",
+          votingStart: "",
+          votingEnd: "",
+          partylists: [],
+          colleges: {},
+          fakeCurrentDate: null,
+          electionStatus: "Election Not Active",
+          currentPeriod: {
+            name: "Election Not Active",
+            duration: "",
+            nextPeriod: { name: "", remainingDays: 0 },
+          },
+          updatedAt: new Date(),
+        };
+        await db.collection("election_config").updateOne({}, { $set: defaultConfig });
+        res.redirect("/configuration");
+      } catch (error) {
+        console.error("Error resetting election:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // GET route for the election archive page
+    app.get("/archives", async (req, res) => {
+      try {
+        const archives = await db.collection("election_archive").find({}).toArray();
+        res.render("admin/archives", { archives });
+      } catch (error) {
+        console.error("Error fetching archives:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
     const getElectionPhase = (registrationPeriod, votingPeriod, currentDate) => {
       console.log("🟢 Checking Election Phase...");
       console.log("📅 Current Date:", currentDate);

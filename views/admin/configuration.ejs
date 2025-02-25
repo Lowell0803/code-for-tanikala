@@ -42,6 +42,12 @@
           <strong>Duration:</strong>
           <span id="currentPeriodDuration"><%= electionConfig.currentPeriod.duration %></span>
         </p>
+        <% if (electionConfig.currentPeriod.nextPeriod && electionConfig.currentPeriod.nextPeriod.name) { %>
+        <p>
+          <strong>Time until <%= electionConfig.currentPeriod.nextPeriod.name %>:</strong>
+          <%= electionConfig.currentPeriod.nextPeriod.remainingDays %> days
+        </p>
+        <% } %>
       </div>
       <div class="header-user">
         <img src="../img/placeholder_admin_profile.png" alt="Admin Profile" />
@@ -241,6 +247,11 @@
             <button type="submit" style="background-color: #4caf50; color: #fff">Set Results Are Out</button>
           </form>
           <% } %>
+
+          <!-- Button to Reset Election (archives current config and empties values) -->
+          <form action="/resetElection" method="POST" style="margin-top: 10px">
+            <button type="submit" style="background-color: #000; color: #fff">Reset Election</button>
+          </form>
         </section>
 
         <!-- Test Date Picker for simulating the current date -->

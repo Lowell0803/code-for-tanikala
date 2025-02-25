@@ -148,7 +148,37 @@
           </li>
         </ul>
       </div>
-      <main class="main"></main>
+      <main class="main">
+        <section class="archive-list">
+          <h1>Archived Elections</h1>
+          <% if (archives && archives.length > 0) { %>
+          <table>
+            <thead>
+              <tr>
+                <th>Election Name</th>
+                <th>Registration Period</th>
+                <th>Voting Period</th>
+                <th>Status</th>
+                <th>Archived At</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% archives.forEach(function(archive) { %>
+              <tr>
+                <td><%= archive.electionName %></td>
+                <td><%= archive.registrationStart ? new Date(archive.registrationStart).toLocaleString() : "N/A" %> - <%= archive.registrationEnd ? new Date(archive.registrationEnd).toLocaleString() : "N/A" %></td>
+                <td><%= archive.votingStart ? new Date(archive.votingStart).toLocaleString() : "N/A" %> - <%= archive.votingEnd ? new Date(archive.votingEnd).toLocaleString() : "N/A" %></td>
+                <td><%= archive.electionStatus %></td>
+                <td><%= archive.archivedAt ? new Date(archive.archivedAt).toLocaleString() : "N/A" %></td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+          <% } else { %>
+          <p>No archived elections found.</p>
+          <% } %>
+        </section>
+      </main>
     </div>
 
     <footer class="footer">
