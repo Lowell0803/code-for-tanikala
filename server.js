@@ -91,10 +91,8 @@ app.set("views", path.join(__dirname, "views"));
 let db;
 
 const { Mutex } = require("async-mutex");
-const PQueue = require("p-queue").default;
 
 const nonceMutex = new Mutex(); // Mutex to lock nonce updates
-const voteQueue = new PQueue({ concurrency: 1 }); // Queue for sequential vote processing
 
 const startServer = async () => {
   try {
@@ -494,7 +492,7 @@ const startServer = async () => {
 
         console.log("📡 Received Hashed Voter Hash:", voterHash);
 
-        // ✅ Proceed with blockchain submission
+        // Proceed with blockchain submission:
         let nonce = await provider.getTransactionCount(wallet.address, "pending");
         console.log("📡 Current nonce:", nonce);
 
@@ -529,14 +527,16 @@ const startServer = async () => {
 
         console.log("📡 Submitting transaction...");
         const tx = await contract.connect(wallet).batchVote(positionsArray, indicesArray, voterHash, { nonce });
-
         console.log("📡 Transaction submitted! Hash:", tx.hash);
         await tx.wait();
         console.log("✅ Transaction confirmed!");
 
+        // After confirmation, redirect to /verify:
+        // After transaction is confirmed:
         res.status(200).json({
           message: "Votes successfully submitted to blockchain!",
           transactionHash: tx.hash,
+          redirect: "/verify",
         });
       } catch (error) {
         console.error("❌ Error submitting votes:", error);
@@ -544,25 +544,25 @@ const startServer = async () => {
       }
     });
 
-    app.get("/vote-status", async (req, res) => {
-      const { voterHash } = req.query;
+    // app.get("/vote-status", async (req, res) => {
+    //   const { voterHash } = req.query;
 
-      const vote = await db.collection("vote_queue").findOne({ voterHash });
+    //   const vote = await db.collection("vote_queue").findOne({ voterHash });
 
-      if (!vote) {
-        return res.status(404).json({ status: "not found" });
-      }
+    //   if (!vote) {
+    //     return res.status(404).json({ status: "not found" });
+    //   }
 
-      res.json({
-        status: vote.status, // Can be 'pending', 'completed', or 'failed'
-        transactionHash: vote.transactionHash || null,
-        queuePosition: voteQueue.size + 1, // Show queue position
-      });
-    });
+    //   res.json({
+    //     status: vote.status, // Can be 'pending', 'completed', or 'failed'
+    //     transactionHash: vote.transactionHash || null,
+    //     queuePosition: voteQueue.size + 1, // Show queue position
+    //   });
+    // });
 
-    app.get("/get-queue-position", (req, res) => {
-      res.json({ position: voteQueue.size + 1 });
-    });
+    // app.get("/get-queue-position", (req, res) => {
+    //   res.json({ position: voteQueue.size + 1 });
+    // });
 
     async function findCandidateIndex(position, candidateName) {
       const candidates = await contract.getCandidates(position);
@@ -2064,34 +2064,34 @@ const startServer = async () => {
 
 startServer();
 
-async function processVotes() {
-  console.log("🔄 Processing pending votes...");
+// async function processVotes() {
+//   console.log("🔄 Processing pending votes...");
 
-  // Fetch pending votes from MongoDB
-  const pendingVotes = await db.collection("vote_queue").find({ status: "pending" }).toArray();
+//   // Fetch pending votes from MongoDB
+//   const pendingVotes = await db.collection("vote_queue").find({ status: "pending" }).toArray();
 
-  for (const vote of pendingVotes) {
-    try {
-      console.log("📡 Submitting vote for:", vote.voterHash);
+//   for (const vote of pendingVotes) {
+//     try {
+//       console.log("📡 Submitting vote for:", vote.voterHash);
 
-      // Extract positions and indices
-      const positionsArray = Object.keys(vote.votes);
-      const indicesArray = positionsArray.map((position) => vote.votes[position]);
+//       // Extract positions and indices
+//       const positionsArray = Object.keys(vote.votes);
+//       const indicesArray = positionsArray.map((position) => vote.votes[position]);
 
-      // Submit vote to blockchain
-      const tx = await contract.connect(wallet).batchVote(positionsArray, indicesArray, vote.voterHash);
+//       // Submit vote to blockchain
+//       const tx = await contract.connect(wallet).batchVote(positionsArray, indicesArray, vote.voterHash);
 
-      console.log("✅ Vote submitted! Transaction Hash:", tx.hash);
+//       console.log("✅ Vote submitted! Transaction Hash:", tx.hash);
 
-      // ✅ Update database to mark vote as completed
-      await db.collection("vote_queue").updateOne({ _id: vote._id }, { $set: { status: "completed", transactionHash: tx.hash } });
-    } catch (error) {
-      console.error("❌ Error submitting vote:", error);
+//       // ✅ Update database to mark vote as completed
+//       await db.collection("vote_queue").updateOne({ _id: vote._id }, { $set: { status: "completed", transactionHash: tx.hash } });
+//     } catch (error) {
+//       console.error("❌ Error submitting vote:", error);
 
-      // ✅ Mark the vote as failed if there's an error
-      await db.collection("vote_queue").updateOne({ _id: vote._id }, { $set: { status: "failed", error: error.message } });
-    }
-  }
-}
+//       // ✅ Mark the vote as failed if there's an error
+//       await db.collection("vote_queue").updateOne({ _id: vote._id }, { $set: { status: "failed", error: error.message } });
+//     }
+//   }
+// }
 // Run processVotes every 10 seconds
 // setInterval(processVotes, 10000);

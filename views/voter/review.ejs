@@ -430,8 +430,9 @@
                 console.log("📡 Server Response:", response.status, response.statusText);
 
                 if (response.ok) {
-                  console.log("✅ Redirecting to /vote-status...");
-                  window.location.href = `/vote-status?voterHash=${hashedVoterHash}`;
+                  let data = await response.json();
+                  console.log("✅ Redirecting to", data.redirect);
+                  window.location.href = data.redirect;
                 } else {
                   let data = await response.json();
                   console.error("❌ Submission failed:", data.error);
