@@ -41,19 +41,18 @@
           <h1 class="montserrat h1" id="election-period">Registration Period:</h1>
           <br />
           <!-- Countdown date range display -->
-          <span> <h2 class="date-period"></h2> </span> <br />
+          <span><h2 class="date-period"></h2></span><br />
           <!-- Label for the countdown -->
           <h1 id="time-left" class="h1">Left to Register</h1>
           <br />
           <!-- Countdown timer -->
-          <span> <h1 class="montserrat h1" id="countdown">00 00 00 00</h1> </span> <br />
-          <br />
+          <span><h1 class="montserrat h1" id="countdown">00 00 00 00</h1></span><br /><br />
           <!-- The register button uses an id for stable reference -->
-          <button id="register-button" class="button-rounded-yellow">REGISTER NOW</button>
+          <button id="register-button" class="button-rounded-yellow" onclick="window.location.href='/auth/microsoft';">REGISTER NOW</button>
         </div>
 
         <div class="content-main-right">
-          <img src="img/logo_bulsu_ucse.png" alt="BulSU UCSE Logo" class="logo-opacity" /> <br />
+          <img src="img/logo_bulsu_ucse.png" alt="BulSU UCSE Logo" class="logo-opacity" /><br />
           <p class="montserrat" id="vote-now">Vote Now for the Student Government Elections!</p>
         </div>
       </div>
@@ -76,22 +75,23 @@
     </footer>
     <script src="js/index.js"></script>
     <script>
-      // Get registration start/end from the server-side configuration (assumed to be passed via electionConfig)
+      // Use registration dates from server configuration.
       const registrationStart = new Date("<%= electionConfig.registrationStart %>").getTime();
       const registrationEnd = new Date("<%= electionConfig.registrationEnd %>").getTime();
 
-      // Update the date range display
+      // Update the date range display.
       const datePeriodElem = document.querySelector(".date-period");
       datePeriodElem.textContent = new Date(registrationStart).toLocaleDateString() + " - " + new Date(registrationEnd).toLocaleDateString();
 
-      // Grab elements by id
+      // Grab elements by id.
       const electionPeriodElem = document.getElementById("election-period");
       const countdownElem = document.getElementById("countdown");
       const timeLeftElem = document.getElementById("time-left");
       const registerButton = document.getElementById("register-button");
 
       function updatePhase() {
-        const now = new Date().getTime();
+        // Use fakeCurrentDate if provided; otherwise, fallback to the actual current date.
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).getTime() : new Date().getTime();
         let distance = 0;
         if (now < registrationStart) {
           electionPeriodElem.textContent = "Waiting for Registration Period:";

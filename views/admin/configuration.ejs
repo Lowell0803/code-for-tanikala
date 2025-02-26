@@ -152,7 +152,7 @@
             <ul class="sub-menu">
               <li><a class="link_name" href="edit-account">System</a></li>
               <li><a href="edit-account">Edit Account</a></li>
-              <li><a href="manage-accounts">Manage Accounts</a></li>
+              <li><a href="manage-admins">Manage Admins</a></li>
               <li><a href="help-page">Help Page</a></li>
               <li><a href="history">System Activity Log</a></li>
             </ul>
@@ -163,9 +163,11 @@
         <!-- Display Current Election Configuration -->
         <section class="election-info">
           <h1>Current Election Configuration</h1>
+          <% if (electionConfig.electionName) { %>
           <p><strong>Election Name:</strong> <%= electionConfig.electionName %></p>
+          <% } %> <% if (electionConfig.electionStatus) { %>
           <p><strong>Status:</strong> <%= electionConfig.electionStatus %></p>
-          <% if (electionConfig.registrationStart && electionConfig.registrationEnd) { %>
+          <% } %> <% if (electionConfig.registrationStart && electionConfig.registrationEnd) { %>
           <p>
             <strong>Registration Period:</strong>
             <%= new Date(electionConfig.registrationStart).toLocaleString() %> - <%= new Date(electionConfig.registrationEnd).toLocaleString() %>
@@ -204,22 +206,25 @@
             </div>
             <div>
               <label for="partylists">Partylists (comma separated):</label>
-              <input type="text" id="partylists" name="partylists" value="<%= electionConfig.partylists.join(', ') %>" required />
+              <input type="text" id="partylists" name="partylists" value="<%= electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
             </div>
             <fieldset>
               <legend>Number of Students Per College</legend>
-              <% const collegesList = ['CAFA', 'CAL', 'CBEA', 'CCJE', 'COE', 'COED', 'CHTM', 'CIT', 'CICT', 'CON', 'CS', 'CSSP', 'CSER']; %> <% collegesList.forEach(function(college) { %>
+              <% if (electionConfig.listOfElections && electionConfig.listOfElections.length > 0) { %> <% electionConfig.listOfElections.forEach(function(college) { %>
               <div>
-                <label for="<%= college %>"><%= college %>:</label>
-                <input type="number" id="<%= college %>" name="colleges[<%= college %>]" value="<%= electionConfig.colleges && electionConfig.colleges[college] ? electionConfig.colleges[college] : 0 %>" min="0" required />
+                <label for="<%= college.acronym %>"> <%= college.acronym %> (<%= college.name %>): </label>
+                <input type="number" id="<%= college.acronym %>" name="colleges[<%= college.acronym %>]" value="<%= college.voters %>" min="0" required />
               </div>
-              <% }); %>
+              <% }); %> <% } else { %>
+              <p>No college data available.</p>
+              <% } %>
             </fieldset>
+
             <button type="submit">Save Election Configuration</button>
           </form>
 
-          <% const effectiveDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date(); %>
           <!-- Action Buttons -->
+          <% const effectiveDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date(); %>
           <div style="margin-top: 20px">
             <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
             <form action="/resume-election" method="POST">
@@ -266,7 +271,7 @@
     </footer>
 
     <script src="admin/js/sidebar.js"></script>
-    <script src="admin/js/index-admin.js"></script>
+    <script src="admin/js/index_admin.js"></script>
     <script>
       // Embed the electionConfig object from the server
       let electionConfig = <%- JSON.stringify(electionConfig) %>;

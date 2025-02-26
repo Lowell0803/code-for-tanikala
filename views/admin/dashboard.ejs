@@ -20,25 +20,24 @@
   <body>
     <header class="header" id="header">
       <div class="header-logo">
-        <img src="../img/logo_tanikala.png" />
+        <img src="../img/logo_tanikala.png" alt="Tanikala Logo" />
       </div>
       <div class="header-content">
-        <h2><span>BulSU Student Government Elections 2025-2026</span></h2>
+        <h2>
+          <span><%= electionConfig.electionName || "Tanikala Voting System" %></span>
+        </h2>
         <p>
-          Current Election Status:&nbsp;
-          <span class="election-status">ELECTION ONGOING</span>
-          |
-          <span class="election-status2">Voting</span>
+          <strong>Election Status:</strong>
+          <span class="election-status"><%= electionConfig.electionStatus %></span>
         </p>
-        <p>
-          Voting Period:&nbsp;
-          <span class="period">MM/DD/YYYY</span>
-          -
-          <span class="period">MM/DD/YYYY</span>
-        </p>
+        <h3>Current Phase: <span id="currentPeriodDisplay"><%= electionConfig.currentPeriod.name %></span></h3>
+        <p><strong>Time Range:</strong> <span id="currentPeriodDuration"><%= electionConfig.currentPeriod.duration %></span></p>
+        <% if (electionConfig.currentPeriod.waitingFor) { %>
+        <p><em>Waiting for <%= electionConfig.currentPeriod.waitingFor %> to start.</em></p>
+        <% } %>
       </div>
       <div class="header-user">
-        <img src="../img/placeholder_admin_profile.png" />
+        <img src="../img/placeholder_admin_profile.png" alt="Admin Profile" />
         <div class="admin-name">Admin 1</div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
@@ -74,6 +73,7 @@
               <li><a class="link_name" href="dashboard">Dashboard</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <a href="configuration">
               <i class="fa fa-cogs"></i>
@@ -83,6 +83,7 @@
               <li><a class="link_name" href="configuration">Configuration</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <a href="candidates">
               <i class="fa fa-users"></i>
@@ -92,6 +93,7 @@
               <li><a class="link_name" href="candidates">Candidates</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <div class="icon-link">
               <a href="blockchain-management">
@@ -106,6 +108,7 @@
               <li><a href="blockchain-activity-log">Activity Log</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <div class="icon-link">
               <a href="voter-info">
@@ -115,14 +118,15 @@
               <i class="bx bxs-chevron-down arrow"></i>
             </div>
             <ul class="sub-menu">
-              <li><a class="link_name" href="voter-info">(Election Name)</a></li>
+              <li><a class="link_name" href="voter-info"><%= electionConfig.electionName || "No Election Ongoing" %></a></li>
               <li><a href="voter-info">Voter Info</a></li>
               <li><a href="voter-turnout">Voter Turnout</a></li>
-              <li><a href="results">Vote Tally</a></li>
-              <li><a href="results">Vote Tally</a></li>
+              <li><a href="vote-tally">Vote Tally</a></li>
+              <li><a href="results">Results</a></li>
               <li><a href="reset">Reset Election</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <a href="archives">
               <i class="bx bx-archive"></i>
@@ -132,6 +136,7 @@
               <li><a class="link_name" href="archives">Election Archives</a></li>
             </ul>
           </li>
+          <hr />
           <li>
             <div class="icon-link">
               <a href="edit-account">
@@ -167,160 +172,111 @@
                 </div>
                 <br />
                 <div>
-                  <input type="checkbox" id="disable-system" name="disable-system" />
-                  <label for="disable-system">Temporarily Disable System</label>
+                  <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
+                  <form action="/resume-election" method="POST">
+                    <button type="submit" style="background-color: #4caf50; color: #fff">Resume Election</button>
+                  </form>
+                  <% } else { %>
+                  <form action="/temporarily-closed" method="POST">
+                    <button type="submit" style="background-color: #f44336; color: #fff">Temporarily Close Election</button>
+                  </form>
+                  <% } %>
                 </div>
               </div>
 
               <div class="form" id="election-configuration">
                 <h3 class="center">Election Configurations</h3>
                 <br />
+                <% if (electionConfig.electionName) { %>
                 <p>
                   <b>Election Name:</b>
-                  <span> BulSU Student Government Elections 2025-2026 </span>
+                  <span><%= electionConfig.electionName %></span>
                 </p>
+                <% } else { %>
+                <p><b>Election Name:</b> <span>Not set</span></p>
+                <% } %>
                 <br />
 
                 <p><b>Registration Period:</b></p>
+                <% if (electionConfig.registrationStart && electionConfig.registrationEnd) { %>
                 <p>
                   &nbsp;&nbsp;Start Date:
-                  <span>February 20, 2025 - 12:00 AM</span>
+                  <span><%= new Date(electionConfig.registrationStart).toLocaleString() %></span>
                 </p>
-                <p>&nbsp;&nbsp;End Date: <span>March 20, 2025 - 11:00 PM</span></p>
+                <p>
+                  &nbsp;&nbsp;End Date:
+                  <span><%= new Date(electionConfig.registrationEnd).toLocaleString() %></span>
+                </p>
+                <% } else { %>
+                <p>Registration dates not set.</p>
+                <% } %>
                 <br />
 
                 <p><b>Voting Period:</b></p>
-                <p>&nbsp;&nbsp;Start Date: <span>April 20, 2025 - 8:00 AM</span></p>
-                <p>&nbsp;&nbsp;End Date: <span>April 20, 2025 - 11:00 PM</span></p>
-
-                <br />
+                <% if (electionConfig.votingStart && electionConfig.votingEnd) { %>
                 <p>
-                  <b>Total Number of Elections: </b>
-                  <span>14</span>
+                  &nbsp;&nbsp;Start Date:
+                  <span><%= new Date(electionConfig.votingStart).toLocaleString() %></span>
                 </p>
+                <p>
+                  &nbsp;&nbsp;End Date:
+                  <span><%= new Date(electionConfig.votingEnd).toLocaleString() %></span>
+                </p>
+                <% } else { %>
+                <p>Voting dates not set.</p>
+                <% } %>
                 <br />
 
-                <p>
-                  <b>Total Number of Party Lists: </b>
-                  <span>2</span>
-                </p>
+                <% if (electionConfig.totalElections) { %>
+                <p><b>Total Number of Elections:</b> <span><%= electionConfig.totalElections %></span></p>
+                <% } %>
+                <br />
 
+                <% if (electionConfig.totalPartylists) { %>
+                <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.totalPartylists %></span></p>
+                <% } else { %>
+                <p><b>Total Number of Party Lists:</b> <span>0</span></p>
+                <% } %> <% if (electionConfig.partylists && electionConfig.partylists.length > 0) { %>
                 <ul class="election-configuration">
-                  <li>BulSUONE</li>
-                  <li>KASAMA - BulSU</li>
+                  <% electionConfig.partylists.forEach(function(party) { %>
+                  <li><%= party %></li>
+                  <% }); %>
                 </ul>
-
-                <br />
-                <p>
-                  <b>Total Number of Candidates: </b>
-                  <span>20</span>
-                </p>
-
+                <% } else { %>
+                <p>No party lists available.</p>
+                <% } %>
                 <br />
 
-                <p>
-                  <b>Total Number of Voters: </b>
-                  <span>45,000</span>
-                </p>
+                <% if (electionConfig.totalCandidates) { %>
+                <p><b>Total Number of Candidates:</b> <span><%= electionConfig.totalCandidates %></span></p>
+                <% } else { %>
+                <p><b>Total Number of Candidates:</b> <span>0</span></p>
+                <% } %>
                 <br />
 
-                <p>
-                  <b>List of Elections and Their Number of Students (Voters):</b>
-                </p>
+                <% if (electionConfig.totalStudents) { %>
+                <p><b>Total Number of Voters:</b> <span><%= electionConfig.totalStudents %></span></p>
+                <% } else { %>
+                <p><b>Total Number of Voters:</b> <span>0</span></p>
+                <% } %>
                 <br />
 
+                <% if (electionConfig.listOfElections && electionConfig.listOfElections.length > 0) { %>
+                <p><b>List of Elections and Their Number of Students (Voters):</b></p>
+                <br />
                 <ol class="election-configuration">
+                  <% electionConfig.listOfElections.forEach(function(elec) { %>
                   <li>
                     <p>
-                      <b>Supreme Student Council (SSC) - BulSU Main: </b>
-                      <span> 45,000 students </span>
+                      <b><%= elec.name %>:</b>
+                      <span><%= elec.voters ? elec.voters + " students" : "No data" %></span>
                     </p>
                   </li>
-                  <br />
-                  <p>
-                    <b>Local Student Councils (LSCs) - BulSU Main:</b>
-                  </p>
-                  <br />
-
-                  <li>
-                    <p>
-                      <b>College of Architecture and Fine Arts (CAFA): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Arts and Letters (CAL): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Business Education and Accountancy (CBEA): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Criminal Justice Education (CCJE): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Engineering (COE): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Education (COED): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Hospitality and Tourism Management (CHTM): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Industrial Technology (CIT): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Information and Communications Technology (CICT): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Nursing (CON): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Science (CS): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Social Sciences and Philosophy (CSSP): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
-                  <li>
-                    <p>
-                      <b>College of Sports, Exercise, and Recreation (CSER): </b>
-                      <span>549 students</span>
-                    </p>
-                  </li>
+                  <% }); %>
                 </ol>
+                <% } else { %>
+                <p>No elections data available.</p>
+                <% } %>
                 <br />
                 <br />
                 <div class="center">
@@ -341,9 +297,6 @@
               <div class="form" id="blockchain-management">
                 <h3 class="center">Blockchain Management</h3>
                 <br />
-                <!-- <div class="blockchain-container">
-              <div class="left-blockchain"> -->
-
                 <p><b>Smart Contract Status: </b>Not Deployed | Deployed</p>
                 <br />
                 <p><b>No. of Smart Contracts Deployed: </b><span> 1</span></p>
@@ -375,11 +328,6 @@
                 <p><b>Live Transaction Fee Estimate: </b><span>No data available yet.</span></p>
                 <br />
                 <p><b>Recommended Fund Estimate: </b><span>No data available yet.</span></p>
-
-                <!-- </div>
-              <div class="right-blockchain">
-                right
-              </div> -->
               </div>
 
               <div class="form" id="quick-actions">
@@ -452,5 +400,14 @@
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index_admin.js"></script>
+    <script>
+      // Ensure currentPeriod exists to avoid errors
+      if (!electionConfig.currentPeriod) {
+        electionConfig.currentPeriod = { name: "N/A", duration: "N/A", waitingFor: null };
+      }
+      // Set current phase info in header
+      document.getElementById("currentPeriodDisplay").innerText = electionConfig.currentPeriod.name;
+      document.getElementById("currentPeriodDuration").innerText = electionConfig.currentPeriod.duration;
+    </script>
   </body>
 </html>

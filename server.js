@@ -107,6 +107,13 @@ const startServer = async () => {
       res.redirect("/register");
     });
 
+    function ensureAuthenticated(req, res, next) {
+      if (req.isAuthenticated()) {
+        return next();
+      }
+      res.redirect("/auth/microsoft");
+    }
+
     // const voterCollege = req.user ? req.user.college : "CAL";
     // const voterProgram = req.user
     //   ? req.user.program
@@ -189,6 +196,7 @@ const startServer = async () => {
 
     // New dynamic index route: render homepage based on current period.
     app.get("/", async (req, res) => {
+      // Retrieve the configuration or use defaults
       let electionConfig = (await db.collection("election_config").findOne({})) || {
         electionName: "",
         registrationStart: "",
@@ -196,20 +204,29 @@ const startServer = async () => {
         votingStart: "",
         votingEnd: "",
         partylists: [],
-        colleges: {},
+        listOfElections: [],
         fakeCurrentDate: null,
-        electionStatus: "Election Not Active",
         currentPeriod: { name: "Election Not Active", duration: "", nextPeriod: { name: "", remainingDays: 0 } },
       };
 
       console.log("Dynamic Index Route: Raw electionConfig from DB:", electionConfig);
+
+      // Use the fake current date if available; otherwise, use the actual current date.
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       console.log("Dynamic Index Route: Using current date =", now);
+
+      // Compute the current phase based on the dates and current/fake date
       const currentPeriod = computeCurrentPeriod(electionConfig, now);
       console.log("Dynamic Index Route: Computed current period =", currentPeriod);
+
+      // Update the election configuration object to reflect the computed period
       electionConfig.currentPeriod = currentPeriod;
+
+      // Determine the homepage view based on the computed current period name
       const homepageView = getHomepageView(currentPeriod.name);
       console.log("Dynamic Index Route: Rendering view =", homepageView);
+
+      // Render the view with the updated configuration and current date
       res.render(homepageView, { electionConfig, currentDate: now.toISOString() });
     });
 
@@ -614,55 +631,51 @@ const startServer = async () => {
     // BACKEND SETUP (EXPRESS)
     // ==========================
 
-    app.get("/vote", async (req, res) => {
+    app.get("/vote", ensureAuthenticated, async (req, res) => {
       try {
-        // Data from the logged in account
-        const voterCollege = req.user ? req.user.college : "CAFA";
-        const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
+        // Check if the logged-in user's email exists in the registered_voters collection.
+        const registeredVoter = await db.collection("registered_voters").findOne({ email: req.user.email });
+        if (!registeredVoter) {
+          // If not registered, redirect to the registration page with an error.
+          return res.redirect("/register?error=not_registered");
+        }
 
+        // Now, get the voter's college and program from the registered_voters entry.
+        const voterCollege = registeredVoter.college;
+        const voterProgram = registeredVoter.program;
+
+        // Fetch SSC candidates.
         const collection = db.collection("candidates");
         const data = await collection.find({}).toArray();
         const allCandidates = data.map((doc) => doc.candidates).flat();
 
+        // Fetch LSC candidates.
         const collectionLSC = db.collection("candidates_lsc");
         const dataLSC = await collectionLSC.find({}).toArray();
         const allCandidatesLSC = dataLSC.map((doc) => doc.positions.flatMap((position) => position.candidates || [])).flat();
 
-        const collectionLSCBoardMembers = db.collection("candidates_lsc");
-
-        // Fetch all data from the collection
-        const dataLSCBoardmembers = await collectionLSCBoardMembers.find({}).toArray();
-
+        // Fetch LSC Board Members.
         const allBoardMembers = dataLSC
           .map((doc) =>
             doc.positions
               .filter((position) => position.position === "Board Member")
               .flatMap((position) => position.programs)
               .flatMap((program) => {
-                // Log each program before adding to the flatMap result
-                // console.log("Program:", program);
-
-                // Add program.program inside each candidate object
+                // Add program.program inside each candidate object.
                 program.candidates.forEach((candidate) => {
-                  candidate.program = program.program; // Add program.program to each candidate
+                  candidate.program = program.program;
                 });
-
-                // console.log("Updated candidates:", program.candidates);
-
                 return program.candidates;
               })
           )
           .flat();
 
-        // console.log("Candidates fetched from the database:", allCandidates);
-        // console.log("Candidates fetched from the database:", allBoardMembers);
-
-        // Pass voterCollege to the EJS template
+        // Render the vote page with the fetched candidate data and the registered voter's college and program.
         res.render("voter/vote", {
           candidates: allCandidates,
           candidates_lsc: allCandidatesLSC,
           lsc_board_members: allBoardMembers,
-          voterCollege, // Dynamically pass the voter's college
+          voterCollege,
           voterProgram,
         });
       } catch (error) {
@@ -1290,17 +1303,43 @@ const startServer = async () => {
       res.render("admin/configuration", { electionConfig, simulatedDate });
     });
 
-    // POST /configuration
     app.post("/configuration", async (req, res) => {
       try {
         const { electionName, registrationStart, registrationEnd, votingStart, votingEnd, partylists, colleges } = req.body;
         const partylistsArray = partylists ? partylists.split(",").map((item) => item.trim()) : [];
+
+        // Define mapping for college acronym to full name.
+        const collegeMapping = {
+          CAFA: "College of Architecture and Fine Arts",
+          CAL: "College of Arts and Letters",
+          CBEA: "College of Business Education and Accountancy",
+          CCJE: "College of Criminal Justice Education",
+          COE: "College of Engineering",
+          COED: "College of Education",
+          CHTM: "College of Hospitality and Tourism Management",
+          CIT: "College of Industrial Technology",
+          CICT: "College of Information and Communications Technology",
+          CON: "College of Nursing",
+          CS: "College of Science",
+          CSSP: "College of Social Sciences and Philosophy",
+          CSER: "College of Sports, Exercise, and Recreation",
+        };
+
+        // Merge the colleges into a single list.
         let totalStudents = 0;
+        let mergedList = [];
         if (colleges) {
-          for (const key in colleges) {
-            totalStudents += parseInt(colleges[key], 10) || 0;
+          for (const acronym in colleges) {
+            const voters = parseInt(colleges[acronym], 10) || 0;
+            totalStudents += voters;
+            mergedList.push({
+              acronym: acronym,
+              name: collegeMapping[acronym] || acronym, // fallback to acronym if mapping not found
+              voters: voters,
+            });
           }
         }
+
         const update = {
           electionName,
           registrationStart: registrationStart ? new Date(registrationStart) : null,
@@ -1308,15 +1347,16 @@ const startServer = async () => {
           votingStart: votingStart ? new Date(votingStart) : null,
           votingEnd: votingEnd ? new Date(votingEnd) : null,
           partylists: partylistsArray,
-          colleges,
+          // Store only the merged list in listOfElections.
+          listOfElections: mergedList,
           totalStudents,
-          // Default electionStatus and currentPeriod can be computed on GET based on dates
+          // Default electionStatus and currentPeriod can be computed on GET based on dates.
           electionStatus: "Registration Period",
           currentPeriod: { name: "Registration Period", duration: "", waitingFor: null },
           updatedAt: new Date(),
         };
+
         await db.collection("election_config").updateOne({}, { $set: update, $setOnInsert: { createdAt: new Date() } }, { upsert: true });
-        // Query and output the saved configuration
         const savedConfig = await db.collection("election_config").findOne({});
         console.log("Saved Configuration:", savedConfig);
         res.redirect("configuration");
@@ -1347,7 +1387,7 @@ const startServer = async () => {
           updatedAt: new Date(),
         };
         await db.collection("election_config").updateOne({}, { $set: update });
-        res.redirect("/configuration");
+        res.redirect("/dashboard");
       } catch (error) {
         console.error("Error setting temporarily closed:", error);
         res.status(500).send("Internal Server Error");
@@ -1664,8 +1704,28 @@ const startServer = async () => {
     });
 
     app.get("/dashboard", async (req, res) => {
-      res.render("admin/dashboard");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+      if (!electionConfig) {
+        electionConfig = {
+          electionName: "",
+          registrationStart: "",
+          registrationEnd: "",
+          votingStart: "",
+          votingEnd: "",
+          partylists: [],
+          colleges: {},
+          fakeCurrentDate: null,
+          electionStatus: "Election Not Active",
+          currentPeriod: { name: "Election Not Active", duration: "", waitingFor: null },
+        };
+      }
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+      console.log(electionConfig);
+      res.render("admin/dashboard", { electionConfig });
     });
+
     app.get("/blockchain-management", async (req, res) => {
       res.render("admin/blockchain-management");
     });
