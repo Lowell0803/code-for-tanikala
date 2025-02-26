@@ -31,12 +31,8 @@
         <h2>
           <span><%= electionConfig.electionName || "Tanikala Voting System" %></span>
         </h2>
-        <p>
-          <strong>Election Status:</strong>
-          <span class="election-status"><%= electionConfig.electionStatus %></span>
-        </p>
-        <h3>Current Phase: <span id="currentPeriodDisplay"><%= electionConfig.currentPeriod.name %></span></h3>
-        <p><strong>Time Range:</strong> <span id="currentPeriodDuration"><%= electionConfig.currentPeriod.duration %></span></p>
+        <h3>Current Phase: <span id="currentPeriodDisplay" class="election-status"><%= electionConfig.currentPeriod.name %></span></h3>
+        <p><strong>Duration:</strong> <span id="currentPeriodDuration"><%= electionConfig.currentPeriod.duration %></span></p>
         <% if (electionConfig.currentPeriod.waitingFor) { %>
         <p><em>Waiting for <%= electionConfig.currentPeriod.waitingFor %> to start.</em></p>
         <% } %>

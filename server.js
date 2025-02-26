@@ -104,15 +104,115 @@ const startServer = async () => {
     app.get("/auth/microsoft", passport.authenticate("azure_ad_oauth2"));
 
     app.get("/auth/microsoft/callback", passport.authenticate("azure_ad_oauth2", { failureRedirect: "/register" }), (req, res) => {
-      res.redirect("/register");
+      // Get the original URL from the session, or default to "/"
+      const redirectUrl = req.session.returnTo || "/";
+      delete req.session.returnTo; // Clean up the session
+      res.redirect(redirectUrl);
     });
 
     function ensureAuthenticated(req, res, next) {
       if (req.isAuthenticated()) {
         return next();
       }
+      // Store the original URL the user was trying to access
+      req.session.returnTo = req.originalUrl;
       res.redirect("/auth/microsoft");
     }
+
+    app.post("/register", async (req, res) => {
+      try {
+        const { fullName, email, studentNumber, campus, college, program } = req.body;
+
+        if (!fullName || !email || !studentNumber || !campus || !college || !program) {
+          return res.status(400).json({ error: "All fields are required" });
+        }
+
+        const voterData = {
+          name: fullName,
+          email: email,
+          student_number: studentNumber,
+          campus: campus,
+          college: college,
+          program: program,
+          status: "Registered",
+        };
+
+        // Use upsert to update an existing record or insert a new one
+        const result = await db.collection("registered_voters").updateOne({ email: email }, { $set: voterData }, { upsert: true });
+
+        // If the document was found (matchedCount > 0), it means we're updating info.
+        if (result.matchedCount > 0) {
+          return res.redirect("/?status=" + encodeURIComponent("Info Updated"));
+        } else {
+          // New registration, so no alert
+          return res.redirect("/?status=" + encodeURIComponent("Info Updated"));
+        }
+      } catch (error) {
+        console.error("Error updating voter:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.get("/register", async (req, res) => {
+      // Ensure the user is authenticated
+      if (!req.user) {
+        return res.redirect("/auth/microsoft");
+      }
+
+      try {
+        // Retrieve the voter's record based on the authenticated user's email
+        const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
+        res.render("voter/register", { user: req.user, voter: voter, status: req.query.status || null });
+      } catch (error) {
+        console.error("Error checking registration status:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.get("/admin-login", async (req, res) => {
+      res.render("admin/admin-login");
+    });
+
+    app.post("/admin-login", async (req, res) => {
+      try {
+        const { email, password } = req.body;
+        console.log("Login attempt for email:", email);
+
+        const admin = await db.collection("admin_accounts").findOne({ email });
+
+        if (!admin) {
+          console.log("Admin not found for email:", email);
+          return res.redirect("/admin-login"); // Redirect on invalid login
+        }
+
+        console.log("Admin found:", admin);
+
+        const passwordMatch = await bcrypt.compare(password, admin.password);
+        console.log("Password match:", passwordMatch);
+
+        if (!passwordMatch) {
+          console.log("Incorrect password for email:", email);
+          return res.redirect("/admin-login"); // Redirect on incorrect password
+        }
+
+        // Store admin details in session
+        req.session.admin = {
+          id: admin._id,
+          name: admin.name,
+          email: admin.email,
+          username: admin.username,
+          role: admin.role,
+          img: admin.img,
+        };
+
+        console.log("Session set for admin:", req.session.admin);
+
+        res.redirect("/manage-accounts"); // Redirect to dashboard after login
+      } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
 
     // const voterCollege = req.user ? req.user.college : "CAL";
     // const voterProgram = req.user
@@ -643,6 +743,7 @@ const startServer = async () => {
         // Now, get the voter's college and program from the registered_voters entry.
         const voterCollege = registeredVoter.college;
         const voterProgram = registeredVoter.program;
+        const collegeAcronym = voterCollege.match(/\(([^)]+)\)/);
 
         // Fetch SSC candidates.
         const collection = db.collection("candidates");
@@ -675,8 +776,8 @@ const startServer = async () => {
           candidates: allCandidates,
           candidates_lsc: allCandidatesLSC,
           lsc_board_members: allBoardMembers,
-          voterCollege,
           voterProgram,
+          voterCollege: collegeAcronym[1],
         });
       } catch (error) {
         console.error("Error fetching candidates:", error);

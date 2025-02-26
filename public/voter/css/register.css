@@ -23,27 +23,7 @@
 }
 
 .header-nav-content {
-  padding-left: 10rem;
-}
-
-.logo {
-  height: 6.5em;
-  width: auto;
-  opacity: 0.6;
-}
-
-.main-first {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  max-height: var(--height-main-first);
-  width: 70%;
-  margin: 2%;
-}
-
-.first-text {
-  padding: 0% 3%;
+  padding-left: 12rem;
 }
 
 .main-second {
@@ -52,11 +32,10 @@
   flex-basis: var(--width-main-second);
   justify-content: center;
   background: linear-gradient(to bottom, var(--color-mediumYellow), var(--color-lightYellow));
-  border: 5px solid var(--color-mediumRed);
-  border-radius: 5%;
+  border-radius: 1.5rem;
   padding: 2%;
-  margin: 1%;
-  width: 45vw;
+  margin-bottom: 5%;
+  width: 40vw;
   color: var(--color-mediumRed);
 }
 
@@ -96,9 +75,35 @@
 
 .form-button input {
   width: 20%;
-  padding: 1%;
+  padding: 2%;
   margin: 3%;
   background-color: var(--color-medRed);
-  color: var(--color-lightYellow);
-  border-radius: 0.6em;
+  color: white;
+  font-weight: bold;
+  border-radius: 0.5em;
+  border: none;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: #000000;
+
+  transition: background-color 5000s ease-in-out 0s !important;
+  box-shadow: inset 0 0 20px 20px var(--color-lightYellow);
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.row img {
+  height: 3.4rem;
+  padding-right: 1rem;
+  width: 5rem;
 }

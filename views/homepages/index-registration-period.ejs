@@ -79,6 +79,11 @@
       const registrationStart = new Date("<%= electionConfig.registrationStart %>").getTime();
       const registrationEnd = new Date("<%= electionConfig.registrationEnd %>").getTime();
 
+      // Get fakeCurrentDate from EJS template if provided.
+      const fakeCurrentDateStr = "<%= electionConfig.fakeCurrentDate ? electionConfig.fakeCurrentDate : '' %>";
+      const baseNow = fakeCurrentDateStr ? new Date(fakeCurrentDateStr).getTime() : new Date().getTime();
+      let elapsed = 0;
+
       // Update the date range display.
       const datePeriodElem = document.querySelector(".date-period");
       datePeriodElem.textContent = new Date(registrationStart).toLocaleDateString() + " - " + new Date(registrationEnd).toLocaleDateString();
@@ -90,8 +95,7 @@
       const registerButton = document.getElementById("register-button");
 
       function updatePhase() {
-        // Use fakeCurrentDate if provided; otherwise, fallback to the actual current date.
-        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).getTime() : new Date().getTime();
+        const now = baseNow + elapsed;
         let distance = 0;
         if (now < registrationStart) {
           electionPeriodElem.textContent = "Waiting for Registration Period:";
@@ -114,6 +118,10 @@
 
       const interval = setInterval(() => {
         const distance = updatePhase();
+        // Simulate time progression if using fakeCurrentDate:
+        if (fakeCurrentDateStr) {
+          elapsed += 1000;
+        }
         if (distance <= 0) {
           clearInterval(interval);
           countdownElem.textContent = "00 00 00 00";
