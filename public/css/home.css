@@ -110,7 +110,7 @@
 .main-container {
   text-align: justify;
   width: 66%;
-  padding-bottom: 2rem;
+  /* padding-bottom: 2rem; */
 }
 
 .countdown-timer {
