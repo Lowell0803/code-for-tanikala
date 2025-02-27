@@ -1,0 +1,111 @@
+:root {
+  --color-lighter-yellow: #f1d5a8;
+  --color-yellow: #f4ab2a;
+  --color-red: #a60212;
+  --color-blue: #004aad;
+  --color-hover: #550c0a;
+}
+
+.verify {
+  /* background-color: white; */
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+/* .content-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+} */
+/* Create four equal columns that floats next to each other */
+
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.column {
+  border-radius: 1em;
+  color: black;
+  background-color: var(--color-lighter-yellow);
+  border: 2px solid black;
+  width: 40%;
+  padding: 2rem 3rem;
+  border-right: 1px dotted #000;
+  height: 100%; /* Should be removed. Only for demonstration */
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.d-flex {
+  display: flex;
+}
+.flex-col {
+  flex-direction: column;
+}
+.justify-content-between {
+  justify-content: space-between;
+}
+.justify-content-center {
+  justify-content: center;
+}
+.justify-content-end {
+  justify-content: end;
+}
+.float-right {
+  float: right;
+}
+.float-left {
+  float: left;
+}
+.circle-logo {
+  width: 60px;
+}
+.logo {
+  width: 220px;
+}
+.title {
+  margin-top: 5px;
+}
+.student-name {
+  margin-bottom: 10px;
+}
+.bar-code {
+  width: 200px;
+  align-self: center;
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+.align-center {
+  align-self: center;
+}
+/*table*/
+table {
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-collapse: collapse;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  table-layout: fixed;
+}
+table tr {
+  background-color: #fff;
+  color: black;
+  border: 1px solid #000;
+  padding: 0.35em;
+}
+table th,
+table td {
+  padding: 0.625em;
+  border: 1px solid #000;
+}
+/*table end*/
+hr {
+  border-top: 1px solid #000;
+}

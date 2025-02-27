@@ -2039,6 +2039,10 @@ const startServer = async () => {
       res.render("admin/system-activity-log", { electionConfig });
     });
 
+    app.get("/verify", async (req, res) => {
+      res.render("voter/verify");
+    });
+
     /* ============================= LOGIN / SIGNUP ============================= */
 
     app.post("/register", async (req, res) => {
