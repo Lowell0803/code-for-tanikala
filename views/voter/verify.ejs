@@ -3,140 +3,149 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Voting System</title>
-
-    <link rel="stylesheet" type="text/css" href="voter/css/index_voter.css" />
-    <link rel="stylesheet" type="text/css" href="voter/css/verify.css" />
+    <title>Voting Receipt</title>
+    <link rel="stylesheet" type="text/css" href="/voter/css/index_voter.css" />
+    <link rel="stylesheet" type="text/css" href="/voter/css/verify.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      /* Ensure long hashes break properly */
+      .hash-break {
+        word-break: break-all;
+      }
+    </style>
   </head>
-
   <body>
+    <!-- Header -->
     <header class="header">
       <div class="header-logo">
-        <img src="img/logo_tanikala.png" alt="Tanikala Voting System" />
+        <img src="/img/logo_tanikala.png" alt="Tanikala Voting System" />
       </div>
       <nav class="header-nav">
         <ul class="header-nav-content">
           <li><a href="/vote">Vote</a></li>
           <li><a href="/review" id="active-link">Review</a></li>
-          <li><a href="verify.html">Verify</a></li>
+          <li><a href="/verify">Verify</a></li>
         </ul>
       </nav>
       <div class="header-bottom-line"></div>
     </header>
 
+    <!-- Receipt Container -->
     <div class="content">
       <br />
       <div class="content-header">
         <div class="content-header-bulsu">
-          <img src="img/logo_bulsu.png" />
+          <img src="/img/logo_bulsu.png" />
         </div>
         <div class="content-header-text">
           <h1>BulSU Student Government Elections<br />S.Y. 2025 - 2026</h1>
         </div>
         <div class="content-header-ucse">
-          <img src="img/logo_bulsu_ucse.png" />
+          <img src="/img/logo_bulsu_ucse.png" />
         </div>
       </div>
 
-      <div class="content-main">
+      <!-- Wrap the receipt in a container for exporting -->
+      <div class="content-main receipt-container" style="padding: 20px; border: 1px solid #ccc">
         <div class="verify">
           <div class="row">
             <div class="column">
-              <div class="d-flex"><img src="img/logo_tanikala.png" /></div>
+              <div class="d-flex">
+                <img src="/img/logo_tanikala.png" />
+              </div>
               <br />
               <div class="d-flex justify-content-between">
                 <strong>Tanikala Voting System</strong>
                 <strong>Student Copy</strong>
               </div>
               <div class="d-flex flex-col justify-content-center">
-                <h4 class="align-center title">Voting Receipt</h4>
+                <h2 class="align-center title">Voting Receipt</h2>
               </div>
               <br />
               <hr />
               <br />
-              <div class="d-flex justify-content-between">
-                <!-- <div class="d-flex flex-col">
-                  <span>Due Date:</span>
-                  <span>08/09/2022</span>
-                </div>
-                <div class="d-flex flex-col">
-                  <span>Account: 75-HBL</span>
-                  <span>HMC Taxila</span>
-                </div> -->
-              </div>
+              <!-- Voting Hash with auto-break -->
               <div class="d-flex flex-col justify-content-center">
                 <h4>
-                  Voting Hash: <br />
-                  Voting Hash Here
+                  Voter ID: <br />
+                  <span class="hash-break"><%= voterHash %></span>
                 </h4>
-                <!-- <img src="https://i.ibb.co/c8CQvBq/barcode.png" alt="bar code" class="bar-code" /> -->
               </div>
               <br />
+              <!-- Table with rows populated one by one -->
               <table>
                 <thead>
                   <tr>
                     <th scope="col left">Position</th>
-                    <th scope="col right" colspan="2">Candidates</th>
+                    <th scope="col right" colspan="2">Candidate(s)</th>
                   </tr>
                 </thead>
                 <tbody>
+                  <!-- President -->
                   <tr>
-                    <td data-label="Account">President</td>
-                    <td data-label="Amount" colspan="2"></td>
+                    <td data-label="Position">President</td>
+                    <td data-label="Candidate" colspan="2"><%= votes['President'] ? votes['President'].name : "N/A" %></td>
                   </tr>
+                  <!-- Vice President -->
                   <tr>
-                    <td scope="row" data-label="Account">Vice President</td>
-                    <td data-label="Amount" colspan="2"></td>
+                    <td data-label="Position">Vice President</td>
+                    <td data-label="Candidate" colspan="2"><%= votes['Vice President'] ? votes['Vice President'].name : "N/A" %></td>
                   </tr>
+                  <!-- Senator(s) -->
                   <tr>
-                    <td scope="row" data-label="Account">Senator(s)</td>
-                    <td data-label="Amount" colspan="2"></td>
+                    <td data-label="Position">Senator(s)</td>
+                    <td data-label="Candidate" colspan="2"><% if (votes['Senator']) { %> <% if (Array.isArray(votes['Senator'])) { %> <%= votes['Senator'].map(candidate => candidate.name).join(", ") %> <% } else { %> <%= votes['Senator'].name %> <% } %> <% } else { %> N/A <% } %></td>
                   </tr>
+                  <!-- Governor -->
                   <tr>
-                    <td scope="row" data-label="Account">Governor</td>
-                    <td data-label="Amount" colspan="2"></td>
+                    <td data-label="Position">Governor</td>
+                    <td data-label="Candidate" colspan="2"><%= votes['Governor - ' + voterCollege] ? votes['Governor - ' + voterCollege].name : "N/A" %></td>
                   </tr>
+                  <!-- Vice Governor -->
                   <tr>
-                    <td scope="row" data-label="Account">Vice Governor</td>
-                    <td data-label="Amount" colspan="2"></td>
+                    <td data-label="Position">Vice Governor</td>
+                    <td data-label="Candidate" colspan="2"><%= votes['Vice Governor - ' + voterCollege] ? votes['Vice Governor - ' + voterCollege].name : "N/A" %></td>
                   </tr>
+                  <!-- Board Member -->
                   <tr>
-                    <td scope="row" data-label="Account">Board Member</td>
-                    <td data-label="Amount" colspan="2"></td>
+                    <td data-label="Position">Board Member</td>
+                    <td data-label="Candidate" colspan="2"><%= votes['Board Member - ' + voterProgram] ? votes['Board Member - ' + voterProgram].name : "N/A" %></td>
                   </tr>
                 </tbody>
               </table>
               <hr />
               <br />
+              <!-- College and Program Details -->
               <div class="d-flex justify-content-between">
                 <strong>College</strong>
-                <span>User's College Here</span>
+                <!-- We'll output the acronym here and update it on the client-side -->
+                <span id="collegeDisplay"><%= voterCollege %></span>
               </div>
               <hr />
               <div class="d-flex justify-content-between">
                 <strong>Program</strong>
-                <span>User's Program Here</span>
+                <span><%= voterProgram %></span>
               </div>
               <br />
               <hr />
+              <!-- Transaction Confirmation -->
               <div class="d-flex flex-col">
                 <span>Votes Submitted To Blockchain</span>
                 <span>Thank You.</span>
               </div>
               <br />
-              <!-- <div class="d-flex flex-col float-right">
-                <span>Signature and Stamp</span>
-                <span>Bank Officer</span>
-              </div> -->
-              <br /><br />
               <div class="d-flex">
                 <span>Date:</span>
-                <span>______________</span>
+                <span><%= new Date().toLocaleString() %></span>
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Export Button -->
+      <div style="text-align: center; margin: 20px">
+        <button id="exportBtn" style="padding: 10px 20px; font-size: 16px">Export Receipt as Image</button>
       </div>
     </div>
 
@@ -149,6 +158,50 @@
       </div>
     </div>
 
-    <script></script>
+    <!-- Load html-to-image from CDN -->
+    <!-- <script src="https://unpkg.com/html-to-image@1.10.3/dist/html-to-image.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.10.3/dist/html-to-image.min.js"></script>
+
+    <!-- Client-side mapping for full college name and export functionality -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Mapping for college acronym to full name
+        var collegeMap = {
+          CAFA: "College of Architecture and Fine Arts",
+          CAL: "College of Arts and Letters",
+          CBEA: "College of Business Education and Accountancy",
+          CCJE: "College of Criminal Justice Education",
+          COE: "College of Engineering",
+          COED: "College of Education",
+          CHTM: "College of Hospitality and Tourism Management",
+          CIT: "College of Industrial Technology",
+          CICT: "College of Information and Communications Technology",
+          CON: "College of Nursing",
+          CS: "College of Science",
+          CSSP: "College of Social Sciences and Philosophy",
+          CSER: "College of Sports, Exercise, and Recreation",
+        };
+        var collegeElem = document.getElementById("collegeDisplay");
+        if (collegeElem) {
+          var acronym = collegeElem.textContent.trim();
+          collegeElem.textContent = collegeMap[acronym] || acronym;
+        }
+
+        // Export Receipt as Image using html-to-image
+        document.getElementById("exportBtn").addEventListener("click", function () {
+          htmlToImage
+            .toPng(document.querySelector(".receipt-container"))
+            .then(function (dataUrl) {
+              var link = document.createElement("a");
+              link.download = "receipt.png";
+              link.href = dataUrl;
+              link.click();
+            })
+            .catch(function (error) {
+              console.error("Oops, something went wrong!", error);
+            });
+        });
+      });
+    </script>
   </body>
 </html>

@@ -487,7 +487,7 @@ const startServer = async () => {
 
     app.post("/submit-vote", async (req, res) => {
       try {
-        const { votes, voterHash } = req.body;
+        const { votes, voterHash, voterCollege, voterProgram } = req.body;
 
         if (!voterHash || typeof voterHash !== "string") {
           console.log("❌ Invalid voterHash received:", voterHash);
@@ -535,6 +535,10 @@ const startServer = async () => {
         await tx.wait();
         console.log("✅ Transaction confirmed!");
 
+        // Store in session before redirecting
+        req.session.voterReceipt = { votes, voterHash, voterCollege, voterProgram, txHash: tx.hash };
+        console.log("votes:", votes);
+
         // After confirmation, redirect to /verify:
         // After transaction is confirmed:
         res.status(200).json({
@@ -546,6 +550,22 @@ const startServer = async () => {
         console.error("❌ Error submitting votes:", error);
         res.status(500).json({ error: "Failed to submit votes." });
       }
+    });
+
+    app.get("/verify", async (req, res) => {
+      const voterReceipt = req.session.voterReceipt;
+
+      if (!voterReceipt) {
+        return res.redirect("/vote"); // Redirect to voting page if no data
+      }
+
+      res.render("voter/verify", {
+        votes: voterReceipt.votes,
+        voterHash: voterReceipt.voterHash,
+        voterCollege: voterReceipt.voterCollege,
+        voterProgram: voterReceipt.voterProgram,
+        txHash: voterReceipt.txHash,
+      });
     });
 
     // app.get("/vote-status", async (req, res) => {
@@ -2037,10 +2057,6 @@ const startServer = async () => {
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
       res.render("admin/system-activity-log", { electionConfig });
-    });
-
-    app.get("/verify", async (req, res) => {
-      res.render("voter/verify");
     });
 
     /* ============================= LOGIN / SIGNUP ============================= */

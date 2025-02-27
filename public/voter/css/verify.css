@@ -13,6 +13,10 @@
   justify-content: center;
 }
 
+.receipt-container {
+  min-height: 110dvh;
+}
+
 /* .content-main {
   display: flex;
   flex-direction: column;
