@@ -1366,25 +1366,32 @@ const startServer = async () => {
       if (!config.registrationStart || !config.registrationEnd || !config.votingStart || !config.votingEnd) {
         return { name: "Election Not Active", duration: "Configuration Incomplete", waitingFor: null };
       }
+
+      const options = { month: "long", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true };
+
       const regStart = new Date(config.registrationStart);
       const regEnd = new Date(config.registrationEnd);
       const voteStart = new Date(config.votingStart);
       const voteEnd = new Date(config.votingEnd);
+
+      const formatDate = (date) => date.toLocaleString("en-US", options).replace(" at ", " - "); // Ensures correct format
+
       if (now < regStart) {
-        return { name: "Waiting for Registration Period", duration: `${now.toLocaleString()} to ${regStart.toLocaleString()}`, waitingFor: "Registration" };
+        return { name: "Waiting for Registration Period", duration: `${formatDate(now)} to ${formatDate(regStart)}`, waitingFor: "Registration" };
       } else if (now >= regStart && now <= regEnd) {
-        return { name: "Registration Period", duration: `${regStart.toLocaleString()} to ${regEnd.toLocaleString()}` };
+        return { name: "Registration Period", duration: `${formatDate(regStart)} to ${formatDate(regEnd)}` };
       } else if (now > regEnd && now < voteStart) {
-        return { name: "Waiting for Voting Period", duration: `${regEnd.toLocaleString()} to ${voteStart.toLocaleString()}`, waitingFor: "Voting" };
+        return { name: "Waiting for Voting Period", duration: `${formatDate(regEnd)} to ${formatDate(voteStart)}`, waitingFor: "Voting" };
       } else if (now >= voteStart && now <= voteEnd) {
-        return { name: "Voting Period", duration: `${voteStart.toLocaleString()} to ${voteEnd.toLocaleString()}` };
+        return { name: "Voting Period", duration: `${formatDate(voteStart)} to ${formatDate(voteEnd)}` };
       } else if (now > voteEnd) {
         if (config.electionStatus === "Results Are Out") {
-          return { name: "Results Are Out Period", duration: `${voteEnd.toLocaleString()} to (manual)` };
+          return { name: "Results Are Out Period", duration: `${formatDate(voteEnd)} to (Waiting for Admin)` };
         } else {
-          return { name: "Results Double Checking Period", duration: `${voteEnd.toLocaleString()} to (manual trigger)` };
+          return { name: "Results Double Checking Period", duration: `${formatDate(voteEnd)} to (Waiting for Admin)` };
         }
       }
+
       return { name: "Election Not Active", duration: "N/A" };
     }
 

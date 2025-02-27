@@ -24,15 +24,39 @@
   top: 0;
   left: 0;
   max-height: 100%;
-  /* overflow-y: auto; */
+  overflow-y: auto;
 
-  /* overflow-x: hidden; */
+  overflow-x: hidden;
   width: 20vw; /* changed from 260px to 20vw */
   /* background: #11101d; */
   background: var(--sidebar-color);
 
   z-index: 100;
   transition: all 0.5s ease;
+}
+
+/* Style the scrollbar itself */
+::-webkit-scrollbar {
+  width: 8px; /* Adjust the width for a slimmer scrollbar */
+  height: 8px; /* Adjust height for horizontal scrollbar */
+  border: 1px solid #3f0807;
+}
+
+/* Style the scrollbar track (background of the scrollbar) */
+::-webkit-scrollbar-track {
+  background: #3f0807; /* Black track */
+}
+
+/* Style the scrollbar thumb (the draggable part) */
+::-webkit-scrollbar-thumb {
+  background: var(--sidebar-color); /* Slightly lighter black for the thumb */
+  border-radius: 10px; /* Optional: rounded corners */
+  border: 1.2px solid #3f0807;
+}
+
+/* Style the scrollbar thumb when hovered */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-color-lighter);
 }
 
 .sidebar.close {
@@ -48,7 +72,7 @@
 }
 
 .sidebar .user-details img {
-  width: 6rem;
+  width: 10rem;
   padding: 1rem;
   border-radius: 1.5rem;
   /* border: 1px solid black; */
@@ -217,13 +241,13 @@
 }
 
 .sidebar .profile-details {
-  position: fixed;
-  bottom: 4.5vh;
+  /* position: fixed;
+  bottom: 4.5vh; */
   width: 20vw; /* changed from 260px to 20vw */
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: #1d1b31;
+  justify-content: center;
+  background: var(--color-hover);
   padding: 0.75rem 0; /* changed from 12px to 0.75rem */
   transition: all 0.5s ease;
 }
@@ -234,43 +258,57 @@
 
 .sidebar.close .profile-details {
   width: 6vw; /* changed from 78px to 6vw */
-}
 
-.sidebar .profile-details .profile-content {
-  display: flex;
   align-items: center;
 }
 
+.sidebar .profile-details {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
 .sidebar .profile-details img {
-  height: 3.25rem; /* changed from 52px to 3.25rem */
-  width: 3.25rem; /* changed from 52px to 3.25rem */
+  height: 5rem; /* changed from 52px to 3.25rem */
   object-fit: cover;
   border-radius: 1rem; /* changed from 16px to 1rem */
   margin: 0 0.875rem 0 0.75rem; /* changed from 14px 0 0 12px to 0.875rem 0 0 0.75rem */
   background: var(--sidebar-color);
   transition: all 0.5s ease;
+  border-radius: 50%;
+}
+
+.sidebar .profile-details .profile-name,
+.sidebar .profile-details .job,
+.sidebar .profile-details img {
+  margin-bottom: 2%;
 }
 
 .sidebar.close .profile-details img {
   padding: 0.625rem; /* changed from 10px to 0.625rem */
 }
 
-.sidebar .profile-details .profile_name,
+.sidebar .profile-details .profile-name,
 .sidebar .profile-details .job {
-  color: #fff;
+  color: #000000;
   font-size: 1.125rem; /* changed from 18px to 1.125rem */
-  font-weight: 500;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-.sidebar.close .profile-details i,
-.sidebar.close .profile-details .profile_name,
-.sidebar.close .profile-details .job {
-  display: none;
+.sidebar .profile-details .profile-name {
+  font-size: 1.4rem;
 }
 
 .sidebar .profile-details .job {
-  font-size: 0.75rem; /* changed from 12px to 0.75rem */
+  font-size: 1rem;
+  color: rgb(40, 40, 40);
+}
+
+.sidebar.close .profile-details i,
+.sidebar.close .profile-details .profile-name,
+.sidebar.close .profile-details .job {
+  display: none;
 }
 
 .main {

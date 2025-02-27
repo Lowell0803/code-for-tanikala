@@ -22,6 +22,10 @@
   --width-footer-center: 50vw;
 }
 
+.right-text {
+  color: #f4ab2a; /* Always yellow */
+}
+
 * {
   margin: 0;
   padding: 0;
