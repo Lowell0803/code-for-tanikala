@@ -16,3 +16,36 @@
   /* border: 3px solid black; */
   margin-top: 3rem;
 }
+
+#countdown {
+  display: inline-flex;
+  align-items: center;
+}
+
+#countdown span {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 10px; /* Adjust spacing between the numbers and labels */
+}
+
+#countdown-label small {
+  font-size: 0.8em; /* Make the labels smaller */
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.countdown-timer {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.time-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #f4ab2a;
+  font-weight: bold;
+}
