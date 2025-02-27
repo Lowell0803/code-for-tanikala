@@ -10,8 +10,8 @@
     <link rel="stylesheet" type="text/css" href="admin/css/election-management.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
 
-    <link rel="stylesheet" type="text/css" href="admin/css/results-lsc.css" />
-    <link rel="stylesheet" type="text/css" href="admin/css/results-scc.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-lsc.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-scc.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/candidates.css" />
 
     <!-- Boxicons CDN Link -->
@@ -363,7 +363,9 @@
                     <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                     <strong> <%= candidate.name %> </strong> - <%= candidate.party %>
                     <p><%= candidate.moreInfo %></p>
-                    <button class="button button-edit" onclick="editCandidateLSC('<%= candidate._id %>', '<%= candidate.position %>', '<%= candidate.party %>', '<%= candidate.name %>', '<%= candidate.moreInfo %>', '<%= candidate.image %>', '<%= cafa.collegeAcronym %>', '<%= program %>')">Edit</button>
+                    <button class="button button-edit" onclick="editCandidateLSC('<%= candidate._id %>', '<%= candidate.position %>', '<%= candidate.party %>', '<%= candidate.name %>', '<%= candidate.moreInfo %>', '<%= candidate.image %>', '<%= cafa.collegeAcronym %>', '<%= program %>')">
+                      Edit
+                    </button>
                   </li>
                   <% }) %>
                 </ul>
