@@ -793,63 +793,6 @@ const startServer = async () => {
       res.render("voter/review");
     });
 
-    app.get("/candidates", async (req, res) => {
-      try {
-        const collection = db.collection("candidates");
-        const data = await collection.find({}).toArray();
-        const allCandidates = data.map((doc) => doc.candidates).flat();
-
-        const collection_lsc = db.collection("candidates_lsc");
-        const data_lsc = await collection_lsc.find({}).toArray();
-        const structuredData = data_lsc.map((collegeDoc) => {
-          const college = {
-            collegeName: collegeDoc.collegeName,
-            collegeAcronym: collegeDoc.collegeAcronym,
-            positions: {},
-          };
-
-          collegeDoc.positions.forEach((positionDoc) => {
-            const position = positionDoc.position;
-
-            // If it's a Board Member position, group by program
-            if (position === "Board Member" && positionDoc.programs) {
-              college.positions[position] = positionDoc.programs.reduce((programMap, programDoc) => {
-                programMap[programDoc.program] = programDoc.candidates;
-                return programMap;
-              }, {});
-            } else {
-              // For other positions (Governor, Vice Governor), just map them normally
-              college.positions[position] = positionDoc.candidates;
-            }
-          });
-          return college;
-        });
-
-        // console.log(structuredData);
-
-        // Fetch voter counts per college
-        const votersCollection = db.collection("voters");
-        const colleges = await votersCollection.find({}).toArray();
-        const voterCounts = {};
-
-        colleges.forEach((college) => {
-          voterCounts[college.acronym] = {
-            name: college.college,
-            voters: college.voters,
-          };
-        });
-
-        res.render("admin/candidates", {
-          candidates: allCandidates,
-          candidates_lsc: structuredData,
-          voterCounts,
-        });
-      } catch (error) {
-        console.error("Error fetching candidates for dashboard:", error);
-        res.status(500).send("Failed to fetch candidates data for the dashboard");
-      }
-    });
-
     app.post("/update-candidate", async (req, res) => {
       console.log("Form data:", req.body);
       try {
@@ -1395,241 +1338,16 @@ const startServer = async () => {
       return { name: "Election Not Active", duration: "N/A" };
     }
 
-    // GET /configuration
-    app.get("/configuration", async (req, res) => {
-      let electionConfig = (await db.collection("election_config").findOne({})) || {
-        electionName: "",
-        registrationStart: "",
-        registrationEnd: "",
-        votingStart: "",
-        votingEnd: "",
-        partylists: [],
-        colleges: {},
-        fakeCurrentDate: null,
-        electionStatus: "Election Not Active",
-        currentPeriod: { name: "Election Not Active", duration: "", waitingFor: null },
-      };
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-      const simulatedDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).toISOString() : null;
-      res.render("admin/configuration", { electionConfig, simulatedDate });
-    });
-
-    app.post("/configuration", async (req, res) => {
-      try {
-        const { electionName, registrationStart, registrationEnd, votingStart, votingEnd, partylists, colleges } = req.body;
-        const partylistsArray = partylists ? partylists.split(",").map((item) => item.trim()) : [];
-
-        // Define mapping for college acronym to full name.
-        const collegeMapping = {
-          CAFA: "College of Architecture and Fine Arts",
-          CAL: "College of Arts and Letters",
-          CBEA: "College of Business Education and Accountancy",
-          CCJE: "College of Criminal Justice Education",
-          COE: "College of Engineering",
-          COED: "College of Education",
-          CHTM: "College of Hospitality and Tourism Management",
-          CIT: "College of Industrial Technology",
-          CICT: "College of Information and Communications Technology",
-          CON: "College of Nursing",
-          CS: "College of Science",
-          CSSP: "College of Social Sciences and Philosophy",
-          CSER: "College of Sports, Exercise, and Recreation",
-        };
-
-        // Merge the colleges into a single list.
-        let totalStudents = 0;
-        let mergedList = [];
-        if (colleges) {
-          for (const acronym in colleges) {
-            const voters = parseInt(colleges[acronym], 10) || 0;
-            totalStudents += voters;
-            mergedList.push({
-              acronym: acronym,
-              name: collegeMapping[acronym] || acronym, // fallback to acronym if mapping not found
-              voters: voters,
-            });
-          }
-        }
-
-        const update = {
-          electionName,
-          registrationStart: registrationStart ? new Date(registrationStart) : null,
-          registrationEnd: registrationEnd ? new Date(registrationEnd) : null,
-          votingStart: votingStart ? new Date(votingStart) : null,
-          votingEnd: votingEnd ? new Date(votingEnd) : null,
-          partylists: partylistsArray,
-          // Store only the merged list in listOfElections.
-          listOfElections: mergedList,
-          totalStudents,
-          // Default electionStatus and currentPeriod can be computed on GET based on dates.
-          electionStatus: "Registration Period",
-          currentPeriod: { name: "Registration Period", duration: "", waitingFor: null },
-          updatedAt: new Date(),
-        };
-
-        await db.collection("election_config").updateOne({}, { $set: update, $setOnInsert: { createdAt: new Date() } }, { upsert: true });
-        const savedConfig = await db.collection("election_config").findOne({});
-        console.log("Saved Configuration:", savedConfig);
-        res.redirect("configuration");
-      } catch (error) {
-        console.error("Error updating configuration:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    // POST /set-test-date (update fake current date and current phase)
-    app.post("/set-test-date", async (req, res) => {
-      try {
-        const { fakeCurrentDate, period } = req.body;
-        await db.collection("election_config").updateOne({}, { $set: { fakeCurrentDate, currentPeriod: period, updatedAt: new Date() } }, { upsert: true });
-        res.json({ success: true, fakeCurrentDate, period });
-      } catch (error) {
-        console.error("Error setting fake current date:", error);
-        res.status(500).json({ success: false });
-      }
-    });
-
-    // POST /temporarily-closed
-    app.post("/temporarily-closed", async (req, res) => {
-      try {
-        const update = {
-          electionStatus: "Temporarily Closed",
-          currentPeriod: { name: "Temporarily Closed", duration: "", waitingFor: null },
-          updatedAt: new Date(),
-        };
-        await db.collection("election_config").updateOne({}, { $set: update });
-        res.redirect("/dashboard");
-      } catch (error) {
-        console.error("Error setting temporarily closed:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    // POST /resume-election
-    app.post("/resume-election", async (req, res) => {
-      try {
-        // When resuming, you may want to recalc the current phase based on dates.
-        const config = await db.collection("election_config").findOne({});
-        const now = config.fakeCurrentDate ? new Date(config.fakeCurrentDate) : new Date();
-        const currentPeriod = calculateCurrentPeriod(config, now);
-        const update = {
-          electionStatus: currentPeriod.name, // e.g. "Registration Period" or as computed
-          currentPeriod,
-          updatedAt: new Date(),
-        };
-        await db.collection("election_config").updateOne({}, { $set: update });
-        res.redirect("/configuration");
-      } catch (error) {
-        console.error("Error resuming election:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    // POST /set-results-out
-    app.post("/set-results-out", async (req, res) => {
-      try {
-        const update = {
-          electionStatus: "Results Are Out",
-          currentPeriod: { name: "Results Are Out Period", duration: "", waitingFor: null },
-          updatedAt: new Date(),
-        };
-        await db.collection("election_config").updateOne({}, { $set: update });
-        res.redirect("/configuration");
-      } catch (error) {
-        console.error("Error setting results out:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    app.post("/api/reset-election", async (req, res) => {
-      try {
-        console.log("Reset election initiated.");
-
-        // Check if candidates have been submitted
-        console.log("Checking candidate submission status...");
-        const submissionStatus = await db.collection("system_status").findOne({ _id: "candidate_submission" });
-        console.log("Submission status retrieved:", submissionStatus);
-
-        if (submissionStatus && submissionStatus.submitted === true) {
-          console.log("Candidates have been submitted. Archiving candidate data...");
-
-          // Archive candidates data from "candidates" and "candidates_lsc"
-          const candidatesData = await db.collection("candidates").find({}).toArray();
-          console.log("Candidates data count:", candidatesData.length);
-          const candidatesLscData = await db.collection("candidates_lsc").find({}).toArray();
-          console.log("Candidates LSC data count:", candidatesLscData.length);
-
-          const archiveResult = await db.collection("election_archive").insertOne({
-            electionName: "", // Customize as needed
-            registrationStart: "", // If applicable
-            registrationEnd: "",
-            votingStart: "",
-            votingEnd: "",
-            electionStatus: "Candidates Submitted",
-            archivedAt: new Date(),
-            candidates: candidatesData,
-            candidatesLsc: candidatesLscData,
-          });
-          console.log("Candidate data archived. Archive ID:", archiveResult.insertedId);
-
-          // Trigger reset-candidates (e.g., call your blockchain function)
-          console.log("Triggering contract.resetCandidates()...");
-          const tx = await contract.resetCandidates();
-          await tx.wait();
-          console.log("Blockchain candidate reset confirmed.");
-
-          // Update the submission status to false
-          console.log("Updating candidate submission status in the database to false...");
-          // await db.collection("system_status").updateOne({ _id: "candidate_submission" }, { $set: { submitted: false } });
-          console.log("Candidate submission status updated to false.");
-        } else {
-          console.log("Candidate submission status is not true. Skipping candidate archiving and blockchain reset.");
-        }
-
-        // Original election configuration reset logic (DO NOT OMIT ANYTHING)
-        console.log("Resetting election configuration...");
-        await db.collection("election_config").deleteMany({});
-        await db.collection("election_config").insertOne({
-          electionName: "",
-          registrationPeriod: { start: "", end: "" },
-          votingPeriod: { start: "", end: "" },
-          totalElections: 14,
-          totalPartylists: 0,
-          partylists: [],
-          totalCandidates: 0,
-          phase: "Election Inactive",
-          listOfElections: [
-            { name: "Supreme Student Council (SSC) - BulSU Main", voters: 0 },
-            { name: "College of Architecture and Fine Arts (CAFA)", voters: 0 },
-            { name: "College of Arts and Letters (CAL)", voters: 0 },
-            { name: "College of Business Education and Accountancy (CBEA)", voters: 0 },
-            { name: "College of Criminal Justice Education (CCJE)", voters: 0 },
-            { name: "College of Engineering (COE)", voters: 0 },
-            { name: "College of Education (COED)", voters: 0 },
-            { name: "College of Hospitality and Tourism Management (CHTM)", voters: 0 },
-            { name: "College of Industrial Technology (CIT)", voters: 0 },
-            { name: "College of Information and Communications Technology (CICT)", voters: 0 },
-            { name: "College of Nursing (CON)", voters: 0 },
-            { name: "College of Science (CS)", voters: 0 },
-            { name: "College of Social Sciences and Philosophy (CSSP)", voters: 0 },
-            { name: "College of Sports, Exercise, and Recreation (CSER)", voters: 0 },
-          ],
-        });
-        console.log("Election configuration reset complete.");
-
-        res.redirect("configuration");
-      } catch (error) {
-        console.error("Error resetting election:", error);
-        res.status(500).json({ message: "Error resetting election", error: error.message });
-      }
-    });
-
     // GET route for the election archive page
     app.get("/archives", async (req, res) => {
       try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
         const archives = await db.collection("election_archive").find({}).toArray();
-        res.render("admin/archives", { archives });
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        res.render("admin/archives", { archives, electionConfig });
       } catch (error) {
         console.error("Error fetching archives:", error);
         res.status(500).send("Internal Server Error");
@@ -1795,25 +1513,90 @@ const startServer = async () => {
       return currentDate;
     };
 
-    app.get("/vote-tally", async (req, res) => {
+    app.post("/api/reset-election", async (req, res) => {
       try {
-        const votersCollection = db.collection("voters");
-        const colleges = await votersCollection.find({}).toArray();
-        const voterCounts = {};
+        console.log("Reset election initiated.");
 
-        colleges.forEach((college) => {
-          voterCounts[college.acronym] = {
-            name: college.college,
-            voters: college.voters,
-          };
+        // Check if candidates have been submitted
+        console.log("Checking candidate submission status...");
+        const submissionStatus = await db.collection("system_status").findOne({ _id: "candidate_submission" });
+        console.log("Submission status retrieved:", submissionStatus);
+
+        if (submissionStatus && submissionStatus.submitted === true) {
+          console.log("Candidates have been submitted. Archiving candidate data...");
+
+          // Archive candidates data from "candidates" and "candidates_lsc"
+          const candidatesData = await db.collection("candidates").find({}).toArray();
+          console.log("Candidates data count:", candidatesData.length);
+          const candidatesLscData = await db.collection("candidates_lsc").find({}).toArray();
+          console.log("Candidates LSC data count:", candidatesLscData.length);
+
+          const archiveResult = await db.collection("election_archive").insertOne({
+            electionName: "", // Customize as needed
+            registrationStart: "", // If applicable
+            registrationEnd: "",
+            votingStart: "",
+            votingEnd: "",
+            electionStatus: "Candidates Submitted",
+            archivedAt: new Date(),
+            candidates: candidatesData,
+            candidatesLsc: candidatesLscData,
+          });
+          console.log("Candidate data archived. Archive ID:", archiveResult.insertedId);
+
+          // Trigger reset-candidates (e.g., call your blockchain function)
+          console.log("Triggering contract.resetCandidates()...");
+          const tx = await contract.resetCandidates();
+          await tx.wait();
+          console.log("Blockchain candidate reset confirmed.");
+
+          // Update the submission status to false
+          console.log("Updating candidate submission status in the database to false...");
+          // await db.collection("system_status").updateOne({ _id: "candidate_submission" }, { $set: { submitted: false } });
+          console.log("Candidate submission status updated to false.");
+        } else {
+          console.log("Candidate submission status is not true. Skipping candidate archiving and blockchain reset.");
+        }
+
+        // Original election configuration reset logic (DO NOT OMIT ANYTHING)
+        console.log("Resetting election configuration...");
+        await db.collection("election_config").deleteMany({});
+        await db.collection("election_config").insertOne({
+          electionName: "",
+          registrationPeriod: { start: "", end: "" },
+          votingPeriod: { start: "", end: "" },
+          totalElections: 14,
+          totalPartylists: 0,
+          partylists: [],
+          totalCandidates: 0,
+          phase: "Election Inactive",
+          listOfElections: [
+            { name: "Supreme Student Council (SSC) - BulSU Main", voters: 0 },
+            { name: "College of Architecture and Fine Arts (CAFA)", voters: 0 },
+            { name: "College of Arts and Letters (CAL)", voters: 0 },
+            { name: "College of Business Education and Accountancy (CBEA)", voters: 0 },
+            { name: "College of Criminal Justice Education (CCJE)", voters: 0 },
+            { name: "College of Engineering (COE)", voters: 0 },
+            { name: "College of Education (COED)", voters: 0 },
+            { name: "College of Hospitality and Tourism Management (CHTM)", voters: 0 },
+            { name: "College of Industrial Technology (CIT)", voters: 0 },
+            { name: "College of Information and Communications Technology (CICT)", voters: 0 },
+            { name: "College of Nursing (CON)", voters: 0 },
+            { name: "College of Science (CS)", voters: 0 },
+            { name: "College of Social Sciences and Philosophy (CSSP)", voters: 0 },
+            { name: "College of Sports, Exercise, and Recreation (CSER)", voters: 0 },
+          ],
         });
+        console.log("Election configuration reset complete.");
 
-        res.render("admin/election-results", { voterCounts });
+        res.redirect("configuration");
       } catch (error) {
-        console.error("Error fetching voter counts:", error);
-        res.status(500).send("Internal Server Error");
+        console.error("Error resetting election:", error);
+        res.status(500).json({ message: "Error resetting election", error: error.message });
       }
     });
+
+    /* ================================= ADMIN TABS ================================= */
 
     app.get("/dashboard", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
@@ -1838,17 +1621,247 @@ const startServer = async () => {
       res.render("admin/dashboard", { electionConfig });
     });
 
+    // GET /configuration
+    app.get("/configuration", async (req, res) => {
+      let electionConfig = (await db.collection("election_config").findOne({})) || {
+        electionName: "",
+        registrationStart: "",
+        registrationEnd: "",
+        votingStart: "",
+        votingEnd: "",
+        partylists: [],
+        colleges: {},
+        fakeCurrentDate: null,
+        electionStatus: "Election Not Active",
+        currentPeriod: { name: "Election Not Active", duration: "", waitingFor: null },
+      };
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+      const simulatedDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).toISOString() : null;
+      res.render("admin/configuration", { electionConfig, simulatedDate });
+    });
+
+    app.post("/configuration", async (req, res) => {
+      try {
+        const { electionName, registrationStart, registrationEnd, votingStart, votingEnd, partylists, colleges } = req.body;
+        const partylistsArray = partylists ? partylists.split(",").map((item) => item.trim()) : [];
+
+        // Define mapping for college acronym to full name.
+        const collegeMapping = {
+          CAFA: "College of Architecture and Fine Arts",
+          CAL: "College of Arts and Letters",
+          CBEA: "College of Business Education and Accountancy",
+          CCJE: "College of Criminal Justice Education",
+          COE: "College of Engineering",
+          COED: "College of Education",
+          CHTM: "College of Hospitality and Tourism Management",
+          CIT: "College of Industrial Technology",
+          CICT: "College of Information and Communications Technology",
+          CON: "College of Nursing",
+          CS: "College of Science",
+          CSSP: "College of Social Sciences and Philosophy",
+          CSER: "College of Sports, Exercise, and Recreation",
+        };
+
+        // Merge the colleges into a single list.
+        let totalStudents = 0;
+        let mergedList = [];
+        if (colleges) {
+          for (const acronym in colleges) {
+            const voters = parseInt(colleges[acronym], 10) || 0;
+            totalStudents += voters;
+            mergedList.push({
+              acronym: acronym,
+              name: collegeMapping[acronym] || acronym, // fallback to acronym if mapping not found
+              voters: voters,
+            });
+          }
+        }
+
+        const update = {
+          electionName,
+          registrationStart: registrationStart ? new Date(registrationStart) : null,
+          registrationEnd: registrationEnd ? new Date(registrationEnd) : null,
+          votingStart: votingStart ? new Date(votingStart) : null,
+          votingEnd: votingEnd ? new Date(votingEnd) : null,
+          partylists: partylistsArray,
+          // Store only the merged list in listOfElections.
+          listOfElections: mergedList,
+          totalStudents,
+          // Default electionStatus and currentPeriod can be computed on GET based on dates.
+          electionStatus: "Registration Period",
+          currentPeriod: { name: "Registration Period", duration: "", waitingFor: null },
+          updatedAt: new Date(),
+        };
+
+        await db.collection("election_config").updateOne({}, { $set: update, $setOnInsert: { createdAt: new Date() } }, { upsert: true });
+        const savedConfig = await db.collection("election_config").findOne({});
+        console.log("Saved Configuration:", savedConfig);
+        res.redirect("configuration");
+      } catch (error) {
+        console.error("Error updating configuration:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // POST /set-test-date (update fake current date and current phase)
+    app.post("/set-test-date", async (req, res) => {
+      try {
+        const { fakeCurrentDate, period } = req.body;
+        await db.collection("election_config").updateOne({}, { $set: { fakeCurrentDate, currentPeriod: period, updatedAt: new Date() } }, { upsert: true });
+        res.json({ success: true, fakeCurrentDate, period });
+      } catch (error) {
+        console.error("Error setting fake current date:", error);
+        res.status(500).json({ success: false });
+      }
+    });
+
+    // POST /temporarily-closed
+    app.post("/temporarily-closed", async (req, res) => {
+      try {
+        const update = {
+          electionStatus: "Temporarily Closed",
+          currentPeriod: { name: "Temporarily Closed", duration: "", waitingFor: null },
+          updatedAt: new Date(),
+        };
+        await db.collection("election_config").updateOne({}, { $set: update });
+        res.redirect("/dashboard");
+      } catch (error) {
+        console.error("Error setting temporarily closed:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // POST /resume-election
+    app.post("/resume-election", async (req, res) => {
+      try {
+        // When resuming, you may want to recalc the current phase based on dates.
+        const config = await db.collection("election_config").findOne({});
+        const now = config.fakeCurrentDate ? new Date(config.fakeCurrentDate) : new Date();
+        const currentPeriod = calculateCurrentPeriod(config, now);
+        const update = {
+          electionStatus: currentPeriod.name, // e.g. "Registration Period" or as computed
+          currentPeriod,
+          updatedAt: new Date(),
+        };
+        await db.collection("election_config").updateOne({}, { $set: update });
+        res.redirect("/configuration");
+      } catch (error) {
+        console.error("Error resuming election:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // POST /set-results-out
+    app.post("/set-results-out", async (req, res) => {
+      try {
+        const update = {
+          electionStatus: "Results Are Out",
+          currentPeriod: { name: "Results Are Out Period", duration: "", waitingFor: null },
+          updatedAt: new Date(),
+        };
+        await db.collection("election_config").updateOne({}, { $set: update });
+        res.redirect("/configuration");
+      } catch (error) {
+        console.error("Error setting results out:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.get("/candidates", async (req, res) => {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const collection = db.collection("candidates");
+        const data = await collection.find({}).toArray();
+        const allCandidates = data.map((doc) => doc.candidates).flat();
+
+        const collection_lsc = db.collection("candidates_lsc");
+        const data_lsc = await collection_lsc.find({}).toArray();
+        const structuredData = data_lsc.map((collegeDoc) => {
+          const college = {
+            collegeName: collegeDoc.collegeName,
+            collegeAcronym: collegeDoc.collegeAcronym,
+            positions: {},
+          };
+
+          collegeDoc.positions.forEach((positionDoc) => {
+            const position = positionDoc.position;
+
+            // If it's a Board Member position, group by program
+            if (position === "Board Member" && positionDoc.programs) {
+              college.positions[position] = positionDoc.programs.reduce((programMap, programDoc) => {
+                programMap[programDoc.program] = programDoc.candidates;
+                return programMap;
+              }, {});
+            } else {
+              // For other positions (Governor, Vice Governor), just map them normally
+              college.positions[position] = positionDoc.candidates;
+            }
+          });
+          return college;
+        });
+
+        // console.log(structuredData);
+
+        // Fetch voter counts per college
+        const votersCollection = db.collection("voters");
+        const colleges = await votersCollection.find({}).toArray();
+        const voterCounts = {};
+
+        colleges.forEach((college) => {
+          voterCounts[college.acronym] = {
+            name: college.college,
+            voters: college.voters,
+          };
+        });
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        res.render("admin/candidates", {
+          candidates: allCandidates,
+          candidates_lsc: structuredData,
+          voterCounts,
+          electionConfig,
+        });
+      } catch (error) {
+        console.error("Error fetching candidates for dashboard:", error);
+        res.status(500).send("Failed to fetch candidates data for the dashboard");
+      }
+    });
+
     app.get("/blockchain-management", async (req, res) => {
-      res.render("admin/blockchain-management");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/blockchain-management", { electionConfig });
     });
     app.get("/blockchain-activity-log", async (req, res) => {
-      res.render("admin/blockchain-activity-log");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/blockchain-activity-log", { electionConfig });
     });
 
     app.get("/voter-info", async (req, res) => {
       try {
         const voters = await db.collection("registered_voters").find().toArray();
-        res.render("admin/election-voter-info", { voters }); // Pass voters to EJS template
+
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        res.render("admin/election-voter-info", { voters, electionConfig }); // Pass voters to EJS template
       } catch (error) {
         console.error("Error fetching registered voters:", error);
         res.status(500).send("Internal Server Error");
@@ -1856,25 +1869,88 @@ const startServer = async () => {
     });
 
     app.get("/voter-turnout", async (req, res) => {
-      res.render("admin/election-voter-turnout");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/election-voter-turnout", { electionConfig });
     });
+
+    app.get("/vote-tally", async (req, res) => {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const votersCollection = db.collection("voters");
+        const colleges = await votersCollection.find({}).toArray();
+        const voterCounts = {};
+
+        colleges.forEach((college) => {
+          voterCounts[college.acronym] = {
+            name: college.college,
+            voters: college.voters,
+          };
+        });
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        res.render("admin/election-voter-turnout", { voterCounts, electionConfig });
+      } catch (error) {
+        console.error("Error fetching voter counts:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.get("/results", async (req, res) => {
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/election-results", { electionConfig });
+    });
+
     app.get("/reset", async (req, res) => {
-      res.render("admin/election-reset");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/election-reset", { electionConfig });
     });
 
     app.get("/archives", async (req, res) => {
-      res.render("admin/archives");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/archives", { electionConfig });
     });
 
     app.get("/edit-account", async (req, res) => {
-      res.render("admin/system-edit-account");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/system-edit-account", { electionConfig });
     });
     // app.get("/manage-account", async (req, res) => {
     //   res.render("admin/system-manage-accounts");
     // });
-    app.get("/manage-accounts", async (req, res) => {
+
+    app.get("/manage-admins", async (req, res) => {
       try {
-        console.log("Accessing /manage-accounts");
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+        console.log("Accessing /manage-admins");
         console.log("Session data:", req.session.admin);
 
         if (!req.session.admin) {
@@ -1890,10 +1966,14 @@ const startServer = async () => {
         const admins = await db.collection("admin_accounts").find().toArray();
         console.log("Fetched admins:", admins.length);
 
-        res.render("admin/system-manage-accounts", {
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        res.render("admin/system-manage-admins", {
           admins,
           admin: req.session.admin,
           userRole: req.session.admin.role,
+          electionConfig,
         });
       } catch (error) {
         console.error("Error fetching admin accounts:", error);
@@ -1941,11 +2021,25 @@ const startServer = async () => {
     });
 
     app.get("/help-page", async (req, res) => {
-      res.render("admin/system-help-page");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/system-help-page", { electionConfig });
     });
     app.get("/activity-log", async (req, res) => {
-      res.render("admin/system-activity-log");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/system-activity-log", { electionConfig });
     });
+
+    /* ============================= LOGIN / SIGNUP ============================= */
 
     app.post("/register", async (req, res) => {
       try {

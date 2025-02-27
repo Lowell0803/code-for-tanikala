@@ -20,40 +20,85 @@
   <body>
     <header class="header" id="header">
       <div class="header-logo">
-        <img src="../img/logo_tanikala.png" />
+        <img src="../img/logo_tanikala.png" alt="Tanikala Logo" />
       </div>
       <div class="header-content">
-        <h2><span>BulSU Student Government Elections 2025-2026</span></h2>
-        <p>
-          Current Election Status:&nbsp;
-          <span class="election-status">ELECTION ONGOING</span>
+        <h2>
+          <span><%= electionConfig.electionName || "Tanikala Voting System" %></span>
+        </h2>
+
+        <strong>
+          Election Status:
+          <span id="currentPeriodDisplay" class="election-status" data-status="<%= electionConfig.currentPeriod.name %>"> <%= electionConfig.currentPeriod.name %> </span>
           |
-          <span class="election-status2">Voting</span>
-        </p>
-        <p>
-          Voting Period:&nbsp;
-          <span class="period">MM/DD/YYYY</span>
-          -
-          <span class="period">MM/DD/YYYY</span>
-        </p>
+          <em id="currentPeriodName" class="right-text"> <%= electionConfig.currentPeriod.name %> </em>
+        </strong>
+
+        <script>
+          document.addEventListener("DOMContentLoaded", function () {
+            const periodDisplay = document.getElementById("currentPeriodDisplay");
+            const periodName = document.getElementById("currentPeriodName");
+
+            if (!periodDisplay || !periodName) return;
+
+            // Get the election name from EJS
+            let electionName = periodDisplay.getAttribute("data-status") || "";
+            console.log(electionName);
+            let placeholderText = "";
+            let leftColor = "#f4ab2a"; // Default color for active periods
+
+            if (electionName === "Election Not Active") {
+              placeholderText = "ELECTION NOT ACTIVE | No Configuration";
+              leftColor = "#004aad";
+            } else if (electionName === "Results Are Out Period" || electionName === "Results Double Checking Period") {
+              placeholderText = "ELECTION ENDED | " + electionName;
+              leftColor = "#a60212";
+            } else if (electionName === "Temporarily Closed") {
+              placeholderText = "TEMPORARILY CLOSED";
+              leftColor = "a60212";
+            } else {
+              placeholderText = "ELECTION ACTIVE | " + electionName;
+              leftColor = "#5fb643  ";
+            }
+
+            if (electionName != "Temporarily Closed") {
+              let parts = placeholderText.split(" | ");
+              let leftText = parts[0];
+              let rightText = parts.length > 1 ? parts[1] : "";
+
+              // Update the UI
+              periodDisplay.textContent = leftText;
+              periodDisplay.style.color = leftColor;
+              periodName.textContent = rightText;
+            } else {
+              preiodDisplay.style.color = leftColor;
+            }
+          });
+        </script>
+
+        <% let duration = electionConfig.currentPeriod.duration; let startDate = ""; let endDate = ""; if (duration.includes(" to ")) { [startDate, endDate] = duration.split(" to "); } else { startDate = duration; endDate = "(Waiting for Admin)"; } %>
+
+        <p><strong>Start Date:</strong> <%= startDate %></p>
+        <p><strong>End Date:</strong> <%= endDate %></p>
       </div>
       <div class="header-user">
-        <img src="<%= admin.img %>" />
-        <div class="admin-name"><%= admin.name %></div>
+        <img src="../img/placeholder_admin_profile.png" alt="Admin Profile" />
+        <div class="admin-name">Admin 1</div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="#">View Account</a>
           <hr class="dropdown-line" />
-          <a href="/logout">Log Out</a>
+          <a href="#">Log Out</a>
         </div>
       </div>
     </header>
 
     <div class="content">
       <div class="sidebar close">
-        <div class="user-details">
-          <img src="<%= admin.img %>" />
-          <span class="user-name"><%= admin.name %></span>
+        <div class="profile-details">
+          <img src="img/dungo.jpeg" />
+          <span class="profile-name">Zarina Dungo</span>
+          <span class="job">superadmin</span>
         </div>
 
         <ul class="nav-links">
@@ -66,85 +111,91 @@
           </li>
           <hr />
           <li>
-            <a href="dashboard">
+            <a href="/dashboard">
               <i class="bx bxs-dashboard"></i>
               <span class="link_name">Dashboard</span>
             </a>
             <ul class="sub-menu blank">
-              <li><a class="link_name" href="dashboard">Dashboard</a></li>
+              <li><a class="link_name" href="/dashboard">Dashboard</a></li>
             </ul>
           </li>
+
           <li>
-            <a href="configuration">
+            <a href="/configuration">
               <i class="fa fa-cogs"></i>
               <span class="link_name">Configuration</span>
             </a>
             <ul class="sub-menu blank">
-              <li><a class="link_name" href="configuration">Configuration</a></li>
+              <li><a class="link_name" href="/configuration">Configuration</a></li>
             </ul>
           </li>
           <li>
-            <a href="candidates">
+            <a href="/candidates">
               <i class="fa fa-users"></i>
               <span class="link_name">Candidates</span>
             </a>
             <ul class="sub-menu blank">
-              <li><a class="link_name" href="candidates">Candidates</a></li>
+              <li><a class="link_name" href="/candidates">Candidates</a></li>
             </ul>
           </li>
+
           <li>
             <div class="icon-link">
-              <a href="blockchain-management">
+              <a href="/blockchain-management">
                 <i class="fa fa-link"></i>
                 <span class="link_name">Blockchain</span>
               </a>
               <i class="bx bxs-chevron-down arrow"></i>
             </div>
             <ul class="sub-menu">
-              <li><a class="link_name" href="blockchain-management">Blockchain</a></li>
-              <li><a href="blockchain-management">Blockchain Management</a></li>
-              <li><a href="blockchain-activity-log">Activity Log</a></li>
+              <li><a class="link_name" href="/blockchain-management">Blockchain</a></li>
+              <li><a href="/blockchain-management">Blockchain Management</a></li>
+              <li><a href="/blockchain-activity-log">Activity Log</a></li>
             </ul>
           </li>
+
           <li>
             <div class="icon-link">
-              <a href="voter-info">
+              <a href="/voter-info">
                 <i class="fa fa-bar-chart"></i>
                 <span class="link_name">Election</span>
               </a>
               <i class="bx bxs-chevron-down arrow"></i>
             </div>
             <ul class="sub-menu">
-              <li><a class="link_name" href="voter-info">(Election Name)</a></li>
-              <li><a href="voter-info">Voter Info</a></li>
-              <li><a href="voter-turnout">Voter Turnout</a></li>
-              <li><a href="results">Results</a></li>
-              <li><a href="reset">Reset Election</a></li>
+              <li><a class="link_name" href="/voter-info"><%= electionConfig.electionName || "No Election Ongoing" %></a></li>
+              <li><a href="/voter-info">Voter Info</a></li>
+              <li><a href="/voter-turnout">Voter Turnout</a></li>
+              <li><a href="/vote-tally">Vote Tally</a></li>
+              <li><a href="/results">Results</a></li>
+              <li><a href="/reset">Reset Election</a></li>
             </ul>
           </li>
+
           <li>
-            <a href="archives">
+            <a href="/archives">
               <i class="bx bx-archive"></i>
               <span class="link_name">Election Archives</span>
             </a>
             <ul class="sub-menu blank">
-              <li><a class="link_name" href="archives">Election Archives</a></li>
+              <li><a class="link_name" href="/archives">Election Archives</a></li>
             </ul>
           </li>
+
           <li>
             <div class="icon-link">
-              <a href="edit-account">
+              <a href="/edit-account">
                 <i class="fa fa-tasks"></i>
                 <span class="link_name">System</span>
               </a>
               <i class="bx bxs-chevron-down arrow"></i>
             </div>
             <ul class="sub-menu">
-              <li><a class="link_name" href="edit-account">System</a></li>
-              <li><a href="edit-account">Edit Account</a></li>
-              <li><a href="manage-account">Manage Accounts</a></li>
-              <li><a href="help-page">Help Page</a></li>
-              <li><a href="history">System Activity Log</a></li>
+              <li><a class="link_name" href="/edit-account">System</a></li>
+              <li><a href="/edit-account">Edit Account</a></li>
+              <li><a href="/manage-admins">Manage Admins</a></li>
+              <li><a href="/help-page">Help Page</a></li>
+              <li><a href="/system-activity-log">System Activity Log</a></li>
             </ul>
           </li>
         </ul>
@@ -221,19 +272,53 @@
     <footer class="footer">
       <div class="footer-left">
         <img src="img/calendar.png" class="footer-img" />
-        <p id="datetime">OCTOBER 23, 2024 - 04:17 AM</p>
+        <p id="datetime" data-date="<%= electionConfig.fakeCurrentDate %>"></p>
       </div>
 
       <div class="footer-center">
         <img src="img/copyright.png" class="footer-img" id="copyright-img" />
         <p>2025 - Fourmula 1</p>
       </div>
+
       <div class="footer-right">
         <img src="img/info.png" class="footer-img" id="info-img" />
         <p>Need help? Click&nbsp;</p>
-        <a href="help_page"> here.</a>
+        <a href="help_page">here.</a>
       </div>
     </footer>
+
+    <script>
+      function formatDate(isoString) {
+        const date = new Date(isoString);
+        const options = {
+          month: "long",
+          day: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        };
+        return date.toLocaleString("en-US", options).replace(",", " -").toUpperCase();
+      }
+
+      function updateDateTime() {
+        const datetimeElement = document.getElementById("datetime");
+        if (!datetimeElement) return;
+
+        // Get the initial time from the data attribute
+        let currentTime = new Date(datetimeElement.getAttribute("data-date"));
+
+        function update() {
+          datetimeElement.textContent = formatDate(currentTime);
+          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+        }
+
+        update(); // Set initial formatted date
+        setInterval(update, 60000); // Update every minute (60000ms)
+      }
+
+      document.addEventListener("DOMContentLoaded", updateDateTime);
+    </script>
 
     <script>
       function convertImageToBase64(event) {
