@@ -1,3 +1,9 @@
+/* .content-main,
+.bigger-text,
+.main-container {
+  border: 1px solid black;
+} */
+
 .content-main {
   display: flex;
   flex-direction: column;
@@ -6,18 +12,12 @@
   /* border: 1px solid black; */
 }
 
-.bigger-text {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  /* border: 3px solid black; */
-}
+/* .main-container {
+  border: 3px solid black;
+  margin-top: 0.5rem;
+} */
 
-.main-container {
-  /* border: 3px solid black; */
-  margin-top: 3rem;
-}
-
-#countdown {
+/* #countdown {
   display: inline-flex;
   align-items: center;
 }
@@ -26,11 +26,11 @@
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  margin: 0 10px; /* Adjust spacing between the numbers and labels */
+  margin: 0 10px; 
 }
 
 #countdown-label small {
-  font-size: 0.8em; /* Make the labels smaller */
+  font-size: 0.8em; 
   text-transform: uppercase;
   font-weight: bold;
 }
@@ -48,4 +48,4 @@
   align-items: center;
   color: #f4ab2a;
   font-weight: bold;
-}
+} */

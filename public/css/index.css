@@ -241,7 +241,7 @@ button {
 
   min-width: 80%;
   flex-grow: 1;
-  padding-bottom: 1%;
+  padding-bottom: 1rem;
   justify-content: center;
   align-items: center;
 }
@@ -305,7 +305,7 @@ a {
   /* display: flex;
     flex-direction: column; */
   padding: 0 3rem;
-  line-height: 2.5rem;
+  line-height: 3rem;
 }
 
 .main-container {
@@ -345,17 +345,13 @@ h3 {
   font-size: 1.5rem;
 }
 
-/* h4 {
-  font-size: 
-} */
+h4 {
+  font-size: 1.3rem;
+}
 
-/* h5 {
-  font-size:
-} */
-
-/* h6 {
-  font-size:
-} */
+h6 {
+  font-size: 2rem;
+}
 
 .content-main p,
 li {
