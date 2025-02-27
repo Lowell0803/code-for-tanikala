@@ -26,15 +26,60 @@
         <h2>
           <span><%= electionConfig.electionName || "Tanikala Voting System" %></span>
         </h2>
-        <p>
-          <strong>Election Status:</strong>
-          <span class="election-status"><%= electionConfig.electionStatus %></span>
-        </p>
-        <h3>Current Phase: <span id="currentPeriodDisplay"><%= electionConfig.currentPeriod.name %></span></h3>
-        <p><strong>Time Range:</strong> <span id="currentPeriodDuration"><%= electionConfig.currentPeriod.duration %></span></p>
-        <% if (electionConfig.currentPeriod.waitingFor) { %>
-        <p><em>Waiting for <%= electionConfig.currentPeriod.waitingFor %> to start.</em></p>
-        <% } %>
+
+        <strong>
+          Election Status:
+          <span id="currentPeriodDisplay" class="election-status" data-status="<%= electionConfig.currentPeriod.name %>"> <%= electionConfig.currentPeriod.name %> </span>
+          |
+          <em id="currentPeriodName" class="right-text"> <%= electionConfig.currentPeriod.name %> </em>
+        </strong>
+
+        <script>
+          document.addEventListener("DOMContentLoaded", function () {
+            const periodDisplay = document.getElementById("currentPeriodDisplay");
+            const periodName = document.getElementById("currentPeriodName");
+
+            if (!periodDisplay || !periodName) return;
+
+            // Get the election name from EJS
+            let electionName = periodDisplay.getAttribute("data-status") || "";
+            console.log(electionName);
+            let placeholderText = "";
+            let leftColor = "#f4ab2a"; // Default color for active periods
+
+            if (electionName === "Election Not Active") {
+              placeholderText = "ELECTION NOT ACTIVE | No Configuration";
+              leftColor = "#004aad";
+            } else if (electionName === "Results Are Out Period" || electionName === "Results Double Checking Period") {
+              placeholderText = "ELECTION ENDED | " + electionName;
+              leftColor = "#a60212";
+            } else if (electionName === "Temporarily Closed") {
+              placeholderText = "TEMPORARILY CLOSED";
+              leftColor = "a60212";
+            } else {
+              placeholderText = "ELECTION ACTIVE | " + electionName;
+              leftColor = "#5fb643  ";
+            }
+
+            if (electionName != "Temporarily Closed") {
+              let parts = placeholderText.split(" | ");
+              let leftText = parts[0];
+              let rightText = parts.length > 1 ? parts[1] : "";
+
+              // Update the UI
+              periodDisplay.textContent = leftText;
+              periodDisplay.style.color = leftColor;
+              periodName.textContent = rightText;
+            } else {
+              preiodDisplay.style.color = leftColor;
+            }
+          });
+        </script>
+
+        <% let duration = electionConfig.currentPeriod.duration; let startDate = ""; let endDate = ""; if (duration.includes(" to ")) { [startDate, endDate] = duration.split(" to "); } else { startDate = duration; endDate = "(Waiting for Admin)"; } %>
+
+        <p><strong>Start Date:</strong> <%= startDate %></p>
+        <p><strong>End Date:</strong> <%= endDate %></p>
       </div>
       <div class="header-user">
         <img src="../img/placeholder_admin_profile.png" alt="Admin Profile" />
@@ -49,10 +94,11 @@
     </header>
 
     <div class="content">
-      <div class="sidebar close">
-        <div class="user-details">
+      <div class="sidebar">
+        <div class="profile-details">
           <img src="img/dungo.jpeg" />
-          <span class="user-name">Zarina Dungo</span>
+          <span class="profile-name">Zarina Dungo</span>
+          <span class="job">superadmin</span>
         </div>
 
         <ul class="nav-links">
@@ -65,92 +111,91 @@
           </li>
           <hr />
           <li>
-            <a href="dashboard">
+            <a href="/dashboard">
               <i class="bx bxs-dashboard"></i>
               <span class="link_name">Dashboard</span>
             </a>
             <ul class="sub-menu blank">
-              <li><a class="link_name" href="dashboard">Dashboard</a></li>
+              <li><a class="link_name" href="/dashboard">Dashboard</a></li>
             </ul>
           </li>
-          <hr />
+
           <li>
-            <a href="configuration">
+            <a href="/configuration">
               <i class="fa fa-cogs"></i>
               <span class="link_name">Configuration</span>
             </a>
             <ul class="sub-menu blank">
-              <li><a class="link_name" href="configuration">Configuration</a></li>
+              <li><a class="link_name" href="/configuration">Configuration</a></li>
             </ul>
           </li>
-          <hr />
           <li>
-            <a href="candidates">
+            <a href="/candidates">
               <i class="fa fa-users"></i>
               <span class="link_name">Candidates</span>
             </a>
             <ul class="sub-menu blank">
-              <li><a class="link_name" href="candidates">Candidates</a></li>
+              <li><a class="link_name" href="/candidates">Candidates</a></li>
             </ul>
           </li>
-          <hr />
+
           <li>
             <div class="icon-link">
-              <a href="blockchain-management">
+              <a href="/blockchain-management">
                 <i class="fa fa-link"></i>
                 <span class="link_name">Blockchain</span>
               </a>
               <i class="bx bxs-chevron-down arrow"></i>
             </div>
             <ul class="sub-menu">
-              <li><a class="link_name" href="blockchain-management">Blockchain</a></li>
-              <li><a href="blockchain-management">Blockchain Management</a></li>
-              <li><a href="blockchain-activity-log">Activity Log</a></li>
+              <li><a class="link_name" href="/blockchain-management">Blockchain</a></li>
+              <li><a href="/blockchain-management">Blockchain Management</a></li>
+              <li><a href="/blockchain-activity-log">Activity Log</a></li>
             </ul>
           </li>
-          <hr />
+
           <li>
             <div class="icon-link">
-              <a href="voter-info">
+              <a href="/voter-info">
                 <i class="fa fa-bar-chart"></i>
                 <span class="link_name">Election</span>
               </a>
               <i class="bx bxs-chevron-down arrow"></i>
             </div>
             <ul class="sub-menu">
-              <li><a class="link_name" href="voter-info"><%= electionConfig.electionName || "No Election Ongoing" %></a></li>
-              <li><a href="voter-info">Voter Info</a></li>
-              <li><a href="voter-turnout">Voter Turnout</a></li>
-              <li><a href="vote-tally">Vote Tally</a></li>
-              <li><a href="results">Results</a></li>
-              <li><a href="reset">Reset Election</a></li>
+              <li><a class="link_name" href="/voter-info"><%= electionConfig.electionName || "No Election Ongoing" %></a></li>
+              <li><a href="/voter-info">Voter Info</a></li>
+              <li><a href="/voter-turnout">Voter Turnout</a></li>
+              <li><a href="/vote-tally">Vote Tally</a></li>
+              <li><a href="/results">Results</a></li>
+              <li><a href="/reset">Reset Election</a></li>
             </ul>
           </li>
-          <hr />
+
           <li>
-            <a href="archives">
+            <a href="/archives">
               <i class="bx bx-archive"></i>
               <span class="link_name">Election Archives</span>
             </a>
             <ul class="sub-menu blank">
-              <li><a class="link_name" href="archives">Election Archives</a></li>
+              <li><a class="link_name" href="/archives">Election Archives</a></li>
             </ul>
           </li>
-          <hr />
+
           <li>
             <div class="icon-link">
-              <a href="edit-account">
+              <a href="/edit-account">
                 <i class="fa fa-tasks"></i>
                 <span class="link_name">System</span>
               </a>
               <i class="bx bxs-chevron-down arrow"></i>
             </div>
             <ul class="sub-menu">
-              <li><a class="link_name" href="edit-account">System</a></li>
-              <li><a href="edit-account">Edit Account</a></li>
-              <li><a href="manage-admins">Manage Admins</a></li>
-              <li><a href="help-page">Help Page</a></li>
-              <li><a href="history">System Activity Log</a></li>
+              <li><a class="link_name" href="/edit-account">System</a></li>
+              <li><a href="/edit-account">Edit Account</a></li>
+              <li><a href="/manage-admins">Manage Admins</a></li>
+              <li><a href="/help-page">Help Page</a></li>
+              <li><a href="/system-activity-log">System Activity Log</a></li>
             </ul>
           </li>
         </ul>
