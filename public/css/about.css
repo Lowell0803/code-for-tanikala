@@ -110,6 +110,7 @@ li {
   margin-right: 3%;
   display: flex;
   flex-direction: column;
+  flex-basis: 20vw;
   justify-content: center;
   align-items: center;
   padding-top: 2em;

@@ -32,24 +32,45 @@
 
       <div class="content-main">
         <div class="content-main-left">
-          <img src="img/logo_bulsu.png" alt="BulSU Logo" class="logo-opacity" /><br />
+          <img src="img/logo_bulsu.png" alt="BulSU Logo" class="logo-opacity" /> <br />
           <p class="montserrat" id="be-heard">Be Heard! Your Vote is Your Power!</p>
         </div>
 
         <div class="content-main-center">
-          <!-- Heading that updates dynamically -->
+          <!-- The heading will change based on the state -->
           <h1 class="montserrat h1" id="election-period">Voting Period:</h1>
           <br />
           <!-- Countdown date range display -->
-          <span><h2 class="date-period"></h2></span><br />
-          <!-- Countdown label -->
-          <h1 id="time-left" class="h1">Left to Vote</h1>
-          <br />
+          <span><h3 class="date-period"></h3></span><br />
+
           <!-- Countdown timer -->
-          <span><h1 class="montserrat h1" id="countdown">00 00 00 00</h1></span><br />
+
+          <div id="countdown" class="countdown-timer">
+            <div class="time-box">
+              <span class="time" id="days">02</span>
+              <span class="label">DAY(S)</span>
+            </div>
+            <div class="time-box">
+              <span class="time" id="hours">27</span>
+              <span class="label">HOUR(S)</span>
+            </div>
+            <div class="time-box">
+              <span class="time" id="minutes">37</span>
+              <span class="label">MINUTE(S)</span>
+            </div>
+            <div class="time-box">
+              <span class="time" id="seconds">53</span>
+              <span class="label">SECOND(S)</span>
+            </div>
+          </div>
+
+          <!-- Label for the countdown -->
+          <h2 id="time-left" class="h1">Left to Vote</h2>
           <br />
-          <!-- Vote button (only visible during voting period) -->
-          <button id="vote-button" class="button-rounded-yellow" onclick="window.location.href='/vote'">LOG IN TO VOTE</button>
+          <br />
+
+          <!-- The voting button uses an id for stable reference -->
+          <button id="voting-button" class="button-rounded-yellow" onclick="window.location.href='/auth/microsoft';">VOTE NOW</button>
         </div>
 
         <div class="content-main-right">
@@ -71,11 +92,17 @@
       <div class="footer-right">
         <img src="img/log-in.png" class="footer-img" id="admin-img" />
         <p>Admin? Log in&nbsp;</p>
-        <a href="admin_login.html"> here.</a>
+        <a href="/admin-login"> here.</a>
       </div>
     </footer>
     <script src="js/index.js"></script>
     <script>
+      // voting countdown
+      // Use voting dates from server configuration.
+      const votingStart = new Date("<%= electionConfig.votingStart %>").getTime();
+      const votingEnd = new Date("<%= electionConfig.votingEnd %>").getTime();
+
+      // Get fakeCurrentDate from EJS template if provided.
       // Use fakeCurrentDate if provided; otherwise use the real current time.
       const fakeCurrentDateStr = "<%= electionConfig.fakeCurrentDate ? electionConfig.fakeCurrentDate : '' %>";
       const baseNow = fakeCurrentDateStr ? new Date(fakeCurrentDateStr).getTime() : new Date().getTime();
@@ -84,38 +111,43 @@
         return baseNow + elapsed;
       }
 
-      // Get voting start and end dates from server config
-      const votingStart = new Date("<%= electionConfig.votingStart %>").getTime();
-      const votingEnd = new Date("<%= electionConfig.votingEnd %>").getTime();
+      // // Update the date range display.
+      // const datePeriodElem = document.querySelector(".date-period");
+      // datePeriodElem.textContent = new Date(votingStart).toLocaleDateString() + " - " + new Date(votingEnd).toLocaleDateString();
 
-      // Update the date range display for voting period
+      // Update the date range display with the desired format (Month Day, Year).
       const datePeriodElem = document.querySelector(".date-period");
-      datePeriodElem.textContent = new Date(votingStart).toLocaleDateString() + " - " + new Date(votingEnd).toLocaleDateString();
+      const options = { year: "numeric", month: "long", day: "numeric" };
+      datePeriodElem.textContent = new Date(votingStart).toLocaleDateString("en-US", options) + " - " + new Date(votingEnd).toLocaleDateString("en-US", options);
 
-      // Grab elements by their IDs
+      // Grab elements by id.
       const electionPeriodElem = document.getElementById("election-period");
-      const countdownElem = document.getElementById("countdown");
+      // const countdownElem = document.getElementById("countdown");
+      const daysElem = document.getElementById("days");
+      const hoursElem = document.getElementById("hours");
+      const minutesElem = document.getElementById("minutes");
+      const secondsElem = document.getElementById("seconds");
       const timeLeftElem = document.getElementById("time-left");
-      const voteButton = document.getElementById("vote-button");
+      const votingButton = document.getElementById("voting-button");
 
       function updatePhase() {
-        const now = getCurrentTime();
+        const now = baseNow + elapsed;
         let distance = 0;
         if (now < votingStart) {
           electionPeriodElem.textContent = "Waiting for Voting Period:";
           timeLeftElem.textContent = "Starts In:";
           distance = votingStart - now;
-          voteButton.style.display = "none";
+          votingButton.style.display = "none";
         } else if (now >= votingStart && now <= votingEnd) {
           electionPeriodElem.textContent = "Voting Period:";
-          timeLeftElem.textContent = "Time Left to Vote:";
+          timeLeftElem.textContent = "Left to Vote";
           distance = votingEnd - now;
-          voteButton.style.display = "block";
+          votingButton.style.display = "block";
         } else {
           electionPeriodElem.textContent = "Voting Ended";
           timeLeftElem.textContent = "";
           distance = 0;
-          voteButton.style.display = "none";
+          votingButton.style.display = "none";
         }
         return distance;
       }
@@ -128,13 +160,22 @@
         }
         if (distance <= 0) {
           clearInterval(interval);
-          countdownElem.textContent = "00 00 00 00";
+          // countdownElem.textContent = "00 00 00 00";
+          daysElem.textContent = "00";
+          hoursElem.textContent = "00";
+          minutesElem.textContent = "00";
+          secondsElem.textContent = "00";
         } else {
           const days = Math.floor(distance / (1000 * 60 * 60 * 24));
           const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-          countdownElem.textContent = (days < 10 ? "0" + days : days) + " " + (hours < 10 ? "0" + hours : hours) + " " + (minutes < 10 ? "0" + minutes : minutes) + " " + (seconds < 10 ? "0" + seconds : seconds);
+
+          // countdownElem.textContent = (days < 10 ? "0" + days : days) + " " + (hours < 10 ? "0" + hours : hours) + " " + (minutes < 10 ? "0" + minutes : minutes) + " " + (seconds < 10 ? "0" + seconds : seconds);
+          daysElem.textContent = days < 10 ? "0" + days : days;
+          hoursElem.textContent = hours < 10 ? "0" + hours : hours;
+          minutesElem.textContent = minutes < 10 ? "0" + minutes : minutes;
+          secondsElem.textContent = seconds < 10 ? "0" + seconds : seconds;
         }
       }, 1000);
     </script>
