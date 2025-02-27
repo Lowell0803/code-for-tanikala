@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TANIKALA Voting System</title>
+
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" type="text/css" href="css/contact.css" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-logo">
+        <img src="img/logo_tanikala.png" alt="Tanikala Voting System" />
+      </div>
+      <nav class="header-nav">
+        <ul class="header-nav-content">
+          <li><a href="/">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact" id="active-link">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="header-bottom-line"></div>
+    </header>
+
+    <div class="content">
+      <div class="content-title">
+        <h3>ONLINE VOTING SYSTEM FOR THE STUDENT GOVERNMENT ELECTIONS AT BULACAN STATE UNIVERSITY</h3>
+      </div>
+
+      <div class="content-main">
+        <div class="main-first">
+          <img src="img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
+          <div class="first-text">
+            <h1 class="montserrat" id="contact">Contact Us</h1>
+            <p class="montserrat" id="light">If you have any questions or feedback, feel free to reach us!</p>
+          </div>
+          <img src="img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
+        </div>
+        <div class="main-second">
+          <div class="second-left box-shadow">
+            <form>
+              <h1>Contact Form</h1>
+              <br />
+              <i class="fa fa-user-circle icon"></i>
+              <input type="text" id="name" class="contact-field" name="name" placeholder="Type your name here..." />
+              <br />
+              <br />
+              <i class="fa-solid fa-envelope icon"></i>
+              <input type="email" id="email" class="contact-field" name="email" placeholder="Type your email address here..." />
+              <br />
+              <br />
+              <label for="message" class="text-left">Message:</label> <br />
+              <textarea id="message" class="message" name="message" placeholder="Type your message here..."></textarea>
+              <div class="form-button">
+                <input type="reset" value="RESET" class="button" />
+                <input type="submit" value="SUBMIT MESSAGE" class="button" />
+              </div>
+            </form>
+          </div>
+          <div class="second-right">
+            <p class="yellow">Email Address:</p>
+            <p>For inquiries, please email us at:</p>
+            <a href="https://www.ucse@bulsu.edu.ph" target="_blank">ucse@bulsu.edu.ph</a>
+            <br />
+            <p class="yellow">Facebook Page:</p>
+            <p>Connect with us on Facebook:</p>
+            <p>University Commission on Student Elections (BulSU UCSE):</p>
+            <a href="https://www.facebook.com/ucsebulsu" target="_blank">https://www.facebook.com/ucsebulsu</a>
+            <br />
+            <br />
+            <br />
+            <p class="light-yellow">Response Time:</p>
+            <p>We aim to respond within 24 hours, Monday to Friday, from 8 AM to 5 PM.</p>
+            <br />
+            <p class="light-yellow">Privacy Note:</p>
+            <p>Your information will be kept confidential.</p>
+            <br />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-left">
+        <img src="img/calendar.png" class="footer-img" />
+        <p id="datetime">OCTOBER 23, 2024 - 04:17 AM</p>
+      </div>
+
+      <div class="footer-center">
+        <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+        <p>2025 - Fourmula 1</p>
+      </div>
+      <div class="footer-right">
+        <img src="img/log-in.png" class="footer-img" id="admin-img" />
+        <p>Admin? Log in&nbsp;</p>
+        <a href="admin_login.html"> here.</a>
+      </div>
+    </footer>
+    <script src="js/index.js"></script>
+  </body>
+</html>

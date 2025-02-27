@@ -101,10 +101,14 @@ const startServer = async () => {
 
     app.get("/auth/microsoft", passport.authenticate("azure_ad_oauth2"));
 
-    app.get("/auth/microsoft/callback", passport.authenticate("azure_ad_oauth2", { failureRedirect: "/register" }), (req, res) => {
-      // Get the original URL from the session, or default to "/"
+    app.get("/auth/microsoft/callback", passport.authenticate("azure_ad_oauth2", { failureRedirect: "/register" }), async (req, res) => {
+      // Check registration status
+      const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
+      if (!voter) {
+        return res.redirect("/register?error=not_registered");
+      }
       const redirectUrl = req.session.returnTo || "/";
-      delete req.session.returnTo; // Clean up the session
+      delete req.session.returnTo;
       res.redirect(redirectUrl);
     });
 
@@ -2051,6 +2055,15 @@ const startServer = async () => {
         console.error("Error updating voter counts:", error);
         res.status(500).send("Failed to update voter counts.");
       }
+    });
+
+    // Routing
+    app.get("/about", async (req, res) => {
+      res.render("about");
+    });
+
+    app.get("/contact", async (req, res) => {
+      res.render("contact");
     });
 
     app.listen(PORT, () => {
