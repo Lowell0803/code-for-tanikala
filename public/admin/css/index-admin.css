@@ -65,8 +65,8 @@ h6 {
 }
 
 .select {
-  background-color: #4a0707;
-  color: #ffaa00;
+  background-color: #fff3c8;
+  color: #bb7e15;
   font-family: "Montserrat", "Century Gothic";
   font-weight: 700;
   padding: 1em 0.8em;
@@ -75,6 +75,7 @@ h6 {
   text-align: center;
   cursor: pointer;
   box-shadow: inset 0 0 0 0.1em #ffffff;
+  border: 0.2rem solid #bb7e15;
 }
 
 .select:focus {
@@ -560,4 +561,13 @@ h6 {
 
 .right-text {
   color: #f4ab2a; /* Always yellow */
+}
+
+.main {
+  /* border: 3px solid black; */
+  background-color: #faf2db;
+}
+
+.title {
+  color: #480404;
 }
