@@ -239,31 +239,7 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody>
-              <% admins.forEach(admin => { %>
-              <tr>
-                <td>
-                  <img src="<%= admin.img %>" width="50" height="50" alt="Profile Picture" />
-                </td>
-                <td><%= admin.name %></td>
-                <td><%= admin.role %></td>
-                <td><%= admin.username %></td>
-                <td>
-                  <% if (userRole === "superadmin") { %>
-                  <span class="password" data-password="<%= admin.password %>">********</span>
-                  <button onclick="togglePassword(this)">Show</button>
-                  <% } else { %> ******** <% } %>
-                </td>
-                <td>
-                  <% if (userRole === "superadmin") { %>
-                  <form action="/admin-accounts/delete/<%= admin._id %>" method="POST">
-                    <button type="submit">Delete</button>
-                  </form>
-                  <% } %>
-                </td>
-              </tr>
-              <% }) %>
-            </tbody>
+            <tbody></tbody>
           </table>
         </div>
       </main>

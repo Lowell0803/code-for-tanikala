@@ -21,6 +21,10 @@
   --width-footer-center: 50vw;
 }
 
+.clear-float {
+  clear: both;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -343,20 +347,24 @@ h6 {
   font-weight: bold;
 }
 
-#edit-button {
+.edit-button {
   background-color: #0024e4;
 }
 
-#save-button {
+.save-button {
   background-color: #369f2c;
 }
 
-#cancel-button {
+.cancel-button {
   background-color: #c11515;
 }
 
-#blockchain-button {
+.blockchain-button {
   background-color: #503a96;
+}
+
+.brown-button {
+  background-color: #370606;
 }
 
 .button-container {

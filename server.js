@@ -1533,7 +1533,7 @@ const startServer = async () => {
       return currentDate;
     };
 
-    app.post("/api/reset-election", async (req, res) => {
+    app.post("/reset-election", async (req, res) => {
       try {
         console.log("Reset election initiated.");
 
@@ -1971,17 +1971,17 @@ const startServer = async () => {
         const electionConfigCollection = db.collection("election_config");
         let electionConfig = await electionConfigCollection.findOne({});
         console.log("Accessing /manage-admins");
-        console.log("Session data:", req.session.admin);
+        // console.log("Session data:", req.session.admin);
 
-        if (!req.session.admin) {
-          console.log("No admin session found. Redirecting to login.");
-          return res.redirect("/admin-login"); // Redirect if not logged in
-        }
+        // if (!req.session.admin) {
+        //   console.log("No admin session found. Redirecting to login.");
+        //   return res.redirect("/admin-login"); // Redirect if not logged in
+        // }
 
-        if (req.session.admin.role !== "admin" && req.session.admin.role !== "superadmin") {
-          console.log("Unauthorized access attempt by:", req.session.admin.email);
-          return res.redirect("/admin-login"); // Redirect non-admins to login
-        }
+        // if (req.session.admin.role !== "admin" && req.session.admin.role !== "superadmin") {
+        //   console.log("Unauthorized access attempt by:", req.session.admin.email);
+        //   return res.redirect("/admin-login"); // Redirect non-admins to login
+        // }
 
         const admins = await db.collection("admin_accounts").find().toArray();
         console.log("Fetched admins:", admins.length);
@@ -1991,8 +1991,8 @@ const startServer = async () => {
 
         res.render("admin/system-manage-admins", {
           admins,
-          admin: req.session.admin,
-          userRole: req.session.admin.role,
+          // admin: req.session.admin,
+          // userRole: req.session.admin.role,
           electionConfig,
         });
       } catch (error) {

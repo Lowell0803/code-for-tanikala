@@ -205,9 +205,183 @@
         </ul>
       </div>
       <main class="main">
-        <div class="blockchain">
-          <h1>Admin - Submit Candidates to Blockchain</h1>
+        <h1>Candidates Management</h1>
 
+        <div class="main-content">
+          <div class="main-left">
+            <h1>Supreme Student Council</h1>
+            <div class="container container-ssc" id="container-president">
+              <div class="container-position">
+                <h1 class="position-ssc">President</h1>
+                <button class="button button-add" onclick="addCandidate('President')">Add Candidate</button>
+              </div>
+              <hr />
+              <div>
+                <% candidates.filter(candidate=> candidate._id.startsWith('president_')) .forEach((president, index) => { %>
+                <br />
+                <div class="candidate">
+                  <% if (president._id) { %>
+                  <div class="candidate-content">
+                    <div class="img-container">
+                      <img src="<%= president.image %>" alt="<%= president.name %>" />
+                    </div>
+
+                    <div>
+                      <h2><%= president.name %></h2>
+                      <p>Party: <%= president.party %></p>
+                    </div>
+                  </div>
+
+                  <button class="button button-edit" onclick="editCandidate('<%= president._id %>', '<%= president.position %>', '<%= president.party %>', '<%= president.name %>', '<%= president.moreInfo %>', '<%= president.image %>')">Edit</button>
+                  <% } else { %>
+                  <p>There are no candidates for <%= president.position %> position right now.</p>
+                  <% } %>
+                </div>
+                <% }); %>
+              </div>
+            </div>
+
+            <div class="container container-ssc" id="container-vice-president">
+              <div class="container-position">
+                <h1 class="position-ssc">Vice President</h1>
+                <button class="button button-add" onclick="addCandidate('Vice President')">Add Candidate</button>
+              </div>
+              <hr />
+              <div>
+                <% candidates.filter(candidate=> candidate._id.startsWith('vice_president_')) .forEach((vice_president, index) => { %>
+                <br />
+                <div class="candidate">
+                  <% if (vice_president._id) { %>
+                  <div class="candidate-content">
+                    <div class="img-container">
+                      <img src="<%= vice_president.image %>" alt="<%= vice_president.name %>" />
+                    </div>
+
+                    <div>
+                      <h2><%= vice_president.name %></h2>
+                      <p>Party: <%= vice_president.party %></p>
+                    </div>
+                  </div>
+
+                  <button class="button button-edit" onclick="editCandidate('<%= vice_president._id %>', '<%= vice_president.position %>', '<%= vice_president.party %>', '<%= vice_president.name %>', '<%= vice_president.moreInfo %>', '<%= vice_president.image %>')">Edit</button>
+                  <% } else { %>
+                  <p>There are no candidates for the <%= president.position %> position right now.</p>
+                  <% } %>
+                </div>
+                <% }); %>
+              </div>
+            </div>
+
+            <div class="container container-ssc" id="container-senators">
+              <div class="container-position">
+                <h1 class="position-ssc">Senators</h1>
+                <button class="button button-add" onclick="addCandidate('Senator')">Add Candidate</button>
+              </div>
+              <hr />
+              <div>
+                <% candidates.filter(candidate=> candidate._id.startsWith('senator_')) .forEach((senator, index) => { %>
+                <br />
+                <div class="candidate">
+                  <% if (senator._id) { %>
+                  <div class="candidate-content">
+                    <div class="img-container">
+                      <img src="<%= senator.image %>" alt="<%= senator.name %>" />
+                    </div>
+
+                    <div>
+                      <h2><%= senator.name %></h2>
+                      <p>Party: <%= senator.party %></p>
+                    </div>
+                  </div>
+
+                  <button class="button button-edit" onclick="editCandidate('<%= senator._id %>', '<%= senator.position %>', '<%= senator.party %>', '<%= senator.name %>', '<%= senator.moreInfo %>', '<%= senator.image %>')">Edit</button>
+                  <% } else { %>
+                  <p>There are no candidates for <%= senator.position %> position right now.</p>
+                  <% } %>
+                </div>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+          <div class="main-right">
+            <div class="main-right-header">
+              <h1>Local Student Council</h1>
+              <br />
+              <select class="select" id="collegeSelect">
+                <option value="CAFA">College of Architecture and Fine Arts (CAFA)</option>
+                <option value="CAL">College of Arts and Letters (CAL)</option>
+                <option value="CBEA">College of Business Education and Accountancy (CBEA)</option>
+                <option value="CCJE">College of Criminal Justice Education (CCJE)</option>
+                <option value="CHTM">College of Hospitality and Tourism Management (CHTM)</option>
+                <option value="CIT">College of Industrial Technology (CIT)</option>
+                <option value="CICT">College of Information and Communications Technology (CICT)</option>
+                <option value="COE">College of Engineering (COE)</option>
+                <option value="COED">College of Education (COED)</option>
+                <option value="CN">College of Nursing (CN)</option>
+                <option value="CS">College of Science (CS)</option>
+                <option value="CSER">College of Sports, Exercise and Recreation (CSER)</option>
+                <option value="CSSP">College of Social Sciences and Philosophy (CSSP)</option>
+              </select>
+
+              <!-- <input type="text" id="collegeInput" /> -->
+            </div>
+            <div>
+              <div class="container container-lsc" id="container-lsc-governor">
+                <button class="button button-add" onclick="addCandidateLSC('Governor')">Add Candidate</button>
+
+                <h2>Governor</h2>
+
+                <% candidates_lsc.forEach(college=> { %> <% if (college.collegeAcronym==="CAFA" ) { %> <% if (college.positions["Governor"]) { %> <% college.positions["Governor"].forEach(candidate=> { %>
+                <div class="candidate">
+                  <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
+                  <h3><%= candidate.name %></h3>
+                  <p>Party: <%= candidate.party %></p>
+                  <p><%= candidate.moreInfo %></p>
+                  <button class="button button-edit" onclick="editCandidateLSC('<%= candidate._id %>', '<%= candidate.position %>', '<%= candidate.party %>', '<%= candidate.name %>', '<%= candidate.moreInfo %>', '<%= candidate.image %>', '<%= college.collegeAcronym %>')">Edit</button>
+                </div>
+                <% }); %> <% } %> <% } %> <% }); %>
+              </div>
+
+              <div class="container container-lsc" id="container-lsc-vice-governor">
+                <h2>Vice Governor</h2>
+                <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add Candidate</button>
+                <% candidates_lsc.forEach(college=> { %> <% if (college.collegeAcronym==="CAFA" ) { %> <% if (college.positions["Vice Governor"]) { %> <% college.positions["Vice Governor"].forEach(candidate=> { %>
+                <div class="candidate">
+                  <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
+                  <h3><%= candidate.name %></h3>
+                  <p>Party: <%= candidate.party %></p>
+                  <p><%= candidate.moreInfo %></p>
+                  <button class="button button-edit" onclick="editCandidateLSC('<%= candidate._id %>', '<%= candidate.position %>', '<%= candidate.party %>', '<%= candidate.name %>', '<%= candidate.moreInfo %>', '<%= candidate.image %>', '<%= college.collegeAcronym %>')">Edit</button>
+                </div>
+                <% }); %> <% } %> <% } %> <% }); %>
+              </div>
+
+              <div class="container container-lsc" id="container-lsc-board-member">
+                <h2>Board Member</h2>
+                <% let cafa=candidates_lsc.find(college=> college.collegeAcronym === "CAFA"); if (cafa && cafa.positions["Board Member"]) { let boardMembers = cafa.positions["Board Member"]; %> <% Object.keys(boardMembers).forEach(program=> { %>
+                <h3><%= program %></h3>
+                <button class="button button-add" onclick="addCandidateLSC('Board Member', '<%= program %>')">Add Candidate</button>
+
+                <ul>
+                  <% boardMembers[program].forEach(candidate=> { %>
+                  <li>
+                    <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
+                    <strong> <%= candidate.name %> </strong> - <%= candidate.party %>
+                    <p><%= candidate.moreInfo %></p>
+                    <button class="button button-edit" onclick="editCandidateLSC('<%= candidate._id %>', '<%= candidate.position %>', '<%= candidate.party %>', '<%= candidate.name %>', '<%= candidate.moreInfo %>', '<%= candidate.image %>', '<%= cafa.collegeAcronym %>', '<%= program %>')">
+                      Edit
+                    </button>
+                  </li>
+                  <% }) %>
+                </ul>
+                <% }) %> <% } else { %>
+                <p>No board members found for CAFA.</p>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="blockchain">
           <button id="submitBtn">Submit Candidates</button>
 
           <p id="statusMessage"></p>
@@ -244,137 +418,6 @@
               }
             });
           </script>
-        </div>
-        <div class="main-content">
-          <div class="main-left">
-            <h1>Supreme Student Council</h1>
-            <div class="container container-ssc" id="container-president">
-              <h2>President</h2>
-              <button class="button button-add" onclick="addCandidate('President')">Add</button>
-              <div>
-                <% candidates.filter(candidate=> candidate._id.startsWith('president_')) .forEach((president, index) => { %>
-                <div class="candidate">
-                  <% if (president._id) { %>
-                  <h3><%= president.name %></h3>
-                  <p>Party: <%= president.party %></p>
-                  <img src="<%= president.image %>" alt="<%= president.name %>" />
-                  <button class="button button-edit" onclick="editCandidate('<%= president._id %>', '<%= president.position %>', '<%= president.party %>', '<%= president.name %>', '<%= president.moreInfo %>', '<%= president.image %>')">Edit</button>
-                  <% } else { %>
-                  <p>No candidates for <%= president.position %> right now.</p>
-                  <% } %>
-                </div>
-                <% }); %>
-              </div>
-            </div>
-
-            <div class="container container-ssc" id="container-vice-president">
-              <h2>Vice President</h2>
-              <button class="button button-add" onclick="addCandidate('Vice President')">Add</button>
-              <div>
-                <% candidates.filter(candidate=> candidate._id.startsWith('vice_president_')) .forEach((vice_president, index) => { %>
-                <div class="candidate">
-                  <% if (vice_president._id) { %>
-                  <h3><%= vice_president.name %></h3>
-                  <p>Party: <%= vice_president.party %></p>
-                  <img src="<%= vice_president.image %>" alt="<%= vice_president.name %>" />
-                  <button class="button button-edit" onclick="editCandidate('<%= vice_president._id %>', '<%= vice_president.position %>', '<%= vice_president.party %>', '<%= vice_president.name %>', '<%= vice_president.moreInfo %>', '<%= vice_president.image %>')">Edit</button>
-                  <% } else { %>
-                  <p>No candidates for <%= vice_president.position %> right now.</p>
-                  <% } %>
-                </div>
-                <% }); %>
-              </div>
-            </div>
-            <div class="container container-ssc" id="container-senators">
-              <h2>Senators</h2>
-              <button class="button button-add" onclick="addCandidate('Senator')">Add</button>
-              <div>
-                <% candidates.filter(candidate=> candidate._id.startsWith('senator_')) .sort((a, b) => { if (a.party < b.party) return -1; if (a.party> b.party) return 1; return a.name.localeCompare(b.name); }) .forEach((senator, index) => { %>
-                <div class="candidate">
-                  <% if (senator._id) { %>
-                  <h3><%= senator.name %></h3>
-                  <p>Party: <%= senator.party %></p>
-                  <img src="<%= senator.image %>" alt="<%= senator.name %>" />
-                  <button class="button button-edit" onclick="editCandidate('<%= senator._id %>', '<%= senator.position %>', '<%= senator.party %>', '<%= senator.name %>', '<%= senator.moreInfo %>', '<%= senator.image %>')">Edit</button>
-                  <% } else { %>
-                  <p>No candidates for <%= senator.position %> right now.</p>
-                  <% } %>
-                </div>
-                <% }); %>
-              </div>
-            </div>
-          </div>
-          <div class="main-right">
-            <div class="main-right-header">
-              <h1>Local Student Council</h1>
-              <select class="select" id="collegeSelect">
-                <option value="CAFA">College of Architecture and Fine Arts (CAFA)</option>
-                <option value="CAL">College of Arts and Letters (CAL)</option>
-                <option value="CBEA">College of Business Education and Accountancy (CBEA)</option>
-                <option value="CCJE">College of Criminal Justice Education (CCJE)</option>
-                <option value="CHTM">College of Hospitality and Tourism Management (CHTM)</option>
-                <option value="CIT">College of Industrial Technology (CIT)</option>
-                <option value="CICT">College of Information and Communications Technology (CICT)</option>
-                <option value="CS">College of Science (CS)</option>
-                <option value="CSER">College of Sports, Exercise and Recreation (CSER)</option>
-                <option value="CSSP">College of Social Sciences and Philosophy (CSSP)</option>
-              </select>
-
-              <input type="text" id="collegeInput" />
-            </div>
-            <div>
-              <div class="container container-lsc" id="container-lsc-governor">
-                <h2>Governor</h2>
-                <button class="button button-add" onclick="addCandidateLSC('Governor')">Add</button>
-                <% candidates_lsc.forEach(college=> { %> <% if (college.collegeAcronym==="CAFA" ) { %> <% if (college.positions["Governor"]) { %> <% college.positions["Governor"].forEach(candidate=> { %>
-                <div class="candidate">
-                  <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                  <h3><%= candidate.name %></h3>
-                  <p>Party: <%= candidate.party %></p>
-                  <p><%= candidate.moreInfo %></p>
-                  <button class="button button-edit" onclick="editCandidateLSC('<%= candidate._id %>', '<%= candidate.position %>', '<%= candidate.party %>', '<%= candidate.name %>', '<%= candidate.moreInfo %>', '<%= candidate.image %>', '<%= college.collegeAcronym %>')">Edit</button>
-                </div>
-                <% }); %> <% } %> <% } %> <% }); %>
-              </div>
-
-              <div class="container container-lsc" id="container-lsc-vice-governor">
-                <h2>Vice Governor</h2>
-                <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add</button>
-                <% candidates_lsc.forEach(college=> { %> <% if (college.collegeAcronym==="CAFA" ) { %> <% if (college.positions["Vice Governor"]) { %> <% college.positions["Vice Governor"].forEach(candidate=> { %>
-                <div class="candidate">
-                  <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                  <h3><%= candidate.name %></h3>
-                  <p>Party: <%= candidate.party %></p>
-                  <p><%= candidate.moreInfo %></p>
-                  <button class="button button-edit" onclick="editCandidateLSC('<%= candidate._id %>', '<%= candidate.position %>', '<%= candidate.party %>', '<%= candidate.name %>', '<%= candidate.moreInfo %>', '<%= candidate.image %>', '<%= college.collegeAcronym %>')">Edit</button>
-                </div>
-                <% }); %> <% } %> <% } %> <% }); %>
-              </div>
-
-              <div class="container container-lsc" id="container-lsc-board-member">
-                <h2>Board Member</h2>
-                <% let cafa=candidates_lsc.find(college=> college.collegeAcronym === "CAFA"); if (cafa && cafa.positions["Board Member"]) { let boardMembers = cafa.positions["Board Member"]; %> <% Object.keys(boardMembers).forEach(program=> { %>
-                <h3><%= program %></h3>
-                <button class="button button-add" onclick="addCandidateLSC('Board Member', '<%= program %>')">Add</button>
-
-                <ul>
-                  <% boardMembers[program].forEach(candidate=> { %>
-                  <li>
-                    <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                    <strong> <%= candidate.name %> </strong> - <%= candidate.party %>
-                    <p><%= candidate.moreInfo %></p>
-                    <button class="button button-edit" onclick="editCandidateLSC('<%= candidate._id %>', '<%= candidate.position %>', '<%= candidate.party %>', '<%= candidate.name %>', '<%= candidate.moreInfo %>', '<%= candidate.image %>', '<%= cafa.collegeAcronym %>', '<%= program %>')">
-                      Edit
-                    </button>
-                  </li>
-                  <% }) %>
-                </ul>
-                <% }) %> <% } else { %>
-                <p>No board members found for CAFA.</p>
-                <% } %>
-              </div>
-            </div>
-          </div>
         </div>
       </main>
     </div>
@@ -931,12 +974,12 @@
 
             // Governor Section
             governorContainer.innerHTML = `<h2>Governor</h2>
-                <button class="button button-add" onclick="addCandidateLSC('Governor')">Add</button>
+                <button class="button button-add" onclick="addCandidateLSC('Governor')">Add Candidate</button>
                 <div>${data.governor.length ? data.governor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}</div>`;
 
             // Vice Governor Section
             viceGovernorContainer.innerHTML = `<h2>Vice Governor</h2>
-                <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add</button>
+                <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add Candidate</button>
                 <div>${data.viceGovernor.length ? data.viceGovernor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}</div>`;
 
             // Board Members Section

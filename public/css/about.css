@@ -31,10 +31,6 @@
   border: 3px solid black;
 } */
 
-.content-main {
-  /* border: 3px solid black; */
-}
-
 .main-buttons {
   display: flex;
   flex-direction: row;
@@ -121,7 +117,7 @@ li {
   padding-left: 0.8rem;
   padding-right: 0.8rem;
 
-  border: 3px solid black;
+  /* border: 3px solid black; */
   /* align-items: center;
     border: 2px solid red; */
   /* justify-content: flex-start;
@@ -154,11 +150,6 @@ hr {
 
 .about-text {
   text-align: justify;
-}
-
-.content-main,
-.about-text {
-  /* border: 3px solid black; */
 }
 
 h4 {
