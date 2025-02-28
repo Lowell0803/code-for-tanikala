@@ -33,28 +33,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-}
-
-.main-first {
-  display: flex;
-  flex-direction: row;
-  max-height: var(--height-main-first);
-  width: 70%;
-  justify-content: center;
-  margin-top: 1.57%;
-}
-
-.main-first-logo {
-  height: 5em;
-  width: auto;
-  opacity: 0.6;
-}
-
-.first-text {
-  /* display: flex;
-  flex-direction: column; */
-  padding: 0% 5%;
-  line-height: 2.5rem;
+  /* border: 3px solid black; */
 }
 
 .main-second {
@@ -78,7 +57,7 @@
   margin-left: 4%;
   margin-bottom: 5%;
 
-  height: 71vh;
+  height: 77vh;
 }
 
 .message {
@@ -180,4 +159,8 @@ input:-webkit-autofill:active {
   position: absolute;
   color: var(--color-mediumRed);
   margin-bottom: 1em;
+}
+
+.text {
+  font-size: 1.2rem;
 }

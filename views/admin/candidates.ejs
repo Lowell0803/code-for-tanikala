@@ -363,7 +363,9 @@
                     <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                     <strong> <%= candidate.name %> </strong> - <%= candidate.party %>
                     <p><%= candidate.moreInfo %></p>
-                    <button class="button button-edit" onclick="editCandidateLSC('<%= candidate._id %>', '<%= candidate.position %>', '<%= candidate.party %>', '<%= candidate.name %>', '<%= candidate.moreInfo %>', '<%= candidate.image %>', '<%= cafa.collegeAcronym %>', '<%= program %>')">Edit</button>
+                    <button class="button button-edit" onclick="editCandidateLSC('<%= candidate._id %>', '<%= candidate.position %>', '<%= candidate.party %>', '<%= candidate.name %>', '<%= candidate.moreInfo %>', '<%= candidate.image %>', '<%= cafa.collegeAcronym %>', '<%= program %>')">
+                      Edit
+                    </button>
                   </li>
                   <% }) %>
                 </ul>
