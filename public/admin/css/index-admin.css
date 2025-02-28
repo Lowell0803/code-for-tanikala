@@ -363,8 +363,29 @@ h6 {
   background-color: #503a96;
 }
 
-.brown-button {
-  background-color: #370606;
+.button {
+  border-radius: 1em;
+  padding: 1em;
+  font-size: 1rem;
+  color: white;
+  border: none;
+  font-weight: bold;
+}
+
+.button-edit {
+  background-color: #0024e4;
+}
+
+.button-save {
+  background-color: #369f2c;
+}
+
+.button-cancel {
+  background-color: #c11515;
+}
+
+.button-blockchain {
+  background-color: #503a96;
 }
 
 .button-container {
