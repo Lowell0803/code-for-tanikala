@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>BulSU Voting System Configuration</title>
     <link rel="stylesheet" href="admin/css/index-admin.css" />
-    <link rel="stylesheet" href="admin/css/election-management.css" />
+    <link rel="stylesheet" href="admin/css/configuration.css" />
     <link rel="stylesheet" href="admin/css/sidebar.css" />
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/boxicons/css/boxicons.min.css" rel="stylesheet" />
     <style>
       .period-info {
         margin: 10px 0;
@@ -63,7 +64,7 @@
               leftColor = "a60212";
             } else {
               placeholderText = "ELECTION ACTIVE | " + electionName;
-              leftColor = "#5fb643  ";
+              leftColor = "#5fb643";
             }
 
             if (electionName != "Temporarily Closed") {
@@ -207,66 +208,74 @@
       </div>
       <main class="main">
         <!-- Display Current Election Configuration -->
+        <h1 class="settings-title">Election Configuration</h1>
+        <br />
         <section class="election-info">
-          <h1>Current Election Configuration</h1>
           <% if (electionConfig.electionName) { %>
-          <p><strong>Election Name:</strong> <%= electionConfig.electionName %></p>
-          <% } %> <% if (electionConfig.electionStatus) { %>
-          <p><strong>Status:</strong> <%= electionConfig.electionStatus %></p>
+          <p class="election-name">&nbsp;<strong>Election Name:</strong> <%= electionConfig.electionName %></p>
+          <hr />
+          <% } %> <% if (electionConfig.currentPeriod.name) { %>
+          <p><i class="bx bx-calendar-check"></i>&nbsp;<strong>Status:</strong> <%= electionConfig.currentPeriod.name %></p>
           <% } %> <% if (electionConfig.registrationStart && electionConfig.registrationEnd) { %>
           <p>
+            <i class="bx bx-edit-alt"></i>
             <strong>Registration Period:</strong>
             <%= new Date(electionConfig.registrationStart).toLocaleString() %> - <%= new Date(electionConfig.registrationEnd).toLocaleString() %>
           </p>
           <% } %> <% if (electionConfig.votingStart && electionConfig.votingEnd) { %>
           <p>
+            <i class="bx bx-list-ul"></i>
             <strong>Voting Period:</strong>
             <%= new Date(electionConfig.votingStart).toLocaleString() %> - <%= new Date(electionConfig.votingEnd).toLocaleString() %>
           </p>
           <% } %>
         </section>
-
+        <br />
         <!-- Election Creation / Update Form -->
         <section class="create-election">
           <h2>Create / Update Election</h2>
+          <hr />
           <form action="/configuration" method="POST">
             <div>
               <label for="electionName">Election Name:</label>
-              <input type="text" id="electionName" name="electionName" value="<%= electionConfig.electionName %>" required />
+              <input class="input" type="text" id="electionName" name="electionName" value="<%= electionConfig.electionName %>" required />
             </div>
             <div>
               <label for="registrationStart">Registration Start Date:</label>
-              <input type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig.registrationStart ? new Date(electionConfig.registrationStart).toISOString().slice(0,16) : '' %>" required />
+              <input class="input" type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig.registrationStart ? new Date(electionConfig.registrationStart).toISOString().slice(0,16) : '' %>" required />
             </div>
             <div>
               <label for="registrationEnd">Registration End Date:</label>
-              <input type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig.registrationEnd ? new Date(electionConfig.registrationEnd).toISOString().slice(0,16) : '' %>" required />
+              <input class="input" type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig.registrationEnd ? new Date(electionConfig.registrationEnd).toISOString().slice(0,16) : '' %>" required />
             </div>
             <div>
               <label for="votingStart">Voting Start Date:</label>
-              <input type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig.votingStart ? new Date(electionConfig.votingStart).toISOString().slice(0,16) : '' %>" required />
+              <input class="input" type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig.votingStart ? new Date(electionConfig.votingStart).toISOString().slice(0,16) : '' %>" required />
             </div>
             <div>
               <label for="votingEnd">Voting End Date:</label>
-              <input type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig.votingEnd ? new Date(electionConfig.votingEnd).toISOString().slice(0,16) : '' %>" required />
+              <input class="input" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig.votingEnd ? new Date(electionConfig.votingEnd).toISOString().slice(0,16) : '' %>" required />
             </div>
             <div>
               <label for="partylists">Partylists (comma separated):</label>
-              <input type="text" id="partylists" name="partylists" value="<%= electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
+              <input class="input" type="text" id="partylists" name="partylists" value="<%= electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
             </div>
             <fieldset>
-              <legend>Number of Students Per College</legend>
+              <legend><strong>Number of Students Per College</strong></legend>
               <% if (electionConfig.listOfElections && electionConfig.listOfElections.length > 0) { %> <% electionConfig.listOfElections.forEach(function(college) { %>
-              <div>
-                <label for="<%= college.acronym %>"> <%= college.acronym %> (<%= college.name %>): </label>
-                <input type="number" id="<%= college.acronym %>" name="colleges[<%= college.acronym %>]" value="<%= college.voters %>" min="0" required />
+              <div class="num-of-students">
+                <div>
+                  <img height="50" src="img/colleges/<%= college.acronym %>.png" />
+                  <label for="<%= college.acronym %>"> <%= college.name %> (<%= college.acronym %>): </label>
+                </div>
+                <input class="input" type="number" id="<%= college.acronym %>" name="colleges[<%= college.acronym %>]" value="<%= college.voters %>" min="0" required />
               </div>
               <% }); %> <% } else { %>
               <p>No college data available.</p>
               <% } %>
             </fieldset>
 
-            <button type="submit">Save Election Configuration</button>
+            <button class="button button-save" type="submit">Save Election Configuration</button>
           </form>
 
           <!-- Action Buttons -->

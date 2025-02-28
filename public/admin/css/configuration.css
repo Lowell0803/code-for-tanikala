@@ -24,6 +24,35 @@
   padding-left: 1.5rem;
 }
 
+.election-info {
+  font-size: 1.2rem;
+  background-color: #c0edbc;
+  padding: 2%;
+  border-radius: 0.5em;
+}
+
+.election-name {
+  font-size: 1.6rem;
+}
+
+.create-election {
+  font-size: 1.2rem;
+  background-color: #b8e5ff;
+  padding: 2%;
+  border-radius: 0.5em;
+}
+
+.create-election form > * {
+  margin-bottom: 1rem;
+}
+
+.create-election input {
+}
+
+hr {
+  margin: 0.5rem 0;
+}
+
 .right-side {
   display: flex;
   flex-direction: column;
@@ -143,3 +172,52 @@
 .center {
   text-align: center;
 }
+
+/* From Uiverse.io by Satwinder04 */
+/* Input container */
+/* From Uiverse.io by shadowmurphy */
+.input {
+  border: 2px solid transparent;
+  width: 15em;
+  height: 2.5em;
+  padding-left: 0.8em;
+  outline: none;
+  overflow: hidden;
+  background-color: #f3f3f3;
+  border-radius: 10px;
+  transition: all 0.5s;
+}
+
+.input:hover,
+.input:focus {
+  border: 2px solid #4a9dec;
+  box-shadow: 0px 0px 0px 7px rgb(74, 157, 236, 20%);
+  background-color: white;
+}
+
+.create-election fieldset {
+  padding: 1.5em;
+}
+
+.create-election fieldset legend {
+  font-size: 1.5rem;
+}
+
+.num-of-students {
+  margin-bottom: 1em;
+  display: flex;
+  align-items: center;
+  gap: 2em;
+}
+
+.num-of-students > div {
+  flex-basis: 40vw;
+  display: flex;
+  align-items: center;
+  gap: 2em;
+  /* justify-content: space-between; */
+}
+
+/* .num-of-students > div label {
+  justify-self: flex-end;
+} */
