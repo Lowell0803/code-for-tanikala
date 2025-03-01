@@ -2110,7 +2110,7 @@ const startServer = async () => {
 
       res.render("admin/system-help-page", { electionConfig, loggedInAdmin: req.session.admin });
     });
-    app.get("/activity-log", async (req, res) => {
+    app.get("/system-activity-log", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});
 
