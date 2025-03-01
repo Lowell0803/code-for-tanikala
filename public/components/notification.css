@@ -1,4 +1,6 @@
 .notification-wrapper {
+  color: black;
+
   position: fixed;
   bottom: 5vh;
   right: 1vw;

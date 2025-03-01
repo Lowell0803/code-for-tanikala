@@ -3,8 +3,6 @@
   --color-white: #f0f1e1;
 
   --color-dirty-green: #58664e;
-  --color-red: #a60212;
-  --color-blue: #004aad;
 
   --height-header: 16vh;
   --height-footer: 4vh;
@@ -50,7 +48,7 @@ body {
   display: flex;
   flex-direction: column;
   font-size: 1rem;
-  min-height: 100dvh;
+  min-height: 100vh;
   height: 100vh; /* sus */
   font-family: "Poppins", "Century Gothic";
   /* align-items: center; */
@@ -87,7 +85,7 @@ h6 {
 }
 
 .header-logo img {
-  width: 100%;
+  width: 90%;
 }
 
 .header-nav {
@@ -121,7 +119,6 @@ h6 {
   text-align: center;
   display: flex;
   flex-direction: column;
-  width: 100%;
 
   flex-basis: var(--height-content);
 
@@ -156,7 +153,8 @@ h6 {
 
 .content-main {
   min-height: var(--height-content-main);
-  width: 80vw;
+  /* flex-grow: 1; */
+  min-width: 50%;
 }
 
 /* FOOTER */
@@ -165,13 +163,28 @@ h6 {
   flex-direction: row;
 
   flex-basis: var(--height-footer);
-  background-color: var(--color-red);
 }
 
-.red-background {
-  background-color: var(--color-red);
+.logo {
+  height: 6.5em;
+  width: auto;
+  opacity: 0.6;
 }
 
-.blue-background {
-  background-color: var(--color-blue);
+.main-first {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  max-height: var(--height-main-first);
+  width: 70%;
+  margin: 3.5%;
+}
+
+.first-text {
+  padding: 0% 3%;
+}
+
+.title {
+  color: var(--color-darkYellow);
 }

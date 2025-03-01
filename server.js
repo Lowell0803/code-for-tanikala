@@ -90,19 +90,16 @@ app.set("views", path.join(__dirname, "views"));
 
 let db;
 
-const { Mutex } = require("async-mutex");
-
-const nonceMutex = new Mutex(); // Mutex to lock nonce updates
-
 const startServer = async () => {
   try {
     db = await connectToDatabase();
     console.log("Connected to the database successfully!");
 
+    // Initiates the Microsoft OAuth2 authentication process.
     app.get("/auth/microsoft", passport.authenticate("azure_ad_oauth2"));
 
+    // Callback endpoint after Microsoft authentication.
     app.get("/auth/microsoft/callback", passport.authenticate("azure_ad_oauth2", { failureRedirect: "/register" }), async (req, res) => {
-      // Check registration status
       const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
       if (!voter) {
         return res.redirect("/register?error=not_registered");
@@ -116,7 +113,7 @@ const startServer = async () => {
       if (req.isAuthenticated()) {
         return next();
       }
-      // Store the original URL the user was trying to access
+      // Store the original URL the user was trying to access for later redirect
       req.session.returnTo = req.originalUrl;
       res.redirect("/auth/microsoft");
     }
@@ -124,7 +121,6 @@ const startServer = async () => {
     app.post("/register", async (req, res) => {
       try {
         const { fullName, email, studentNumber, campus, college, program } = req.body;
-
         if (!fullName || !email || !studentNumber || !campus || !college || !program) {
           return res.status(400).json({ error: "All fields are required" });
         }
@@ -139,16 +135,10 @@ const startServer = async () => {
           status: "Registered",
         };
 
-        // Use upsert to update an existing record or insert a new one
-        const result = await db.collection("registered_voters").updateOne({ email: email }, { $set: voterData }, { upsert: true });
+        await db.collection("registered_voters").updateOne({ email: email }, { $set: voterData }, { upsert: true });
 
-        // If the document was found (matchedCount > 0), it means we're updating info.
-        if (result.matchedCount > 0) {
-          return res.redirect("/?status=" + encodeURIComponent("Info Updated"));
-        } else {
-          // New registration, so no alert
-          return res.redirect("/?status=" + encodeURIComponent("Info Updated"));
-        }
+        // After successful registration, redirect to homepage with a notification flag.
+        return res.redirect("/?registered=true");
       } catch (error) {
         console.error("Error updating voter:", error);
         res.status(500).send("Internal Server Error");
@@ -156,15 +146,24 @@ const startServer = async () => {
     });
 
     app.get("/register", async (req, res) => {
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
       // Ensure the user is authenticated
       if (!req.user) {
         return res.redirect("/auth/microsoft");
       }
-
       try {
-        // Retrieve the voter's record based on the authenticated user's email
         const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
-        res.render("voter/register", { user: req.user, voter: voter, status: req.query.status || null });
+        if (voter) {
+          // Already registered; redirect with query parameter
+          return res.redirect("/?registered=true");
+        } else {
+          res.render("voter/register", { user: req.user, voter: null, status: req.query.status || null });
+        }
       } catch (error) {
         console.error("Error checking registration status:", error);
         res.status(500).send("Internal Server Error");
@@ -2088,8 +2087,24 @@ const startServer = async () => {
       }
     });
 
-    app.get("/register", (req, res) => {
-      res.render("voter/register", { user: req.user || null }); // Pass user info if logged in
+    app.get("/register", async (req, res) => {
+      if (!req.user) {
+        return res.redirect("/auth/microsoft");
+      }
+
+      try {
+        const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
+        if (voter) {
+          // Voter already registered; redirect to homepage with notification flag.
+          return res.redirect("/?registered=true");
+        } else {
+          // Voter not registered; render the registration form.
+          res.render("voter/register", { user: req.user, voter: null, status: req.query.status || null });
+        }
+      } catch (error) {
+        console.error("Error checking registration status:", error);
+        res.status(500).send("Internal Server Error");
+      }
     });
 
     app.get("/admin-login", async (req, res) => {
@@ -2130,7 +2145,7 @@ const startServer = async () => {
 
         console.log("Session set for admin:", req.session.admin);
 
-        res.redirect("/manage-accounts"); // Redirect to dashboard after login
+        res.redirect("/manage-admins"); // Redirect to dashboard after login
       } catch (error) {
         console.error("Login error:", error);
         res.status(500).send("Internal Server Error");

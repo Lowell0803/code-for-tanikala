@@ -4,16 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>TANIKALA Voting System</title>
-
     <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" type="text/css" href="voter/css/index_voter.css" />
     <link rel="stylesheet" type="text/css" href="voter/css/register.css" />
-
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="components/notification.css" />
+    <script type="module" src="components/notification.js"></script>
   </head>
   <body>
     <header class="header">
       <div class="header-logo">
-        <img src="../img/logo_tanikala.png" alt="Tanikala Voting System" />
+        <img src="../img/logo_tanikala.png" alt="TANIKALA Voting System" />
       </div>
       <div class="header-nav">
         <ul class="header-nav-content">
@@ -27,17 +28,21 @@
       <div class="main-first">
         <img src="../img/logo_bulsu.png" class="logo" alt="BulSU Logo" />
         <div class="first-text">
-          <h1>BulSU Student Government Elections<br />2024 - 2025</h1>
+          <h1 class="title">BulSU Student Government Elections<br />2024 - 2025</h1>
         </div>
         <img src="../img/logo_bulsu_ucse.png" class="logo" alt="BulSU UCSE Logo" />
       </div>
-      <div class="main-second">
-        <form id="form-registration" action="/register" method="POST" onsubmit="formatEmail(event)">
-          <h1>Registration Form</h1>
+      <div class="main-second box-shadow">
+        <form id="form-registration" action="/register" method="POST">
+          <div class="row">
+            <img src="../img/voter-registration.png" />
+            <h1>Voter Registration Form</h1>
+          </div>
+          <br />
 
           <div class="form-input-container">
             <label for="full-name" class="form-label">Name: </label>
-            <input type="text" id="full-name" class="form-input" name="fullName" value="<%= user ? user.name : '' %>" placeholder="e.g. Yvan Lowell Aquino" required />
+            <input type="text" id="full-name" class="form-input" name="fullName" value="<%= user ? user.name : '' %>" placeholder="e.g. Yvan Lowell Aquino" readonly />
           </div>
 
           <div class="form-input-container">
@@ -47,12 +52,12 @@
 
           <div class="form-input-container">
             <label for="student-number" class="form-label">Student Number: </label>
-            <input type="number" id="student-number" class="form-input" name="studentNumber" placeholder="e.g. 2021100291" required />
+            <input type="number" id="student-number" class="form-input" name="studentNumber" placeholder="e.g. 2021100291" readonly />
           </div>
 
           <div class="form-input-container">
             <label for="campus" class="form-label">Campus: </label>
-            <select name="campus" id="campus" required>
+            <select name="campus" id="campus">
               <option disabled selected>Select Campus</option>
               <option value="Malolos (Main) Campus" selected>Malolos (Main) Campus</option>
             </select>
@@ -60,8 +65,8 @@
 
           <div class="form-input-container">
             <label for="college" class="form-label">College: </label>
-            <select name="college" id="college" required>
-              <option disabled selected>Select College</option>
+            <select name="college" id="college">
+              <option value="" disabled selected>Select College</option>
               <option value="College of Architecture and Fine Arts (CAFA)">College of Architecture and Fine Arts (CAFA)</option>
               <option value="College of Arts and Letters (CAL)">College of Arts and Letters (CAL)</option>
               <option value="College of Business Education and Accountancy (CBEA)">College of Business Education and Accountancy (CBEA)</option>
@@ -81,27 +86,57 @@
 
           <div class="form-input-container">
             <label for="program" class="form-label">Program: </label>
-            <select name="program" id="program" required>
-              <option disabled selected>Select a College First</option>
+            <select name="program" id="program">
+              <option value="" disabled selected>Select a College First</option>
             </select>
           </div>
 
           <div class="form-button">
-            <input type="reset" value="RESET" />
-            <input type="submit" value="SUBMIT" />
+            <!-- <input type="reset" value="RESET" /> -->
+            <!-- Change submit type to button -->
+            <input type="button" id="submitBtn" value="SUBMIT" />
           </div>
         </form>
       </div>
     </div>
 
+    <!-- Validation and submission script -->
+    <script type="module">
+      import { createNotification } from "/components/notification.js";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("form-registration");
+        const submitBtn = document.getElementById("submitBtn");
+
+        submitBtn.addEventListener("click", () => {
+          // Retrieve and trim field values
+          const fullName = document.getElementById("full-name").value.trim();
+          const email = document.getElementById("bulsu-account").value.trim();
+          const studentNumber = document.getElementById("student-number").value.trim();
+          const campus = document.getElementById("campus").value.trim();
+          const college = document.getElementById("college").value.trim();
+          const program = document.getElementById("program").value.trim();
+
+          // Check if any required field is empty
+
+          if (!fullName || !email || !studentNumber || !campus || !college || !program) {
+            createNotification("Please fill in all required fields.", "error", 3000);
+            return;
+          }
+
+          // If all fields are filled, submit the form programmatically
+          form.submit();
+        });
+      });
+    </script>
+
+    <!-- Auto-populate college and program fields scripts -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const jobTitle = "<%= user ? user.jobTitle : '' %>";
         const collegeSelect = document.getElementById("college");
-
         if (jobTitle) {
           const collegeAcronym = jobTitle.split(" - ")[1];
-
           const collegeMap = {
             CAFA: "College of Architecture and Fine Arts (CAFA)",
             CAL: "College of Arts and Letters (CAL)",
@@ -117,7 +152,6 @@
             CSER: "College of Sports, Exercise, and Recreation (CSER)",
             CSSP: "College of Social Sciences and Philosophy (CSSP)",
           };
-
           if (collegeAcronym in collegeMap) {
             collegeSelect.value = collegeMap[collegeAcronym];
             collegeSelect.dispatchEvent(new Event("change")); // Trigger program update
@@ -130,7 +164,6 @@
       function formatEmail(event) {
         const studentNumber = document.getElementById("student-number").value.trim();
         const emailField = document.getElementById("bulsu-account");
-
         if (!emailField.value.trim() && studentNumber) {
           emailField.value = `${studentNumber}@ms.bulsu.edu.ph`;
         }
@@ -139,15 +172,12 @@
       document.getElementById("college").addEventListener("change", async function () {
         const college = this.value;
         const programSelect = document.getElementById("program");
-
         programSelect.innerHTML = "<option disabled selected>Loading...</option>";
-
         try {
           const response = await fetch(`/api/programs?college=${encodeURIComponent(college)}`);
           const data = await response.json();
-
           if (data.programs) {
-            programSelect.innerHTML = "<option disabled selected>Select Program</option>";
+            programSelect.innerHTML = "<option value='' disabled selected>Select Program</option>";
             data.programs.forEach((program) => {
               const option = document.createElement("option");
               option.value = program;
@@ -168,7 +198,6 @@
       document.addEventListener("DOMContentLoaded", function () {
         const emailField = document.getElementById("bulsu-account");
         const studentNumberField = document.getElementById("student-number");
-
         if (emailField.value) {
           const match = emailField.value.match(/^(\d{10})@ms\.bulsu\.edu\.ph$/);
           if (match) {
@@ -182,15 +211,12 @@
       document.getElementById("college").addEventListener("change", async function () {
         const college = this.value;
         const programSelect = document.getElementById("program");
-
         programSelect.innerHTML = "<option disabled selected>Loading...</option>";
-
         try {
           const response = await fetch(`/api/programs?college=${encodeURIComponent(college)}`);
           const data = await response.json();
-
           if (data.programs) {
-            programSelect.innerHTML = "<option disabled selected>Select Program</option>";
+            programSelect.innerHTML = "<option value='' disabled selected>Select Program</option>";
             data.programs.forEach((program) => {
               const option = document.createElement("option");
               option.value = program;
@@ -208,7 +234,54 @@
     </script>
 
     <footer class="footer">
-      <p>Footer</p>
+      <div class="footer-left">
+        <img src="img/calendar.png" class="footer-img" />
+        <p id="datetime" data-date="<%= electionConfig.fakeCurrentDate %>"></p>
+      </div>
+
+      <div class="footer-center">
+        <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+        <p>2025 - Fourmula 1</p>
+      </div>
+
+      <div class="footer-right">
+        <!-- <img src="img/info.png" class="footer-img" id="info-img" />
+        <p>Need help? Click&nbsp;</p>
+        <a href="help_page">here.</a> -->
+      </div>
     </footer>
+
+    <script>
+      function formatDate(isoString) {
+        const date = new Date(isoString);
+        const options = {
+          month: "long",
+          day: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        };
+        return date.toLocaleString("en-US", options).replace(",", " -").toUpperCase();
+      }
+
+      function updateDateTime() {
+        const datetimeElement = document.getElementById("datetime");
+        if (!datetimeElement) return;
+
+        // Get the initial time from the data attribute
+        let currentTime = new Date(datetimeElement.getAttribute("data-date"));
+
+        function update() {
+          datetimeElement.textContent = formatDate(currentTime);
+          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+        }
+
+        update(); // Set initial formatted date
+        setInterval(update, 60000); // Update every minute (60000ms)
+      }
+
+      document.addEventListener("DOMContentLoaded", updateDateTime);
+    </script>
   </body>
 </html>
