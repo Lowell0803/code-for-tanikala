@@ -38,14 +38,11 @@
           document.addEventListener("DOMContentLoaded", function () {
             const periodDisplay = document.getElementById("currentPeriodDisplay");
             const periodName = document.getElementById("currentPeriodName");
-
             if (!periodDisplay || !periodName) return;
 
-            // Get the election name from EJS
             let electionName = periodDisplay.getAttribute("data-status") || "";
-            console.log(electionName);
             let placeholderText = "";
-            let leftColor = "#f4ab2a"; // Default color for active periods
+            let leftColor = "#f4ab2a"; // Default for active periods
 
             if (electionName === "Election Not Active") {
               placeholderText = "ELECTION NOT ACTIVE | No Configuration";
@@ -55,29 +52,24 @@
               leftColor = "#a60212";
             } else if (electionName === "Temporarily Closed") {
               placeholderText = "TEMPORARILY CLOSED";
-              leftColor = "a60212";
+              leftColor = "#a60212";
             } else {
               placeholderText = "ELECTION ACTIVE | " + electionName;
-              leftColor = "#5fb643  ";
+              leftColor = "#5fb643";
             }
 
             if (electionName != "Temporarily Closed") {
               let parts = placeholderText.split(" | ");
-              let leftText = parts[0];
-              let rightText = parts.length > 1 ? parts[1] : "";
-
-              // Update the UI
-              periodDisplay.textContent = leftText;
+              periodDisplay.textContent = parts[0];
               periodDisplay.style.color = leftColor;
-              periodName.textContent = rightText;
+              periodName.textContent = parts.length > 1 ? parts[1] : "";
             } else {
-              preiodDisplay.style.color = leftColor;
+              periodDisplay.style.color = leftColor;
             }
           });
         </script>
 
         <% let duration = electionConfig.currentPeriod.duration; let startDate = ""; let endDate = ""; if (duration.includes(" to ")) { [startDate, endDate] = duration.split(" to "); } else { startDate = duration; endDate = "(Waiting for Admin)"; } %>
-
         <p><strong>Start Date:</strong> <%= startDate %></p>
         <p><strong>End Date:</strong> <%= endDate %></p>
       </div>
@@ -100,7 +92,6 @@
           <span class="profile-name"><%= loggedInAdmin.name %></span>
           <span class="job"><%= loggedInAdmin.role %></span>
         </div>
-
         <ul class="nav-links">
           <hr />
           <li>
@@ -207,20 +198,24 @@
             <br />
             <form id="form-details">
               <div>
-                <label for="email">Email:</label>
-                <input type="email" id="email" placeholder="Email" disabled />
+                <label for="role">Role:</label>
+                <input type="text" id="role" placeholder="Role" value="<%= loggedInAdmin.role %>" disabled readonly />
+              </div>
+              <div>
+                <label for="name">Name:</label>
+                <input type="text" id="name" placeholder="Name" value="<%= loggedInAdmin.name %>" disabled />
               </div>
               <div>
                 <label for="username">Username:</label>
-                <input type="text" id="username" placeholder="Username" disabled />
+                <input type="text" id="username" placeholder="Username" value="<%= loggedInAdmin.username %>" disabled />
               </div>
               <div>
                 <label for="password">Password:</label>
-                <input type="password" id="password" placeholder="Password" disabled />
+                <input type="password" id="password" placeholder="Password" value="<%= loggedInAdmin.password %>" disabled />
               </div>
               <div>
                 <label for="confirm-password">Confirm Password:</label>
-                <input type="password" id="confirm-password" placeholder="Confirm Password" disabled />
+                <input type="password" id="confirm-password" placeholder="Confirm Password" value="<%= loggedInAdmin.password %>" disabled />
               </div>
               <br />
               <div>
@@ -230,10 +225,11 @@
             </form>
           </div>
           <div class="main-details-profile">
-            <img id="img-admin" src="../img/placeholder_admin_profile.png" alt="Admin Profile" />
-            <p><span>Admin 1</span></p>
+            <img id="img-admin" src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
+            <p><span><%= loggedInAdmin.name %></span></p>
             <button id="change-image">Change Profile Image</button>
             <br />
+            <!-- File input for image upload; using base64 conversion -->
             <input type="file" class="input-file" id="input-file" />
           </div>
         </div>
@@ -245,12 +241,10 @@
         <img src="img/calendar.png" class="footer-img" />
         <p id="datetime" data-date="<%= electionConfig.fakeCurrentDate %>"></p>
       </div>
-
       <div class="footer-center">
         <img src="img/copyright.png" class="footer-img" id="copyright-img" />
         <p>2025 - Fourmula 1</p>
       </div>
-
       <div class="footer-right">
         <img src="img/info.png" class="footer-img" id="info-img" />
         <p>Need help? Click&nbsp;</p>
@@ -275,31 +269,25 @@
       function updateDateTime() {
         const datetimeElement = document.getElementById("datetime");
         if (!datetimeElement) return;
-
-        // Get the initial time from the data attribute
         let currentTime = new Date(datetimeElement.getAttribute("data-date"));
-
         function update() {
           datetimeElement.textContent = formatDate(currentTime);
-          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+          currentTime.setMinutes(currentTime.getMinutes() + 1);
         }
-
-        update(); // Set initial formatted date
-        setInterval(update, 60000); // Update every minute (60000ms)
+        update();
+        setInterval(update, 60000);
       }
-
       document.addEventListener("DOMContentLoaded", updateDateTime);
     </script>
 
     <script>
+      // Image upload using base64
       const profileImage = document.getElementById("img-admin");
       const changeImageButton = document.getElementById("change-image");
-      const fileInput = document.getElementById("file-input");
-
+      const fileInput = document.getElementById("input-file");
       changeImageButton.addEventListener("click", () => {
         fileInput.click();
       });
-
       fileInput.addEventListener("change", (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -311,11 +299,14 @@
         }
       });
     </script>
+
     <script>
+      // Account edit functionality
       const formDetails = document.getElementById("form-details");
-      const editButton = document.getElementById("edit-button");
-      const saveButton = document.getElementById("save-button");
-      const inputs = profileForm.querySelectorAll("input");
+      const editButton = document.getElementById("button-edit");
+      const saveButton = document.getElementById("button-save");
+      // Select all inputs that are not readonly (do not include role)
+      const inputs = formDetails.querySelectorAll("input:not([readonly])");
 
       editButton.addEventListener("click", () => {
         inputs.forEach((input) => (input.disabled = false));
@@ -323,9 +314,36 @@
         editButton.style.display = "none";
       });
 
-      profileForm.addEventListener("submit", (event) => {
+      formDetails.addEventListener("submit", (event) => {
         event.preventDefault();
-        alert("Profile saved! (No backend yet.)");
+        // Gather updated profile data
+        const updatedProfile = {
+          name: document.getElementById("name").value,
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value,
+          img: profileImage.src,
+        };
+        // Send updated data via AJAX (adjust endpoint as needed)
+        fetch("/update-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedProfile),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              alert("Profile saved!");
+              inputs.forEach((input) => (input.disabled = true));
+              saveButton.style.display = "none";
+              editButton.style.display = "inline-block";
+            } else {
+              alert("Error saving profile: " + data.error);
+            }
+          })
+          .catch((err) => {
+            console.error("Error updating profile:", err);
+            alert("Error updating profile.");
+          });
       });
     </script>
 
