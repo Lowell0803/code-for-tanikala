@@ -105,7 +105,7 @@
       import { createNotification } from "/components/notification.js";
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get("registered") === "true") {
-        createNotification("You are already registered.", "info", 3000);
+        createNotification("You are registered.", "info", 3000);
         // Remove the query parameter so it doesn't display again on refresh.
         history.replaceState({}, document.title, window.location.pathname);
       }

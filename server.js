@@ -17,12 +17,23 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+console.log();
+const MongoStore = require("connect-mongo");
+
 app.use(
   session({
-    secret: process.env.SESSION_SECRET_KEY, // Use .env secret or fallback
+    secret: process.env.SESSION_SECRET_KEY || "your_secret_key",
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, // Set to true if using HTTPS
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI, // Use your MongoDB connection string
+      collectionName: "sessions", // Store sessions in this collection
+      ttl: 24 * 60 * 60, // Session expiration time (24 hours)
+    }),
+    cookie: {
+      secure: false, // Set to true only when using HTTPS
+      maxAge: 24 * 60 * 60 * 1000, // Keep session for 24 hours
+    },
   })
 );
 
@@ -93,12 +104,33 @@ let db;
 const startServer = async () => {
   try {
     db = await connectToDatabase();
-    console.log("Connected to the database successfully!");
 
-    // Initiates the Microsoft OAuth2 authentication process.
+    // ==================================================================================================
+    //                                            PURE APIs
+    // ==================================================================================================
+
+    app.get("/api/programs", async (req, res) => {
+      try {
+        const collegeName = req.query.college;
+        if (!collegeName) return res.status(400).json({ error: "College is required" });
+
+        const college = await db.collection("colleges").findOne({ college: collegeName });
+
+        if (!college) return res.status(404).json({ error: "College not found" });
+
+        res.json({ programs: college.programs });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    });
+
+    // ==================================================================================================
+    //                                        AUTHENTICATION
+    // ==================================================================================================
+
     app.get("/auth/microsoft", passport.authenticate("azure_ad_oauth2"));
 
-    // Callback endpoint after Microsoft authentication.
     app.get("/auth/microsoft/callback", passport.authenticate("azure_ad_oauth2", { failureRedirect: "/register" }), async (req, res) => {
       const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
       if (!voter) {
@@ -118,14 +150,45 @@ const startServer = async () => {
       res.redirect("/auth/microsoft");
     }
 
+    // ==================================================================================================
+    //                                      VOTER LOGIN / SIGNUP
+    // ==================================================================================================
+
+    app.get("/register", async (req, res) => {
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      if (!req.user) {
+        return res.redirect("/auth/microsoft");
+      }
+
+      try {
+        const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
+        if (voter) {
+          // Voter already registered; redirect to homepage with notification flag.
+          return res.redirect("/?registered=true");
+        } else {
+          // Voter not registered; render the registration form.
+          res.render("voter/register", { electionConfig, user: req.user, voter: null, status: req.query.status || null });
+        }
+      } catch (error) {
+        console.error("Error checking registration status:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
     app.post("/register", async (req, res) => {
       try {
         const { fullName, email, studentNumber, campus, college, program } = req.body;
+
         if (!fullName || !email || !studentNumber || !campus || !college || !program) {
           return res.status(400).json({ error: "All fields are required" });
         }
 
-        const voterData = {
+        const newVoter = {
           name: fullName,
           email: email,
           student_number: studentNumber,
@@ -135,37 +198,11 @@ const startServer = async () => {
           status: "Registered",
         };
 
-        await db.collection("registered_voters").updateOne({ email: email }, { $set: voterData }, { upsert: true });
+        await db.collection("registered_voters").insertOne(newVoter);
 
-        // After successful registration, redirect to homepage with a notification flag.
-        return res.redirect("/?registered=true");
+        res.redirect("/register"); // Redirect to voter info page
       } catch (error) {
-        console.error("Error updating voter:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    app.get("/register", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
-
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-      // Ensure the user is authenticated
-      if (!req.user) {
-        return res.redirect("/auth/microsoft");
-      }
-      try {
-        const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
-        if (voter) {
-          // Already registered; redirect with query parameter
-          return res.redirect("/?registered=true");
-        } else {
-          res.render("voter/register", { user: req.user, voter: null, status: req.query.status || null });
-        }
-      } catch (error) {
-        console.error("Error checking registration status:", error);
+        console.error("Error registering voter:", error);
         res.status(500).send("Internal Server Error");
       }
     });
@@ -176,31 +213,29 @@ const startServer = async () => {
 
     app.post("/admin-login", async (req, res) => {
       try {
-        const { email, password } = req.body;
-        console.log("Login attempt for email:", email);
+        const { username, password } = req.body;
+        console.log("Login attempt for username:", username);
 
-        const admin = await db.collection("admin_accounts").findOne({ email });
+        // Find admin by username
+        const admin = await db.collection("admin_accounts").findOne({ username });
 
         if (!admin) {
-          console.log("Admin not found for email:", email);
-          return res.redirect("/admin-login"); // Redirect on invalid login
+          console.log("Admin not found for username:", username);
+          return res.redirect("/admin-login?error=invalid_credentials");
         }
 
         console.log("Admin found:", admin);
 
-        const passwordMatch = await bcrypt.compare(password, admin.password);
-        console.log("Password match:", passwordMatch);
-
-        if (!passwordMatch) {
-          console.log("Incorrect password for email:", email);
-          return res.redirect("/admin-login"); // Redirect on incorrect password
+        // Direct password comparison (since passwords are stored in plain text)
+        if (password !== admin.password) {
+          console.log("Incorrect password for username:", username);
+          return res.redirect("/admin-login?error=invalid_credentials");
         }
 
         // Store admin details in session
         req.session.admin = {
           id: admin._id,
           name: admin.name,
-          email: admin.email,
           username: admin.username,
           role: admin.role,
           img: admin.img,
@@ -208,20 +243,72 @@ const startServer = async () => {
 
         console.log("Session set for admin:", req.session.admin);
 
-        res.redirect("/manage-accounts"); // Redirect to dashboard after login
+        res.redirect("/manage-admins"); // Redirect to dashboard after login
       } catch (error) {
         console.error("Login error:", error);
-        res.status(500).send("Internal Server Error");
+        res.redirect("/admin-login?error=server_error");
       }
     });
 
-    // const voterCollege = req.user ? req.user.college : "CAL";
-    // const voterProgram = req.user
-    //   ? req.user.program
-    //   : "Bachelor of Performing Arts";
+    app.get("/logout", (req, res) => {
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).send("Error logging out");
+        }
+        res.redirect("/admin-login");
+      });
+    });
 
-    // Helper function to compute current period (same logic as client-side)
-    // Helper function: compute current period based on electionConfig and current date
+    function ensureAdminAuthenticated(req, res, next) {
+      if (req.session && req.session.admin) {
+        return next();
+      }
+      // Optionally, store the requested URL for later redirect
+      req.session.returnTo = req.originalUrl;
+      res.redirect("/admin-login");
+    }
+
+    function checkAdminRole(allowedRoles) {
+      return function (req, res, next) {
+        if (req.session && req.session.admin && allowedRoles.includes(req.session.admin.role)) {
+          return next();
+        }
+        return res.status(403).send("You are not authorized to access this page.");
+      };
+    }
+
+    app.get(
+      "/manage-admins",
+      ensureAdminAuthenticated,
+      // You can adjust allowed roles as needed
+      checkAdminRole(["Electoral Board", "Technical Team", "Creatives Team", "Developers"]),
+      async (req, res) => {
+        try {
+          // Fetch all admin accounts (using username as unique identifier) from your collection
+          const admins = await db.collection("admin_accounts").find({}).toArray();
+          // Optionally, fetch additional configuration data if needed
+          const electionConfig = (await db.collection("election_config").findOne({})) || {};
+
+          const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+          electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+          res.render("admin/system-manage-admins", {
+            admins,
+            electionConfig,
+            adminName: req.session.admin.name,
+            adminRole: req.session.admin.role,
+            adminImg: req.session.admin.img,
+          });
+        } catch (error) {
+          console.error("Error retrieving admin accounts:", error);
+          res.status(500).send("Internal Server Error");
+        }
+      }
+    );
+
+    // ==================================================================================================
+    //                                      DYNAMIC HOMEPAGES
+    // ==================================================================================================
+
     function computeCurrentPeriod(electionConfig, now = new Date()) {
       console.log("computeCurrentPeriod: now =", now);
       if (electionConfig.electionStatus === "Temporarily Closed") {
@@ -295,7 +382,6 @@ const startServer = async () => {
       }
     }
 
-    // New dynamic index route: render homepage based on current period.
     app.get("/", async (req, res) => {
       // Retrieve the configuration or use defaults
       let electionConfig = (await db.collection("election_config").findOne({})) || {
@@ -330,12 +416,6 @@ const startServer = async () => {
       // Render the view with the updated configuration and current date
       res.render(homepageView, { electionConfig, currentDate: now.toISOString() });
     });
-
-    // app.get("/", (req, res) => {
-    //   res.sendFile(path.join(__dirname, "public", "index.ht  ml"));
-    // });
-
-    // TEST IF CANDIDATES IS SUBMITTED TO BLOCKCHAIN
 
     app.get("/get-candidates", async (req, res) => {
       try {
@@ -484,6 +564,130 @@ const startServer = async () => {
       return position;
     }
 
+    async function findCandidateIndex(position, candidateName) {
+      const candidates = await contract.getCandidates(position);
+
+      console.log(`🔍 Searching for '${candidateName}' in ${position}...`);
+
+      for (let i = 0; i < candidates.length; i++) {
+        const storedName = candidates[i].name.trim().toLowerCase();
+        if (storedName === candidateName.trim().toLowerCase()) {
+          console.log(`✅ Found ${candidateName} at index ${i}`);
+          return i;
+        }
+      }
+
+      console.log(`❌ Candidate '${candidateName}' not found in ${position}`);
+      return -1;
+    }
+
+    // ==================================================================================================
+    //                                  BLOCKCHAIN (HARDHAT)
+    // ==================================================================================================
+
+    const provider = new ethers.JsonRpcProvider(process.env.HARDHAT_RPC_URL);
+    const wallet = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, provider);
+
+    const contractABI = require("./artifacts/contracts/AdminCandidates.sol/AdminCandidates.json").abi;
+    const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractABI, wallet);
+
+    // ==================================================================================================
+    //                                         VOTING PROCESS
+    // ==================================================================================================
+
+    app.get("/vote", ensureAuthenticated, async (req, res) => {
+      try {
+        // Check if the logged-in user's email exists in the registered_voters collection.
+        const registeredVoter = await db.collection("registered_voters").findOne({ email: req.user.email });
+        if (!registeredVoter) {
+          // If not registered, redirect to the registration page with an error.
+          return res.redirect("/register?error=not_registered");
+        }
+
+        // Now, get the voter's college and program from the registered_voters entry.
+        const voterCollege = registeredVoter.college;
+        const voterProgram = registeredVoter.program;
+        const collegeAcronym = voterCollege.match(/\(([^)]+)\)/);
+
+        // Fetch SSC candidates.
+        const collection = db.collection("candidates");
+        const data = await collection.find({}).toArray();
+        const allCandidates = data.map((doc) => doc.candidates).flat();
+
+        // Fetch LSC candidates.
+        const collectionLSC = db.collection("candidates_lsc");
+        const dataLSC = await collectionLSC.find({}).toArray();
+        const allCandidatesLSC = dataLSC.map((doc) => doc.positions.flatMap((position) => position.candidates || [])).flat();
+
+        // Fetch LSC Board Members.
+        const allBoardMembers = dataLSC
+          .map((doc) =>
+            doc.positions
+              .filter((position) => position.position === "Board Member")
+              .flatMap((position) => position.programs)
+              .flatMap((program) => {
+                // Add program.program inside each candidate object.
+                program.candidates.forEach((candidate) => {
+                  candidate.program = program.program;
+                });
+                return program.candidates;
+              })
+          )
+          .flat();
+
+        // Render the vote page with the fetched candidate data and the registered voter's college and program.
+        res.render("voter/vote", {
+          candidates: allCandidates,
+          candidates_lsc: allCandidatesLSC,
+          lsc_board_members: allBoardMembers,
+          voterProgram,
+          voterCollege: collegeAcronym[1],
+        });
+      } catch (error) {
+        console.error("Error fetching candidates:", error);
+        res.status(500).send("Failed to fetch candidates");
+      }
+    });
+
+    app.get("/review", async (req, res) => {
+      res.render("voter/review");
+    });
+
+    app.post("/review", (req, res) => {
+      // Data from the logged-in account
+      const voterCollege = req.user ? req.user.college : "CAFA";
+      const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
+
+      const voterHash = "123";
+      console.log(voterHash);
+
+      const parseVote = (vote) => {
+        try {
+          if (!vote || vote === "Abstain" || (Array.isArray(vote) && vote.includes("Abstain"))) {
+            return { id: "Abstain", name: "Abstain", image: "", party: "", position: "", moreInfo: "" }; // ✅ Keep the format consistent
+          }
+          if (typeof vote === "string") return JSON.parse(vote);
+          return vote; // If already an object, return as is
+        } catch (error) {
+          console.error("Invalid JSON format:", vote, error);
+          return { id: "Invalid", name: "Invalid", image: "", party: "", position: "", moreInfo: "" }; // Handle invalid JSON cases
+        }
+      };
+
+      const votes = {
+        president: parseVote(req.body.president),
+        vicePresident: parseVote(req.body.vicePresident),
+        senator: req.body.senator ? (Array.isArray(req.body.senator) ? req.body.senator.map(parseVote) : [parseVote(req.body.senator)]) : [{ id: "Abstain", name: "Abstain", image: "", party: "", position: "", moreInfo: "" }], // ✅ Ensure senator is always an array
+        governor: parseVote(req.body.governor),
+        viceGovernor: parseVote(req.body.viceGovernor),
+        boardMember: parseVote(req.body.boardMember),
+      };
+
+      console.log("Processed Votes:", votes);
+
+      res.render("voter/review", { votes, voterCollege, voterProgram, voterHash });
+    });
+
     app.post("/submit-vote", async (req, res) => {
       try {
         const { votes, voterHash, voterCollege, voterProgram } = req.body;
@@ -565,251 +769,6 @@ const startServer = async () => {
         voterProgram: voterReceipt.voterProgram,
         txHash: voterReceipt.txHash,
       });
-    });
-
-    // app.get("/vote-status", async (req, res) => {
-    //   const { voterHash } = req.query;
-
-    //   const vote = await db.collection("vote_queue").findOne({ voterHash });
-
-    //   if (!vote) {
-    //     return res.status(404).json({ status: "not found" });
-    //   }
-
-    //   res.json({
-    //     status: vote.status, // Can be 'pending', 'completed', or 'failed'
-    //     transactionHash: vote.transactionHash || null,
-    //     queuePosition: voteQueue.size + 1, // Show queue position
-    //   });
-    // });
-
-    // app.get("/get-queue-position", (req, res) => {
-    //   res.json({ position: voteQueue.size + 1 });
-    // });
-
-    async function findCandidateIndex(position, candidateName) {
-      const candidates = await contract.getCandidates(position);
-
-      console.log(`🔍 Searching for '${candidateName}' in ${position}...`);
-
-      for (let i = 0; i < candidates.length; i++) {
-        const storedName = candidates[i].name.trim().toLowerCase();
-        if (storedName === candidateName.trim().toLowerCase()) {
-          console.log(`✅ Found ${candidateName} at index ${i}`);
-          return i;
-        }
-      }
-
-      console.log(`❌ Candidate '${candidateName}' not found in ${position}`);
-      return -1;
-    }
-
-    app.post("/reset-candidates", async (req, res) => {
-      try {
-        const tx = await contract.resetCandidates();
-        await tx.wait();
-
-        const statusCollection = db.collection("system_status");
-
-        // **Reset status in MongoDB**
-        await statusCollection.updateOne({ _id: "candidate_submission" }, { $set: { submitted: false } }, { upsert: true });
-        res.json({ message: "Candidates reset. You can now submit again." });
-      } catch (error) {
-        console.error("Error resetting candidates:", error);
-        res.status(500).json({ error: "Failed to reset candidates." });
-      }
-    });
-
-    // ==========================
-    // BLOCKCHAIN SETUP (HARDHAT)
-    // ==========================
-
-    const provider = new ethers.JsonRpcProvider(process.env.HARDHAT_RPC_URL);
-    const wallet = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, provider);
-
-    const contractABI = require("./artifacts/contracts/AdminCandidates.sol/AdminCandidates.json").abi;
-    const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractABI, wallet);
-
-    // API Route: Submit Candidates from MongoDB to Blockchain
-    app.post("/submit-candidates", async (req, res) => {
-      try {
-        const candidatesCollection = db.collection("candidates");
-        const candidatesLscCollection = db.collection("candidates_lsc");
-
-        // Fetch candidates from both collections
-        const candidatesData = await candidatesCollection.find({}).toArray();
-        const candidatesLscData = await candidatesLscCollection.find({}).toArray();
-
-        console.log("\n🚀 SUBMIT-CANDIDATES API CALLED!");
-        console.log("✅ Main candidates fetched:", candidatesData.length);
-        console.log("✅ LSC candidates fetched:", candidatesLscData.length);
-        // console.log("📜 Raw LSC Data from MongoDB:\n", JSON.stringify(candidatesLscData, null, 2));
-
-        let positions = [];
-        let names = [];
-        let parties = [];
-
-        // Process main candidates collection
-        candidatesData.forEach((group) => {
-          if (group.candidates.length === 0) {
-            console.log(`❌ Skipping ${group.position} (No candidates)`);
-          } else {
-            console.log(`✅ Adding ${group.position} with ${group.candidates.length} candidates`);
-            positions.push(group.position);
-            names.push(group.candidates.map((c) => c.name));
-            parties.push(group.candidates.map((c) => c.party));
-          }
-        });
-
-        // Process LSC candidates collection
-        candidatesLscData.forEach((college) => {
-          console.log(`\n📌 Processing LSC College: ${college.collegeName}`);
-
-          college.positions.forEach((pos) => {
-            if (pos.position === "Board Member") {
-              pos.programs.forEach((program) => {
-                if (!program.candidates || program.candidates.length === 0) {
-                  console.log(`❌ Skipping Board Member - ${program.program} (No candidates)`);
-                } else {
-                  console.log(`✅ Adding Board Member - ${program.program} with ${program.candidates.length} candidates`);
-                  positions.push(`Board Member - ${program.program}`);
-                  names.push(program.candidates.map((c) => c.name));
-                  parties.push(program.candidates.map((c) => c.party));
-                }
-              });
-            } else {
-              if (!pos.candidates || pos.candidates.length === 0) {
-                console.log(`❌ Skipping ${pos.position} for ${college.collegeAcronym} (No candidates)`);
-              } else {
-                console.log(`✅ Adding ${pos.position} for ${college.collegeAcronym} with ${pos.candidates.length} candidates`);
-                positions.push(`${pos.position} - ${college.collegeAcronym}`);
-                names.push(pos.candidates.map((c) => c.name));
-                parties.push(pos.candidates.map((c) => c.party));
-              }
-            }
-          });
-        });
-
-        // ✅ Add "Abstain" to every position (MINIMAL CHANGE)
-        positions.forEach((pos, index) => {
-          names[index].push("Abstain");
-          parties[index].push("None"); // "None" indicates no party affiliation
-        });
-
-        console.log("\n📌 FINAL SUBMISSION:");
-        console.log({ positions, names, parties });
-
-        if (positions.length === 0) {
-          console.log("⚠️ No candidates to submit!");
-          return res.status(400).json({ error: "No candidates to submit." });
-        }
-
-        console.log("📡 Sending transaction to blockchain...");
-        const tx = await contract.submitCandidates(positions, names, parties);
-        await tx.wait();
-        console.log("✅ Candidates submitted successfully!");
-
-        const statusCollection = db.collection("system_status");
-
-        // **Update status in MongoDB**
-        await statusCollection.updateOne({ _id: "candidate_submission" }, { $set: { submitted: true } }, { upsert: true });
-
-        res.json({ message: "Candidates successfully submitted to blockchain!" });
-      } catch (error) {
-        console.error("❌ ERROR submitting candidates:", error);
-        res.status(500).json({ error: "Failed to submit candidates." });
-      }
-    });
-
-    const JSZip = require("jszip");
-    const { ObjectId } = require("mongodb");
-
-    app.get("/api/export-archive/:id", async (req, res) => {
-      try {
-        const archiveId = req.params.id;
-        const archive = await db.collection("election_archive").findOne({ _id: new ObjectId(archiveId) });
-
-        if (!archive) {
-          return res.status(404).json({ message: "Archive not found" });
-        }
-
-        // Create a new zip archive
-        const zip = new JSZip();
-        // Add two separate JSON files to the zip
-        zip.file("candidates.json", JSON.stringify(archive.candidates, null, 2));
-        zip.file("candidatesLsc.json", JSON.stringify(archive.candidatesLsc, null, 2));
-
-        // Generate the zip file as a node buffer
-        const zipContent = await zip.generateAsync({ type: "nodebuffer" });
-        // Set response headers to download the zip file
-        res.setHeader("Content-Disposition", `attachment; filename=archive-${archiveId}.zip`);
-        res.setHeader("Content-Type", "application/zip");
-        res.send(zipContent);
-      } catch (error) {
-        res.status(500).json({ message: "Error exporting archive", error: error.message });
-      }
-    });
-
-    // ==========================
-    // BACKEND SETUP (EXPRESS)
-    // ==========================
-
-    app.get("/vote", ensureAuthenticated, async (req, res) => {
-      try {
-        // Check if the logged-in user's email exists in the registered_voters collection.
-        const registeredVoter = await db.collection("registered_voters").findOne({ email: req.user.email });
-        if (!registeredVoter) {
-          // If not registered, redirect to the registration page with an error.
-          return res.redirect("/register?error=not_registered");
-        }
-
-        // Now, get the voter's college and program from the registered_voters entry.
-        const voterCollege = registeredVoter.college;
-        const voterProgram = registeredVoter.program;
-        const collegeAcronym = voterCollege.match(/\(([^)]+)\)/);
-
-        // Fetch SSC candidates.
-        const collection = db.collection("candidates");
-        const data = await collection.find({}).toArray();
-        const allCandidates = data.map((doc) => doc.candidates).flat();
-
-        // Fetch LSC candidates.
-        const collectionLSC = db.collection("candidates_lsc");
-        const dataLSC = await collectionLSC.find({}).toArray();
-        const allCandidatesLSC = dataLSC.map((doc) => doc.positions.flatMap((position) => position.candidates || [])).flat();
-
-        // Fetch LSC Board Members.
-        const allBoardMembers = dataLSC
-          .map((doc) =>
-            doc.positions
-              .filter((position) => position.position === "Board Member")
-              .flatMap((position) => position.programs)
-              .flatMap((program) => {
-                // Add program.program inside each candidate object.
-                program.candidates.forEach((candidate) => {
-                  candidate.program = program.program;
-                });
-                return program.candidates;
-              })
-          )
-          .flat();
-
-        // Render the vote page with the fetched candidate data and the registered voter's college and program.
-        res.render("voter/vote", {
-          candidates: allCandidates,
-          candidates_lsc: allCandidatesLSC,
-          lsc_board_members: allBoardMembers,
-          voterProgram,
-          voterCollege: collegeAcronym[1],
-        });
-      } catch (error) {
-        console.error("Error fetching candidates:", error);
-        res.status(500).send("Failed to fetch candidates");
-      }
-    });
-
-    app.get("/review", async (req, res) => {
-      res.render("voter/review");
     });
 
     app.post("/update-candidate", async (req, res) => {
@@ -1288,39 +1247,111 @@ const startServer = async () => {
       }
     });
 
-    app.post("/review", (req, res) => {
-      // Data from the logged-in account
-      const voterCollege = req.user ? req.user.college : "CAFA";
-      const voterProgram = req.user ? req.user.program : "Bachelor of Fine Arts Major in Visual Communication";
+    // ==================================== SUBMIT CANDIDATES  ====================================
+    app.post("/submit-candidates", async (req, res) => {
+      try {
+        const candidatesCollection = db.collection("candidates");
+        const candidatesLscCollection = db.collection("candidates_lsc");
 
-      const voterHash = "123";
-      console.log(voterHash);
+        // Fetch candidates from both collections
+        const candidatesData = await candidatesCollection.find({}).toArray();
+        const candidatesLscData = await candidatesLscCollection.find({}).toArray();
 
-      const parseVote = (vote) => {
-        try {
-          if (!vote || vote === "Abstain" || (Array.isArray(vote) && vote.includes("Abstain"))) {
-            return { id: "Abstain", name: "Abstain", image: "", party: "", position: "", moreInfo: "" }; // ✅ Keep the format consistent
+        console.log("\n🚀 SUBMIT-CANDIDATES API CALLED!");
+        console.log("✅ Main candidates fetched:", candidatesData.length);
+        console.log("✅ LSC candidates fetched:", candidatesLscData.length);
+        // console.log("📜 Raw LSC Data from MongoDB:\n", JSON.stringify(candidatesLscData, null, 2));
+
+        let positions = [];
+        let names = [];
+        let parties = [];
+
+        // Process main candidates collection
+        candidatesData.forEach((group) => {
+          if (group.candidates.length === 0) {
+            console.log(`❌ Skipping ${group.position} (No candidates)`);
+          } else {
+            console.log(`✅ Adding ${group.position} with ${group.candidates.length} candidates`);
+            positions.push(group.position);
+            names.push(group.candidates.map((c) => c.name));
+            parties.push(group.candidates.map((c) => c.party));
           }
-          if (typeof vote === "string") return JSON.parse(vote);
-          return vote; // If already an object, return as is
-        } catch (error) {
-          console.error("Invalid JSON format:", vote, error);
-          return { id: "Invalid", name: "Invalid", image: "", party: "", position: "", moreInfo: "" }; // Handle invalid JSON cases
+        });
+
+        // Process LSC candidates collection
+        candidatesLscData.forEach((college) => {
+          console.log(`\n📌 Processing LSC College: ${college.collegeName}`);
+
+          college.positions.forEach((pos) => {
+            if (pos.position === "Board Member") {
+              pos.programs.forEach((program) => {
+                if (!program.candidates || program.candidates.length === 0) {
+                  console.log(`❌ Skipping Board Member - ${program.program} (No candidates)`);
+                } else {
+                  console.log(`✅ Adding Board Member - ${program.program} with ${program.candidates.length} candidates`);
+                  positions.push(`Board Member - ${program.program}`);
+                  names.push(program.candidates.map((c) => c.name));
+                  parties.push(program.candidates.map((c) => c.party));
+                }
+              });
+            } else {
+              if (!pos.candidates || pos.candidates.length === 0) {
+                console.log(`❌ Skipping ${pos.position} for ${college.collegeAcronym} (No candidates)`);
+              } else {
+                console.log(`✅ Adding ${pos.position} for ${college.collegeAcronym} with ${pos.candidates.length} candidates`);
+                positions.push(`${pos.position} - ${college.collegeAcronym}`);
+                names.push(pos.candidates.map((c) => c.name));
+                parties.push(pos.candidates.map((c) => c.party));
+              }
+            }
+          });
+        });
+
+        // ✅ Add "Abstain" to every position (MINIMAL CHANGE)
+        positions.forEach((pos, index) => {
+          names[index].push("Abstain");
+          parties[index].push("None"); // "None" indicates no party affiliation
+        });
+
+        console.log("\n📌 FINAL SUBMISSION:");
+        console.log({ positions, names, parties });
+
+        if (positions.length === 0) {
+          console.log("⚠️ No candidates to submit!");
+          return res.status(400).json({ error: "No candidates to submit." });
         }
-      };
 
-      const votes = {
-        president: parseVote(req.body.president),
-        vicePresident: parseVote(req.body.vicePresident),
-        senator: req.body.senator ? (Array.isArray(req.body.senator) ? req.body.senator.map(parseVote) : [parseVote(req.body.senator)]) : [{ id: "Abstain", name: "Abstain", image: "", party: "", position: "", moreInfo: "" }], // ✅ Ensure senator is always an array
-        governor: parseVote(req.body.governor),
-        viceGovernor: parseVote(req.body.viceGovernor),
-        boardMember: parseVote(req.body.boardMember),
-      };
+        console.log("📡 Sending transaction to blockchain...");
+        const tx = await contract.submitCandidates(positions, names, parties);
+        await tx.wait();
+        console.log("✅ Candidates submitted successfully!");
 
-      console.log("Processed Votes:", votes);
+        const statusCollection = db.collection("system_status");
 
-      res.render("voter/review", { votes, voterCollege, voterProgram, voterHash });
+        // **Update status in MongoDB**
+        await statusCollection.updateOne({ _id: "candidate_submission" }, { $set: { submitted: true } }, { upsert: true });
+
+        res.json({ message: "Candidates successfully submitted to blockchain!" });
+      } catch (error) {
+        console.error("❌ ERROR submitting candidates:", error);
+        res.status(500).json({ error: "Failed to submit candidates." });
+      }
+    });
+
+    app.post("/reset-candidates", async (req, res) => {
+      try {
+        const tx = await contract.resetCandidates();
+        await tx.wait();
+
+        const statusCollection = db.collection("system_status");
+
+        // **Reset status in MongoDB**
+        await statusCollection.updateOne({ _id: "candidate_submission" }, { $set: { submitted: false } }, { upsert: true });
+        res.json({ message: "Candidates reset. You can now submit again." });
+      } catch (error) {
+        console.error("Error resetting candidates:", error);
+        res.status(500).json({ error: "Failed to reset candidates." });
+      }
     });
 
     // Helper to calculate the current period based on configuration and current date
@@ -1356,22 +1387,6 @@ const startServer = async () => {
 
       return { name: "Election Not Active", duration: "N/A" };
     }
-
-    // GET route for the election archive page
-    app.get("/archives", async (req, res) => {
-      try {
-        const electionConfigCollection = db.collection("election_config");
-        let electionConfig = await electionConfigCollection.findOne({});
-        const archives = await db.collection("election_archive").find({}).toArray();
-
-        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-        res.render("admin/archives", { archives, electionConfig });
-      } catch (error) {
-        console.error("Error fetching archives:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
 
     const getElectionPhase = (registrationPeriod, votingPeriod, currentDate) => {
       console.log("🟢 Checking Election Phase...");
@@ -1615,10 +1630,13 @@ const startServer = async () => {
       }
     });
 
-    /* ================================= ADMIN TABS ================================= */
+    // ==================================================================================================
+    //                                         ADMIN TABS
+    // ==================================================================================================
 
     app.get("/dashboard", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
+
       let electionConfig = await electionConfigCollection.findOne({});
       if (!electionConfig) {
         electionConfig = {
@@ -1943,13 +1961,18 @@ const startServer = async () => {
     });
 
     app.get("/archives", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+        const archives = await db.collection("election_archive").find({}).toArray();
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-      res.render("admin/archives", { electionConfig });
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        res.render("admin/archives", { archives, electionConfig });
+      } catch (error) {
+        console.error("Error fetching archives:", error);
+        res.status(500).send("Internal Server Error");
+      }
     });
 
     app.get("/edit-account", async (req, res) => {
@@ -1960,44 +1983,6 @@ const startServer = async () => {
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
       res.render("admin/system-edit-account", { electionConfig });
-    });
-    // app.get("/manage-account", async (req, res) => {
-    //   res.render("admin/system-manage-accounts");
-    // });
-
-    app.get("/manage-admins", async (req, res) => {
-      try {
-        const electionConfigCollection = db.collection("election_config");
-        let electionConfig = await electionConfigCollection.findOne({});
-        console.log("Accessing /manage-admins");
-        // console.log("Session data:", req.session.admin);
-
-        // if (!req.session.admin) {
-        //   console.log("No admin session found. Redirecting to login.");
-        //   return res.redirect("/admin-login"); // Redirect if not logged in
-        // }
-
-        // if (req.session.admin.role !== "admin" && req.session.admin.role !== "superadmin") {
-        //   console.log("Unauthorized access attempt by:", req.session.admin.email);
-        //   return res.redirect("/admin-login"); // Redirect non-admins to login
-        // }
-
-        const admins = await db.collection("admin_accounts").find().toArray();
-        console.log("Fetched admins:", admins.length);
-
-        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-        res.render("admin/system-manage-admins", {
-          admins,
-          // admin: req.session.admin,
-          // userRole: req.session.admin.role,
-          electionConfig,
-        });
-      } catch (error) {
-        console.error("Error fetching admin accounts:", error);
-        res.status(500).send("Internal Server Error");
-      }
     });
 
     // Add New Admin (Base64 Image)
@@ -2056,141 +2041,6 @@ const startServer = async () => {
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
       res.render("admin/system-activity-log", { electionConfig });
-    });
-
-    /* ============================= LOGIN / SIGNUP ============================= */
-
-    app.post("/register", async (req, res) => {
-      try {
-        const { fullName, email, studentNumber, campus, college, program } = req.body;
-
-        if (!fullName || !email || !studentNumber || !campus || !college || !program) {
-          return res.status(400).json({ error: "All fields are required" });
-        }
-
-        const newVoter = {
-          name: fullName,
-          email: email,
-          student_number: studentNumber,
-          campus: campus,
-          college: college,
-          program: program,
-          status: "Registered",
-        };
-
-        await db.collection("registered_voters").insertOne(newVoter);
-
-        res.redirect("/register"); // Redirect to voter info page
-      } catch (error) {
-        console.error("Error registering voter:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    app.get("/register", async (req, res) => {
-      if (!req.user) {
-        return res.redirect("/auth/microsoft");
-      }
-
-      try {
-        const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
-        if (voter) {
-          // Voter already registered; redirect to homepage with notification flag.
-          return res.redirect("/?registered=true");
-        } else {
-          // Voter not registered; render the registration form.
-          res.render("voter/register", { user: req.user, voter: null, status: req.query.status || null });
-        }
-      } catch (error) {
-        console.error("Error checking registration status:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    app.get("/admin-login", async (req, res) => {
-      res.render("admin/admin-login");
-    });
-
-    app.post("/admin-login", async (req, res) => {
-      try {
-        const { email, password } = req.body;
-        console.log("Login attempt for email:", email);
-
-        const admin = await db.collection("admin_accounts").findOne({ email });
-
-        if (!admin) {
-          console.log("Admin not found for email:", email);
-          return res.redirect("/admin-login"); // Redirect on invalid login
-        }
-
-        console.log("Admin found:", admin);
-
-        const passwordMatch = await bcrypt.compare(password, admin.password);
-        console.log("Password match:", passwordMatch);
-
-        if (!passwordMatch) {
-          console.log("Incorrect password for email:", email);
-          return res.redirect("/admin-login"); // Redirect on incorrect password
-        }
-
-        // Store admin details in session
-        req.session.admin = {
-          id: admin._id,
-          name: admin.name,
-          email: admin.email,
-          username: admin.username,
-          role: admin.role,
-          img: admin.img,
-        };
-
-        console.log("Session set for admin:", req.session.admin);
-
-        res.redirect("/manage-admins"); // Redirect to dashboard after login
-      } catch (error) {
-        console.error("Login error:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    app.get("/logout", (req, res) => {
-      req.session.destroy((err) => {
-        if (err) {
-          return res.status(500).send("Error logging out");
-        }
-        res.redirect("/admin-login");
-      });
-    });
-
-    app.get("/api/programs", async (req, res) => {
-      try {
-        const collegeName = req.query.college;
-        if (!collegeName) return res.status(400).json({ error: "College is required" });
-
-        const college = await db.collection("colleges").findOne({ college: collegeName });
-
-        if (!college) return res.status(404).json({ error: "College not found" });
-
-        res.json({ programs: college.programs });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
-    });
-
-    app.post("/submit-voters", async (req, res) => {
-      try {
-        const { CAFA, CAL, CBEA } = req.body;
-        const votersCollection = db.collection("voters");
-
-        await votersCollection.updateOne({ acronym: "CAFA" }, { $set: { voters: parseInt(CAFA) } }, { upsert: true });
-        await votersCollection.updateOne({ acronym: "CAL" }, { $set: { voters: parseInt(CAL) } }, { upsert: true });
-        await votersCollection.updateOne({ acronym: "CBEA" }, { $set: { voters: parseInt(CBEA) } }, { upsert: true });
-
-        res.sendStatus(200);
-      } catch (error) {
-        console.error("Error updating voter counts:", error);
-        res.status(500).send("Failed to update voter counts.");
-      }
     });
 
     // Routing
