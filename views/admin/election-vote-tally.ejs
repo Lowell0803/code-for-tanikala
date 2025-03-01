@@ -84,13 +84,13 @@
         <p><strong>End Date:</strong> <%= endDate %></p>
       </div>
       <div class="header-user">
-        <img src="../img/placeholder_admin_profile.png" alt="Admin Profile" />
-        <div class="admin-name">Admin 1</div>
+        <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
+        <div class="admin-name"><%= loggedInAdmin.name %></div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
-          <a href="#">View Account</a>
+          <a href="/edit-account">View Account</a>
           <hr class="dropdown-line" />
-          <a href="#">Log Out</a>
+          <a href="/logout">Log Out</a>
         </div>
       </div>
     </header>
@@ -98,9 +98,9 @@
     <div class="content">
       <div class="sidebar close">
         <div class="profile-details">
-          <img src="img/dungo.jpeg" />
-          <span class="profile-name">Zarina Dungo</span>
-          <span class="job">superadmin</span>
+          <img src="<%= loggedInAdmin.img %>" />
+          <span class="profile-name"><%= loggedInAdmin.name %></span>
+          <span class="job"><%= loggedInAdmin.role %></span>
         </div>
 
         <ul class="nav-links">
