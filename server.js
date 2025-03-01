@@ -844,7 +844,7 @@ const startServer = async () => {
 
         if (result.modifiedCount > 0) {
           console.log(`Candidate with ID ${_id} updated successfully.`);
-          res.redirect("/dashboard");
+          res.redirect("/candidates");
         } else {
           console.log(`No candidate found with ID ${_id}.`);
           res.status(404).send("Candidate not found.");
@@ -946,7 +946,7 @@ const startServer = async () => {
         // console.log("✅ Candidate updated successfully.");
         // res.status(200).json({ message: "Candidate updated successfully." });
         console.log(`Candidate with ID ${_id} updated successfully.`);
-        res.redirect("/dashboard");
+        res.redirect("/candidates");
       } catch (error) {
         console.error("❌ Error updating candidate:", error);
         res.status(500).json({ error: "Internal server error." });
@@ -1717,7 +1717,7 @@ const startServer = async () => {
         await db.collection("election_config").updateOne({}, { $set: update, $setOnInsert: { createdAt: new Date() } }, { upsert: true });
         const savedConfig = await db.collection("election_config").findOne({});
         console.log("Saved Configuration:", savedConfig);
-        res.redirect("configuration");
+        res.redirect("configuration?saved=true");
       } catch (error) {
         console.error("Error updating configuration:", error);
         res.status(500).send("Internal Server Error");

@@ -24,9 +24,8 @@
   top: 0;
   left: 0;
   max-height: 100%;
-  overflow-y: auto;
+  /* overflow-y: auto; */
 
-  overflow-x: hidden;
   width: 20vw; /* changed from 260px to 20vw */
   /* background: #11101d; */
   background: var(--sidebar-color);
@@ -62,6 +61,15 @@
 .sidebar.close {
   width: 6vw; /* changed from 78px to 6vw */
   /* overflow: hidden; */
+  /* scrollbar-width: none;  */
+  /* Firefox */
+  /* -ms-overflow-style: none;  */
+  /* IE and Edge */
+}
+
+.sidebar.close::-webkit-scrollbar {
+  /* display: none; */
+  /* Chrome, Safari, Opera */
 }
 
 .sidebar .user-details {
@@ -99,11 +107,6 @@
   transition-delay: 0s;
   opacity: 0;
   pointer-events: none;
-}
-
-.sidebar .nav-links {
-  /* height: 100%; */
-  /* padding: 3rem 0 9rem 0;  */
 }
 
 /* .sidebar.close .nav-links {
@@ -177,6 +180,7 @@
   margin-top: -0.625rem; /* changed from -10px to -0.625rem */
   background: var(--sidebar-color);
   display: none;
+  z-index: 10;
 }
 
 .sidebar .nav-links li.showMenu .sub-menu {

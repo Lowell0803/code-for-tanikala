@@ -3,14 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BulSU Voting System Configuration</title>
+    <title>TANIKALA | Configuration</title>
     <link rel="stylesheet" href="admin/css/index-admin.css" />
     <link rel="stylesheet" href="admin/css/configuration.css" />
     <link rel="stylesheet" href="admin/css/sidebar.css" />
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" /> -->
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/boxicons/css/boxicons.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="components/notification.css" />
+    <script type="module" src="components/notification.js"></script>
+
     <style>
       .period-info {
         margin: 10px 0;
@@ -425,6 +431,18 @@
         document.getElementById("currentPeriodDisplay").innerText = period.name;
         document.getElementById("currentPeriodDuration").innerText = period.duration;
       });
+    </script>
+
+    <script type="module">
+      import { createNotification } from "/components/notification.js";
+
+      // Check if the URL contains ?saved in the query string
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has("saved")) {
+        createNotification("Election configuration saved successfully!", "success", 2000);
+        // Remove the query parameter so the notification doesn't appear again on refresh
+        history.replaceState({}, document.title, window.location.pathname);
+      }
     </script>
   </body>
 </html>
