@@ -82,13 +82,13 @@
         <p><strong>End Date:</strong> <%= endDate %></p>
       </div>
       <div class="header-user">
-        <img src="../img/placeholder_admin_profile.png" alt="Admin Profile" />
-        <div class="admin-name">Admin 1</div>
+        <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
+        <div class="admin-name"><%= loggedInAdmin.name %></div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
-          <a href="#">View Account</a>
+          <a href="/edit-account">View Account</a>
           <hr class="dropdown-line" />
-          <a href="#">Log Out</a>
+          <a href="/logout">Log Out</a>
         </div>
       </div>
     </header>
@@ -96,9 +96,9 @@
     <div class="content">
       <div class="sidebar close">
         <div class="profile-details">
-          <img src="img/dungo.jpeg" />
-          <span class="profile-name">Zarina Dungo</span>
-          <span class="job">superadmin</span>
+          <img src="<%= loggedInAdmin.img %>" />
+          <span class="profile-name"><%= loggedInAdmin.name %></span>
+          <span class="job"><%= loggedInAdmin.role %></span>
         </div>
 
         <ul class="nav-links">
@@ -207,6 +207,7 @@
             <!-- <button type="button" class="save-button action-buttons" id="button-add-accounts">Add Admin Accounts</button> -->
           </span>
         </div>
+        <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
         <form id="add-admin-form" action="/admin-accounts/add" method="POST">
           <label>Name:</label>
           <input type="text" name="name" required />
@@ -217,15 +218,22 @@
           <label>Password:</label>
           <input type="password" name="password" required />
 
-          <br />
+          <label>Role:</label>
+          <select name="role" required>
+            <option value="Electoral Board">Electoral Board</option>
+            <option value="Technical Team">Technical Team</option>
+            <option value="Creatives Team">Creatives Team</option>
+            <option value="Developers">Developers</option>
+          </select>
+
           <label>Image:</label>
           <input type="file" accept="image/*" onchange="convertImageToBase64(event)" required />
-
           <input type="hidden" name="imgBase64" id="imgBase64" />
 
-          <input type="hidden" name="role" value="admin" />
           <button type="submit">Add Admin</button>
         </form>
+        <% } %>
+
         <br />
         <div class="table-container">
           <table>
@@ -236,7 +244,9 @@
                 <th>Role</th>
                 <th>Username</th>
                 <th>Password</th>
+                <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
                 <th>Actions</th>
+                <% } %>
               </tr>
             </thead>
             <tbody>
@@ -248,11 +258,16 @@
                 <td><%= admin.name %></td>
                 <td><%= admin.role %></td>
                 <td><%= admin.username %></td>
-                <td><%= admin.password %></td>
+                <td>
+                  <span class="password-mask">********</span>
+                  <button type="button" onclick="togglePassword(this)" data-password="<%= admin.password %>">Show</button>
+                </td>
+                <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
                 <td>
                   <button class="edit-btn" data-username="<%= admin.username %>">Edit</button>
                   <button class="delete-btn" data-username="<%= admin.username %>">Delete</button>
                 </td>
+                <% } %>
               </tr>
               <% }); %>
             </tbody>
@@ -260,6 +275,20 @@
         </div>
       </main>
     </div>
+
+    <script>
+      function togglePassword(button) {
+        const span = button.previousElementSibling;
+        if (span.textContent === "********") {
+          // Use button.dataset.password instead of span.dataset.password
+          span.textContent = button.dataset.password;
+          button.textContent = "Hide";
+        } else {
+          span.textContent = "********";
+          button.textContent = "Show";
+        }
+      }
+    </script>
 
     <footer class="footer">
       <div class="footer-left">

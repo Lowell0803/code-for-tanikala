@@ -89,6 +89,11 @@
 
       const urlParams = new URLSearchParams(window.location.search);
 
+      if (urlParams.has("loggedOut")) {
+        createNotification("Logged out successfully", "info", 3000);
+        history.replaceState({}, document.title, window.location.pathname);
+      }
+
       if (urlParams.has("error")) {
         let errorMessage = "An unknown error occurred. Please try again.";
         const errorType = urlParams.get("error");

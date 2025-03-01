@@ -34,30 +34,6 @@
   transition: all 0.5s ease;
 }
 
-/* Style the scrollbar itself */
-::-webkit-scrollbar {
-  width: 8px; /* Adjust the width for a slimmer scrollbar */
-  height: 8px; /* Adjust height for horizontal scrollbar */
-  border: 1px solid #3f0807;
-}
-
-/* Style the scrollbar track (background of the scrollbar) */
-::-webkit-scrollbar-track {
-  background: #3f0807; /* Black track */
-}
-
-/* Style the scrollbar thumb (the draggable part) */
-::-webkit-scrollbar-thumb {
-  background: var(--sidebar-color); /* Slightly lighter black for the thumb */
-  border-radius: 10px; /* Optional: rounded corners */
-  border: 1.2px solid #3f0807;
-}
-
-/* Style the scrollbar thumb when hovered */
-::-webkit-scrollbar-thumb:hover {
-  background: var(--sidebar-color-lighter);
-}
-
 .sidebar.close {
   width: 6vw; /* changed from 78px to 6vw */
   /* overflow: hidden; */

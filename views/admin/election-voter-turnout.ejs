@@ -259,6 +259,7 @@
 
         // Retrieve the list of colleges from electionConfig
         const colleges = <%- JSON.stringify(electionConfig.listOfElections) %>;
+        console.log("Colleges data:", colleges);
 
         // Loop through each college
         colleges.forEach((college) => {

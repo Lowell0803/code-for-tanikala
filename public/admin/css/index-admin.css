@@ -1,9 +1,36 @@
+/* Style the scrollbar itself */
+::-webkit-scrollbar {
+  width: 8px; /* Adjust the width for a slimmer scrollbar */
+  height: 8px; /* Adjust height for horizontal scrollbar */
+  border: 1px solid #3f0807;
+}
+
+/* Style the scrollbar track (background of the scrollbar) */
+::-webkit-scrollbar-track {
+  background: #3f0807; /* Black track */
+}
+
+/* Style the scrollbar thumb (the draggable part) */
+::-webkit-scrollbar-thumb {
+  background: var(--sidebar-color); /* Slightly lighter black for the thumb */
+  border-radius: 10px; /* Optional: rounded corners */
+  border: 1.2px solid #3f0807;
+}
+
+/* Style the scrollbar thumb when hovered */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-color-lighter);
+}
+
 :root {
   /* colors */
   --color-brown: #3f0807;
   --color-yellow: #f4ab2a;
   --background-yellow: #e1ae5b;
   --background-red: #a60212;
+
+  --sidebar-color-lighter: #d29c45;
+  --sidebar-color: #e1ae5b;
 
   /* main sizes */
   --height-header: 14vh;

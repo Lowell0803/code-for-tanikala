@@ -253,9 +253,10 @@ const startServer = async () => {
     app.get("/logout", (req, res) => {
       req.session.destroy((err) => {
         if (err) {
+          console.error("Error logging out:", err);
           return res.status(500).send("Error logging out");
         }
-        res.redirect("/admin-login");
+        res.redirect("/admin-login?loggedOut=true"); // Redirect with a query parameter
       });
     });
 
@@ -268,42 +269,27 @@ const startServer = async () => {
       res.redirect("/admin-login");
     }
 
-    function checkAdminRole(allowedRoles) {
-      return function (req, res, next) {
-        if (req.session && req.session.admin && allowedRoles.includes(req.session.admin.role)) {
-          return next();
-        }
-        return res.status(403).send("You are not authorized to access this page.");
-      };
-    }
+    app.get("/manage-admins", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        // Fetch all admin accounts (using username as unique identifier) from your collection
+        const admins = await db.collection("admin_accounts").find({}).toArray();
+        // Optionally, fetch additional configuration data if needed
+        const electionConfig = (await db.collection("election_config").findOne({})) || {};
 
-    app.get(
-      "/manage-admins",
-      ensureAdminAuthenticated,
-      // You can adjust allowed roles as needed
-      checkAdminRole(["Electoral Board", "Technical Team", "Creatives Team", "Developers"]),
-      async (req, res) => {
-        try {
-          // Fetch all admin accounts (using username as unique identifier) from your collection
-          const admins = await db.collection("admin_accounts").find({}).toArray();
-          // Optionally, fetch additional configuration data if needed
-          const electionConfig = (await db.collection("election_config").findOne({})) || {};
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-          const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-          electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-          res.render("admin/system-manage-admins", {
-            admins,
-            electionConfig,
-            adminName: req.session.admin.name,
-            adminRole: req.session.admin.role,
-            adminImg: req.session.admin.img,
-          });
-        } catch (error) {
-          console.error("Error retrieving admin accounts:", error);
-          res.status(500).send("Internal Server Error");
-        }
+        console.log("Current Role: ", req.session.admin);
+        res.render("admin/system-manage-admins", {
+          admins,
+          electionConfig,
+          loggedInAdmin: req.session.admin,
+        });
+      } catch (error) {
+        console.error("Error retrieving admin accounts:", error);
+        res.status(500).send("Internal Server Error");
       }
-    );
+    });
 
     // ==================================================================================================
     //                                      DYNAMIC HOMEPAGES
@@ -1634,7 +1620,7 @@ const startServer = async () => {
     //                                         ADMIN TABS
     // ==================================================================================================
 
-    app.get("/dashboard", async (req, res) => {
+    app.get("/dashboard", ensureAdminAuthenticated, async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
 
       let electionConfig = await electionConfigCollection.findOne({});
@@ -1655,11 +1641,11 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
       console.log(electionConfig);
-      res.render("admin/dashboard", { electionConfig });
+      res.render("admin/dashboard", { electionConfig, loggedInAdmin: req.session.admin });
     });
 
     // GET /configuration
-    app.get("/configuration", async (req, res) => {
+    app.get("/configuration", ensureAdminAuthenticated, async (req, res) => {
       let electionConfig = (await db.collection("election_config").findOne({})) || {
         electionName: "",
         registrationStart: "",
@@ -1667,23 +1653,29 @@ const startServer = async () => {
         votingStart: "",
         votingEnd: "",
         partylists: [],
-        colleges: {},
+        listOfElections: [], // Use listOfElections to store college data (voters, registeredVoters, numberOfVoted)
+        totalStudents: 0,
         fakeCurrentDate: null,
         electionStatus: "Election Not Active",
         currentPeriod: { name: "Election Not Active", duration: "", waitingFor: null },
       };
+
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
       const simulatedDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).toISOString() : null;
-      res.render("admin/configuration", { electionConfig, simulatedDate });
+      res.render("admin/configuration", { electionConfig, simulatedDate, loggedInAdmin: req.session.admin });
     });
 
     app.post("/configuration", async (req, res) => {
       try {
-        const { electionName, registrationStart, registrationEnd, votingStart, votingEnd, partylists, colleges } = req.body;
-        const partylistsArray = partylists ? partylists.split(",").map((item) => item.trim()) : [];
+        // First, get the current configuration from the database.
+        let currentConfig = (await db.collection("election_config").findOne({})) || {};
 
-        // Define mapping for college acronym to full name.
+        const { electionName, registrationStart, registrationEnd, votingStart, votingEnd, partylists, colleges } = req.body;
+        // If partylists is not provided, keep the existing one
+        const partylistsArray = partylists ? partylists.split(",").map((item) => item.trim()) : currentConfig.partylists || [];
+
+        // Mapping from college acronym to full name.
         const collegeMapping = {
           CAFA: "College of Architecture and Fine Arts",
           CAL: "College of Arts and Letters",
@@ -1700,32 +1692,43 @@ const startServer = async () => {
           CSER: "College of Sports, Exercise, and Recreation",
         };
 
-        // Merge the colleges into a single list.
-        let totalStudents = 0;
-        let mergedList = [];
-        if (colleges) {
+        // If new college data is provided, recalculate mergedList and totalStudents.
+        // Otherwise, keep the existing ones.
+        let mergedList = currentConfig.listOfElections || [];
+        let totalStudents = currentConfig.totalStudents || 0;
+        if (colleges && Object.keys(colleges).length > 0) {
+          mergedList = [];
+          totalStudents = 0;
+          // The form sends only voters value per college.
+          // For each college, preserve registeredVoters and numberOfVoted from the current config if available.
           for (const acronym in colleges) {
             const voters = parseInt(colleges[acronym], 10) || 0;
             totalStudents += voters;
+            // Look for previous data for this college.
+            let prevCollege = (currentConfig.listOfElections || []).find((c) => c.acronym === acronym);
+            const registeredVoters = prevCollege ? prevCollege.registeredVoters : 0;
+            const numberOfVoted = prevCollege ? prevCollege.numberOfVoted : 0;
             mergedList.push({
               acronym: acronym,
-              name: collegeMapping[acronym] || acronym, // fallback to acronym if mapping not found
+              name: collegeMapping[acronym] || acronym,
               voters: voters,
+              registeredVoters: registeredVoters,
+              numberOfVoted: numberOfVoted,
             });
           }
         }
 
+        // Build the update object by merging new values with existing ones if not provided.
         const update = {
-          electionName,
-          registrationStart: registrationStart ? new Date(registrationStart) : null,
-          registrationEnd: registrationEnd ? new Date(registrationEnd) : null,
-          votingStart: votingStart ? new Date(votingStart) : null,
-          votingEnd: votingEnd ? new Date(votingEnd) : null,
+          electionName: electionName || currentConfig.electionName,
+          registrationStart: registrationStart ? new Date(registrationStart) : currentConfig.registrationStart,
+          registrationEnd: registrationEnd ? new Date(registrationEnd) : currentConfig.registrationEnd,
+          votingStart: votingStart ? new Date(votingStart) : currentConfig.votingStart,
+          votingEnd: votingEnd ? new Date(votingEnd) : currentConfig.votingEnd,
           partylists: partylistsArray,
-          // Store only the merged list in listOfElections.
           listOfElections: mergedList,
-          totalStudents,
-          // Default electionStatus and currentPeriod can be computed on GET based on dates.
+          totalStudents: totalStudents,
+          // Set electionStatus and currentPeriod as needed (here defaulting to Registration Period)
           electionStatus: "Registration Period",
           currentPeriod: { name: "Registration Period", duration: "", waitingFor: null },
           updatedAt: new Date(),
@@ -1805,7 +1808,7 @@ const startServer = async () => {
       }
     });
 
-    app.get("/candidates", async (req, res) => {
+    app.get("/candidates", ensureAdminAuthenticated, async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
         let electionConfig = await electionConfigCollection.findOne({});
@@ -1862,6 +1865,7 @@ const startServer = async () => {
           candidates_lsc: structuredData,
           voterCounts,
           electionConfig,
+          loggedInAdmin: req.session.admin,
         });
       } catch (error) {
         console.error("Error fetching candidates for dashboard:", error);
@@ -1869,26 +1873,26 @@ const startServer = async () => {
       }
     });
 
-    app.get("/blockchain-management", async (req, res) => {
+    app.get("/blockchain-management", ensureAdminAuthenticated, async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});
 
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/blockchain-management", { electionConfig });
+      res.render("admin/blockchain-management", { electionConfig, loggedInAdmin: req.session.admin });
     });
-    app.get("/blockchain-activity-log", async (req, res) => {
+    app.get("/blockchain-activity-log", ensureAdminAuthenticated, async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});
 
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/blockchain-activity-log", { electionConfig });
+      res.render("admin/blockchain-activity-log", { electionConfig, loggedInAdmin: req.session.admin });
     });
 
-    app.get("/voter-info", async (req, res) => {
+    app.get("/voter-info", ensureAdminAuthenticated, async (req, res) => {
       try {
         const voters = await db.collection("registered_voters").find().toArray();
 
@@ -1898,21 +1902,21 @@ const startServer = async () => {
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-        res.render("admin/election-voter-info", { voters, electionConfig }); // Pass voters to EJS template
+        res.render("admin/election-voter-info", { voters, electionConfig, loggedInAdmin: req.session.admin }); // Pass voters to EJS template
       } catch (error) {
         console.error("Error fetching registered voters:", error);
         res.status(500).send("Internal Server Error");
       }
     });
 
-    app.get("/voter-turnout", async (req, res) => {
+    app.get("/voter-turnout", ensureAdminAuthenticated, async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});
 
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/election-voter-turnout", { electionConfig });
+      res.render("admin/election-voter-turnout", { electionConfig, loggedInAdmin: req.session.admin });
     });
 
     app.get("/vote-tally", async (req, res) => {
@@ -1933,7 +1937,7 @@ const startServer = async () => {
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-        res.render("admin/election-voter-turnout", { voterCounts, electionConfig });
+        res.render("admin/election-voter-turnout", { voterCounts, electionConfig, loggedInAdmin: req.session.admin });
       } catch (error) {
         console.error("Error fetching voter counts:", error);
         res.status(500).send("Internal Server Error");
@@ -1947,7 +1951,7 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/election-results", { electionConfig });
+      res.render("admin/election-results", { electionConfig, loggedInAdmin: req.session.admin });
     });
 
     app.get("/reset", async (req, res) => {
@@ -1957,7 +1961,7 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/election-reset", { electionConfig });
+      res.render("admin/election-reset", { electionConfig, loggedInAdmin: req.session.admin });
     });
 
     app.get("/archives", async (req, res) => {
@@ -1968,7 +1972,7 @@ const startServer = async () => {
 
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-        res.render("admin/archives", { archives, electionConfig });
+        res.render("admin/archives", { archives, electionConfig, loggedInAdmin: req.session.admin });
       } catch (error) {
         console.error("Error fetching archives:", error);
         res.status(500).send("Internal Server Error");
@@ -1982,42 +1986,115 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/system-edit-account", { electionConfig });
+      res.render("admin/system-edit-account", { electionConfig, loggedInAdmin: req.session.admin });
+    });
+
+    app.get("/admin-accounts", async (req, res) => {
+      try {
+        const admins = await db.collection("admin_accounts").find({}).toArray();
+        res.json(admins);
+      } catch (error) {
+        console.error("Error retrieving admin accounts:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    });
+
+    app.get("/admin-accounts/:username", async (req, res) => {
+      try {
+        if (!["Technical Team", "Developers"].includes(req.session.admin.role)) {
+          return res.status(403).json({ error: "Unauthorized access." });
+        }
+
+        const username = req.params.username;
+        const admin = await db.collection("admin_accounts").findOne({ username });
+
+        if (!admin) {
+          return res.status(404).json({ error: "Admin not found." });
+        }
+
+        res.json(admin);
+      } catch (error) {
+        console.error("Error retrieving admin:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
     });
 
     // Add New Admin (Base64 Image)
     app.post("/admin-accounts/add", async (req, res) => {
       try {
-        const { name, username, password, role, imgBase64 } = req.body;
-
-        if (role !== "admin") {
-          return res.status(403).json({ error: "Only Admins can be created" });
+        if (!["Technical Team", "Developers"].includes(req.session.admin.role)) {
+          return res.status(403).json({ error: "Only Technical Team or Developers can add new admins." });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const { name, username, password, role, imgBase64 } = req.body;
+
+        // Validate role
+        const allowedRoles = ["Electoral Board", "Technical Team", "Creatives Team", "Developers"];
+        if (!allowedRoles.includes(role)) {
+          return res.status(400).json({ error: "Invalid role selected" });
+        }
+
+        // Ensure username is unique
+        const existingAdmin = await db.collection("admin_accounts").findOne({ username });
+        if (existingAdmin) {
+          return res.status(400).json({ error: "Username already exists." });
+        }
 
         const newAdmin = {
           name,
           username,
-          password: hashedPassword,
+          password, // Plain-text password (not recommended for security)
           role,
-          img: imgBase64, // Store base64 image directly
+          img: imgBase64,
         };
 
         await db.collection("admin_accounts").insertOne(newAdmin);
-        res.redirect("/admin-accounts");
+        res.redirect("/manage-admins");
       } catch (error) {
         console.error("Error adding admin:", error);
         res.status(500).send("Internal Server Error");
       }
     });
 
-    // Delete Admin
-    app.post("/admin-accounts/delete/:id", async (req, res) => {
+    app.post("/admin-accounts/edit/:username", async (req, res) => {
       try {
-        const adminId = req.params.id;
-        await db.collection("admin_accounts").deleteOne({ _id: new ObjectId(adminId) });
-        res.redirect("/admin-accounts");
+        if (!["Technical Team", "Developers"].includes(req.session.admin.role)) {
+          return res.status(403).json({ error: "Only Technical Team or Developers can edit admin accounts." });
+        }
+
+        const username = req.params.username;
+        const { name, newUsername, role, imgBase64 } = req.body;
+
+        const updateFields = {
+          name,
+          username: newUsername || username, // Allow updating username
+          role,
+          img: imgBase64,
+        };
+
+        await db.collection("admin_accounts").updateOne(
+          { username }, // Find by username
+          { $set: updateFields }
+        );
+
+        res.redirect("/manage-admins");
+      } catch (error) {
+        console.error("Error editing admin:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // Delete Admin
+    app.post("/admin-accounts/delete/:username", async (req, res) => {
+      try {
+        if (!["Technical Team", "Developers"].includes(req.session.admin.role)) {
+          return res.status(403).json({ error: "Only Technical Team or Developers can delete admin accounts." });
+        }
+
+        const username = req.params.username;
+        await db.collection("admin_accounts").deleteOne({ username });
+
+        res.redirect("/manage-admins");
       } catch (error) {
         console.error("Error deleting admin:", error);
         res.status(500).send("Internal Server Error");
@@ -2031,7 +2108,7 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/system-help-page", { electionConfig });
+      res.render("admin/system-help-page", { electionConfig, loggedInAdmin: req.session.admin });
     });
     app.get("/activity-log", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
@@ -2040,7 +2117,7 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/system-activity-log", { electionConfig });
+      res.render("admin/system-activity-log", { electionConfig, loggedInAdmin: req.session.admin });
     });
 
     // Routing
