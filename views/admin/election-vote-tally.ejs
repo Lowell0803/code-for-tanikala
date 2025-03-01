@@ -203,8 +203,8 @@
         </ul>
       </div>
       <main class="main">
-        Election Vote Tally
         <div class="main-left">
+          Election Vote Tally
           <h1>Supreme Student Council</h1>
           <div class="container-ssc" id="container-president"></div>
           <div class="container-ssc" id="container-vice-president"></div>
@@ -215,10 +215,25 @@
         <div class="main-right">
           <div class="main-right-header">
             <h1>Local Student Council</h1>
-            <select class="select" id="college-selector">
+            <!-- <select class="select">
               <option value="cafa">College of Architecture and Fine Arts (CAFA)</option>
               <option value="cal">College of Arts and Letters (CAL)</option>
               <option value="cbea">College of Business Education and Accountancy (CBEA)</option>
+            </select> -->
+            <select name="college" id="college-selector">
+              <option value="cafa">College of Architecture and Fine Arts (CAFA)</option>
+              <option value="cal">College of Arts and Letters (CAL)</option>
+              <option value="cbea">College of Business Education and Accountancy (CBEA)</option>
+              <option value="ccje">College of Criminal Justice Education (CCJE)</option>
+              <option value="chtm">College of Hospitality and Tourism Management (CHTM)</option>
+              <option value="cict">College of Information and Communications Technology (CICT)</option>
+              <option value="cit">College of Industrial Technology (CIT)</option>
+              <option value="cn">College of Nursing (CN)</option>
+              <option value="coe">College of Engineering (COE)</option>
+              <option value="coed">College of Education (COED)</option>
+              <option value="cs">College of Science (CS)</option>
+              <option value="cser">College of Sports, Exercise, and Recreation (CSER)</option>
+              <option value="cssp">College of Social Sciences and Philosophy (CSSP)</option>
             </select>
           </div>
           <div id="lsc-container">
@@ -247,6 +262,100 @@
         <a href="help_page">here.</a>
       </div>
     </footer>
+
+    <!-- Include your JS files including liner-bar-js -->
+    <script src="/path/to/liner-bar.js"></script>
+    <script src="admin/js/sidebar.js"></script>
+    <script>
+      // When the DOM is fully loaded, fetch the vote counts
+      document.addEventListener("DOMContentLoaded", function () {
+        fetch("/developer/vote-counts")
+          .then((response) => response.json())
+          .then((data) => {
+            if (!data.success) return;
+            let results = data.results;
+            // Prepare two groups:
+            // Left group: SSC positions (exact match on "President", "Vice President", "Senator")
+            let leftData = {
+              President: [],
+              "Vice President": [],
+              Senator: [],
+            };
+            // Right group: LSC positions that include a hyphen: e.g. "Governor - CAL"
+            // We will group these by the title and college code (converted to lowercase for consistency)
+            let rightData = {
+              Governor: {},
+              "Vice Governor": {},
+              "Board Member": {},
+            };
+
+            results.forEach((candidate) => {
+              let pos = candidate.position;
+              // Check for SSC positions
+              if (pos === "President" || pos === "Vice President" || pos === "Senator") {
+                leftData[pos].push(candidate);
+              } else if (pos.includes("Governor") || pos.includes("Vice Governor") || pos.includes("Board Member")) {
+                // Expect format: "Title - CollegeCode" (for Governor and Vice Governor)
+                // or "Board Member - [Program Name]" which we'll assume also contains a college identifier
+                let parts = pos.split(" - ");
+                if (parts.length > 1) {
+                  let title = parts[0].trim();
+                  let collegeKey = parts[1].trim().toLowerCase();
+                  // Initialize grouping for this title and college if not present
+                  if (!rightData[title][collegeKey]) {
+                    rightData[title][collegeKey] = [];
+                  }
+                  rightData[title][collegeKey].push(candidate);
+                }
+              }
+            });
+
+            // Render SSC positions (left side)
+            renderCandidates("container-president", leftData["President"], "President");
+            renderCandidates("container-vice-president", leftData["Vice President"], "Vice President");
+            renderCandidates("container-senator", leftData["Senator"], "Senator");
+
+            // Render LSC positions (right side) based on the currently selected college
+            let collegeSelect = document.getElementById("college-selector");
+            function renderRight() {
+              let selectedCollege = collegeSelect.value.toLowerCase();
+              renderCandidates("container-lsc-governor", rightData["Governor"][selectedCollege] || [], "Governor");
+              renderCandidates("container-lsc-vice-governor", rightData["Vice Governor"][selectedCollege] || [], "Vice Governor");
+              renderCandidates("container-lsc-board-member", rightData["Board Member"][selectedCollege] || [], "Board Member");
+            }
+            collegeSelect.addEventListener("change", renderRight);
+            renderRight();
+
+            // If liner-bar-js provides a function to create a bar chart for a candidate,
+            // you could call that function inside renderCandidates() to display vote counts graphically.
+          })
+          .catch((error) => console.error("Error fetching vote counts:", error));
+
+        // Utility function to render candidate cards into a container.
+        // You can adjust the innerHTML and CSS classes to match your liner-bar styling.
+        function renderCandidates(containerId, candidates, positionTitle) {
+          let container = document.getElementById(containerId);
+          container.innerHTML = "";
+          if (candidates.length === 0) {
+            container.innerHTML = `<p>No candidates for ${positionTitle}</p>`;
+            return;
+          }
+          candidates.forEach((candidate) => {
+            let card = document.createElement("div");
+            card.className = "candidate-card liner-bar"; // Use a class from liner-bar-css if available
+            card.innerHTML = `
+              <div class="candidate-name">${candidate.candidate}</div>
+              <div class="candidate-votes">${candidate.votes} votes</div>
+            `;
+            container.appendChild(card);
+            // Optionally, if liner-bar-js exposes a function (e.g. createLinerBar) to display a bar,
+            // you could call it here passing the candidate.votes and a reference to the card element.
+            // Example:
+            // linerBar.createLinerBar(card, candidate.votes);
+          });
+        }
+      });
+    </script>
 
     <script>
       function formatDate(isoString) {

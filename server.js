@@ -1937,7 +1937,7 @@ const startServer = async () => {
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-        res.render("admin/election-voter-turnout", { voterCounts, electionConfig, loggedInAdmin: req.session.admin });
+        res.render("admin/election-vote-tally", { voterCounts, electionConfig, loggedInAdmin: req.session.admin });
       } catch (error) {
         console.error("Error fetching voter counts:", error);
         res.status(500).send("Internal Server Error");

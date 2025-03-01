@@ -1,0 +1,4 @@
+}
+    console.log(`Account ${i} balance:`, ethers.utils.formatEther(balance));
+for (l    const balance = await accounts[i].getBalance();
+const accounts = await ethers.getSigners();
