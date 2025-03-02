@@ -8,9 +8,31 @@ const bcrypt = require("bcrypt");
 const session = require("express-session");
 const { formatBytes32String } = require("ethers");
 
+// function toBytes32(str) {
+//   if (!str) return ethers.toUtf8Bytes("");
+//   return ethers.toUtf8Bytes(str.substring(0, 32).padEnd(32, "\0"));
+// }
+
 function toBytes32(str) {
-  if (!str) return ethers.encodeBytes32String(""); // Use encodeBytes32String for ethers v6
-  return ethers.encodeBytes32String(str.substring(0, 31)); // Limit to 31 chars
+  // If no string, encode an empty string
+  if (!str) return ethers.encodeBytes32String("");
+  // Limit string to 31 characters so there's room for the null terminator
+  return ethers.encodeBytes32String(str.slice(0, 31));
+}
+
+function fromBytes32(hexStr) {
+  try {
+    // Try decoding normally first
+    return ethers.decodeBytes32String(hexStr);
+  } catch (error) {
+    // If it fails, force a null terminator:
+    let bytes = ethers.arrayify(hexStr);
+    // Ensure the last byte is 0
+    if (bytes[bytes.length - 1] !== 0) {
+      bytes[bytes.length - 1] = 0;
+    }
+    return ethers.toUtf8String(bytes);
+  }
 }
 
 const fs = require("fs");
@@ -779,48 +801,6 @@ const startServer = async () => {
     //   }
     // });
 
-    app.get("/get-vote-counts", async (req, res) => {
-      try {
-        const positions = await contract.getPositionList();
-        const [allCandidates, allVotes] = await contract.getVoteCounts();
-
-        // Fetch candidates for all positions concurrently
-        const candidatesPerPosition = await Promise.all(positions.map((pos) => contract.getCandidates(pos)));
-
-        let result = [];
-        let totalCandidateCounter = 0;
-
-        for (let i = 0; i < positions.length; i++) {
-          const pos = positions[i];
-          const decodedPos = ethers.decodeBytes32String(pos);
-          const posCandidates = candidatesPerPosition[i];
-
-          const candidatesData = posCandidates.map((candidate, index) => {
-            const decodedName = ethers.decodeBytes32String(candidate.name);
-            const decodedParty = ethers.decodeBytes32String(candidate.party);
-            const votes = Number(allVotes[totalCandidateCounter + index]);
-            return {
-              name: decodedName,
-              party: decodedParty,
-              votes,
-            };
-          });
-
-          totalCandidateCounter += posCandidates.length;
-          result.push({
-            position: decodedPos,
-            candidates: candidatesData,
-          });
-          console.log(candidatesData);
-        }
-
-        res.json({ success: true, result });
-      } catch (error) {
-        console.error("Error fetching candidate details:", error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-
     app.get("/api/candidate-details", async (req, res) => {
       try {
         const positions = await contract.getPositionList();
@@ -1588,8 +1568,72 @@ const startServer = async () => {
     });
 
     // ==================================== SUBMIT CANDIDATES  ====================================
-    console.log("Ethers object:", ethers);
-    console.log("Ethers utils:", ethers.utils);
+    // console.log("Ethers object:", ethers);
+    // console.log("Ethers utils:", ethers.utils);
+
+    function toBytes32(str) {
+      // If no string, encode an empty string
+      if (!str) return ethers.encodeBytes32String("");
+      // Limit string to 31 characters so there's room for the null terminator
+      return ethers.encodeBytes32String(str.slice(0, 31));
+    }
+
+    function fromBytes32(hexStr) {
+      try {
+        // Try decoding normally first
+        return ethers.decodeBytes32String(hexStr);
+      } catch (error) {
+        // If it fails, force a null terminator:
+        let bytes = ethers.arrayify(hexStr);
+        // Ensure the last byte is 0
+        if (bytes[bytes.length - 1] !== 0) {
+          bytes[bytes.length - 1] = 0;
+        }
+        return ethers.toUtf8String(bytes);
+      }
+    }
+
+    app.get("/get-vote-counts", async (req, res) => {
+      try {
+        const positions = await contract.getPositionList();
+        const [allCandidates, allVotes] = await contract.getVoteCounts();
+
+        // Fetch candidates for all positions concurrently
+        const candidatesPerPosition = await Promise.all(positions.map((pos) => contract.getCandidates(pos)));
+
+        let result = [];
+        let totalCandidateCounter = 0;
+
+        for (let i = 0; i < positions.length; i++) {
+          const pos = positions[i];
+          const decodedPos = fromBytes32(pos); // Use our robust decoding
+          const posCandidates = candidatesPerPosition[i];
+
+          const candidatesData = posCandidates.map((candidate, index) => {
+            const decodedName = fromBytes32(candidate.name);
+            const decodedParty = fromBytes32(candidate.party);
+            const votes = Number(allVotes[totalCandidateCounter + index]);
+            return {
+              name: decodedName,
+              party: decodedParty,
+              votes,
+            };
+          });
+
+          totalCandidateCounter += posCandidates.length;
+          result.push({
+            position: decodedPos,
+            candidates: candidatesData,
+          });
+          console.log(candidatesData);
+        }
+
+        res.json({ success: true, result });
+      } catch (error) {
+        console.error("Error fetching candidate details:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
 
     app.post("/submit-candidates", async (req, res) => {
       try {
@@ -1633,8 +1677,9 @@ const startServer = async () => {
                 if (!program.candidates || program.candidates.length === 0) {
                   console.log(`❌ Skipping Board Member - ${program.program} (No candidates)`);
                 } else {
-                  console.log(`✅ Adding Board Member - ${program.program} with ${program.candidates.length} candidates`);
-                  positions.push(toBytes32(`Board Member - ${program.program}`));
+                  console.log(`✅ Adding Board Member for ${college.collegeAcronym} with ${program.candidates.length} candidates`);
+                  // Revert back to the old format: "collegeAcronym - Board Member"
+                  positions.push(toBytes32(`${college.collegeAcronym} - Board Member`));
                   candidates.push(
                     program.candidates.map((c) => ({
                       name: toBytes32(c.name),
@@ -1648,7 +1693,7 @@ const startServer = async () => {
                 console.log(`❌ Skipping ${pos.position} for ${college.collegeAcronym} (No candidates)`);
               } else {
                 console.log(`✅ Adding ${pos.position} for ${college.collegeAcronym} with ${pos.candidates.length} candidates`);
-                positions.push(toBytes32(`${pos.position} - ${college.collegeAcronym}`));
+                positions.push(toBytes32(`${college.collegeAcronym} - ${pos.position}`));
                 candidates.push(
                   pos.candidates.map((c) => ({
                     name: toBytes32(c.name),
@@ -1660,10 +1705,28 @@ const startServer = async () => {
           });
         });
 
-        // ✅ Add "Abstain" to every position
+        // ✅ Add "Abstain" option to every position,
+        // but if the decoded position indicates a board member position,
+        // change the Abstain name to include the program name.
         positions.forEach((pos, index) => {
+          const decodedPos = fromBytes32(pos);
+          let abstainName = "Abstain";
+
+          // Split the decoded position by " - "
+          const parts = decodedPos.split(" - ");
+
+          // If there are two parts and the second part is longer than a threshold,
+          // assume it's a board member program name
+          if (parts.length === 2 && parts[1].length > 10) {
+            // Use a prefix and then add the program name
+            const prefix = "Abstain - ";
+            // Ensure the total length does not exceed 31 characters
+            const allowedLength = 31 - prefix.length;
+            abstainName = prefix + parts[1].slice(0, allowedLength);
+          }
+
           candidates[index].push({
-            name: toBytes32("Abstain"),
+            name: toBytes32(abstainName),
             party: toBytes32("None"),
           });
         });
@@ -1914,18 +1977,16 @@ const startServer = async () => {
         if (submissionStatus && submissionStatus.submitted === true) {
           console.log("Candidates have been submitted. Archiving candidate data...");
 
-          // Archive candidates data from "candidates" and "candidates_lsc"
+          // Archive candidates data
           const candidatesData = await db.collection("candidates").find({}).toArray();
-          console.log("Candidates data count:", candidatesData.length);
           const candidatesLscData = await db.collection("candidates_lsc").find({}).toArray();
-          console.log("Candidates LSC data count:", candidatesLscData.length);
 
           const archiveResult = await db.collection("election_archive").insertOne({
-            electionName: "", // Customize as needed
-            registrationStart: "", // If applicable
-            registrationEnd: "",
-            votingStart: "",
-            votingEnd: "",
+            electionName: "Previous Election",
+            registrationStart: submissionStatus.registrationStart || null,
+            registrationEnd: submissionStatus.registrationEnd || null,
+            votingStart: submissionStatus.votingStart || null,
+            votingEnd: submissionStatus.votingEnd || null,
             electionStatus: "Candidates Submitted",
             archivedAt: new Date(),
             candidates: candidatesData,
@@ -1933,49 +1994,58 @@ const startServer = async () => {
           });
           console.log("Candidate data archived. Archive ID:", archiveResult.insertedId);
 
-          // Trigger reset-candidates (e.g., call your blockchain function)
-          console.log("Triggering contract.resetCandidates()...");
-          const tx = await contract.resetCandidates();
-          await tx.wait();
-          console.log("Blockchain candidate reset confirmed.");
+          // Reset blockchain candidates
+          // console.log("Triggering contract.resetCandidates()...");
+          // const tx = await contract.resetCandidates();
+          // await tx.wait();
+          // console.log("Blockchain candidate reset confirmed.");
 
           // Update the submission status to false
-          console.log("Updating candidate submission status in the database to false...");
-          // await db.collection("system_status").updateOne({ _id: "candidate_submission" }, { $set: { submitted: false } });
+          await db.collection("system_status").updateOne({ _id: "candidate_submission" }, { $set: { submitted: false } });
           console.log("Candidate submission status updated to false.");
         } else {
           console.log("Candidate submission status is not true. Skipping candidate archiving and blockchain reset.");
         }
 
-        // Original election configuration reset logic (DO NOT OMIT ANYTHING)
+        // Reset election configuration
         console.log("Resetting election configuration...");
         await db.collection("election_config").deleteMany({});
         await db.collection("election_config").insertOne({
-          electionName: "",
+          _id: "election_config", // <-- FIXED
+          electionName: "BulSU Student 2025",
           registrationPeriod: { start: "", end: "" },
           votingPeriod: { start: "", end: "" },
           totalElections: 14,
           totalPartylists: 0,
-          partylists: [],
+          partylists: ["bulsu", "bulsuan"],
           totalCandidates: 0,
           phase: "Election Inactive",
           listOfElections: [
-            { name: "Supreme Student Council (SSC) - BulSU Main", voters: 0 },
-            { name: "College of Architecture and Fine Arts (CAFA)", voters: 0 },
-            { name: "College of Arts and Letters (CAL)", voters: 0 },
-            { name: "College of Business Education and Accountancy (CBEA)", voters: 0 },
-            { name: "College of Criminal Justice Education (CCJE)", voters: 0 },
-            { name: "College of Engineering (COE)", voters: 0 },
-            { name: "College of Education (COED)", voters: 0 },
-            { name: "College of Hospitality and Tourism Management (CHTM)", voters: 0 },
-            { name: "College of Industrial Technology (CIT)", voters: 0 },
-            { name: "College of Information and Communications Technology (CICT)", voters: 0 },
-            { name: "College of Nursing (CON)", voters: 0 },
-            { name: "College of Science (CS)", voters: 0 },
-            { name: "College of Social Sciences and Philosophy (CSSP)", voters: 0 },
-            { name: "College of Sports, Exercise, and Recreation (CSER)", voters: 0 },
+            { acronym: "CAFA", name: "College of Architecture and Fine Arts", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "CAL", name: "College of Arts and Letters", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "CBEA", name: "College of Business Education and Accountancy", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "CCJE", name: "College of Criminal Justice Education", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "CHTM", name: "College of Hospitality and Tourism Management", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "CIT", name: "College of Industrial Technology", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "CICT", name: "College of Information and Communications Technology", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "COE", name: "College of Engineering", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "COED", name: "College of Education", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "CN", name: "College of Nursing", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "CS", name: "College of Science", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "CSER", name: "College of Sports, Exercise, and Recreation", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
+            { acronym: "CSSP", name: "College of Social Sciences and Philosophy", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
           ],
+          currentPeriod: { name: "Registration Period", duration: "", waitingFor: null },
+          electionStatus: "Registration Period",
+          updatedAt: new Date(),
+          registrationStart: new Date("2025-02-05T15:21:00.000Z"),
+          registrationEnd: new Date("2025-02-19T15:21:00.000Z"),
+          votingStart: new Date("2025-02-20T15:22:00.000Z"),
+          votingEnd: new Date("2025-02-21T15:22:00.000Z"),
+          totalStudents: 0,
+          fakeCurrentDate: "2025-02-12T12:40:00.000Z",
         });
+
         console.log("Election configuration reset complete.");
 
         res.redirect("configuration");

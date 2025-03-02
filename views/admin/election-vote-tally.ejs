@@ -275,7 +275,7 @@
           .then((data) => {
             if (!data.success) return;
 
-            console.log("Raw vote data:", data.result); // Log raw data
+            console.log("Raw vote data:", data.result); // Log raw API data
 
             // Group for Supreme Student Council (SSC)
             let sscData = {
@@ -287,7 +287,7 @@
             let lscData = {
               Governor: {},
               "Vice Governor": {},
-              // For Board Member, we merge all candidates
+              // For Board Member, we merge all candidates into one array.
               "Board Member": [],
             };
 
@@ -298,21 +298,26 @@
               if (pos === "President" || pos === "Vice President" || pos === "Senator") {
                 sscData[pos] = item.candidates;
               }
-              // LSC: Positions containing a hyphen (expected format: "Title - CollegeCode" or "Title - Subtype")
+              // LSC: Positions containing a hyphen
               else if (pos.includes(" - ")) {
                 const parts = pos.split(" - ");
                 if (parts.length === 2) {
-                  const title = parts[0].trim();
-                  const suffix = parts[1].trim().toLowerCase();
-                  if (title === "Board Member") {
+                  const firstPart = parts[0].trim();
+                  const secondPart = parts[1].trim();
+                  // Check if it's a Board Member position
+                  if (secondPart.toLowerCase() === "board member") {
+                    console.log("Found Board Member group in position:", pos, "with candidates:", item.candidates);
                     // Merge board member candidates into a single array.
                     lscData["Board Member"] = lscData["Board Member"].concat(item.candidates);
                   } else {
-                    // For other positions, use the suffix as the college key.
-                    if (!lscData[title]) {
-                      lscData[title] = {};
+                    // For other LSC positions, backend returns "CollegeAcronym - Position"
+                    // We flip the order so that the position title becomes the key,
+                    // and the college code is stored as a sub-key.
+                    if (!lscData[secondPart]) {
+                      lscData[secondPart] = {};
                     }
-                    lscData[title][suffix] = item.candidates;
+                    lscData[secondPart][firstPart.toLowerCase()] = item.candidates;
+                    console.log("Grouped LSC position:", secondPart, "for college:", firstPart.toLowerCase(), "with candidates:", item.candidates);
                   }
                 }
               }
@@ -320,6 +325,7 @@
 
             console.log("Grouped SSC Data:", sscData);
             console.log("Grouped LSC Data:", lscData);
+            console.log("Board Member data:", lscData["Board Member"]);
 
             // Render SSC positions (left side)
             renderCandidates("container-president", sscData["President"], "President");
@@ -330,19 +336,15 @@
             const collegeSelect = document.getElementById("college-selector");
             function renderLSC() {
               const selectedCollege = collegeSelect.value.toLowerCase();
+              console.log("Selected college:", selectedCollege);
               // For positions that are filtered by college:
-              renderCandidates("container-lsc-governor", lscData["Governor"][selectedCollege] || [], "Governor");
-              renderCandidates("container-lsc-vice-governor", lscData["Vice Governor"][selectedCollege] || [], "Vice Governor");
-              // For Board Member:
-              // If "all" is selected, display all board member candidates.
-              // Otherwise, you could apply a mapping to filter board member candidates by college.
+              renderCandidates("container-lsc-governor", (lscData["Governor"] && lscData["Governor"][selectedCollege]) || [], "Governor");
+              renderCandidates("container-lsc-vice-governor", (lscData["Vice Governor"] && lscData["Vice Governor"][selectedCollege]) || [], "Vice Governor");
+              // For Board Member, show data only when "all" is selected
               if (selectedCollege === "all") {
+                console.log("Rendering Board Member candidates:", lscData["Board Member"]);
                 renderCandidates("container-lsc-board-member", lscData["Board Member"] || [], "Board Member");
               } else {
-                // Option 1: Do not display board member candidates if a specific college is selected.
-                // renderCandidates("container-lsc-board-member", [], "Board Member");
-
-                // Option 2: (If you add a mapping later) filter candidates accordingly.
                 renderCandidates("container-lsc-board-member", [], "Board Member");
               }
             }

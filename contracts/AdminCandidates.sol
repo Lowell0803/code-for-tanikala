@@ -20,6 +20,12 @@ contract AdminCandidates {
         bytes32 party;
         uint256 votes;
     }
+    
+    // New struct to hold extra Board Member program information.
+    struct BoardMemberInfo {
+        bytes32 programPart1;
+        bytes32 programPart2;
+    }
 
     // Mapping from a position (bytes32) to an array of Candidate structs
     mapping(bytes32 => Candidate[]) private candidates;
@@ -29,6 +35,9 @@ contract AdminCandidates {
     mapping(bytes32 => bool) private hasVotedHash;
     // List of positions (e.g., "President", "VicePresident", etc.)
     bytes32[] private positionList;
+    
+    // New mapping: for board member positions, store the program data (split into two bytes32)
+    mapping(bytes32 => BoardMemberInfo) public boardMemberInfo;
 
     address public admin;
     bool public isFinalized = false;
@@ -45,13 +54,50 @@ contract AdminCandidates {
     constructor() {
         admin = msg.sender;
     }
-
+    
+    // Helper: returns true if the given position ends with " - Board Member"
+    function isBoardMemberPosition(bytes32 position) internal pure returns (bool) {
+        // Decode and compare the tail. We assume the position is encoded as ASCII.
+        string memory posStr = decodeBytes32String(position);
+        // Simple check: does the string end with " - Board Member"?
+        bytes memory posBytes = bytes(posStr);
+        bytes memory suffix = bytes(" - Board Member");
+        if (posBytes.length < suffix.length) {
+            return false;
+        }
+        for (uint256 i = 0; i < suffix.length; i++) {
+            if (posBytes[posBytes.length - suffix.length + i] != suffix[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // Helper function to decode bytes32 to string
+    // (This is similar to ethers.decodeBytes32String in JS)
+    function decodeBytes32String(bytes32 _data) internal pure returns (string memory) {
+        uint256 len = 0;
+        while (len < 32 && _data[len] != 0) {
+            len++;
+        }
+        bytes memory result = new bytes(len);
+        for (uint256 i = 0; i < len; i++) {
+            result[i] = _data[i];
+        }
+        return string(result);
+    }
+    
     // Submit candidates for each position.
     // _positions: an array of positions (as bytes32)
     // _candidates: a 2D array; for each position an array of CandidateEntry values.
+    // _boardMemberProgramsPart1 and _boardMemberProgramsPart2:
+    // For positions that are Board Member positions, supply the full program string split into two parts.
+    // For non-board-member positions, pass zero-values.
     function submitCandidates(
         bytes32[] memory _positions,
-        CandidateEntry[][] memory _candidates
+        CandidateEntry[][] memory _candidates,
+        bytes32[] memory _boardMemberProgramsPart1,
+        bytes32[] memory _boardMemberProgramsPart2
     ) public onlyAdmin {
         require(!isFinalized, "Candidates are already finalized!");
         // Reset the positions list
@@ -73,6 +119,13 @@ contract AdminCandidates {
                 }));
                 // Ensure the voter hashes array for this candidate is empty.
                 delete candidateVoterHashes[_positions[i]][j];
+            }
+            // If this is a board member position, store the extra program data.
+            if(isBoardMemberPosition(_positions[i])) {
+                boardMemberInfo[_positions[i]] = BoardMemberInfo({
+                    programPart1: _boardMemberProgramsPart1[i],
+                    programPart2: _boardMemberProgramsPart2[i]
+                });
             }
         }
         isFinalized = true;
