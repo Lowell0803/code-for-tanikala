@@ -91,6 +91,14 @@ h6 {
   font-family: "Montserrat", "Century Gothic";
 }
 
+.header-user img {
+  width: 2.5rem; /* Set the width */
+  height: 2.5rem; /* Set the height */
+  border-radius: 50%; /* Makes the image circular */
+  object-fit: cover; /* Ensures the image covers the area without distortion */
+  margin: 0 0.875rem 0 0.75rem;
+}
+
 .select {
   background-color: #fff3c8;
   color: #bb7e15;
