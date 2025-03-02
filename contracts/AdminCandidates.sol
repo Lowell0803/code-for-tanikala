@@ -2,46 +2,25 @@
 pragma solidity ^0.8.21;
 
 contract AdminCandidates {
-    // Define all structs before using them.
     struct Candidate {
-        bytes32 candidateId; // Unique candidate id (e.g., converted from a database _id)
-        bytes32 name;
-        bytes32 party;
+        bytes32 name;   // Changed from string to bytes32
+        bytes32 party;  // Changed from string to bytes32
+        string position;
         uint256 votes;
     }
 
-    // When submitting candidates, include the candidateId.
-    struct CandidateEntry {
-        bytes32 candidateId;
-        bytes32 name;
-        bytes32 party;
-    }
-
-    struct Winner {
-        bytes32 position;
-        bytes32 name;
-        bytes32 party;
-        uint256 votes;
-    }
-    
-    // Mapping from a position (bytes32) to an array of Candidate structs.
-    mapping(bytes32 => Candidate[]) private candidates;
-    // Mapping to store each candidate's voter hashes.
-    mapping(bytes32 => mapping(uint256 => bytes32[])) private candidateVoterHashes;
-    // Prevents double voting.
-    mapping(bytes32 => bool) private hasVotedHash;
-    // List of positions.
-    bytes32[] private positionList;
-    
-    // For board member positions, store a unique program ID.
-    mapping(bytes32 => bytes32) public boardMemberProgramIDs;
+    // Mapping of position (string) to an array of candidates
+    mapping(string => Candidate[]) private candidates;
+    mapping(address => bool) private hasVoted; // (remains, though unused)
+    string[] private positionList;
 
     address public admin;
     bool public isFinalized = false;
 
     event CandidatesSubmitted();
     event CandidatesReset();
-    event VoteSubmitted(bytes32 position, bytes32 candidateId, bytes32 voterHash);
+    // Updated event: candidate name is now bytes32
+    event VoteSubmitted(string position, bytes32 name, string voterHash);
 
     modifier onlyAdmin() {
         require(msg.sender == admin, "Only admin can perform this action");
@@ -51,187 +30,80 @@ contract AdminCandidates {
     constructor() {
         admin = msg.sender;
     }
-    
-    // Helper function to decode a bytes32 to string.
-    function decodeBytes32String(bytes32 _data) internal pure returns (string memory) {
-        uint256 len = 0;
-        while (len < 32 && _data[len] != 0) {
-            unchecked { len++; }
-        }
-        bytes memory result = new bytes(len);
-        for (uint256 i = 0; i < len; i++) {
-            result[i] = _data[i];
-        }
-        return string(result);
-    }
-    
-    // Returns true if the decoded position contains "Board Member"
-    function isBoardMemberPosition(bytes32 position) internal pure returns (bool) {
-        string memory posStr = decodeBytes32String(position);
-        bytes memory posBytes = bytes(posStr);
-        bytes memory target = "Board Member";
-        if (posBytes.length < target.length) return false;
-        for (uint256 i = 0; i <= posBytes.length - target.length; i++) {
-            bool isMatch = true;
-            for (uint256 j = 0; j < target.length; j++) {
-                if (posBytes[i + j] != target[j]) {
-                    isMatch = false;
-                    break;
-                }
-            }
-            if (isMatch) return true;
-        }
-        return false;
-    }
 
-    // Submit candidates for each position.
-    // _positions: array of positions (as bytes32)
-    // _candidates: 2D array; for each position an array of CandidateEntry values (including candidateId).
-    // _boardMemberProgramIDs: for board member positions, supply a unique program ID.
-    // For non-board member positions, pass an empty bytes32.
+    // Note: _names and _parties are now bytes32 arrays.
     function submitCandidates(
-        bytes32[] memory _positions,
-        CandidateEntry[][] memory _candidates,
-        bytes32[] memory _boardMemberProgramIDs
+        string[] memory _positions,
+        bytes32[][] memory _names,
+        bytes32[][] memory _parties
     ) public onlyAdmin {
         require(!isFinalized, "Candidates are already finalized!");
         delete positionList;
+
         for (uint256 i = 0; i < _positions.length; i++) {
             if (candidates[_positions[i]].length == 0) {
                 positionList.push(_positions[i]);
             }
+
             delete candidates[_positions[i]];
-            for (uint256 j = 0; j < _candidates[i].length; j++) {
+            for (uint256 j = 0; j < _names[i].length; j++) {
                 candidates[_positions[i]].push(Candidate({
-                    candidateId: _candidates[i][j].candidateId,
-                    name: _candidates[i][j].name,
-                    party: _candidates[i][j].party,
+                    name: _names[i][j],
+                    party: _parties[i][j],
+                    position: _positions[i],
                     votes: 0
                 }));
-                delete candidateVoterHashes[_positions[i]][j];
-            }
-            // For board member positions, store the program ID.
-            if (isBoardMemberPosition(_positions[i])) {
-                boardMemberProgramIDs[_positions[i]] = _boardMemberProgramIDs[i];
             }
         }
         isFinalized = true;
         emit CandidatesSubmitted();
     }
 
-    // Allow a voter to cast votes in batch.
-    // Instead of passing candidate indices, we now pass an array of candidateIds (one per position).
+    // Removed storage of voterHashes to save gas.
     function batchVote(
-        bytes32[] memory _positions,
-        bytes32[] memory _candidateIds,
-        bytes32 _voterHash
+        string[] memory _positions,
+        uint256[] memory _indices,
+        string memory _voterHash
     ) public {
         require(isFinalized, "Voting cannot start until candidates are finalized!");
-        require(_positions.length == _candidateIds.length, "Mismatched input lengths");
-        require(!hasVotedHash[_voterHash], "Voter has already voted");
-        hasVotedHash[_voterHash] = true;
+        require(_positions.length == _indices.length, "Mismatched input lengths");
+
         for (uint256 i = 0; i < _positions.length; i++) {
-            bytes32 pos = _positions[i];
-            bytes32 targetCandidateId = _candidateIds[i];
-            bool found = false;
-            uint256 candidateIndex;
-            for (uint256 j = 0; j < candidates[pos].length; j++) {
-                if (candidates[pos][j].candidateId == targetCandidateId) {
-                    found = true;
-                    candidateIndex = j;
-                    break;
-                }
-            }
-            require(found, "Invalid candidate id");
-            candidates[pos][candidateIndex].votes++;
-            candidateVoterHashes[pos][candidateIndex].push(_voterHash);
-            emit VoteSubmitted(pos, targetCandidateId, _voterHash);
+            candidates[_positions[i]][_indices[i]].votes++;
+            emit VoteSubmitted(_positions[i], candidates[_positions[i]][_indices[i]].name, _voterHash);
         }
     }
-    
-    // Return an array of CandidateEntry for a given position.
-    function getCandidates(bytes32 _position) public view returns (CandidateEntry[] memory) {
-        Candidate[] storage posCandidates = candidates[_position];
-        CandidateEntry[] memory entries = new CandidateEntry[](posCandidates.length);
-        for (uint256 i = 0; i < posCandidates.length; i++) {
-            entries[i] = CandidateEntry({
-                candidateId: posCandidates[i].candidateId,
-                name: posCandidates[i].name,
-                party: posCandidates[i].party
-            });
-        }
-        return entries;
+
+    function getCandidates(string memory _position) public view returns (Candidate[] memory) {
+        return candidates[_position];
     }
-    
-    // Return all candidates and their vote counts as flat arrays.
-    function getVoteCounts() public view returns (CandidateEntry[] memory, uint256[] memory) {
-        uint256 totalCandidates = 0;
+
+    function getVoteCounts() public view returns (Candidate[] memory) {
+        uint256 totalCandidates;
         for (uint256 i = 0; i < positionList.length; i++) {
             totalCandidates += candidates[positionList[i]].length;
         }
-        CandidateEntry[] memory allCandidates = new CandidateEntry[](totalCandidates);
-        uint256[] memory votesArray = new uint256[](totalCandidates);
+
+        Candidate[] memory allCandidates = new Candidate[](totalCandidates);
         uint256 index = 0;
+
         for (uint256 i = 0; i < positionList.length; i++) {
-            Candidate[] storage posCandidates = candidates[positionList[i]];
-            for (uint256 j = 0; j < posCandidates.length; j++) {
-                allCandidates[index] = CandidateEntry({
-                    candidateId: posCandidates[j].candidateId,
-                    name: posCandidates[j].name,
-                    party: posCandidates[j].party
-                });
-                votesArray[index] = posCandidates[j].votes;
-                unchecked { index++; }
+            Candidate[] storage positionCandidates = candidates[positionList[i]];
+            for (uint256 j = 0; j < positionCandidates.length; j++) {
+                allCandidates[index] = positionCandidates[j];
+                index++;
             }
         }
-        return (allCandidates, votesArray);
+
+        return allCandidates;
     }
-    
-    // Reset all candidates and positions.
+
     function resetCandidates() public onlyAdmin {
         for (uint256 i = 0; i < positionList.length; i++) {
-            bytes32 pos = positionList[i];
-            delete candidates[pos];
+            delete candidates[positionList[i]];
         }
         delete positionList;
         isFinalized = false;
         emit CandidatesReset();
-    }
-    
-    // Get the list of positions.
-    function getPositionList() public view returns (bytes32[] memory) {
-        return positionList;
-    }
-    
-    // Get the voter hashes for a candidate under a position.
-    function getVoterHashes(bytes32 _position, uint256 _index) public view returns (bytes32[] memory) {
-        return candidateVoterHashes[_position][_index];
-    }
-    
-    // Determine and return the winner for each position.
-    function getWinners() public view returns (Winner[] memory) {
-        uint256 len = positionList.length;
-        Winner[] memory winners = new Winner[](len);
-        for (uint256 i = 0; i < len; i++) {
-            bytes32 pos = positionList[i];
-            Candidate[] storage posCandidates = candidates[pos];
-            uint256 highestVotes = 0;
-            uint256 winnerIndex = 0;
-            bool found = false;
-            for (uint256 j = 0; j < posCandidates.length; j++) {
-                if (!found || posCandidates[j].votes > highestVotes) {
-                    highestVotes = posCandidates[j].votes;
-                    winnerIndex = j;
-                    found = true;
-                }
-            }
-            winners[i] = Winner({
-                position: pos,
-                name: posCandidates[winnerIndex].name,
-                party: posCandidates[winnerIndex].party,
-                votes: highestVotes
-            });
-        }
-        return winners;
     }
 }
