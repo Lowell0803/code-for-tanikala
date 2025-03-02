@@ -201,39 +201,32 @@
         </ul>
       </div>
       <main class="main">
-        <div class="title">
-          <h2>Admin Account Management</h2>
-          <span class="indent">
-            <!-- <button type="button" class="save-button action-buttons" id="button-add-accounts">Add Admin Accounts</button> -->
-          </span>
+        <div class="title-container">
+          <h1 class="title">Admin Account Management</h1>
+          <button type="submit" class="action-buttons button-brown">Add Admin</button>
         </div>
+        <br />
         <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
-        <form id="add-admin-form" action="/admin-accounts/add" method="POST">
-          <label>Name:</label>
-          <input type="text" name="name" required />
+        <div class="space">
+          <form id="add-admin-form" action="/admin-accounts/add" method="POST">
+            <label>Name:</label>
+            <input type="text" name="name" required />
 
-          <label>Username:</label>
-          <input type="text" name="username" required />
+            <label>Username:</label>
+            <input type="text" name="username" required />
 
-          <label>Password:</label>
-          <input type="password" name="password" required />
-
-          <label>Role:</label>
-          <select name="role" required>
-            <option value="Electoral Board">Electoral Board</option>
-            <option value="Technical Team">Technical Team</option>
-            <option value="Creatives Team">Creatives Team</option>
-            <option value="Developers">Developers</option>
-          </select>
-
-          <label>Image:</label>
-          <input type="file" accept="image/*" onchange="convertImageToBase64(event)" required />
-          <input type="hidden" name="imgBase64" id="imgBase64" />
-
-          <button type="submit">Add Admin</button>
-        </form>
+            <label>Role:</label>
+            <select name="role" class="role" required>
+              <option value="Electoral Board">Electoral Board</option>
+              <option value="Technical Team">Technical Team</option>
+              <option value="Creatives Team">Creatives Team</option>
+              <option value="Developers">Developers</option>
+            </select>
+          </form>
+        </div>
         <% } %>
 
+        <br />
         <br />
         <div class="table-container">
           <table>
@@ -253,7 +246,7 @@
               <% admins.forEach(function(admin) { %>
               <tr data-username="<%= admin.username %>">
                 <td>
-                  <img src="<%= admin.img %>" alt="Admin Image" style="width: 50px; height: 50px" />
+                  <img class="circle-img" src="<%= admin.img %>" alt="Admin Image" style="width: 50px; height: 50px" />
                 </td>
                 <td><%= admin.name %></td>
                 <td><%= admin.role %></td>
@@ -264,9 +257,11 @@
                 </td>
                 <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
                 <td>
-                  <button class="edit-btn" data-username="<%= admin.username %>">Edit</button>
-                  <button class="delete-btn" data-username="<%= admin.username %>">Delete</button>
-                </td>
+                  <div class="actions">
+                  <button class="action-buttons button-edit" data-username="<%= admin.username %>">Edit</button>
+                  <button class="action-buttons button-cancel" data-username="<%= admin.username %>">Delete</button>
+                  </div>
+                </div>
                 <% } %>
               </tr>
               <% }); %>

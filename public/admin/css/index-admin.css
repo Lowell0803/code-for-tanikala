@@ -359,6 +359,7 @@ h6 {
   max-width: 100%; */
   padding: 1.5rem;
   background-color: #faf2db;
+  padding-bottom: 3rem;
 }
 
 .container-overlay {
@@ -368,7 +369,7 @@ h6 {
 /* BUTTONS */
 .action-buttons {
   padding: 0.6rem;
-  margin: 1rem;
+  /* margin: 1rem; */
   border-radius: 1rem;
   border: none;
   color: white;
@@ -419,6 +420,10 @@ h6 {
 .button-container {
   text-align: right;
   width: 100%;
+}
+
+.button-brown {
+  background-color: #370606;
 }
 
 .button-container-center {
@@ -597,4 +602,51 @@ h6 {
 
 .title {
   color: #480404;
+  font-style: italic;
+  font-size: 2rem;
+  text-decoration: underline;
+}
+.title-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+  padding-bottom: 3rem;
+  padding-right: 5rem;
+  padding-left: 2rem;
+  /* border: 3px solid black; */
+}
+
+.circle-img {
+  object-fit: cover;
+  border-radius: 1rem; /* changed from 16px to 1rem */
+  margin: 0 0.875rem 0 0.75rem; /* changed from 14px 0 0 12px to 0.875rem 0 0 0.75rem */
+  background: var(--sidebar-color);
+  transition: all 0.5s ease;
+  border-radius: 50%;
+}
+
+.actions {
+  margin: 0.5rem;
+}
+
+/* table design */
+
+table {
+  background-color: black;
+  text-align: center;
+}
+
+td {
+  width: 12.5rem;
+  height: 2.5rem;
+  background-color: #f8eac2;
+}
+
+th {
+  height: 2.5rem;
+  background-color: #e1ae5b;
+  padding: 0.5rem;
 }

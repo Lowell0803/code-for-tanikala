@@ -16,6 +16,7 @@
 .main {
   align-items: stretch;
   height: 100%;
+  background-color: #faf2db;
 }
 
 #img-admin {

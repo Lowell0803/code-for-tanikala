@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/archives.css" />
 
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
@@ -200,30 +201,49 @@
         </ul>
       </div>
       <main class="main">
+        <div class="title-container"><h1 class="title">Archived Elections</h1></div>
+
         <section class="archive-list">
-          <h1>Archived Elections</h1>
           <% if (archives && archives.length > 0) { %>
           <table>
             <thead>
               <tr>
+                <th class="no">No.</th>
                 <th>Election Name</th>
                 <th>Registration Period</th>
                 <th>Voting Period</th>
-                <th>Status</th>
+                <th>Election Status</th>
                 <th>Archived At</th>
                 <!-- New column for exporting candidate data -->
-                <th>Export Candidates</th>
+                <th>Election Details</th>
+                <th>Candidates</th>
+                <th>Voter Turnout</th>
+                <th>Vote Tally</th>
+                <th>Blockchain Details</th>
               </tr>
             </thead>
             <tbody>
               <% archives.forEach(function(archive) { %>
               <tr>
+                <td><%= archive.no %></td>
                 <td><%= archive.electionName %></td>
                 <td><%= archive.registrationStart ? new Date(archive.registrationStart).toLocaleString() : "N/A" %> - <%= archive.registrationEnd ? new Date(archive.registrationEnd).toLocaleString() : "N/A" %></td>
                 <td><%= archive.votingStart ? new Date(archive.votingStart).toLocaleString() : "N/A" %> - <%= archive.votingEnd ? new Date(archive.votingEnd).toLocaleString() : "N/A" %></td>
                 <td><%= archive.electionStatus %></td>
                 <td><%= archive.archivedAt ? new Date(archive.archivedAt).toLocaleString() : "N/A" %></td>
                 <!-- Export button/link -->
+                <td>
+                  <a href="/api/export-archive/<%= archive._id %>" target="_blank">Export</a>
+                </td>
+                <td>
+                  <a href="/api/export-archive/<%= archive._id %>" target="_blank">Export</a>
+                </td>
+                <td>
+                  <a href="/api/export-archive/<%= archive._id %>" target="_blank">Export</a>
+                </td>
+                <td>
+                  <a href="/api/export-archive/<%= archive._id %>" target="_blank">Export</a>
+                </td>
                 <td>
                   <a href="/api/export-archive/<%= archive._id %>" target="_blank">Export</a>
                 </td>

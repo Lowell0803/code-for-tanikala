@@ -3,32 +3,31 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  background-color: #faf2db;
+  /* border: 1px solid black; */
 }
 
-.title {
+/* .title {
   display: flex;
   flex-direction: row;
   padding: 3rem;
-}
+} */
 
 .indent {
   text-indent: 28rem;
 }
 
-table {
-  background-color: black;
-  text-align: center;
+.action-buttons {
+  margin: 0.5rem;
 }
 
-td {
-  width: 12.5rem;
-  height: 2.5rem;
-  background-color: #f8eac2;
-}
-
-th {
-  height: 2.5rem;
-  background-color: #e1ae5b;
+.space {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-evenly;
+  gap: 5rem;
+  /* border: 1px solid black; */
 }
 
 /* .table-container {

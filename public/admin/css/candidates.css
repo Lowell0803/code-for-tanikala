@@ -198,16 +198,6 @@ form img {
   background-color: #c11515;
 }
 
-.title-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding-right: 3rem;
-  /* border: 3px solid black; */
-}
-
 .ssc {
   color: #a60212;
 }
@@ -221,4 +211,5 @@ form img {
 
 .smart-contract-status {
   font-weight: normal;
+  /* border: 1px solid black; */
 }
