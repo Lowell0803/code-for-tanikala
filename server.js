@@ -1594,9 +1594,40 @@ const startServer = async () => {
         const [allCandidates, allVotes] = await contract.getVoteCounts();
         const boardProgramsCollection = db.collection("board_member_programs");
 
-        // Fetch candidate arrays for all positions concurrently.
+        // Fetch candidate arrays concurrently.
         const candidatesPerPosition = await Promise.all(positions.map((pos) => contract.getCandidates(pos)));
 
+        // Build a list of board member lookups.
+        const boardLookupRequests = [];
+        const boardLookupIndexes = [];
+        positions.forEach((pos, index) => {
+          const decodedPos = fromBytes32(pos);
+          if (decodedPos.indexOf("Board Member") !== -1) {
+            // For board member positions, queue up the lookup.
+            boardLookupIndexes.push(index);
+            boardLookupRequests.push(
+              (async () => {
+                const programID = await contract.boardMemberProgramIDs(pos);
+                if (programID !== ethers.encodeBytes32String("")) {
+                  const boardProgram = await boardProgramsCollection.findOne({
+                    programID: programID.toString(),
+                  });
+                  return boardProgram ? boardProgram.programText : "";
+                }
+                return "";
+              })()
+            );
+          }
+        });
+        // Wait for all board member program texts concurrently.
+        const boardProgramResults = await Promise.all(boardLookupRequests);
+        // Build a map: position index => program text.
+        const boardProgramMap = {};
+        boardLookupIndexes.forEach((idx, i) => {
+          boardProgramMap[idx] = boardProgramResults[i];
+        });
+
+        // Build final result.
         let result = [];
         let totalCandidateCounter = 0;
         for (let i = 0; i < positions.length; i++) {
@@ -1604,25 +1635,11 @@ const startServer = async () => {
           let decodedPos = fromBytes32(pos);
           const posCandidates = candidatesPerPosition[i];
 
-          let programText = "";
-          // If this position includes "Board Member", look up its program text.
-          if (decodedPos.indexOf("Board Member") !== -1) {
-            // Retrieve the program ID from on-chain storage.
-            const programID = await contract.boardMemberProgramIDs(pos);
-            console.log(`Retrieved programID for position ${decodedPos}: ${programID}`);
-            if (programID !== ethers.encodeBytes32String("")) {
-              // Look up the program text in MongoDB.
-              const boardProgram = await boardProgramsCollection.findOne({ programID: programID.toString() });
-              console.log(`MongoDB lookup for programID ${programID.toString()}:`, boardProgram);
-              if (boardProgram && boardProgram.programText) {
-                programText = boardProgram.programText;
-              }
-            }
-            // Reconstruct the position string to include the program text.
+          // If this is a Board Member position, modify the display name using our pre-fetched map.
+          if (decodedPos.indexOf("Board Member") !== -1 && boardProgramMap[i]) {
             const parts = decodedPos.split(" - ");
-            if (parts.length >= 2 && programText !== "") {
-              decodedPos = `${parts[0]} - Board Member - ${programText}`;
-            }
+            // Reconstruct with the program text.
+            decodedPos = `${parts[0]} - Board Member - ${boardProgramMap[i]}`;
           }
 
           const candidatesData = posCandidates.map((candidate, index) => {
@@ -1636,10 +1653,9 @@ const startServer = async () => {
             position: decodedPos,
             candidates: candidatesData,
           };
-          console.log(`Final position: ${decodedPos}`);
-          console.log(`Candidates for position ${decodedPos}:`, candidatesData);
           result.push(positionObj);
         }
+
         res.json({ success: true, result });
       } catch (error) {
         console.error("Error fetching candidate details:", error);
