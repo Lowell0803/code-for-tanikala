@@ -3,6 +3,10 @@
   /* border: .2rem solid; */
 }
 
+.main {
+  background-color: #faf2db;
+}
+
 .first-main {
   display: flex;
   flex-direction: row;

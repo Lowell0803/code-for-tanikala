@@ -616,7 +616,7 @@ h6 {
   padding-bottom: 3rem;
   padding-right: 5rem;
   padding-left: 2rem;
-  /* border: 3px solid black; */
+  border: 3px solid black;
 }
 
 .circle-img {
@@ -626,6 +626,16 @@ h6 {
   background: var(--sidebar-color);
   transition: all 0.5s ease;
   border-radius: 50%;
+}
+
+.r {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.r i {
+  font-size: 5rem;
 }
 
 .actions {
