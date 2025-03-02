@@ -17,14 +17,20 @@
   --color-hover: #d99830;
   --sidebar-color: #e1ae5b;
   --sidebar-color-lighter: #d29c45;
+
+  --height-header: 14vh;
+  --height-footer: 4vh;
+  --height-content: calc(100vh - var(--height-header) - var(--height-footer));
 }
 
 .sidebar {
   position: relative;
   top: 0;
   left: 0;
-  max-height: 100%;
-  /* overflow-y: auto; */
+  /* max-height: 100%; */
+  max-height: var(--height-content);
+  overflow-y: auto;
+  overflow-x: hidden;
 
   width: 20vw; /* changed from 260px to 20vw */
   /* background: #11101d; */
@@ -41,11 +47,7 @@
   /* Firefox */
   /* -ms-overflow-style: none;  */
   /* IE and Edge */
-}
-
-.sidebar.close::-webkit-scrollbar {
-  /* display: none; */
-  /* Chrome, Safari, Opera */
+  overflow: unset;
 }
 
 .sidebar .user-details {

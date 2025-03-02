@@ -6,6 +6,15 @@ const { ethers } = require("ethers");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const session = require("express-session");
+const { formatBytes32String } = require("ethers");
+
+function toBytes32(str) {
+  if (!str) return ethers.encodeBytes32String(""); // Use encodeBytes32String for ethers v6
+  return ethers.encodeBytes32String(str.substring(0, 31)); // Limit to 31 chars
+}
+
+const fs = require("fs");
+const solc = require("solc");
 
 const passport = require("passport");
 const AzureOAuth2Strategy = require("passport-azure-ad-oauth2").Strategy;
@@ -101,9 +110,187 @@ app.set("views", path.join(__dirname, "views"));
 
 let db;
 
+const { MongoClient } = require("mongodb");
+
+const watchRegisteredVoters = async (db) => {
+  try {
+    const registeredVotersCollection = db.collection("registered_voters");
+    const electionConfigCollection = db.collection("election_config");
+
+    console.log("Watching registered_voters collection for changes...");
+
+    const changeStream = registeredVotersCollection.watch();
+
+    changeStream.on("change", async (change) => {
+      console.log("Change detected:", change);
+
+      if (change.operationType === "insert" || change.operationType === "delete") {
+        console.log("Updating registered voters count...");
+
+        // Count registered voters per college
+        const votersByCollege = await registeredVotersCollection.aggregate([{ $match: { status: "Registered" } }, { $group: { _id: "$college", count: { $sum: 1 } } }]).toArray();
+
+        console.log("New registered voters count:", votersByCollege);
+
+        // Fetch the current election config
+        const electionConfig = await electionConfigCollection.findOne();
+
+        if (electionConfig) {
+          const updatedListOfElections = electionConfig.listOfElections.map((college) => {
+            const updatedCollege = votersByCollege.find((v) => v._id.includes(college.acronym));
+            return updatedCollege ? { ...college, registeredVoters: updatedCollege.count } : college;
+          });
+
+          // Update election config in MongoDB
+          await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { listOfElections: updatedListOfElections, updatedAt: new Date() } });
+
+          console.log("Election config updated successfully!");
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error watching registered_voters:", error);
+  }
+};
+
 const startServer = async () => {
   try {
     db = await connectToDatabase();
+    await watchRegisteredVoters(db);
+
+    // app.get("/api/wallet/update", (req, res) => {
+    //   res.json({ success: true, message: "Wallet endpoint working." });
+    // });
+
+    app.get("/api/compile-contract", (req, res) => {
+      try {
+        const sourcePath = path.join(__dirname, "contracts", "AdminCandidates.sol");
+        const source = fs.readFileSync(sourcePath, "utf8");
+
+        const input = {
+          language: "Solidity",
+          sources: {
+            "AdminCandidates.sol": { content: source },
+          },
+          settings: {
+            outputSelection: {
+              "*": {
+                "*": ["abi", "evm.bytecode"],
+              },
+            },
+          },
+        };
+
+        const output = JSON.parse(solc.compile(JSON.stringify(input)));
+
+        if (output.errors && output.errors.some((error) => error.severity === "error")) {
+          return res.status(400).json({ success: false, errors: output.errors });
+        }
+
+        // For simplicity, take the first contract found
+        const contractNames = Object.keys(output.contracts["AdminCandidates.sol"]);
+        if (contractNames.length === 0) {
+          return res.status(400).json({ success: false, message: "No contract found." });
+        }
+        const contractName = contractNames[0];
+        const contractArtifact = output.contracts["AdminCandidates.sol"][contractName];
+
+        res.json({ success: true, artifact: contractArtifact });
+      } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+      }
+    });
+
+    // API endpoint to deploy the contract
+    // app.post("/api/deploy-contract", async (req, res) => {
+    //   try {
+    //     // Read and compile the Solidity file
+    //     const sourcePath = path.join(__dirname, "contracts", "AdminCandidates.sol");
+    //     const source = fs.readFileSync(sourcePath, "utf8");
+
+    //     const input = {
+    //       language: "Solidity",
+    //       sources: {
+    //         "AdminCandidates.sol": { content: source },
+    //       },
+    //       settings: {
+    //         outputSelection: {
+    //           "*": {
+    //             "*": ["abi", "evm.bytecode"],
+    //           },
+    //         },
+    //       },
+    //     };
+
+    //     const output = JSON.parse(solc.compile(JSON.stringify(input)));
+
+    //     if (output.errors && output.errors.some((error) => error.severity === "error")) {
+    //       return res.status(400).json({ success: false, errors: output.errors });
+    //     }
+
+    //     const contractNames = Object.keys(output.contracts["AdminCandidates.sol"]);
+    //     if (contractNames.length === 0) {
+    //       return res.status(400).json({ success: false, message: "No contract found." });
+    //     }
+    //     const contractName = contractNames[0];
+    //     const contractArtifact = output.contracts["AdminCandidates.sol"][contractName];
+    //     const abi = contractArtifact.abi;
+    //     const bytecode = contractArtifact.evm.bytecode.object;
+
+    //     // Set up ethers provider and wallet
+    //     const provider = new ethers.providers.JsonRpcProvider(process.env.PROVIDER_URL);
+    //     const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+
+    //     const factory = new ethers.ContractFactory(abi, bytecode, wallet);
+
+    //     // Deploy the contract. You can also pass constructor arguments if needed.
+    //     const contract = await factory.deploy();
+
+    //     // Wait for deployment to be mined
+    //     await contract.deployed();
+
+    //     res.json({
+    //       success: true,
+    //       address: contract.address,
+    //       txHash: contract.deployTransaction.hash,
+    //     });
+    //   } catch (error) {
+    //     res.status(500).json({ success: false, message: error.message });
+    //   }
+    // });
+
+    app.post("/api/wallet/update", async (req, res) => {
+      const { walletAddress, walletName } = req.body;
+
+      // Basic validation
+      if (!walletAddress || typeof walletAddress !== "string") {
+        return res.status(400).json({ success: false, message: "Invalid wallet address." });
+      }
+      if (!walletName || typeof walletName !== "string") {
+        return res.status(400).json({ success: false, message: "Invalid wallet name." });
+      }
+
+      try {
+        // Use the admin_wallet collection and a fixed document _id since there's only one wallet.
+        const collection = db.collection("admin_wallet");
+        await collection.updateOne(
+          { _id: "admin_wallet" },
+          {
+            $set: {
+              walletAddress,
+              walletName,
+              connected: true,
+              updatedAt: new Date(),
+            },
+          },
+          { upsert: true }
+        );
+        res.json({ success: true });
+      } catch (err) {
+        console.error("Error updating wallet info in DB:", err);
+        res.status(500).json({ success: false, message: "Database error" });
+      }
+    });
 
     // ==================================================================================================
     //                                            PURE APIs
@@ -494,23 +681,189 @@ const startServer = async () => {
       }
     });
 
-    app.get("/developer/vote-counts", async (req, res) => {
+    // app.get("/get-vote-counts", async (req, res) => {
+    //   try {
+    //     console.log("📡 Fetching vote counts...");
+
+    //     // Call the contract's getVoteCounts() function
+    //     const [candidates, votes] = await contract.getVoteCounts();
+
+    //     const results = candidates.map((c, index) => ({
+    //       candidate: ethers.decodeBytes32String(c.name), // Convert bytes32 to string
+    //       party: ethers.decodeBytes32String(c.party), // Convert bytes32 to string
+    //       votes: votes[index].toString(), // Convert BigNumber to string
+    //     }));
+
+    //     console.log("✅ Vote counts retrieved:", results);
+    //     res.json({ success: true, results });
+    //   } catch (error) {
+    //     console.error("❌ Error fetching vote counts:", error);
+    //     res.status(500).json({ success: false, error: "Failed to fetch vote counts." });
+    //   }
+    // });
+
+    // app.get("/api/candidate-details", async (req, res) => {
+    //   try {
+    //     const positions = await contract.getPositionList();
+    //     const [allCandidates, allVotes] = await contract.getVoteCounts();
+    //     let result = [];
+    //     let totalCandidateCounter = 0;
+
+    //     for (let i = 0; i < positions.length; i++) {
+    //       const pos = positions[i];
+    //       const decodedPos = ethers.decodeBytes32String(pos);
+    //       const posCandidates = await contract.getCandidates(pos);
+
+    //       const candidatesData = await Promise.all(
+    //         posCandidates.map(async (candidate, index) => {
+    //           const decodedName = ethers.decodeBytes32String(candidate.name);
+    //           const decodedParty = ethers.decodeBytes32String(candidate.party);
+    //           const votes = Number(allVotes[totalCandidateCounter + index]);
+    //           const voterHashesRaw = await contract.getVoterHashes(pos, index);
+    //           const voterHashes = voterHashesRaw.map((hash) => ethers.decodeBytes32String(hash));
+    //           return {
+    //             name: decodedName,
+    //             party: decodedParty,
+    //             votes,
+    //             voterHashes,
+    //           };
+    //         })
+    //       );
+
+    //       totalCandidateCounter += posCandidates.length;
+    //       result.push({
+    //         position: decodedPos,
+    //         candidates: candidatesData,
+    //       });
+    //     }
+    //     res.json({ success: true, result });
+    //   } catch (error) {
+    //     console.error("Error fetching candidate details:", error);
+    //     res.status(500).json({ error: error.message });
+    //   }
+    // });
+
+    // app.get("/api/candidate-details", async (req, res) => {
+    //   try {
+    //     const positions = await contract.getPositionList();
+    //     const [allCandidates, allVotes] = await contract.getVoteCounts();
+    //     let result = [];
+    //     let totalCandidateCounter = 0;
+
+    //     for (let i = 0; i < positions.length; i++) {
+    //       const pos = positions[i];
+    //       const decodedPos = ethers.decodeBytes32String(pos);
+    //       const posCandidates = await contract.getCandidates(pos);
+
+    //       const candidatesData = posCandidates.map((candidate, index) => {
+    //         const decodedName = ethers.decodeBytes32String(candidate.name);
+    //         const decodedParty = ethers.decodeBytes32String(candidate.party);
+    //         const votes = Number(allVotes[totalCandidateCounter + index]);
+    //         return {
+    //           name: decodedName,
+    //           party: decodedParty,
+    //           votes,
+    //         };
+    //       });
+
+    //       totalCandidateCounter += posCandidates.length;
+    //       result.push({
+    //         position: decodedPos,
+    //         candidates: candidatesData,
+    //       });
+    //     }
+    //     res.json({ success: true, result });
+    //   } catch (error) {
+    //     console.error("Error fetching candidate details:", error);
+    //     res.status(500).json({ error: error.message });
+    //   }
+    // });
+
+    app.get("/get-vote-counts", async (req, res) => {
       try {
-        console.log("📡 Fetching vote counts...");
-        const candidates = await contract.getVoteCounts();
+        const positions = await contract.getPositionList();
+        const [allCandidates, allVotes] = await contract.getVoteCounts();
 
-        const results = candidates.map((c) => ({
-          candidate: c.name,
-          position: c.position,
-          votes: c.votes.toString(),
-          voterHashes: c.voterHashes || [], // Assuming `voterHashes` is an array in your contract
-        }));
+        // Fetch candidates for all positions concurrently
+        const candidatesPerPosition = await Promise.all(positions.map((pos) => contract.getCandidates(pos)));
 
-        console.log("✅ Vote counts retrieved:", results);
-        res.json({ success: true, results });
+        let result = [];
+        let totalCandidateCounter = 0;
+
+        for (let i = 0; i < positions.length; i++) {
+          const pos = positions[i];
+          const decodedPos = ethers.decodeBytes32String(pos);
+          const posCandidates = candidatesPerPosition[i];
+
+          const candidatesData = posCandidates.map((candidate, index) => {
+            const decodedName = ethers.decodeBytes32String(candidate.name);
+            const decodedParty = ethers.decodeBytes32String(candidate.party);
+            const votes = Number(allVotes[totalCandidateCounter + index]);
+            return {
+              name: decodedName,
+              party: decodedParty,
+              votes,
+            };
+          });
+
+          totalCandidateCounter += posCandidates.length;
+          result.push({
+            position: decodedPos,
+            candidates: candidatesData,
+          });
+        }
+
+        res.json({ success: true, result });
       } catch (error) {
-        console.error("❌ Error fetching vote counts:", error);
-        res.status(500).json({ success: false, error: "Failed to fetch vote counts." });
+        console.error("Error fetching candidate details:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    app.get("/api/candidate-details", async (req, res) => {
+      try {
+        const positions = await contract.getPositionList();
+        const [allCandidates, allVotes] = await contract.getVoteCounts();
+
+        // Fetch candidates for each position concurrently
+        const candidatesPerPosition = await Promise.all(positions.map((pos) => contract.getCandidates(pos)));
+
+        let result = [];
+        let totalCandidateCounter = 0;
+
+        for (let i = 0; i < positions.length; i++) {
+          const pos = positions[i];
+          const decodedPos = ethers.decodeBytes32String(pos);
+          const posCandidates = candidatesPerPosition[i];
+
+          // For each candidate, concurrently fetch voter hashes
+          const candidatesData = await Promise.all(
+            posCandidates.map(async (candidate, index) => {
+              const decodedName = ethers.decodeBytes32String(candidate.name);
+              const decodedParty = ethers.decodeBytes32String(candidate.party);
+              const votes = Number(allVotes[totalCandidateCounter + index]);
+              const voterHashesRaw = await contract.getVoterHashes(pos, index);
+              const voterHashes = voterHashesRaw.map((hash) => ethers.decodeBytes32String(hash));
+              return {
+                name: decodedName,
+                party: decodedParty,
+                votes,
+                voterHashes,
+              };
+            })
+          );
+
+          totalCandidateCounter += posCandidates.length;
+          result.push({
+            position: decodedPos,
+            candidates: candidatesData,
+          });
+        }
+
+        res.json({ success: true, result });
+      } catch (error) {
+        console.error("Error fetching candidate details:", error);
+        res.status(500).json({ error: error.message });
       }
     });
 
@@ -572,7 +925,7 @@ const startServer = async () => {
     // ==================================================================================================
 
     const provider = new ethers.JsonRpcProvider(process.env.HARDHAT_RPC_URL);
-    const wallet = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, provider);
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
     const contractABI = require("./artifacts/contracts/AdminCandidates.sol/AdminCandidates.json").abi;
     const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractABI, wallet);
@@ -1234,6 +1587,9 @@ const startServer = async () => {
     });
 
     // ==================================== SUBMIT CANDIDATES  ====================================
+    console.log("Ethers object:", ethers);
+    console.log("Ethers utils:", ethers.utils);
+
     app.post("/submit-candidates", async (req, res) => {
       try {
         const candidatesCollection = db.collection("candidates");
@@ -1246,21 +1602,23 @@ const startServer = async () => {
         console.log("\n🚀 SUBMIT-CANDIDATES API CALLED!");
         console.log("✅ Main candidates fetched:", candidatesData.length);
         console.log("✅ LSC candidates fetched:", candidatesLscData.length);
-        // console.log("📜 Raw LSC Data from MongoDB:\n", JSON.stringify(candidatesLscData, null, 2));
 
         let positions = [];
-        let names = [];
-        let parties = [];
+        let candidates = []; // 2D array to store CandidateEntry structs
 
         // Process main candidates collection
         candidatesData.forEach((group) => {
-          if (group.candidates.length === 0) {
+          if (!group.candidates || group.candidates.length === 0) {
             console.log(`❌ Skipping ${group.position} (No candidates)`);
           } else {
             console.log(`✅ Adding ${group.position} with ${group.candidates.length} candidates`);
-            positions.push(group.position);
-            names.push(group.candidates.map((c) => c.name));
-            parties.push(group.candidates.map((c) => c.party));
+            positions.push(toBytes32(group.position));
+            candidates.push(
+              group.candidates.map((c) => ({
+                name: toBytes32(c.name),
+                party: toBytes32(c.party),
+              }))
+            );
           }
         });
 
@@ -1275,9 +1633,13 @@ const startServer = async () => {
                   console.log(`❌ Skipping Board Member - ${program.program} (No candidates)`);
                 } else {
                   console.log(`✅ Adding Board Member - ${program.program} with ${program.candidates.length} candidates`);
-                  positions.push(`Board Member - ${program.program}`);
-                  names.push(program.candidates.map((c) => c.name));
-                  parties.push(program.candidates.map((c) => c.party));
+                  positions.push(toBytes32(`Board Member - ${program.program}`));
+                  candidates.push(
+                    program.candidates.map((c) => ({
+                      name: toBytes32(c.name),
+                      party: toBytes32(c.party),
+                    }))
+                  );
                 }
               });
             } else {
@@ -1285,22 +1647,28 @@ const startServer = async () => {
                 console.log(`❌ Skipping ${pos.position} for ${college.collegeAcronym} (No candidates)`);
               } else {
                 console.log(`✅ Adding ${pos.position} for ${college.collegeAcronym} with ${pos.candidates.length} candidates`);
-                positions.push(`${pos.position} - ${college.collegeAcronym}`);
-                names.push(pos.candidates.map((c) => c.name));
-                parties.push(pos.candidates.map((c) => c.party));
+                positions.push(toBytes32(`${pos.position} - ${college.collegeAcronym}`));
+                candidates.push(
+                  pos.candidates.map((c) => ({
+                    name: toBytes32(c.name),
+                    party: toBytes32(c.party),
+                  }))
+                );
               }
             }
           });
         });
 
-        // ✅ Add "Abstain" to every position (MINIMAL CHANGE)
+        // ✅ Add "Abstain" to every position
         positions.forEach((pos, index) => {
-          names[index].push("Abstain");
-          parties[index].push("None"); // "None" indicates no party affiliation
+          candidates[index].push({
+            name: toBytes32("Abstain"),
+            party: toBytes32("None"),
+          });
         });
 
         console.log("\n📌 FINAL SUBMISSION:");
-        console.log({ positions, names, parties });
+        console.log({ positions, candidates });
 
         if (positions.length === 0) {
           console.log("⚠️ No candidates to submit!");
@@ -1308,7 +1676,7 @@ const startServer = async () => {
         }
 
         console.log("📡 Sending transaction to blockchain...");
-        const tx = await contract.submitCandidates(positions, names, parties);
+        const tx = await contract.submitCandidates(positions, candidates);
         await tx.wait();
         console.log("✅ Candidates submitted successfully!");
 
@@ -2139,35 +2507,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-// async function processVotes() {
-//   console.log("🔄 Processing pending votes...");
-
-//   // Fetch pending votes from MongoDB
-//   const pendingVotes = await db.collection("vote_queue").find({ status: "pending" }).toArray();
-
-//   for (const vote of pendingVotes) {
-//     try {
-//       console.log("📡 Submitting vote for:", vote.voterHash);
-
-//       // Extract positions and indices
-//       const positionsArray = Object.keys(vote.votes);
-//       const indicesArray = positionsArray.map((position) => vote.votes[position]);
-
-//       // Submit vote to blockchain
-//       const tx = await contract.connect(wallet).batchVote(positionsArray, indicesArray, vote.voterHash);
-
-//       console.log("✅ Vote submitted! Transaction Hash:", tx.hash);
-
-//       // ✅ Update database to mark vote as completed
-//       await db.collection("vote_queue").updateOne({ _id: vote._id }, { $set: { status: "completed", transactionHash: tx.hash } });
-//     } catch (error) {
-//       console.error("❌ Error submitting vote:", error);
-
-//       // ✅ Mark the vote as failed if there's an error
-//       await db.collection("vote_queue").updateOne({ _id: vote._id }, { $set: { status: "failed", error: error.message } });
-//     }
-//   }
-// }
-// Run processVotes every 10 seconds
-// setInterval(processVotes, 10000);

@@ -12,6 +12,8 @@
     <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-lsc.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-scc.css" />
 
+    <link rel="stylesheet" type="text/css" href="admin/dependencies/liner-bar.css" />
+
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
@@ -264,12 +266,12 @@
     </footer>
 
     <!-- Include your JS files including liner-bar-js -->
-    <script src="/path/to/liner-bar.js"></script>
+    <script src="admin/dependencies/liner-bar.js"></script>
     <script src="admin/js/sidebar.js"></script>
     <script>
       // When the DOM is fully loaded, fetch the vote counts
       document.addEventListener("DOMContentLoaded", function () {
-        fetch("/developer/vote-counts")
+        fetch("/get-vote-counts")
           .then((response) => response.json())
           .then((data) => {
             if (!data.success) return;
@@ -311,7 +313,7 @@
             });
 
             // Render SSC positions (left side)
-            renderCandidates("container-president", leftData["President"], "President");
+            renderCandidates("container-president");
             renderCandidates("container-vice-president", leftData["Vice President"], "Vice President");
             renderCandidates("container-senator", leftData["Senator"], "Senator");
 
@@ -391,7 +393,7 @@
     </script>
 
     <script src="admin/js/sidebar.js"></script>
-    <script src="admin/js/index_admin.js"></script>
+    <script src="admin/js/index-admin.js"></script>
     <script src="admin/js/vote-tally-ssc.js"></script>
     <script src="admin/js/vote-tally-lsc.js"></script>
   </body>
