@@ -14,20 +14,17 @@ const { formatBytes32String } = require("ethers");
 // }
 
 function toBytes32(str) {
-  // If no string, encode an empty string
+  // If no string, encode an empty string.
   if (!str) return ethers.encodeBytes32String("");
-  // Limit string to 31 characters so there's room for the null terminator
+  // Limit string to 31 characters so there's room for the null terminator.
   return ethers.encodeBytes32String(str.slice(0, 31));
 }
 
 function fromBytes32(hexStr) {
   try {
-    // Try decoding normally first
     return ethers.decodeBytes32String(hexStr);
   } catch (error) {
-    // If it fails, force a null terminator:
     let bytes = ethers.arrayify(hexStr);
-    // Ensure the last byte is 0
     if (bytes[bytes.length - 1] !== 0) {
       bytes[bytes.length - 1] = 0;
     }
@@ -1609,6 +1606,16 @@ const startServer = async () => {
           const decodedPos = fromBytes32(pos); // Use our robust decoding
           const posCandidates = candidatesPerPosition[i];
 
+          // For Board Member positions, fetch extra program data
+          let programData = null;
+          if (decodedPos.indexOf("Board Member") !== -1) {
+            const boardInfo = await contract.boardMemberInfo(pos); // Calls the public mapping
+            const part1 = fromBytes32(boardInfo.programPart1);
+            const part2 = fromBytes32(boardInfo.programPart2);
+            const part3 = fromBytes32(boardInfo.programPart3);
+            programData = part1 + part2 + part3;
+          }
+
           const candidatesData = posCandidates.map((candidate, index) => {
             const decodedName = fromBytes32(candidate.name);
             const decodedParty = fromBytes32(candidate.party);
@@ -1621,10 +1628,16 @@ const startServer = async () => {
           });
 
           totalCandidateCounter += posCandidates.length;
-          result.push({
+          let positionObj = {
             position: decodedPos,
             candidates: candidatesData,
-          });
+          };
+
+          if (programData) {
+            positionObj.program = programData;
+          }
+
+          result.push(positionObj);
           console.log(candidatesData);
         }
 
@@ -1650,11 +1663,19 @@ const startServer = async () => {
 
         let positions = [];
         let candidates = []; // 2D array to store CandidateEntry structs
+        // These arrays will hold the board member program strings split into three parts.
+        // For non-board member positions, push empty bytes32 strings.
+        let boardProgramsPart1 = [];
+        let boardProgramsPart2 = [];
+        let boardProgramsPart3 = [];
 
         // Process main candidates collection
         candidatesData.forEach((group) => {
           if (!group.candidates || group.candidates.length === 0) {
             console.log(`❌ Skipping ${group.position} (No candidates)`);
+            boardProgramsPart1.push(ethers.encodeBytes32String(""));
+            boardProgramsPart2.push(ethers.encodeBytes32String(""));
+            boardProgramsPart3.push(ethers.encodeBytes32String(""));
           } else {
             console.log(`✅ Adding ${group.position} with ${group.candidates.length} candidates`);
             positions.push(toBytes32(group.position));
@@ -1664,33 +1685,55 @@ const startServer = async () => {
                 party: toBytes32(c.party),
               }))
             );
+            boardProgramsPart1.push(ethers.encodeBytes32String(""));
+            boardProgramsPart2.push(ethers.encodeBytes32String(""));
+            boardProgramsPart3.push(ethers.encodeBytes32String(""));
           }
         });
+
+        // Maintain a counter per college for Board Member groups to ensure unique keys.
+        let boardMemberCounter = {};
 
         // Process LSC candidates collection
         candidatesLscData.forEach((college) => {
           console.log(`\n📌 Processing LSC College: ${college.collegeName}`);
-
+          // Initialize counter for this college if not yet defined.
+          if (!boardMemberCounter[college.collegeAcronym]) {
+            boardMemberCounter[college.collegeAcronym] = 0;
+          }
           college.positions.forEach((pos) => {
             if (pos.position === "Board Member") {
               pos.programs.forEach((program) => {
                 if (!program.candidates || program.candidates.length === 0) {
                   console.log(`❌ Skipping Board Member - ${program.program} (No candidates)`);
                 } else {
-                  console.log(`✅ Adding Board Member for ${college.collegeAcronym} with ${program.candidates.length} candidates`);
-                  // Revert back to the old format: "collegeAcronym - Board Member"
-                  positions.push(toBytes32(`${college.collegeAcronym} - Board Member`));
+                  // Generate a unique key for each board member group.
+                  let count = boardMemberCounter[college.collegeAcronym];
+                  boardMemberCounter[college.collegeAcronym] += 1;
+                  const uniqueKey = `${college.collegeAcronym} - Board Member - ${count}`;
+                  console.log(`✅ Adding Board Member for ${college.collegeAcronym} with ${program.candidates.length} candidates under key ${uniqueKey}`);
+                  positions.push(toBytes32(uniqueKey));
                   candidates.push(
                     program.candidates.map((c) => ({
                       name: toBytes32(c.name),
                       party: toBytes32(c.party),
                     }))
                   );
+                  // Encode the full program string into three parts.
+                  const part1Str = program.program.slice(0, 31);
+                  const part2Str = program.program.slice(31, 62);
+                  const part3Str = program.program.slice(62, 93);
+                  boardProgramsPart1.push(ethers.encodeBytes32String(part1Str));
+                  boardProgramsPart2.push(ethers.encodeBytes32String(part2Str));
+                  boardProgramsPart3.push(ethers.encodeBytes32String(part3Str));
                 }
               });
             } else {
               if (!pos.candidates || pos.candidates.length === 0) {
                 console.log(`❌ Skipping ${pos.position} for ${college.collegeAcronym} (No candidates)`);
+                boardProgramsPart1.push(ethers.encodeBytes32String(""));
+                boardProgramsPart2.push(ethers.encodeBytes32String(""));
+                boardProgramsPart3.push(ethers.encodeBytes32String(""));
               } else {
                 console.log(`✅ Adding ${pos.position} for ${college.collegeAcronym} with ${pos.candidates.length} candidates`);
                 positions.push(toBytes32(`${college.collegeAcronym} - ${pos.position}`));
@@ -1700,39 +1743,25 @@ const startServer = async () => {
                     party: toBytes32(c.party),
                   }))
                 );
+                boardProgramsPart1.push(ethers.encodeBytes32String(""));
+                boardProgramsPart2.push(ethers.encodeBytes32String(""));
+                boardProgramsPart3.push(ethers.encodeBytes32String(""));
               }
             }
           });
         });
 
-        // ✅ Add "Abstain" option to every position,
-        // but if the decoded position indicates a board member position,
-        // change the Abstain name to include the program name.
+        // Add "Abstain" option to every position (always "Abstain")
         positions.forEach((pos, index) => {
-          const decodedPos = fromBytes32(pos);
-          let abstainName = "Abstain";
-
-          // Split the decoded position by " - "
-          const parts = decodedPos.split(" - ");
-
-          // If there are two parts and the second part is longer than a threshold,
-          // assume it's a board member program name
-          if (parts.length === 2 && parts[1].length > 10) {
-            // Use a prefix and then add the program name
-            const prefix = "Abstain - ";
-            // Ensure the total length does not exceed 31 characters
-            const allowedLength = 31 - prefix.length;
-            abstainName = prefix + parts[1].slice(0, allowedLength);
-          }
-
           candidates[index].push({
-            name: toBytes32(abstainName),
+            name: toBytes32("Abstain"),
             party: toBytes32("None"),
           });
         });
 
         console.log("\n📌 FINAL SUBMISSION:");
         console.log({ positions, candidates });
+        console.log({ boardProgramsPart1, boardProgramsPart2, boardProgramsPart3 });
 
         if (positions.length === 0) {
           console.log("⚠️ No candidates to submit!");
@@ -1740,13 +1769,12 @@ const startServer = async () => {
         }
 
         console.log("📡 Sending transaction to blockchain...");
-        const tx = await contract.submitCandidates(positions, candidates);
+        // Call the updated submitCandidates with five parameters.
+        const tx = await contract.submitCandidates(positions, candidates, boardProgramsPart1, boardProgramsPart2, boardProgramsPart3);
         await tx.wait();
         console.log("✅ Candidates submitted successfully!");
 
         const statusCollection = db.collection("system_status");
-
-        // **Update status in MongoDB**
         await statusCollection.updateOne({ _id: "candidate_submission" }, { $set: { submitted: true } }, { upsert: true });
 
         res.json({ message: "Candidates successfully submitted to blockchain!" });

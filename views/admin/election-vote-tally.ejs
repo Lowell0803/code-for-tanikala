@@ -222,7 +222,6 @@
               <option value="cbea">College of Business Education and Accountancy (CBEA)</option>
             </select> -->
             <select name="college" id="college-selector">
-              <option value="all">All Colleges</option>
               <option value="cafa">College of Architecture and Fine Arts (CAFA)</option>
               <option value="cal">College of Arts and Letters (CAL)</option>
               <option value="cbea">College of Business Education and Accountancy (CBEA)</option>
@@ -283,41 +282,39 @@
               "Vice President": [],
               Senator: [],
             };
-            // Group for Local Student Council (LSC)
+
+            // For Local Student Council (LSC) positions, we group Governor and Vice Governor by college.
             let lscData = {
               Governor: {},
               "Vice Governor": {},
-              // For Board Member, we merge all candidates into one array.
-              "Board Member": [],
             };
+
+            // Group Board Member positions by college.
+            let boardMemberData = {}; // key: college acronym (lowercase), value: array of board member items
 
             // Process each position from API data
             data.result.forEach((item) => {
               const pos = item.position;
-              // SSC: Exact match on SSC positions
               if (pos === "President" || pos === "Vice President" || pos === "Senator") {
                 sscData[pos] = item.candidates;
-              }
-              // LSC: Positions containing a hyphen
-              else if (pos.includes(" - ")) {
+              } else if (pos.includes(" - ")) {
                 const parts = pos.split(" - ");
                 if (parts.length === 2) {
-                  const firstPart = parts[0].trim();
-                  const secondPart = parts[1].trim();
-                  // Check if it's a Board Member position
-                  if (secondPart.toLowerCase() === "board member") {
-                    console.log("Found Board Member group in position:", pos, "with candidates:", item.candidates);
-                    // Merge board member candidates into a single array.
-                    lscData["Board Member"] = lscData["Board Member"].concat(item.candidates);
-                  } else {
-                    // For other LSC positions, backend returns "CollegeAcronym - Position"
-                    // We flip the order so that the position title becomes the key,
-                    // and the college code is stored as a sub-key.
-                    if (!lscData[secondPart]) {
-                      lscData[secondPart] = {};
+                  const collegeAcronym = parts[0].trim();
+                  const posName = parts[1].trim();
+                  if (posName.toLowerCase() === "board member") {
+                    const key = collegeAcronym.toLowerCase();
+                    if (!boardMemberData[key]) {
+                      boardMemberData[key] = [];
                     }
-                    lscData[secondPart][firstPart.toLowerCase()] = item.candidates;
-                    console.log("Grouped LSC position:", secondPart, "for college:", firstPart.toLowerCase(), "with candidates:", item.candidates);
+                    boardMemberData[key].push(item);
+                  } else {
+                    // For other LSC positions, we want to group by position and then by college.
+                    if (!lscData[posName]) {
+                      lscData[posName] = {};
+                    }
+                    lscData[posName][collegeAcronym.toLowerCase()] = item.candidates;
+                    console.log("Grouped LSC position:", posName, "for college:", collegeAcronym.toLowerCase(), "with candidates:", item.candidates);
                   }
                 }
               }
@@ -325,7 +322,7 @@
 
             console.log("Grouped SSC Data:", sscData);
             console.log("Grouped LSC Data:", lscData);
-            console.log("Board Member data:", lscData["Board Member"]);
+            console.log("Grouped Board Member Data:", boardMemberData);
 
             // Render SSC positions (left side)
             renderCandidates("container-president", sscData["President"], "President");
@@ -337,15 +334,85 @@
             function renderLSC() {
               const selectedCollege = collegeSelect.value.toLowerCase();
               console.log("Selected college:", selectedCollege);
-              // For positions that are filtered by college:
+              // For Governor and Vice Governor, display based on the college key:
               renderCandidates("container-lsc-governor", (lscData["Governor"] && lscData["Governor"][selectedCollege]) || [], "Governor");
               renderCandidates("container-lsc-vice-governor", (lscData["Vice Governor"] && lscData["Vice Governor"][selectedCollege]) || [], "Vice Governor");
-              // For Board Member, show data only when "all" is selected
+
+              // For Board Member, display groups matching the selected college.
+              const boardContainer = document.getElementById("container-lsc-board-member");
+              boardContainer.innerHTML = "";
               if (selectedCollege === "all") {
-                console.log("Rendering Board Member candidates:", lscData["Board Member"]);
-                renderCandidates("container-lsc-board-member", lscData["Board Member"] || [], "Board Member");
+                // Render all board member groups.
+                for (const collegeKey in boardMemberData) {
+                  boardMemberData[collegeKey].forEach((group) => {
+                    let header = document.createElement("h2");
+                    header.textContent = group.program && group.program.length > 0 ? "Board Member - " + group.program : "Board Member";
+                    boardContainer.appendChild(header);
+
+                    if (group.candidates.length === 0) {
+                      boardContainer.innerHTML += `<p>No candidates for this Board Member group</p>`;
+                    } else {
+                      const totalVotes = group.candidates.reduce((sum, c) => sum + c.votes, 0);
+                      group.candidates.forEach((candidate) => {
+                        const progressElement = document.createElement("div");
+                        progressElement.classList.add("progress-element");
+
+                        const label = document.createElement("p");
+                        label.classList.add("progress-label");
+                        label.textContent = candidate.name;
+
+                        const progressBar = document.createElement("progress");
+                        progressBar.max = totalVotes;
+                        progressBar.value = candidate.votes;
+
+                        const voteCount = document.createElement("span");
+                        voteCount.textContent = `${candidate.votes} votes`;
+
+                        progressElement.appendChild(label);
+                        progressElement.appendChild(progressBar);
+                        progressElement.appendChild(voteCount);
+                        boardContainer.appendChild(progressElement);
+                      });
+                    }
+                  });
+                }
               } else {
-                renderCandidates("container-lsc-board-member", [], "Board Member");
+                // Render board member groups only for the selected college.
+                if (boardMemberData[selectedCollege]) {
+                  boardMemberData[selectedCollege].forEach((group) => {
+                    let header = document.createElement("h2");
+                    header.textContent = group.program && group.program.length > 0 ? "Board Member - " + group.program : "Board Member";
+                    boardContainer.appendChild(header);
+
+                    if (group.candidates.length === 0) {
+                      boardContainer.innerHTML += `<p>No candidates for this Board Member group</p>`;
+                    } else {
+                      const totalVotes = group.candidates.reduce((sum, c) => sum + c.votes, 0);
+                      group.candidates.forEach((candidate) => {
+                        const progressElement = document.createElement("div");
+                        progressElement.classList.add("progress-element");
+
+                        const label = document.createElement("p");
+                        label.classList.add("progress-label");
+                        label.textContent = candidate.name;
+
+                        const progressBar = document.createElement("progress");
+                        progressBar.max = totalVotes;
+                        progressBar.value = candidate.votes;
+
+                        const voteCount = document.createElement("span");
+                        voteCount.textContent = `${candidate.votes} votes`;
+
+                        progressElement.appendChild(label);
+                        progressElement.appendChild(progressBar);
+                        progressElement.appendChild(voteCount);
+                        boardContainer.appendChild(progressElement);
+                      });
+                    }
+                  });
+                } else {
+                  boardContainer.innerHTML = `<p>No Board Member candidates for ${selectedCollege.toUpperCase()}</p>`;
+                }
               }
             }
             collegeSelect.addEventListener("change", renderLSC);
@@ -357,45 +424,32 @@
         function renderCandidates(containerId, candidates, positionTitle) {
           const container = document.getElementById(containerId);
           container.innerHTML = "";
-
-          // Add a position title before listing candidates
           const titleElement = document.createElement("h2");
           titleElement.textContent = positionTitle;
           container.appendChild(titleElement);
-
           if (candidates.length === 0) {
             container.innerHTML += `<p>No candidates for ${positionTitle}</p>`;
             return;
           }
-
-          // Calculate total votes for this position so each progress bar has a meaningful max
           const totalVotes = candidates.reduce((sum, c) => sum + c.votes, 0);
-
           candidates.forEach((candidate) => {
-            // Create the outer container for one candidate's row
             const progressElement = document.createElement("div");
             progressElement.classList.add("progress-element");
 
-            // Label: candidate name
             const label = document.createElement("p");
             label.classList.add("progress-label");
             label.textContent = candidate.name;
 
-            // The progress bar itself
             const progressBar = document.createElement("progress");
             progressBar.max = totalVotes;
             progressBar.value = candidate.votes;
 
-            // Vote count
             const voteCount = document.createElement("span");
             voteCount.textContent = `${candidate.votes} votes`;
 
-            // Append them in order
             progressElement.appendChild(label);
             progressElement.appendChild(progressBar);
             progressElement.appendChild(voteCount);
-
-            // Finally, attach the row to the container
             container.appendChild(progressElement);
           });
         }
