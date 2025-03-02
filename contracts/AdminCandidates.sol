@@ -2,13 +2,17 @@
 pragma solidity ^0.8.21;
 
 contract AdminCandidates {
+    // Define all structs before using them.
     struct Candidate {
+        bytes32 candidateId; // Unique candidate id (e.g., converted from a database _id)
         bytes32 name;
         bytes32 party;
         uint256 votes;
     }
 
+    // When submitting candidates, include the candidateId.
     struct CandidateEntry {
+        bytes32 candidateId;
         bytes32 name;
         bytes32 party;
     }
@@ -37,7 +41,7 @@ contract AdminCandidates {
 
     event CandidatesSubmitted();
     event CandidatesReset();
-    event VoteSubmitted(bytes32 position, bytes32 name, bytes32 voterHash);
+    event VoteSubmitted(bytes32 position, bytes32 candidateId, bytes32 voterHash);
 
     modifier onlyAdmin() {
         require(msg.sender == admin, "Only admin can perform this action");
@@ -61,7 +65,7 @@ contract AdminCandidates {
         return string(result);
     }
     
-    // Modified: Returns true if the decoded position contains "Board Member"
+    // Returns true if the decoded position contains "Board Member"
     function isBoardMemberPosition(bytes32 position) internal pure returns (bool) {
         string memory posStr = decodeBytes32String(position);
         bytes memory posBytes = bytes(posStr);
@@ -80,10 +84,9 @@ contract AdminCandidates {
         return false;
     }
 
-    
     // Submit candidates for each position.
     // _positions: array of positions (as bytes32)
-    // _candidates: 2D array; for each position an array of CandidateEntry values.
+    // _candidates: 2D array; for each position an array of CandidateEntry values (including candidateId).
     // _boardMemberProgramIDs: for board member positions, supply a unique program ID.
     // For non-board member positions, pass an empty bytes32.
     function submitCandidates(
@@ -100,6 +103,7 @@ contract AdminCandidates {
             delete candidates[_positions[i]];
             for (uint256 j = 0; j < _candidates[i].length; j++) {
                 candidates[_positions[i]].push(Candidate({
+                    candidateId: _candidates[i][j].candidateId,
                     name: _candidates[i][j].name,
                     party: _candidates[i][j].party,
                     votes: 0
@@ -116,22 +120,32 @@ contract AdminCandidates {
     }
 
     // Allow a voter to cast votes in batch.
+    // Instead of passing candidate indices, we now pass an array of candidateIds (one per position).
     function batchVote(
         bytes32[] memory _positions,
-        uint256[] memory _indices,
+        bytes32[] memory _candidateIds,
         bytes32 _voterHash
     ) public {
         require(isFinalized, "Voting cannot start until candidates are finalized!");
-        require(_positions.length == _indices.length, "Mismatched input lengths");
+        require(_positions.length == _candidateIds.length, "Mismatched input lengths");
         require(!hasVotedHash[_voterHash], "Voter has already voted");
         hasVotedHash[_voterHash] = true;
         for (uint256 i = 0; i < _positions.length; i++) {
             bytes32 pos = _positions[i];
-            uint256 idx = _indices[i];
-            require(idx < candidates[pos].length, "Invalid candidate index");
-            candidates[pos][idx].votes++;
-            candidateVoterHashes[pos][idx].push(_voterHash);
-            emit VoteSubmitted(pos, candidates[pos][idx].name, _voterHash);
+            bytes32 targetCandidateId = _candidateIds[i];
+            bool found = false;
+            uint256 candidateIndex;
+            for (uint256 j = 0; j < candidates[pos].length; j++) {
+                if (candidates[pos][j].candidateId == targetCandidateId) {
+                    found = true;
+                    candidateIndex = j;
+                    break;
+                }
+            }
+            require(found, "Invalid candidate id");
+            candidates[pos][candidateIndex].votes++;
+            candidateVoterHashes[pos][candidateIndex].push(_voterHash);
+            emit VoteSubmitted(pos, targetCandidateId, _voterHash);
         }
     }
     
@@ -140,7 +154,11 @@ contract AdminCandidates {
         Candidate[] storage posCandidates = candidates[_position];
         CandidateEntry[] memory entries = new CandidateEntry[](posCandidates.length);
         for (uint256 i = 0; i < posCandidates.length; i++) {
-            entries[i] = CandidateEntry(posCandidates[i].name, posCandidates[i].party);
+            entries[i] = CandidateEntry({
+                candidateId: posCandidates[i].candidateId,
+                name: posCandidates[i].name,
+                party: posCandidates[i].party
+            });
         }
         return entries;
     }
@@ -152,17 +170,21 @@ contract AdminCandidates {
             totalCandidates += candidates[positionList[i]].length;
         }
         CandidateEntry[] memory allCandidates = new CandidateEntry[](totalCandidates);
-        uint256[] memory votes = new uint256[](totalCandidates);
+        uint256[] memory votesArray = new uint256[](totalCandidates);
         uint256 index = 0;
         for (uint256 i = 0; i < positionList.length; i++) {
             Candidate[] storage posCandidates = candidates[positionList[i]];
             for (uint256 j = 0; j < posCandidates.length; j++) {
-                allCandidates[index] = CandidateEntry(posCandidates[j].name, posCandidates[j].party);
-                votes[index] = posCandidates[j].votes;
+                allCandidates[index] = CandidateEntry({
+                    candidateId: posCandidates[j].candidateId,
+                    name: posCandidates[j].name,
+                    party: posCandidates[j].party
+                });
+                votesArray[index] = posCandidates[j].votes;
                 unchecked { index++; }
             }
         }
-        return (allCandidates, votes);
+        return (allCandidates, votesArray);
     }
     
     // Reset all candidates and positions.

@@ -13,6 +13,37 @@ const { formatBytes32String } = require("ethers");
 //   return ethers.toUtf8Bytes(str.substring(0, 32).padEnd(32, "\0"));
 // }
 
+const provider = new ethers.JsonRpcProvider(process.env.HARDHAT_RPC_URL);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+
+const contractABI = require("./artifacts/contracts/AdminCandidates.sol/AdminCandidates.json").abi;
+const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractABI, wallet);
+
+async function logAllCandidates() {
+  // Get all positions as bytes32 values
+  const positions = await contract.getPositionList();
+  const decodedPositions = positions.map((pos) => ethers.decodeBytes32String(pos));
+  console.log("Positions:", decodedPositions);
+
+  // Loop through each position and log candidates
+  for (const pos of positions) {
+    const candidateEntries = await contract.getCandidates(pos);
+    console.log("Candidates for position", ethers.decodeBytes32String(pos));
+    for (const candidate of candidateEntries) {
+      console.log({
+        candidateId: ethers.decodeBytes32String(candidate.candidateId),
+        name: ethers.decodeBytes32String(candidate.name),
+        party: ethers.decodeBytes32String(candidate.party),
+      });
+    }
+  }
+}
+
+// Run the script (you can call this in an async IIFE)
+// (async () => {
+//   await logAllCandidates();
+// })();
+
 function toBytes32(str) {
   if (!str) return ethers.encodeBytes32String("");
   return ethers.encodeBytes32String(str.slice(0, 31));
@@ -1185,7 +1216,7 @@ const startServer = async () => {
       try {
         const { votes, voterHash, voterCollege, voterProgram } = req.body;
 
-        // Updated helper function as defined above.
+        // Helper: normalize keys by removing spaces and lowercasing.
         const getVote = (key) => {
           const normalizedTarget = key.replace(/\s+/g, "").toLowerCase();
           for (const voteKey in votes) {
@@ -1198,25 +1229,21 @@ const startServer = async () => {
         };
 
         const positions = [];
-        const indices = [];
+        const candidateIds = []; // Array for candidate ids (bytes32)
 
         // --- PRESIDENT ---
         const presidentVote = getVote("president");
         if (!presidentVote) throw new Error("Missing president vote");
         positions.push(toBytes32("president"));
-        const presId = typeof presidentVote.id === "string" ? presidentVote.id : "Abstain";
-        let presParts = presId.split("_");
-        let presIndex = presId === "Abstain" ? 0 : parseInt(presParts[presParts.length - 1], 10);
-        indices.push(presIndex);
+        const presCandidateId = typeof presidentVote.id === "string" ? presidentVote.id : "Abstain";
+        candidateIds.push(toBytes32(presCandidateId));
 
         // --- VICE PRESIDENT ---
         const vicePresidentVote = getVote("vicePresident");
         if (!vicePresidentVote) throw new Error("Missing vice president vote");
         positions.push(toBytes32("vicePresident"));
-        const vpId = typeof vicePresidentVote.id === "string" ? vicePresidentVote.id : "Abstain";
-        let vpParts = vpId.split("_");
-        let vpIndex = vpId === "Abstain" ? 0 : parseInt(vpParts[vpParts.length - 1], 10);
-        indices.push(vpIndex);
+        const vpCandidateId = typeof vicePresidentVote.id === "string" ? vicePresidentVote.id : "Abstain";
+        candidateIds.push(toBytes32(vpCandidateId));
 
         // --- SENATOR ---
         let senatorVote = null;
@@ -1227,50 +1254,60 @@ const startServer = async () => {
         }
         if (!senatorVote) throw new Error("Missing senator vote");
         positions.push(toBytes32("senator"));
-        const senId = typeof senatorVote.id === "string" ? senatorVote.id : "Abstain";
-        let senParts = senId.split("_");
-        let senIndex = senId === "Abstain" ? 0 : parseInt(senParts[senParts.length - 1], 10);
-        indices.push(senIndex);
+        const senCandidateId = typeof senatorVote.id === "string" ? senatorVote.id : "Abstain";
+        candidateIds.push(toBytes32(senCandidateId));
 
         // --- GOVERNOR ---
         const governorVote = getVote("governor");
         if (!governorVote) throw new Error("Missing governor vote");
         const governorKey = `${voterCollege} - Governor`;
         positions.push(toBytes32(governorKey));
-        const govId = typeof governorVote.id === "string" ? governorVote.id : "Abstain";
-        let govParts = govId.split("_");
-        let govIndex = govId === "Abstain" ? 0 : parseInt(govParts[govParts.length - 1], 10);
-        indices.push(govIndex);
+        const govCandidateId = typeof governorVote.id === "string" ? governorVote.id : "Abstain";
+        candidateIds.push(toBytes32(govCandidateId));
 
         // --- VICE GOVERNOR ---
         const viceGovernorVote = getVote("viceGovernor");
         if (!viceGovernorVote) throw new Error("Missing vice governor vote");
         const viceGovernorKey = `${voterCollege} - Vice Governor`;
         positions.push(toBytes32(viceGovernorKey));
-        const vgovId = typeof viceGovernorVote.id === "string" ? viceGovernorVote.id : "Abstain";
-        let vgovParts = vgovId.split("_");
-        let vgovIndex = vgovId === "Abstain" ? 0 : parseInt(vgovParts[vgovParts.length - 1], 10);
-        indices.push(vgovIndex);
+        const vgovCandidateId = typeof viceGovernorVote.id === "string" ? viceGovernorVote.id : "Abstain";
+        candidateIds.push(toBytes32(vgovCandidateId));
 
         // --- BOARD MEMBER ---
         const boardMemberVote = getVote("boardMember");
         if (!boardMemberVote) throw new Error("Missing board member vote");
-        let boardMemberKey;
-        if (voterProgram === "Bachelor of Fine Arts Major in Visual Communication") {
-          boardMemberKey = `${voterCollege} - Board Member - 1`;
-        } else {
-          boardMemberKey = `${voterCollege} - Board Member - 0`;
+
+        // Instead of relying solely on voterCollege, search through all board member groups.
+        let boardMemberKey = "";
+        const allPositions = await contract.getPositionList();
+        for (const pos of allPositions) {
+          const posStr = ethers.decodeBytes32String(pos);
+          if (posStr.includes("Board Member")) {
+            // Look at all board member groups
+            const candidateEntries = await contract.getCandidates(pos);
+            for (const candidate of candidateEntries) {
+              const candidateIdOnChain = ethers.decodeBytes32String(candidate.candidateId);
+              if (candidateIdOnChain === boardMemberVote.id) {
+                boardMemberKey = posStr;
+                break;
+              }
+            }
+            if (boardMemberKey) break;
+          }
+        }
+        // Fallback if no group was found.
+        if (!boardMemberKey) {
+          boardMemberKey = voterProgram === "Bachelor of Fine Arts Major in Visual Communication" ? `${voterCollege} - Board Member - 1` : `${voterCollege} - Board Member - 0`;
         }
         positions.push(toBytes32(boardMemberKey));
-        const bmId = typeof boardMemberVote.id === "string" ? boardMemberVote.id : "Abstain";
-        let bmParts = bmId.split("_");
-        let bmIndex = bmId === "Abstain" ? 0 : parseInt(bmParts[bmParts.length - 1], 10);
-        indices.push(bmIndex);
+        const bmCandidateId = typeof boardMemberVote.id === "string" ? boardMemberVote.id : "Abstain";
+        candidateIds.push(toBytes32(bmCandidateId));
 
         const voterHashBytes32 = toBytes32(voterHash);
         let nonce = await provider.getTransactionCount(wallet.address, "pending");
 
-        const tx = await contract.batchVote(positions, indices, voterHashBytes32, { nonce });
+        // Call the updated batchVote which accepts candidate ids.
+        const tx = await contract.batchVote(positions, candidateIds, voterHashBytes32, { nonce });
         await tx.wait();
 
         req.session.voterReceipt = {
@@ -1293,7 +1330,6 @@ const startServer = async () => {
       }
     });
 
-    // Helper functions.
     function toBytes32(str) {
       if (!str) return ethers.encodeBytes32String("");
       return ethers.encodeBytes32String(str.slice(0, 31));
@@ -1311,7 +1347,6 @@ const startServer = async () => {
       }
     }
 
-    // Helper functions.
     function toBytes32(str) {
       if (!str) return ethers.encodeBytes32String("");
       return ethers.encodeBytes32String(str.slice(0, 31));
@@ -1929,6 +1964,7 @@ const startServer = async () => {
             positions.push(toBytes32(group.position));
             candidates.push(
               group.candidates.map((c) => ({
+                candidateId: toBytes32(c._id), // New field
                 name: toBytes32(c.name),
                 party: toBytes32(c.party),
               }))
@@ -1960,6 +1996,7 @@ const startServer = async () => {
                   positions.push(toBytes32(uniqueKey));
                   candidates.push(
                     program.candidates.map((c) => ({
+                      candidateId: toBytes32(c._id), // New field
                       name: toBytes32(c.name),
                       party: toBytes32(c.party),
                     }))
@@ -1981,6 +2018,7 @@ const startServer = async () => {
                 positions.push(toBytes32(`${college.collegeAcronym} - ${pos.position}`));
                 candidates.push(
                   pos.candidates.map((c) => ({
+                    candidateId: toBytes32(c._id), // New field
                     name: toBytes32(c.name),
                     party: toBytes32(c.party),
                   }))
@@ -1994,6 +2032,7 @@ const startServer = async () => {
         // Add "Abstain" option to every position.
         positions.forEach((pos, index) => {
           candidates[index].push({
+            candidateId: toBytes32("Abstain"),
             name: toBytes32("Abstain"),
             party: toBytes32("None"),
           });
