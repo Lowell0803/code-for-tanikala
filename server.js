@@ -14,9 +14,7 @@ const { formatBytes32String } = require("ethers");
 // }
 
 function toBytes32(str) {
-  // If no string, encode an empty string.
   if (!str) return ethers.encodeBytes32String("");
-  // Limit string to 31 characters so there's room for the null terminator.
   return ethers.encodeBytes32String(str.slice(0, 31));
 }
 
@@ -87,7 +85,7 @@ passport.use(
         const userEmail = decodedToken.email || decodedToken.preferred_username || decodedToken.upn;
         const userName = decodedToken.name;
 
-        console.log("Decoded Token:", decodedToken); // Logs all available token details
+        // console.log("Decoded Token:", decodedToken); // Logs all available token details
 
         // Call Microsoft Graph API for additional user details
         const response = await fetch("https://graph.microsoft.com/v1.0/me", {
@@ -95,7 +93,7 @@ passport.use(
         });
 
         const userProfile = await response.json();
-        console.log("Microsoft Graph User Profile:", userProfile);
+        // console.log("Microsoft Graph User Profile:", userProfile);
 
         const user = {
           name: userProfile.displayName || userName,
@@ -105,7 +103,7 @@ passport.use(
           school: userProfile.officeLocation || "N/A",
         };
 
-        console.log("Final User Object:", user);
+        // console.log("Final User Object:", user);
 
         done(null, user);
       } catch (error) {
@@ -1594,53 +1592,54 @@ const startServer = async () => {
       try {
         const positions = await contract.getPositionList();
         const [allCandidates, allVotes] = await contract.getVoteCounts();
+        const boardProgramsCollection = db.collection("board_member_programs");
 
-        // Fetch candidates for all positions concurrently
+        // Fetch candidate arrays for all positions concurrently.
         const candidatesPerPosition = await Promise.all(positions.map((pos) => contract.getCandidates(pos)));
 
         let result = [];
         let totalCandidateCounter = 0;
-
         for (let i = 0; i < positions.length; i++) {
           const pos = positions[i];
-          const decodedPos = fromBytes32(pos); // Use our robust decoding
+          let decodedPos = fromBytes32(pos);
           const posCandidates = candidatesPerPosition[i];
 
-          // For Board Member positions, fetch extra program data
-          let programData = null;
+          let programText = "";
+          // If this position includes "Board Member", look up its program text.
           if (decodedPos.indexOf("Board Member") !== -1) {
-            const boardInfo = await contract.boardMemberInfo(pos); // Calls the public mapping
-            const part1 = fromBytes32(boardInfo.programPart1);
-            const part2 = fromBytes32(boardInfo.programPart2);
-            const part3 = fromBytes32(boardInfo.programPart3);
-            programData = part1 + part2 + part3;
+            // Retrieve the program ID from on-chain storage.
+            const programID = await contract.boardMemberProgramIDs(pos);
+            console.log(`Retrieved programID for position ${decodedPos}: ${programID}`);
+            if (programID !== ethers.encodeBytes32String("")) {
+              // Look up the program text in MongoDB.
+              const boardProgram = await boardProgramsCollection.findOne({ programID: programID.toString() });
+              console.log(`MongoDB lookup for programID ${programID.toString()}:`, boardProgram);
+              if (boardProgram && boardProgram.programText) {
+                programText = boardProgram.programText;
+              }
+            }
+            // Reconstruct the position string to include the program text.
+            const parts = decodedPos.split(" - ");
+            if (parts.length >= 2 && programText !== "") {
+              decodedPos = `${parts[0]} - Board Member - ${programText}`;
+            }
           }
 
           const candidatesData = posCandidates.map((candidate, index) => {
             const decodedName = fromBytes32(candidate.name);
             const decodedParty = fromBytes32(candidate.party);
             const votes = Number(allVotes[totalCandidateCounter + index]);
-            return {
-              name: decodedName,
-              party: decodedParty,
-              votes,
-            };
+            return { name: decodedName, party: decodedParty, votes };
           });
-
           totalCandidateCounter += posCandidates.length;
           let positionObj = {
             position: decodedPos,
             candidates: candidatesData,
           };
-
-          if (programData) {
-            positionObj.program = programData;
-          }
-
+          console.log(`Final position: ${decodedPos}`);
+          console.log(`Candidates for position ${decodedPos}:`, candidatesData);
           result.push(positionObj);
-          console.log(candidatesData);
         }
-
         res.json({ success: true, result });
       } catch (error) {
         console.error("Error fetching candidate details:", error);
@@ -1652,8 +1651,9 @@ const startServer = async () => {
       try {
         const candidatesCollection = db.collection("candidates");
         const candidatesLscCollection = db.collection("candidates_lsc");
+        const boardProgramsCollection = db.collection("board_member_programs"); // Collection for board member programs
 
-        // Fetch candidates from both collections
+        // Fetch candidates from both collections.
         const candidatesData = await candidatesCollection.find({}).toArray();
         const candidatesLscData = await candidatesLscCollection.find({}).toArray();
 
@@ -1662,20 +1662,15 @@ const startServer = async () => {
         console.log("✅ LSC candidates fetched:", candidatesLscData.length);
 
         let positions = [];
-        let candidates = []; // 2D array to store CandidateEntry structs
-        // These arrays will hold the board member program strings split into three parts.
-        // For non-board member positions, push empty bytes32 strings.
-        let boardProgramsPart1 = [];
-        let boardProgramsPart2 = [];
-        let boardProgramsPart3 = [];
+        let candidates = []; // 2D array for CandidateEntry structs.
+        // Array to hold board member program IDs.
+        let boardMemberProgramIDs = [];
 
-        // Process main candidates collection
+        // Process main candidates collection.
         candidatesData.forEach((group) => {
           if (!group.candidates || group.candidates.length === 0) {
             console.log(`❌ Skipping ${group.position} (No candidates)`);
-            boardProgramsPart1.push(ethers.encodeBytes32String(""));
-            boardProgramsPart2.push(ethers.encodeBytes32String(""));
-            boardProgramsPart3.push(ethers.encodeBytes32String(""));
+            boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
           } else {
             console.log(`✅ Adding ${group.position} with ${group.candidates.length} candidates`);
             positions.push(toBytes32(group.position));
@@ -1685,33 +1680,30 @@ const startServer = async () => {
                 party: toBytes32(c.party),
               }))
             );
-            boardProgramsPart1.push(ethers.encodeBytes32String(""));
-            boardProgramsPart2.push(ethers.encodeBytes32String(""));
-            boardProgramsPart3.push(ethers.encodeBytes32String(""));
+            boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
           }
         });
 
-        // Maintain a counter per college for Board Member groups to ensure unique keys.
+        // Maintain a counter per college for board member groups.
         let boardMemberCounter = {};
 
-        // Process LSC candidates collection
-        candidatesLscData.forEach((college) => {
+        // Process LSC candidates collection using for-of loops to allow await.
+        for (const college of candidatesLscData) {
           console.log(`\n📌 Processing LSC College: ${college.collegeName}`);
-          // Initialize counter for this college if not yet defined.
           if (!boardMemberCounter[college.collegeAcronym]) {
             boardMemberCounter[college.collegeAcronym] = 0;
           }
-          college.positions.forEach((pos) => {
+          for (const pos of college.positions) {
             if (pos.position === "Board Member") {
-              pos.programs.forEach((program) => {
+              for (const program of pos.programs) {
                 if (!program.candidates || program.candidates.length === 0) {
                   console.log(`❌ Skipping Board Member - ${program.program} (No candidates)`);
                 } else {
-                  // Generate a unique key for each board member group.
                   let count = boardMemberCounter[college.collegeAcronym];
                   boardMemberCounter[college.collegeAcronym] += 1;
+                  // Generate a unique key for this board member group.
                   const uniqueKey = `${college.collegeAcronym} - Board Member - ${count}`;
-                  console.log(`✅ Adding Board Member for ${college.collegeAcronym} with ${program.candidates.length} candidates under key ${uniqueKey}`);
+                  console.log(`✅ Adding Board Member for ${college.collegeAcronym} with ${program.candidates.length} candidates under key "${uniqueKey}"`);
                   positions.push(toBytes32(uniqueKey));
                   candidates.push(
                     program.candidates.map((c) => ({
@@ -1719,21 +1711,18 @@ const startServer = async () => {
                       party: toBytes32(c.party),
                     }))
                   );
-                  // Encode the full program string into three parts.
-                  const part1Str = program.program.slice(0, 31);
-                  const part2Str = program.program.slice(31, 62);
-                  const part3Str = program.program.slice(62, 93);
-                  boardProgramsPart1.push(ethers.encodeBytes32String(part1Str));
-                  boardProgramsPart2.push(ethers.encodeBytes32String(part2Str));
-                  boardProgramsPart3.push(ethers.encodeBytes32String(part3Str));
+                  // Use the unique key as the program ID.
+                  const programID = toBytes32(uniqueKey);
+                  boardMemberProgramIDs.push(programID);
+                  // Upsert the full program text into MongoDB using the unique key.
+                  console.log(`Upserting program for key "${uniqueKey}": "${program.program}"`);
+                  await boardProgramsCollection.updateOne({ programID: programID.toString() }, { $set: { programText: program.program } }, { upsert: true });
                 }
-              });
+              }
             } else {
               if (!pos.candidates || pos.candidates.length === 0) {
                 console.log(`❌ Skipping ${pos.position} for ${college.collegeAcronym} (No candidates)`);
-                boardProgramsPart1.push(ethers.encodeBytes32String(""));
-                boardProgramsPart2.push(ethers.encodeBytes32String(""));
-                boardProgramsPart3.push(ethers.encodeBytes32String(""));
+                boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
               } else {
                 console.log(`✅ Adding ${pos.position} for ${college.collegeAcronym} with ${pos.candidates.length} candidates`);
                 positions.push(toBytes32(`${college.collegeAcronym} - ${pos.position}`));
@@ -1743,15 +1732,13 @@ const startServer = async () => {
                     party: toBytes32(c.party),
                   }))
                 );
-                boardProgramsPart1.push(ethers.encodeBytes32String(""));
-                boardProgramsPart2.push(ethers.encodeBytes32String(""));
-                boardProgramsPart3.push(ethers.encodeBytes32String(""));
+                boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
               }
             }
-          });
-        });
+          }
+        }
 
-        // Add "Abstain" option to every position (always "Abstain")
+        // Add "Abstain" option to every position.
         positions.forEach((pos, index) => {
           candidates[index].push({
             name: toBytes32("Abstain"),
@@ -1761,7 +1748,7 @@ const startServer = async () => {
 
         console.log("\n📌 FINAL SUBMISSION:");
         console.log({ positions, candidates });
-        console.log({ boardProgramsPart1, boardProgramsPart2, boardProgramsPart3 });
+        console.log({ boardMemberProgramIDs });
 
         if (positions.length === 0) {
           console.log("⚠️ No candidates to submit!");
@@ -1769,14 +1756,12 @@ const startServer = async () => {
         }
 
         console.log("📡 Sending transaction to blockchain...");
-        // Call the updated submitCandidates with five parameters.
-        const tx = await contract.submitCandidates(positions, candidates, boardProgramsPart1, boardProgramsPart2, boardProgramsPart3);
+        const tx = await contract.submitCandidates(positions, candidates, boardMemberProgramIDs);
         await tx.wait();
         console.log("✅ Candidates submitted successfully!");
 
         const statusCollection = db.collection("system_status");
         await statusCollection.updateOne({ _id: "candidate_submission" }, { $set: { submitted: true } }, { upsert: true });
-
         res.json({ message: "Candidates successfully submitted to blockchain!" });
       } catch (error) {
         console.error("❌ ERROR submitting candidates:", error);

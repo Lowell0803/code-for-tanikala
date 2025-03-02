@@ -13,7 +13,6 @@ contract AdminCandidates {
         bytes32 party;
     }
 
-    // This struct is used by the getWinners function.
     struct Winner {
         bytes32 position;
         bytes32 name;
@@ -21,23 +20,17 @@ contract AdminCandidates {
         uint256 votes;
     }
     
-    // New struct to hold extra Board Member program information using 3 segments.
-    struct BoardMemberInfo {
-        bytes32 programPart1;
-        bytes32 programPart2;
-        bytes32 programPart3;
-    }
-
     // Mapping from a position (bytes32) to an array of Candidate structs.
     mapping(bytes32 => Candidate[]) private candidates;
     // Mapping to store each candidate's voter hashes.
     mapping(bytes32 => mapping(uint256 => bytes32[])) private candidateVoterHashes;
-    // Prevents a given voter (hashed) from voting more than once.
+    // Prevents double voting.
     mapping(bytes32 => bool) private hasVotedHash;
-    // List of positions (e.g., "President", "Vice President", etc.)
+    // List of positions.
     bytes32[] private positionList;
-    // For Board Member positions, store extra program data (3 parts).
-    mapping(bytes32 => BoardMemberInfo) public boardMemberInfo;
+    
+    // For board member positions, store a unique program ID.
+    mapping(bytes32 => bytes32) public boardMemberProgramIDs;
 
     address public admin;
     bool public isFinalized = false;
@@ -55,7 +48,7 @@ contract AdminCandidates {
         admin = msg.sender;
     }
     
-    // Helper function to decode bytes32 to string (similar to ethers.decodeBytes32String)
+    // Helper function to decode a bytes32 to string.
     function decodeBytes32String(bytes32 _data) internal pure returns (string memory) {
         uint256 len = 0;
         while (len < 32 && _data[len] != 0) {
@@ -68,44 +61,42 @@ contract AdminCandidates {
         return string(result);
     }
     
-    // Helper: returns true if the given position ends with " - Board Member"
+    // Modified: Returns true if the decoded position contains "Board Member"
     function isBoardMemberPosition(bytes32 position) internal pure returns (bool) {
         string memory posStr = decodeBytes32String(position);
         bytes memory posBytes = bytes(posStr);
-        bytes memory suffix = bytes(" - Board Member");
-        if (posBytes.length < suffix.length) {
-            return false;
-        }
-        for (uint256 i = 0; i < suffix.length; i++) {
-            if (posBytes[posBytes.length - suffix.length + i] != suffix[i]) {
-                return false;
+        bytes memory target = "Board Member";
+        if (posBytes.length < target.length) return false;
+        for (uint256 i = 0; i <= posBytes.length - target.length; i++) {
+            bool isMatch = true;
+            for (uint256 j = 0; j < target.length; j++) {
+                if (posBytes[i + j] != target[j]) {
+                    isMatch = false;
+                    break;
+                }
             }
+            if (isMatch) return true;
         }
-        return true;
+        return false;
     }
+
     
     // Submit candidates for each position.
-    // _positions: an array of positions (as bytes32)
-    // _candidates: a 2D array; for each position an array of CandidateEntry values.
-    // _boardMemberProgramsPart1, _boardMemberProgramsPart2, _boardMemberProgramsPart3:
-    // For Board Member positions, supply the full program string split into three parts.
-    // For non-Board Member positions, pass zero-value bytes32.
+    // _positions: array of positions (as bytes32)
+    // _candidates: 2D array; for each position an array of CandidateEntry values.
+    // _boardMemberProgramIDs: for board member positions, supply a unique program ID.
+    // For non-board member positions, pass an empty bytes32.
     function submitCandidates(
         bytes32[] memory _positions,
         CandidateEntry[][] memory _candidates,
-        bytes32[] memory _boardMemberProgramsPart1,
-        bytes32[] memory _boardMemberProgramsPart2,
-        bytes32[] memory _boardMemberProgramsPart3
+        bytes32[] memory _boardMemberProgramIDs
     ) public onlyAdmin {
         require(!isFinalized, "Candidates are already finalized!");
-        // Reset the positions list.
         delete positionList;
         for (uint256 i = 0; i < _positions.length; i++) {
-            // Only add the position if no candidates exist for it yet.
-            if(candidates[_positions[i]].length == 0){
+            if (candidates[_positions[i]].length == 0) {
                 positionList.push(_positions[i]);
             }
-            // Reset the candidates for this position.
             delete candidates[_positions[i]];
             for (uint256 j = 0; j < _candidates[i].length; j++) {
                 candidates[_positions[i]].push(Candidate({
@@ -113,16 +104,11 @@ contract AdminCandidates {
                     party: _candidates[i][j].party,
                     votes: 0
                 }));
-                // Clear voter hashes for this candidate.
                 delete candidateVoterHashes[_positions[i]][j];
             }
-            // For Board Member positions, store extra program data.
-            if(isBoardMemberPosition(_positions[i])) {
-                boardMemberInfo[_positions[i]] = BoardMemberInfo({
-                    programPart1: _boardMemberProgramsPart1[i],
-                    programPart2: _boardMemberProgramsPart2[i],
-                    programPart3: _boardMemberProgramsPart3[i]
-                });
+            // For board member positions, store the program ID.
+            if (isBoardMemberPosition(_positions[i])) {
+                boardMemberProgramIDs[_positions[i]] = _boardMemberProgramIDs[i];
             }
         }
         isFinalized = true;
@@ -195,7 +181,7 @@ contract AdminCandidates {
         return positionList;
     }
     
-    // Get the voter hashes for a given candidate under a position.
+    // Get the voter hashes for a candidate under a position.
     function getVoterHashes(bytes32 _position, uint256 _index) public view returns (bytes32[] memory) {
         return candidateVoterHashes[_position][_index];
     }
