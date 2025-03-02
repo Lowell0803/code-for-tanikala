@@ -15,6 +15,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   </head>
 
   <body>
@@ -218,6 +220,86 @@
             <div class="left">
               <h2>Blockchain Information</h2>
               <br />
+              <h2>Compile & Deploy AdminCandidates Contract via MetaMask</h2>
+              <h2>Smart Contract Management</h2>
+              <!-- Optional: allow user to override provider URL (if left blank, MetaMask provider is used) -->
+              <input id="providerInput" placeholder="Custom Provider URL (optional)" style="width: 300px; margin-bottom: 10px" />
+              <br />
+              <button id="compileButton" class="">Compile Contract</button>
+              <button id="deployButton" class=" ">Deploy Contract</button>
+              <div id="apiResponse" style="margin-top: 20px; white-space: pre-wrap"></div>
+
+              <script>
+                // Global variable to store the contract artifact from the compile API
+                let contractArtifact = null;
+
+                // Call the compile endpoint on the server
+                async function compileContract() {
+                  const outputDiv = document.getElementById("apiResponse");
+                  outputDiv.innerText = "Compiling contract...";
+                  try {
+                    const res = await fetch("/api/compile-contract");
+                    const data = await res.json();
+                    if (data.success) {
+                      contractArtifact = data.artifact;
+                      outputDiv.innerText = "Compilation successful!\nABI:\n" + JSON.stringify(contractArtifact.abi, null, 2) + "\n\nBytecode:\n" + contractArtifact.evm.bytecode.object;
+                    } else {
+                      outputDiv.innerText = "Compilation failed:\n" + JSON.stringify(data.errors || data.message, null, 2);
+                    }
+                  } catch (err) {
+                    outputDiv.innerText = "Error: " + err.message;
+                  }
+                }
+
+                // Deploy the contract using MetaMask for signing
+                async function deployContract() {
+                  const outputDiv = document.getElementById("apiResponse");
+                  if (!contractArtifact) {
+                    outputDiv.innerText = "Contract artifact not available. Please compile first.";
+                    return;
+                  }
+
+                  outputDiv.innerText = "Deploying contract...";
+
+                  // If a custom provider URL is provided, you might use it for reading data;
+                  // however, to sign and deploy using MetaMask, we must use window.ethereum.
+                  const customProviderUrl = document.getElementById("providerInput").value.trim();
+                  let provider;
+                  if (customProviderUrl === "") {
+                    // Use MetaMask's provider
+                    if (typeof window.ethereum === "undefined") {
+                      outputDiv.innerText = "MetaMask is not installed.";
+                      return;
+                    }
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                  } else {
+                    // If a custom provider URL is given, we'll use it to create a provider.
+                    // Note: This will NOT allow signing via MetaMask because the custom provider
+                    // does not have access to MetaMask's signer. For deployment with MetaMask,
+                    // you must leave this blank.
+                    provider = new ethers.providers.JsonRpcProvider(customProviderUrl);
+                    outputDiv.innerText += "\nNote: Custom provider provided; deployment via MetaMask requires using MetaMask's provider.";
+                    return;
+                  }
+
+                  try {
+                    const signer = provider.getSigner();
+                    const factory = new ethers.ContractFactory(contractArtifact.abi, contractArtifact.evm.bytecode.object, signer);
+                    const contract = await factory.deploy();
+                    outputDiv.innerText = "Deployment transaction sent. Waiting for confirmation...\nTx Hash: " + contract.deployTransaction.hash;
+                    await contract.deployed();
+                    outputDiv.innerText = "Contract deployed successfully!\nAddress: " + contract.address;
+                  } catch (error) {
+                    console.error("Deployment error:", error);
+                    outputDiv.innerText = "Deployment failed: " + error.message;
+                  }
+                }
+
+                document.getElementById("compileButton").addEventListener("click", compileContract);
+                document.getElementById("deployButton").addEventListener("click", deployContract);
+              </script>
+
               <p><b>Blockchain Network: </b>Polygon</p>
               <p><b>Consensus Mechanism: </b>Proof-of-Stake (PoS)</p>
               <p><b>Average Transaction Speed: </b>2000 - 4000 TPS</p>
@@ -243,25 +325,53 @@
               <h2>Admin Wallet Information</h2>
               <br />
               <p><b>Network Type: </b>Amoy</p>
-              <p><b>Username (Public Key): </b><span>No data available yet.</span></p>
-              <p><b>Password (Private Key): </b><span>No data available yet.</span></p>
+              <p><b>Username (Public Key): </b><span id="wallet-address-display">No data available yet.</span></p>
+              <!-- Removed the private key display -->
               <div class="button-container">
-                <button class="action-buttons edit-button" onclick="showPopup('change-admin-wallet')">Change Admin Wallet</button>
+                <button class="action-buttons edit-button" id="connect-wallet-button">Change Admin Wallet</button>
               </div>
 
-              <!-- Change Admin Wallet -->
-              <div class="popup-form" id="change-admin-wallet">
-                <div class="container-exit">
-                  <img src="../img/exit.png" alt="Exit" onclick="showPopup('change-admin-wallet')" />
-                </div>
+              <script>
+                async function connectWallet() {
+                  if (typeof window.ethereum !== "undefined") {
+                    try {
+                      // Request connection from MetaMask
+                      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+                      const walletAddress = accounts[0];
 
-                <div class="flex-column-container">
-                  <label for="election-name" class="text-field-label">Election Name:</label>
-                  <input type="text" id="election-name" class="text-field" name="election-name" value="BulSU Student Government Elections 2025-2026" />
+                      // Update the UI with the connected wallet address
+                      document.getElementById("wallet-address-display").textContent = walletAddress;
 
-                  <button class="action-buttons save-button">Save</button>
-                </div>
-              </div>
+                      // Optionally prompt for a wallet name (you can skip or hardcode this)
+                      let walletName = prompt("Enter a name for this wallet:", "Admin Wallet");
+                      if (!walletName) walletName = "Admin Wallet";
+
+                      // Send the wallet info to the backend to be stored
+                      const response = await fetch("/api/wallet/update", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ walletAddress, walletName }),
+                      });
+
+                      const result = await response.json();
+                      if (result.success) {
+                        alert("Wallet connected and saved successfully!");
+                      } else {
+                        alert("Error saving wallet info: " + result.message);
+                      }
+                    } catch (error) {
+                      console.error("Error connecting wallet:", error);
+                      alert("Wallet connection failed. Check the console for details.");
+                    }
+                  } else {
+                    alert("MetaMask is not installed. Please install MetaMask.");
+                  }
+                }
+
+                // Attach the click event to the button
+                document.getElementById("connect-wallet-button").addEventListener("click", connectWallet);
+              </script>
+
               <br />
               <hr />
               <br />
@@ -341,5 +451,6 @@
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
+    <script src="admin/js/dropdown.js"></script>
   </body>
 </html>

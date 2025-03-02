@@ -1,6 +1,6 @@
 async function renderSSCPositions() {
   try {
-    const response = await fetch("/developer/vote-counts");
+    const response = await fetch("/get-vote-counts");
     const data = await response.json();
 
     if (!data.success) {

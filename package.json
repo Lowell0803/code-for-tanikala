@@ -14,7 +14,8 @@
     "mongodb": "^6.12.0",
     "p-queue": "^8.1.0",
     "passport": "^0.7.0",
-    "passport-azure-ad-oauth2": "^0.0.4"
+    "passport-azure-ad-oauth2": "^0.0.4",
+    "solc": "^0.8.28"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
