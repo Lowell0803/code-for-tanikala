@@ -40,7 +40,7 @@
 
   /* header sizes */
   --width-header-logo: 25vw;
-  --width-header-user: 15vw;
+  --width-header-user: 20vw;
   --width-header-content: calc(100vw - var(--width-header-logo) - var(--width-header-user));
 
   /* footer sizes */
@@ -182,10 +182,10 @@ h6 {
 .dropdown-menu a:hover {
   color: var(--background-red);
 }
-.header-user img {
+/* .header-user img {
   padding-right: 5%;
   width: 20%;
-}
+} */
 
 /* CONTENT */
 .content {

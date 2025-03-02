@@ -86,7 +86,7 @@
         <p><strong>End Date:</strong> <%= endDate %></p>
       </div>
       <div class="header-user">
-        <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
+        <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" class="" />
         <div class="admin-name"><%= loggedInAdmin.name %></div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
@@ -269,91 +269,82 @@
     <script src="admin/dependencies/liner-bar.js"></script>
     <script src="admin/js/sidebar.js"></script>
     <script>
-      // When the DOM is fully loaded, fetch the vote counts
       document.addEventListener("DOMContentLoaded", function () {
         fetch("/get-vote-counts")
           .then((response) => response.json())
           .then((data) => {
             if (!data.success) return;
-            let results = data.results;
-            // Prepare two groups:
-            // Left group: SSC positions (exact match on "President", "Vice President", "Senator")
-            let leftData = {
+            const results = data.result;
+            // Group for Supreme Student Council (SSC)
+            let sscData = {
               President: [],
               "Vice President": [],
               Senator: [],
             };
-            // Right group: LSC positions that include a hyphen: e.g. "Governor - CAL"
-            // We will group these by the title and college code (converted to lowercase for consistency)
-            let rightData = {
+            // Group for Local Student Council (LSC)
+            let lscData = {
               Governor: {},
               "Vice Governor": {},
               "Board Member": {},
             };
 
-            results.forEach((candidate) => {
-              let pos = candidate.position;
-              // Check for SSC positions
+            // Process each position from API data
+            results.forEach((item) => {
+              const pos = item.position;
+              // SSC: Exact match on SSC positions
               if (pos === "President" || pos === "Vice President" || pos === "Senator") {
-                leftData[pos].push(candidate);
-              } else if (pos.includes("Governor") || pos.includes("Vice Governor") || pos.includes("Board Member")) {
-                // Expect format: "Title - CollegeCode" (for Governor and Vice Governor)
-                // or "Board Member - [Program Name]" which we'll assume also contains a college identifier
-                let parts = pos.split(" - ");
-                if (parts.length > 1) {
-                  let title = parts[0].trim();
-                  let collegeKey = parts[1].trim().toLowerCase();
-                  // Initialize grouping for this title and college if not present
-                  if (!rightData[title][collegeKey]) {
-                    rightData[title][collegeKey] = [];
+                sscData[pos] = item.candidates;
+              }
+              // LSC: Positions containing a hyphen (expected format: "Title - CollegeCode")
+              else if (pos.includes(" - ")) {
+                const parts = pos.split(" - ");
+                if (parts.length === 2) {
+                  const title = parts[0].trim();
+                  const collegeKey = parts[1].trim().toLowerCase();
+                  if (!lscData[title]) {
+                    lscData[title] = {};
                   }
-                  rightData[title][collegeKey].push(candidate);
+                  lscData[title][collegeKey] = item.candidates;
                 }
               }
             });
 
             // Render SSC positions (left side)
-            renderCandidates("container-president");
-            renderCandidates("container-vice-president", leftData["Vice President"], "Vice President");
-            renderCandidates("container-senator", leftData["Senator"], "Senator");
+            renderCandidates("container-president", sscData["President"], "President");
+            renderCandidates("container-vice-president", sscData["Vice President"], "Vice President");
+            renderCandidates("container-senator", sscData["Senator"], "Senator");
 
-            // Render LSC positions (right side) based on the currently selected college
-            let collegeSelect = document.getElementById("college-selector");
-            function renderRight() {
-              let selectedCollege = collegeSelect.value.toLowerCase();
-              renderCandidates("container-lsc-governor", rightData["Governor"][selectedCollege] || [], "Governor");
-              renderCandidates("container-lsc-vice-governor", rightData["Vice Governor"][selectedCollege] || [], "Vice Governor");
-              renderCandidates("container-lsc-board-member", rightData["Board Member"][selectedCollege] || [], "Board Member");
+            // Render LSC positions (right side) based on selected college from the dropdown
+            const collegeSelect = document.getElementById("college-selector");
+            function renderLSC() {
+              const selectedCollege = collegeSelect.value.toLowerCase();
+              renderCandidates("container-lsc-governor", lscData["Governor"][selectedCollege] || [], "Governor");
+              renderCandidates("container-lsc-vice-governor", lscData["Vice Governor"][selectedCollege] || [], "Vice Governor");
+              renderCandidates("container-lsc-board-member", lscData["Board Member"][selectedCollege] || [], "Board Member");
             }
-            collegeSelect.addEventListener("change", renderRight);
-            renderRight();
-
-            // If liner-bar-js provides a function to create a bar chart for a candidate,
-            // you could call that function inside renderCandidates() to display vote counts graphically.
+            collegeSelect.addEventListener("change", renderLSC);
+            renderLSC();
           })
           .catch((error) => console.error("Error fetching vote counts:", error));
 
         // Utility function to render candidate cards into a container.
-        // You can adjust the innerHTML and CSS classes to match your liner-bar styling.
         function renderCandidates(containerId, candidates, positionTitle) {
-          let container = document.getElementById(containerId);
+          const container = document.getElementById(containerId);
           container.innerHTML = "";
           if (candidates.length === 0) {
             container.innerHTML = `<p>No candidates for ${positionTitle}</p>`;
             return;
           }
           candidates.forEach((candidate) => {
-            let card = document.createElement("div");
-            card.className = "candidate-card liner-bar"; // Use a class from liner-bar-css if available
+            const card = document.createElement("div");
+            card.className = "candidate-card liner-bar"; // Using liner-bar styling
             card.innerHTML = `
-              <div class="candidate-name">${candidate.candidate}</div>
+              <div class="candidate-name">${candidate.name}</div>
               <div class="candidate-votes">${candidate.votes} votes</div>
             `;
             container.appendChild(card);
-            // Optionally, if liner-bar-js exposes a function (e.g. createLinerBar) to display a bar,
-            // you could call it here passing the candidate.votes and a reference to the card element.
-            // Example:
-            // linerBar.createLinerBar(card, candidate.votes);
+            // Optionally, if LinerBar.js provides additional functions (like creating a bar chart),
+            // you can call those functions here passing candidate.votes and the card element.
           });
         }
       });
