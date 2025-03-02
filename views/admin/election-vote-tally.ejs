@@ -7,12 +7,11 @@
     <title>BulSU Voting System</title>
 
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
 
-    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-lsc.css" />
-    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-scc.css" />
-
-    <link rel="stylesheet" type="text/css" href="admin/dependencies/liner-bar.css" />
+    <link rel="stylesheet" type="text/css" href="admin/dependencies/progress-bar.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="admin/dependencies/liner-bar.css" /> -->
 
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
@@ -223,6 +222,7 @@
               <option value="cbea">College of Business Education and Accountancy (CBEA)</option>
             </select> -->
             <select name="college" id="college-selector">
+              <option value="all">All Colleges</option>
               <option value="cafa">College of Architecture and Fine Arts (CAFA)</option>
               <option value="cal">College of Arts and Letters (CAL)</option>
               <option value="cbea">College of Business Education and Accountancy (CBEA)</option>
@@ -266,7 +266,7 @@
     </footer>
 
     <!-- Include your JS files including liner-bar-js -->
-    <script src="admin/dependencies/liner-bar.js"></script>
+    <!-- <script src="admin/dependencies/liner-bar.js"></script> -->
     <script src="admin/js/sidebar.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -274,7 +274,9 @@
           .then((response) => response.json())
           .then((data) => {
             if (!data.success) return;
-            const results = data.result;
+
+            console.log("Raw vote data:", data.result); // Log raw data
+
             // Group for Supreme Student Council (SSC)
             let sscData = {
               President: [],
@@ -285,29 +287,39 @@
             let lscData = {
               Governor: {},
               "Vice Governor": {},
-              "Board Member": {},
+              // For Board Member, we merge all candidates
+              "Board Member": [],
             };
 
             // Process each position from API data
-            results.forEach((item) => {
+            data.result.forEach((item) => {
               const pos = item.position;
               // SSC: Exact match on SSC positions
               if (pos === "President" || pos === "Vice President" || pos === "Senator") {
                 sscData[pos] = item.candidates;
               }
-              // LSC: Positions containing a hyphen (expected format: "Title - CollegeCode")
+              // LSC: Positions containing a hyphen (expected format: "Title - CollegeCode" or "Title - Subtype")
               else if (pos.includes(" - ")) {
                 const parts = pos.split(" - ");
                 if (parts.length === 2) {
                   const title = parts[0].trim();
-                  const collegeKey = parts[1].trim().toLowerCase();
-                  if (!lscData[title]) {
-                    lscData[title] = {};
+                  const suffix = parts[1].trim().toLowerCase();
+                  if (title === "Board Member") {
+                    // Merge board member candidates into a single array.
+                    lscData["Board Member"] = lscData["Board Member"].concat(item.candidates);
+                  } else {
+                    // For other positions, use the suffix as the college key.
+                    if (!lscData[title]) {
+                      lscData[title] = {};
+                    }
+                    lscData[title][suffix] = item.candidates;
                   }
-                  lscData[title][collegeKey] = item.candidates;
                 }
               }
             });
+
+            console.log("Grouped SSC Data:", sscData);
+            console.log("Grouped LSC Data:", lscData);
 
             // Render SSC positions (left side)
             renderCandidates("container-president", sscData["President"], "President");
@@ -318,9 +330,21 @@
             const collegeSelect = document.getElementById("college-selector");
             function renderLSC() {
               const selectedCollege = collegeSelect.value.toLowerCase();
+              // For positions that are filtered by college:
               renderCandidates("container-lsc-governor", lscData["Governor"][selectedCollege] || [], "Governor");
               renderCandidates("container-lsc-vice-governor", lscData["Vice Governor"][selectedCollege] || [], "Vice Governor");
-              renderCandidates("container-lsc-board-member", lscData["Board Member"][selectedCollege] || [], "Board Member");
+              // For Board Member:
+              // If "all" is selected, display all board member candidates.
+              // Otherwise, you could apply a mapping to filter board member candidates by college.
+              if (selectedCollege === "all") {
+                renderCandidates("container-lsc-board-member", lscData["Board Member"] || [], "Board Member");
+              } else {
+                // Option 1: Do not display board member candidates if a specific college is selected.
+                // renderCandidates("container-lsc-board-member", [], "Board Member");
+
+                // Option 2: (If you add a mapping later) filter candidates accordingly.
+                renderCandidates("container-lsc-board-member", [], "Board Member");
+              }
             }
             collegeSelect.addEventListener("change", renderLSC);
             renderLSC();
@@ -331,20 +355,46 @@
         function renderCandidates(containerId, candidates, positionTitle) {
           const container = document.getElementById(containerId);
           container.innerHTML = "";
+
+          // Add a position title before listing candidates
+          const titleElement = document.createElement("h2");
+          titleElement.textContent = positionTitle;
+          container.appendChild(titleElement);
+
           if (candidates.length === 0) {
-            container.innerHTML = `<p>No candidates for ${positionTitle}</p>`;
+            container.innerHTML += `<p>No candidates for ${positionTitle}</p>`;
             return;
           }
+
+          // Calculate total votes for this position so each progress bar has a meaningful max
+          const totalVotes = candidates.reduce((sum, c) => sum + c.votes, 0);
+
           candidates.forEach((candidate) => {
-            const card = document.createElement("div");
-            card.className = "candidate-card liner-bar"; // Using liner-bar styling
-            card.innerHTML = `
-              <div class="candidate-name">${candidate.name}</div>
-              <div class="candidate-votes">${candidate.votes} votes</div>
-            `;
-            container.appendChild(card);
-            // Optionally, if LinerBar.js provides additional functions (like creating a bar chart),
-            // you can call those functions here passing candidate.votes and the card element.
+            // Create the outer container for one candidate's row
+            const progressElement = document.createElement("div");
+            progressElement.classList.add("progress-element");
+
+            // Label: candidate name
+            const label = document.createElement("p");
+            label.classList.add("progress-label");
+            label.textContent = candidate.name;
+
+            // The progress bar itself
+            const progressBar = document.createElement("progress");
+            progressBar.max = totalVotes;
+            progressBar.value = candidate.votes;
+
+            // Vote count
+            const voteCount = document.createElement("span");
+            voteCount.textContent = `${candidate.votes} votes`;
+
+            // Append them in order
+            progressElement.appendChild(label);
+            progressElement.appendChild(progressBar);
+            progressElement.appendChild(voteCount);
+
+            // Finally, attach the row to the container
+            container.appendChild(progressElement);
           });
         }
       });
@@ -385,7 +435,5 @@
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
-    <script src="admin/js/vote-tally-ssc.js"></script>
-    <script src="admin/js/vote-tally-lsc.js"></script>
   </body>
 </html>

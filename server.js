@@ -811,6 +811,7 @@ const startServer = async () => {
             position: decodedPos,
             candidates: candidatesData,
           });
+          console.log(candidatesData);
         }
 
         res.json({ success: true, result });
