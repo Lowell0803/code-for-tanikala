@@ -12,14 +12,6 @@
   border-radius: 50%;
 } */
 
-.profile-img {
-  width: 2.5rem; /* Set the width */
-  height: 2.5rem; /* Set the height */
-  border-radius: 50%; /* Makes the image circular */
-  object-fit: cover; /* Ensures the image covers the area without distortion */
-  margin: 0 0.875rem 0 0.75rem;
-}
-
 .first-main {
   display: flex;
   flex-direction: row;
