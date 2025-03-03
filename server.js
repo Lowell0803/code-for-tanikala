@@ -291,20 +291,44 @@ const startServer = async () => {
       }
     });
 
-    app.post("/submit-votes-to-blockchain", (req, res) => {
-      const { president, vicePresident, senator, governor, viceGovernor, boardMember } = req.body;
+    // Example using ethers.js
+    app.post("/submit-votes-to-blockchain", async (req, res) => {
+      try {
+        // Destructure the candidate data from the request body.
+        // These might be JSON strings, so we need to parse them.
+        const { president, vicePresident, senator, governor, viceGovernor, boardMember } = req.body;
 
-      console.log("reached!");
+        // Parse the JSON strings to obtain candidate objects.
+        const candidates = {
+          president: typeof president === "string" ? JSON.parse(president) : president,
+          vicePresident: typeof vicePresident === "string" ? JSON.parse(vicePresident) : vicePresident,
+          senator: typeof senator === "string" ? JSON.parse(senator) : senator,
+          governor: typeof governor === "string" ? JSON.parse(governor) : governor,
+          viceGovernor: typeof viceGovernor === "string" ? JSON.parse(viceGovernor) : viceGovernor,
+          boardMember: typeof boardMember === "string" ? JSON.parse(boardMember) : boardMember,
+        };
 
-      console.log("President:", president);
-      console.log("Vice President:", vicePresident);
-      console.log("Senator:", senator);
-      console.log("Governor:", governor);
-      console.log("Vice Governor:", viceGovernor);
-      console.log("Board Member:", boardMember);
+        // Loop through each candidate vote
+        for (const role in candidates) {
+          const candidate = candidates[role];
+          // Extract the candidate's uniqueId (assumed to be a bytes32 hex string)
+          const candidateId = candidate.uniqueId;
 
-      // Render the page with stringified values if they are objects
-      res.send("hi");
+          // Call the contract function to vote for the candidate
+          // 'contract' should be your connected instance of the AdminCandidates contract.
+          // The function voteForCandidate takes a bytes32 candidateId.
+          const tx = await contract.voteForCandidate(candidateId);
+          console.log(`Vote cast for ${role} with candidateId: ${candidateId}`);
+
+          // Optionally wait for the transaction to be confirmed
+          await tx.wait();
+        }
+
+        res.send("Votes submitted to the blockchain successfully.");
+      } catch (error) {
+        console.error("Error submitting votes to blockchain:", error);
+        res.status(500).send("An error occurred while submitting votes.");
+      }
     });
 
     // New API endpoint to list all candidate details (IDs and vote counts) from the blockchain
