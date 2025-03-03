@@ -24,8 +24,6 @@ contract AdminCandidates {
     mapping(bytes32 => Candidate[]) private candidates;
     // Mapping to store each candidate's voter hashes.
     mapping(bytes32 => mapping(uint256 => bytes32[])) private candidateVoterHashes;
-    // Prevents double voting.
-    mapping(bytes32 => bool) private hasVotedHash;
     // List of positions.
     bytes32[] private positionList;
     
@@ -123,8 +121,11 @@ contract AdminCandidates {
     ) public {
         require(isFinalized, "Voting cannot start until candidates are finalized!");
         require(_positions.length == _indices.length, "Mismatched input lengths");
-        require(!hasVotedHash[_voterHash], "Voter has already voted");
-        hasVotedHash[_voterHash] = true;
+
+        // Removed the one-time vote check:
+        // require(!hasVotedHash[_voterHash], "Voter has already voted");
+        // hasVotedHash[_voterHash] = true;
+
         for (uint256 i = 0; i < _positions.length; i++) {
             bytes32 pos = _positions[i];
             uint256 idx = _indices[i];

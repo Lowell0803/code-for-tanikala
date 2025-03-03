@@ -1739,7 +1739,8 @@ const startServer = async () => {
       try {
         const candidatesCollection = db.collection("candidates");
         const candidatesLscCollection = db.collection("candidates_lsc");
-        const boardProgramsCollection = db.collection("board_member_programs"); // Collection for board member programs
+        const boardProgramsCollection = db.collection("board_member_programs");
+        const blockchainCandidatesCollection = db.collection("blockchain_candidates"); // New collection
 
         // Fetch candidates from both collections.
         const candidatesData = await candidatesCollection.find({}).toArray();
@@ -1751,8 +1752,8 @@ const startServer = async () => {
 
         let positions = [];
         let candidates = []; // 2D array for CandidateEntry structs.
-        // Array to hold board member program IDs.
         let boardMemberProgramIDs = [];
+        let blockchainData = []; // Stores structured data for MongoDB
 
         // Process main candidates collection.
         candidatesData.forEach((group) => {
@@ -1762,25 +1763,34 @@ const startServer = async () => {
           } else {
             console.log(`✅ Adding ${group.position} with ${group.candidates.length} candidates`);
             positions.push(toBytes32(group.position));
-            candidates.push(
-              group.candidates.map((c) => ({
-                name: toBytes32(c.name),
-                party: toBytes32(c.party),
-              }))
-            );
+
+            let formattedCandidates = group.candidates.map((c) => ({
+              name: toBytes32(c.name),
+              party: toBytes32(c.party),
+              votes: 0, // Blockchain initializes votes at 0
+              image: c.image || "", // Retaining image property
+              moreInfo: c.moreInfo || "", // Retaining moreInfo property
+            }));
+
+            candidates.push(formattedCandidates);
             boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
+
+            blockchainData.push({
+              position: toBytes32(group.position),
+              candidates: formattedCandidates,
+            });
           }
         });
 
-        // Maintain a counter per college for board member groups.
         let boardMemberCounter = {};
 
-        // Process LSC candidates collection using for-of loops to allow await.
+        // Process LSC candidates collection
         for (const college of candidatesLscData) {
           console.log(`\n📌 Processing LSC College: ${college.collegeName}`);
           if (!boardMemberCounter[college.collegeAcronym]) {
             boardMemberCounter[college.collegeAcronym] = 0;
           }
+
           for (const pos of college.positions) {
             if (pos.position === "Board Member") {
               for (const program of pos.programs) {
@@ -1789,20 +1799,29 @@ const startServer = async () => {
                 } else {
                   let count = boardMemberCounter[college.collegeAcronym];
                   boardMemberCounter[college.collegeAcronym] += 1;
-                  // Generate a unique key for this board member group.
                   const uniqueKey = `${college.collegeAcronym} - Board Member - ${count}`;
-                  console.log(`✅ Adding Board Member for ${college.collegeAcronym} with ${program.candidates.length} candidates under key "${uniqueKey}"`);
+
+                  console.log(`✅ Adding Board Member for ${college.collegeAcronym} under key "${uniqueKey}"`);
                   positions.push(toBytes32(uniqueKey));
-                  candidates.push(
-                    program.candidates.map((c) => ({
-                      name: toBytes32(c.name),
-                      party: toBytes32(c.party),
-                    }))
-                  );
-                  // Use the unique key as the program ID.
+
+                  let formattedCandidates = program.candidates.map((c) => ({
+                    name: toBytes32(c.name),
+                    party: toBytes32(c.party),
+                    votes: 0,
+                    image: c.image || "",
+                    moreInfo: c.moreInfo || "",
+                  }));
+
+                  candidates.push(formattedCandidates);
                   const programID = toBytes32(uniqueKey);
                   boardMemberProgramIDs.push(programID);
-                  // Upsert the full program text into MongoDB using the unique key.
+
+                  blockchainData.push({
+                    position: toBytes32(uniqueKey),
+                    candidates: formattedCandidates,
+                    program_id: programID,
+                  });
+
                   console.log(`Upserting program for key "${uniqueKey}": "${program.program}"`);
                   await boardProgramsCollection.updateOne({ programID: programID.toString() }, { $set: { programText: program.program } }, { upsert: true });
                 }
@@ -1814,29 +1833,40 @@ const startServer = async () => {
               } else {
                 console.log(`✅ Adding ${pos.position} for ${college.collegeAcronym} with ${pos.candidates.length} candidates`);
                 positions.push(toBytes32(`${college.collegeAcronym} - ${pos.position}`));
-                candidates.push(
-                  pos.candidates.map((c) => ({
-                    name: toBytes32(c.name),
-                    party: toBytes32(c.party),
-                  }))
-                );
+
+                let formattedCandidates = pos.candidates.map((c) => ({
+                  name: toBytes32(c.name),
+                  party: toBytes32(c.party),
+                  votes: 0,
+                  image: c.image || "",
+                  moreInfo: c.moreInfo || "",
+                }));
+
+                candidates.push(formattedCandidates);
                 boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
+
+                blockchainData.push({
+                  position: toBytes32(`${college.collegeAcronym} - ${pos.position}`),
+                  candidates: formattedCandidates,
+                });
               }
             }
           }
         }
 
-        // Add "Abstain" option to every position.
+        // Add "Abstain" option
         positions.forEach((pos, index) => {
           candidates[index].push({
             name: toBytes32("Abstain"),
             party: toBytes32("None"),
+            votes: 0,
+            image: "",
+            moreInfo: "",
           });
         });
 
         console.log("\n📌 FINAL SUBMISSION:");
-        console.log({ positions, candidates });
-        console.log({ boardMemberProgramIDs });
+        console.log({ positions, candidates, boardMemberProgramIDs });
 
         if (positions.length === 0) {
           console.log("⚠️ No candidates to submit!");
@@ -1848,9 +1878,16 @@ const startServer = async () => {
         await tx.wait();
         console.log("✅ Candidates submitted successfully!");
 
+        // Store structured data in MongoDB exactly like blockchain
+        await blockchainCandidatesCollection.deleteMany({});
+        await blockchainCandidatesCollection.insertMany(blockchainData);
+
+        console.log("✅ Candidates stored in blockchain_candidates collection");
+
         const statusCollection = db.collection("system_status");
         await statusCollection.updateOne({ _id: "candidate_submission" }, { $set: { submitted: true } }, { upsert: true });
-        res.json({ message: "Candidates successfully submitted to blockchain!" });
+
+        res.json({ message: "Candidates successfully submitted to blockchain and stored in MongoDB!" });
       } catch (error) {
         console.error("❌ ERROR submitting candidates:", error);
         res.status(500).json({ error: "Failed to submit candidates." });
