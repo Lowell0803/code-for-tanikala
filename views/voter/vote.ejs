@@ -119,26 +119,35 @@
 
           <div class="ballot ballot-lsc">
             <br />
-            <h3 class="ballot-header ballot-council">Local Student Council - <%= voterCollege %></h3>
+            <h3 class="ballot-header ballot-council">Local Student Council - [Voter College]</h3>
             <br />
             <br />
             <h3 class="ballot-header ballot-position">Governor</h3>
             <br />
             <div id="ballot-governor" class="ballot-choices">
-              <% let governorCandidates = candidates_lsc.filter(candidate => candidate.college === voterCollege && candidate.position === 'governor').sort((a, b) => a.party.localeCompare(b.party)); governorCandidates.forEach((candidate, index) => { %>
-
+              <!-- Governor Candidates -->
               <div class="label-container label-governor">
-                <input class="ballot-choice" id="governor-<%= index + 1 %>" type="radio" name="governor" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name, image: candidate.image, party: candidate.party, position: candidate.position, moreInfo: candidate.moreInfo }) %>" />
-
-                <label class="ballot-tile" for="governor-<%= index + 1 %>">
-                  <h4 class="party"><%= candidate.party %></h4>
-                  <img class="img-governor" src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                  <h4 class="name"><%= candidate.name %></h4>
+                <input class="ballot-choice" id="governor-1" type="radio" name="governor" value='{"id":"1", "name":"John Doe", "image":"path/to/image.jpg", "party":"Party A", "position":"governor", "moreInfo":"More info about John Doe"}' />
+                <label class="ballot-tile" for="governor-1">
+                  <h4 class="party">Party A</h4>
+                  <img class="img-governor" src="path/to/image.jpg" alt="John Doe" />
+                  <h4 class="name">John Doe</h4>
                   <hr />
-                  <p class="info"><%= candidate.moreInfo %></p>
+                  <p class="info">More info about John Doe</p>
                 </label>
               </div>
-              <% }) %>
+
+              <div class="label-container label-governor">
+                <input class="ballot-choice" id="governor-2" type="radio" name="governor" value='{"id":"2", "name":"Jane Smith", "image":"path/to/image2.jpg", "party":"Party B", "position":"governor", "moreInfo":"More info about Jane Smith"}' />
+                <label class="ballot-tile" for="governor-2">
+                  <h4 class="party">Party B</h4>
+                  <img class="img-governor" src="path/to/image2.jpg" alt="Jane Smith" />
+                  <h4 class="name">Jane Smith</h4>
+                  <hr />
+                  <p class="info">More info about Jane Smith</p>
+                </label>
+              </div>
+              <!-- Add more candidates as needed -->
             </div>
 
             <br />
@@ -147,35 +156,38 @@
               <label for="abstain-governor" data-tg-on="I will vote!" data-tg-off="Abstain" class="tgl-btn"></label>
             </div>
 
-            <!-- <input type="checkbox" id="abstain-governor" name="governor" value="Abstain" />
-              <label for="abstain-governor">Abstain</label> -->
-
             <br />
             <h3 class="ballot-header ballot-position">Vice Governor</h3>
             <br />
             <div id="ballot-vice-governor" class="ballot-choices">
-              <% let viceGovernorCandidates = candidates_lsc.filter(candidate => candidate.college === voterCollege && candidate.position === 'vice governor').sort((a, b) => a.party.localeCompare(b.party)); viceGovernorCandidates.forEach((candidate, index) => { %>
-
+              <!-- Vice Governor Candidates -->
               <div class="label-container label-vice-governor">
-                <input class="ballot-choice" id="vice-governor-<%= index + 1 %>" type="radio" name="viceGovernor" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name, image: candidate.image, party: candidate.party, position: candidate.position, moreInfo: candidate.moreInfo }) %>" />
-
-                <label class="ballot-tile" for="vice-governor-<%= index + 1 %>">
-                  <h4 class="party"><%= candidate.party %></h4>
-                  <img class="img-vice-governor" src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                  <h4 class="name"><%= candidate.name %></h4>
+                <input class="ballot-choice" id="vice-governor-1" type="radio" name="viceGovernor" value='{"id":"1", "name":"Alex Brown", "image":"path/to/image3.jpg", "party":"Party C", "position":"vice governor", "moreInfo":"More info about Alex Brown"}' />
+                <label class="ballot-tile" for="vice-governor-1">
+                  <h4 class="party">Party C</h4>
+                  <img class="img-vice-governor" src="path/to/image3.jpg" alt="Alex Brown" />
+                  <h4 class="name">Alex Brown</h4>
                   <hr />
-                  <p class="info"><%= candidate.moreInfo %></p>
+                  <p class="info">More info about Alex Brown</p>
                 </label>
               </div>
-              <% }) %>
-            </div>
 
-            <!-- <input type="checkbox" id="abstain-vice-governor" name="viceGovernor" value="Abstain" />
-            <label for="abstain-vice-governor">Abstain</label> -->
+              <div class="label-container label-vice-governor">
+                <input class="ballot-choice" id="vice-governor-2" type="radio" name="viceGovernor" value='{"id":"2", "name":"Chris Green", "image":"path/to/image4.jpg", "party":"Party D", "position":"vice governor", "moreInfo":"More info about Chris Green"}' />
+                <label class="ballot-tile" for="vice-governor-2">
+                  <h4 class="party">Party D</h4>
+                  <img class="img-vice-governor" src="path/to/image4.jpg" alt="Chris Green" />
+                  <h4 class="name">Chris Green</h4>
+                  <hr />
+                  <p class="info">More info about Chris Green</p>
+                </label>
+              </div>
+              <!-- Add more candidates as needed -->
+            </div>
 
             <br />
             <div class="checkbox-wrapper-10">
-              <input type="checkbox" id="abstain-vice-governor" name="governor" value="Abstain" class="tgl tgl-flip" />
+              <input type="checkbox" id="abstain-vice-governor" name="viceGovernor" value="Abstain" class="tgl tgl-flip" />
               <label for="abstain-vice-governor" data-tg-on="I will vote!" data-tg-off="Abstain" class="tgl-btn"></label>
             </div>
 
@@ -183,20 +195,29 @@
             <h3 class="ballot-header ballot-position">Board Member</h3>
             <br />
             <div id="ballot-board-member" class="ballot-choices">
-              <% let boardMemberCandidates = lsc_board_members.filter(candidate => candidate.college === voterCollege && candidate.program === voterProgram).sort((a, b) => a.party.localeCompare(b.party)); boardMemberCandidates.forEach((candidate, index) => { %>
-
+              <!-- Board Member Candidates -->
               <div class="label-container label-board-member">
-                <input class="ballot-choice" id="board-member-<%= index + 1 %>" type="radio" name="boardMember" value="<%= JSON.stringify({ id: candidate._id, name: candidate.name, image: candidate.image, party: candidate.party, position: candidate.position, moreInfo: candidate.moreInfo }) %>" />
-
-                <label class="ballot-tile" for="board-member-<%= index + 1 %>">
-                  <h4 class="party"><%= candidate.party %></h4>
-                  <img class="img-board-member" src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                  <h4 class="name"><%= candidate.name %></h4>
+                <input class="ballot-choice" id="board-member-1" type="radio" name="boardMember" value='{"id":"1", "name":"Emily White", "image":"path/to/image5.jpg", "party":"Party E", "position":"board member", "moreInfo":"More info about Emily White"}' />
+                <label class="ballot-tile" for="board-member-1">
+                  <h4 class="party">Party E</h4>
+                  <img class="img-board-member" src="path/to/image5.jpg" alt="Emily White" />
+                  <h4 class="name">Emily White</h4>
                   <hr />
-                  <p class="info"><%= candidate.moreInfo %></p>
+                  <p class="info">More info about Emily White</p>
                 </label>
               </div>
-              <% }) %>
+
+              <div class="label-container label-board-member">
+                <input class="ballot-choice" id="board-member-2" type="radio" name="boardMember" value='{"id":"2", "name":"Michael Blue", "image":"path/to/image6.jpg", "party":"Party F", "position":"board member", "moreInfo":"More info about Michael Blue"}' />
+                <label class="ballot-tile" for="board-member-2">
+                  <h4 class="party">Party F</h4>
+                  <img class="img-board-member" src="path/to/image6.jpg" alt="Michael Blue" />
+                  <h4 class="name">Michael Blue</h4>
+                  <hr />
+                  <p class="info">More info about Michael Blue</p>
+                </label>
+              </div>
+              <!-- Add more candidates as needed -->
             </div>
 
             <br />
@@ -204,9 +225,6 @@
               <input type="checkbox" id="abstain-board-member" name="boardMember" value="Abstain" class="tgl tgl-flip" />
               <label for="abstain-board-member" data-tg-on="I will vote!" data-tg-off="Abstain" class="tgl-btn"></label>
             </div>
-
-            <!-- <input type="checkbox" id="abstain-board-member" name="boardMember" value="Abstain" />
-            <label for="abstain-board-member">Abstain</label> -->
 
             <br />
 
@@ -216,7 +234,6 @@
               <p><i>You still need to review and confirm your votes in the next page.</i></p>
               <hr />
               <br />
-              <!-- <input type="submit" value="Review Selections" /> -->
               <button class="continue-application">
                 <div>
                   <div class="pencil"></div>
