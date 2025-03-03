@@ -30,7 +30,7 @@ candidatePosition=Governor
 collegeAcronym=CAFA
 
 ### Aggregate Candidates
-POST http://localhost:3000/vote
+POST http://localhost:3000/api/aggregateCandidates
 Content-Type: application/json
 
 {}

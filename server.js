@@ -150,6 +150,74 @@ const startServer = async () => {
       return "0x" + crypto.randomBytes(bytes).toString("hex");
     }
 
+    // app.post("/api/aggregateCandidates", async (req, res) => {
+    //   try {
+    //     let aggregatedCandidates = [];
+
+    //     // Query the SSC candidates collection ("candidates")
+    //     const sscData = await db.collection("candidates").find({}).toArray();
+    //     sscData.forEach((group) => {
+    //       if (Array.isArray(group.candidates)) {
+    //         group.candidates.forEach((candidate) => {
+    //           // Assign a random unique identifier (32-byte hex string)
+    //           candidate.uniqueId = generateRandomKey();
+    //           aggregatedCandidates.push(candidate);
+    //         });
+    //       }
+    //     });
+
+    //     // Query the LSC candidates collection ("candidates_lsc")
+    //     const lscData = await db.collection("candidates_lsc").find({}).toArray();
+    //     lscData.forEach((collegeGroup) => {
+    //       if (Array.isArray(collegeGroup.positions)) {
+    //         collegeGroup.positions.forEach((position) => {
+    //           // Positions with a direct candidates array (e.g., Governor, Vice Governor)
+    //           if (Array.isArray(position.candidates)) {
+    //             position.candidates.forEach((candidate) => {
+    //               candidate.uniqueId = generateRandomKey();
+    //               candidate.college = candidate.college || collegeGroup.collegeAcronym || collegeGroup.collegeName;
+    //               aggregatedCandidates.push(candidate);
+    //             });
+    //           }
+    //           // Positions with nested programs (e.g., Board Members)
+    //           if (Array.isArray(position.programs)) {
+    //             position.programs.forEach((programGroup) => {
+    //               if (Array.isArray(programGroup.candidates)) {
+    //                 programGroup.candidates.forEach((candidate) => {
+    //                   candidate.uniqueId = generateRandomKey();
+    //                   candidate.college = candidate.college || collegeGroup.collegeAcronym || collegeGroup.collegeName;
+    //                   candidate.program = candidate.program || programGroup.program;
+    //                   aggregatedCandidates.push(candidate);
+    //                 });
+    //               }
+    //             });
+    //           }
+    //         });
+    //       }
+    //     });
+
+    //     // Extract only the unique IDs (which are now valid 32-byte hex strings)
+    //     const candidateIds = aggregatedCandidates.map((candidate) => candidate.uniqueId);
+
+    //     // Submit the candidate unique IDs to the blockchain using the smart contract.
+    //     const tx = await contract.registerCandidates(candidateIds);
+    //     const receipt = await tx.wait();
+
+    //     // Optionally, update your database with the aggregated candidate data
+    //     const result = await db.collection("aggregatedCandidates").updateOne({}, { $set: { candidates: aggregatedCandidates } }, { upsert: true });
+
+    //     res.status(200).json({
+    //       message: "Candidates aggregated and submitted to blockchain successfully",
+    //       count: aggregatedCandidates.length,
+    //       dbResult: result,
+    //       blockchainTx: receipt,
+    //     });
+    //   } catch (error) {
+    //     console.error("Error aggregating candidates:", error);
+    //     res.status(500).json({ error: error.message });
+    //   }
+    // });
+
     app.post("/api/aggregateCandidates", async (req, res) => {
       try {
         let aggregatedCandidates = [];
@@ -194,6 +262,75 @@ const startServer = async () => {
               }
             });
           }
+        });
+
+        // Create maps/sets to track which abstain candidates we need to add.
+        // For general positions (not governor, vice governor, or board member), one abstain candidate per position.
+        const generalPositions = new Set();
+        // For governor and vice governor, we add one per distinct (position + college) combination.
+        const govPositionsMap = {};
+        // For board member, add one per distinct (position + program) combination.
+        const boardPositionsMap = {};
+
+        aggregatedCandidates.forEach((candidate) => {
+          const posLower = candidate.position.toLowerCase();
+          if (posLower === "governor" || posLower === "vice governor") {
+            if (candidate.college) {
+              const key = posLower + "_" + candidate.college.toLowerCase();
+              govPositionsMap[key] = { position: candidate.position, college: candidate.college };
+            }
+          } else if (posLower === "board member") {
+            if (candidate.program) {
+              const key = posLower + "_" + candidate.program.toLowerCase();
+              boardPositionsMap[key] = { position: candidate.position, program: candidate.program };
+            }
+          } else {
+            generalPositions.add(candidate.position); // Preserve original case
+          }
+        });
+
+        // Add abstain candidate for each general position
+        generalPositions.forEach((position) => {
+          const abstainCandidate = {
+            _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase(),
+            party: "",
+            name: "Abstain",
+            image: "",
+            moreInfo: "Abstain",
+            position: position,
+            uniqueId: generateRandomKey(),
+          };
+          aggregatedCandidates.push(abstainCandidate);
+        });
+
+        // Add abstain candidate for each governor/vice governor (per college)
+        Object.values(govPositionsMap).forEach(({ position, college }) => {
+          const abstainCandidate = {
+            _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase() + "_" + college.replace(/\s+/g, "_").toLowerCase(),
+            party: "",
+            name: "Abstain",
+            image: "",
+            moreInfo: "Abstain",
+            position: position,
+            college: college,
+            uniqueId: generateRandomKey(),
+          };
+          aggregatedCandidates.push(abstainCandidate);
+        });
+
+        // Add abstain candidate for each board member (per program)
+        Object.values(boardPositionsMap).forEach(({ position, program }) => {
+          const abstainCandidate = {
+            _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase() + "_" + program.replace(/\s+/g, "_").toLowerCase(),
+            party: "",
+            name: "Abstain",
+            image: "",
+            moreInfo: "Abstain",
+            position: position,
+            program: program,
+            uniqueId: generateRandomKey(),
+          };
+          aggregatedCandidates.push(abstainCandidate);
         });
 
         // Extract only the unique IDs (which are now valid 32-byte hex strings)
