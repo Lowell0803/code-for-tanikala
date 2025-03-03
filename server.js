@@ -1,7 +1,6 @@
 const express = require("express");
 const path = require("path");
 const connectToDatabase = require("./db");
-const { ethers } = require("ethers");
 require("dotenv").config();
 const session = require("express-session");
 
@@ -132,11 +131,23 @@ const startServer = async () => {
 
     const { ObjectId } = require("mongodb");
 
+    // ==================================================================================================
+    //                                  BLOCKCHAIN (HARDHAT)
+    // ==================================================================================================
+
+    const { ethers } = require("ethers");
     const crypto = require("crypto");
 
-    // Function to generate a random key as a hex string (16 bytes = 32 hex characters)
-    function generateRandomKey(bytes = 16) {
-      return crypto.randomBytes(bytes).toString("hex");
+    // Set up ethers provider and wallet using environment variables
+    const provider = new ethers.JsonRpcProvider(process.env.HARDHAT_RPC_URL);
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+
+    const contractABI = require("./artifacts/contracts/AdminCandidates.sol/AdminCandidates.json").abi;
+    const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractABI, wallet);
+
+    // Updated: Generate a 32-byte hex string (64 hex characters) with a "0x" prefix.
+    function generateRandomKey(bytes = 32) {
+      return "0x" + crypto.randomBytes(bytes).toString("hex");
     }
 
     app.post("/api/aggregateCandidates", async (req, res) => {
@@ -148,7 +159,7 @@ const startServer = async () => {
         sscData.forEach((group) => {
           if (Array.isArray(group.candidates)) {
             group.candidates.forEach((candidate) => {
-              // Assign a random unique identifier
+              // Assign a random unique identifier (32-byte hex string)
               candidate.uniqueId = generateRandomKey();
               aggregatedCandidates.push(candidate);
             });
@@ -185,16 +196,45 @@ const startServer = async () => {
           }
         });
 
-        // Update the aggregatedCandidates document (or insert if not present)
+        // Extract only the unique IDs (which are now valid 32-byte hex strings)
+        const candidateIds = aggregatedCandidates.map((candidate) => candidate.uniqueId);
+
+        // Submit the candidate unique IDs to the blockchain using the smart contract.
+        // Since we're using ethers.js, we call the function directly and wait for the transaction.
+        const tx = await contract.registerCandidates(candidateIds);
+        const receipt = await tx.wait();
+
+        // Optionally, update your database with the aggregated candidate data
         const result = await db.collection("aggregatedCandidates").updateOne({}, { $set: { candidates: aggregatedCandidates } }, { upsert: true });
 
         res.status(200).json({
-          message: "Candidates aggregated and updated successfully",
+          message: "Candidates aggregated and submitted to blockchain successfully",
           count: aggregatedCandidates.length,
-          result: result,
+          dbResult: result,
+          blockchainTx: receipt,
         });
       } catch (error) {
         console.error("Error aggregating candidates:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    app.get("/api/listCandidates", async (req, res) => {
+      try {
+        const candidateCount = await contract.getCandidateCount();
+        const candidates = [];
+        // Loop through each candidate index
+        for (let i = 0; i < candidateCount; i++) {
+          const candidateId = await contract.candidateList(i);
+          const votes = await contract.candidateVotes(candidateId);
+          candidates.push({
+            candidateId: candidateId,
+            votes: votes.toString(),
+          });
+        }
+        res.status(200).json({ candidates });
+      } catch (error) {
+        console.error("Error fetching candidates:", error);
         res.status(500).json({ error: error.message });
       }
     });
@@ -866,16 +906,6 @@ const startServer = async () => {
         res.status(500).json({ error: error.message });
       }
     });
-
-    // ==================================================================================================
-    //                                  BLOCKCHAIN (HARDHAT)
-    // ==================================================================================================
-
-    const provider = new ethers.JsonRpcProvider(process.env.HARDHAT_RPC_URL);
-    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-
-    const contractABI = require("./artifacts/contracts/AdminCandidates.sol/AdminCandidates.json").abi;
-    const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractABI, wallet);
 
     // ==================================================================================================
     //                                         VOTING PROCESS

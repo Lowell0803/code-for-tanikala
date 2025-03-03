@@ -29,7 +29,7 @@ moreInfo=Governor candidate for CAL under the KASAMA - BulSU party. Passionate a
 candidatePosition=Governor
 collegeAcronym=CAFA
 
-### Aggregate Candidates API Test
+### Aggregate Candidates
 POST http://localhost:3000/api/aggregateCandidates
 Content-Type: application/json
 
