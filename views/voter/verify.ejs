@@ -38,7 +38,10 @@
           <img src="/img/logo_bulsu.png" />
         </div>
         <div class="content-header-text">
-          <h1>BulSU Student Government Elections<br />S.Y. 2025 - 2026</h1>
+          <h1>
+            BulSU Student Government Elections<br />
+            S.Y. 2025 - 2026
+          </h1>
         </div>
         <div class="content-header-ucse">
           <img src="/img/logo_bulsu_ucse.png" />
@@ -72,7 +75,7 @@
                 </h4>
               </div>
               <br />
-              <!-- Table with rows populated one by one -->
+              <!-- Table with candidate selections -->
               <table>
                 <thead>
                   <tr>
@@ -84,32 +87,32 @@
                   <!-- President -->
                   <tr>
                     <td data-label="Position">President</td>
-                    <td data-label="Candidate" colspan="2"><%= votes['President'] ? votes['President'].name : "N/A" %></td>
+                    <td data-label="Candidate" colspan="2">Zarina B. Dungo – BulSUONE</td>
                   </tr>
                   <!-- Vice President -->
                   <tr>
                     <td data-label="Position">Vice President</td>
-                    <td data-label="Candidate" colspan="2"><%= votes['Vice President'] ? votes['Vice President'].name : "N/A" %></td>
+                    <td data-label="Candidate" colspan="2">Yvan Lowell T. Aquino – KASAMA – BulSU</td>
                   </tr>
                   <!-- Senator(s) -->
                   <tr>
                     <td data-label="Position">Senator(s)</td>
-                    <td data-label="Candidate" colspan="2"><% if (votes['Senator']) { %> <% if (Array.isArray(votes['Senator'])) { %> <%= votes['Senator'].map(candidate => candidate.name).join(", ") %> <% } else { %> <%= votes['Senator'].name %> <% } %> <% } else { %> N/A <% } %></td>
+                    <td data-label="Candidate" colspan="2">Zarina B. Aquino – KASAMA – BulSU, Zarina B. Aquino – KASAMA – BulSU</td>
                   </tr>
                   <!-- Governor -->
                   <tr>
                     <td data-label="Position">Governor</td>
-                    <td data-label="Candidate" colspan="2"><%= votes['Governor - ' + voterCollege] ? votes['Governor - ' + voterCollege].name : "N/A" %></td>
+                    <td data-label="Candidate" colspan="2">Brandon L. Cruz – BulSUONE</td>
                   </tr>
                   <!-- Vice Governor -->
                   <tr>
                     <td data-label="Position">Vice Governor</td>
-                    <td data-label="Candidate" colspan="2"><%= votes['Vice Governor - ' + voterCollege] ? votes['Vice Governor - ' + voterCollege].name : "N/A" %></td>
+                    <td data-label="Candidate" colspan="2">Derek F. Ramirez – BulSUONE</td>
                   </tr>
                   <!-- Board Member -->
                   <tr>
                     <td data-label="Position">Board Member</td>
-                    <td data-label="Candidate" colspan="2"><%= votes['Board Member - ' + voterProgram] ? votes['Board Member - ' + voterProgram].name : "N/A" %></td>
+                    <td data-label="Candidate" colspan="2">Quentin S. Morales – KASAMA – BulSU</td>
                   </tr>
                 </tbody>
               </table>
@@ -118,7 +121,7 @@
               <!-- College and Program Details -->
               <div class="d-flex justify-content-between">
                 <strong>College</strong>
-                <!-- We'll output the acronym here and update it on the client-side -->
+                <!-- College acronym displayed then replaced on client-side -->
                 <span id="collegeDisplay"><%= voterCollege %></span>
               </div>
               <hr />
@@ -131,6 +134,10 @@
               <!-- Transaction Confirmation -->
               <div class="d-flex flex-col">
                 <span>Votes Submitted To Blockchain</span>
+                <span>
+                  Transaction Hash:
+                  <span class="hash-break"><%= txHash %></span>
+                </span>
                 <span>Thank You.</span>
               </div>
               <br />
@@ -159,7 +166,6 @@
     </div>
 
     <!-- Load html-to-image from CDN -->
-    <!-- <script src="https://unpkg.com/html-to-image@1.10.3/dist/html-to-image.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.10.3/dist/html-to-image.min.js"></script>
 
     <!-- Client-side mapping for full college name and export functionality -->

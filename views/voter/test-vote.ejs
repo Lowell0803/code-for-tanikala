@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Voting DApp</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .section {
+        margin-bottom: 20px;
+      }
+      .section h3 {
+        margin-bottom: 10px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Voting DApp</h1>
+    <form id="voteForm">
+      <!-- Voter Info -->
+      <div class="section">
+        <label for="voterId">Voter ID:</label>
+        <input type="text" id="voterId" name="voterId" required />
+      </div>
+      <div class="section">
+        <label for="college">College:</label>
+        <select id="college" name="college" required>
+          <option value="CSSP">CSSP</option>
+          <option value="CS">CS</option>
+          <!-- Add more college options as needed -->
+        </select>
+      </div>
+
+      <!-- President: Single Choice -->
+      <div class="section">
+        <h3>President (select one):</h3>
+        <label><input type="radio" name="president" value="0" required /> Candidate A</label>
+        <label><input type="radio" name="president" value="1" /> Candidate B</label>
+        <label><input type="radio" name="president" value="2" /> Candidate C</label>
+      </div>
+
+      <!-- Vice President: Single Choice -->
+      <div class="section">
+        <h3>Vice President (select one):</h3>
+        <label><input type="radio" name="vicePresident" value="0" required /> Candidate A</label>
+        <label><input type="radio" name="vicePresident" value="1" /> Candidate B</label>
+      </div>
+
+      <!-- Senators: Multiple Choice -->
+      <div class="section">
+        <h3>Senators (select one or more):</h3>
+        <label><input type="checkbox" name="senators" value="0" /> Candidate A</label>
+        <label><input type="checkbox" name="senators" value="1" /> Candidate B</label>
+        <label><input type="checkbox" name="senators" value="2" /> Candidate C</label>
+        <label><input type="checkbox" name="senators" value="3" /> Candidate D</label>
+      </div>
+
+      <!-- College-Specific Positions -->
+      <div class="section">
+        <h3>Governor (select one):</h3>
+        <label><input type="radio" name="governor" value="0" required /> Candidate A</label>
+        <label><input type="radio" name="governor" value="1" /> Candidate B</label>
+      </div>
+      <div class="section">
+        <h3>Vice Governor (select one):</h3>
+        <label><input type="radio" name="viceGovernor" value="0" required /> Candidate A</label>
+        <label><input type="radio" name="viceGovernor" value="1" /> Candidate B</label>
+      </div>
+
+      <!-- Board Member: Program Specific -->
+      <div class="section">
+        <h3>Board Member (select one):</h3>
+        <label for="boardMemberKey">Board Member Key (e.g. CSSP - Board Member - 0):</label>
+        <input type="text" id="boardMemberKey" name="boardMemberKey" required />
+        <br />
+        <label><input type="radio" name="boardMember" value="0" required /> Candidate A</label>
+        <label><input type="radio" name="boardMember" value="1" /> Candidate B</label>
+      </div>
+
+      <button type="submit">Submit Vote</button>
+    </form>
+
+    <script>
+      document.getElementById("voteForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Get voter and college info
+        const voterId = document.getElementById("voterId").value;
+        const college = document.getElementById("college").value;
+        const boardMemberKey = document.getElementById("boardMemberKey").value;
+
+        // Get selected candidates for single-choice positions
+        const president = document.querySelector('input[name="president"]:checked')?.value;
+        const vicePresident = document.querySelector('input[name="vicePresident"]:checked')?.value;
+        const governor = document.querySelector('input[name="governor"]:checked')?.value;
+        const viceGovernor = document.querySelector('input[name="viceGovernor"]:checked')?.value;
+        const boardMember = document.querySelector('input[name="boardMember"]:checked')?.value;
+
+        // Get all selected senators (multiple-choice)
+        const senatorNodes = document.querySelectorAll('input[name="senators"]:checked');
+        let senators = [];
+        senatorNodes.forEach((node) => senators.push(node.value));
+
+        // Construct the vote payload (candidate indices as numbers)
+        const votePayload = {
+          voterId,
+          college,
+          votes: {
+            president: Number(president),
+            vicePresident: Number(vicePresident),
+            senators: senators.map(Number),
+            governor: Number(governor),
+            viceGovernor: Number(viceGovernor),
+            boardMember: Number(boardMember),
+            boardMemberKey: boardMemberKey,
+          },
+        };
+
+        try {
+          const response = await fetch("/vote", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(votePayload),
+          });
+          const result = await response.json();
+          if (response.ok) {
+            alert("Vote submitted successfully! Transaction hash: " + result.txHash);
+          } else {
+            alert("Error: " + result.error);
+          }
+        } catch (err) {
+          alert("Submission failed: " + err.message);
+        }
+      });
+    </script>
+  </body>
+</html>
