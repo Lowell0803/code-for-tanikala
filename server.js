@@ -126,51 +126,9 @@ let db;
 
 const { MongoClient } = require("mongodb");
 
-const watchRegisteredVoters = async (db) => {
-  try {
-    const registeredVotersCollection = db.collection("registered_voters");
-    const electionConfigCollection = db.collection("election_config");
-
-    console.log("Watching registered_voters collection for changes...");
-
-    const changeStream = registeredVotersCollection.watch();
-
-    changeStream.on("change", async (change) => {
-      console.log("Change detected:", change);
-
-      if (change.operationType === "insert" || change.operationType === "delete") {
-        console.log("Updating registered voters count...");
-
-        // Count registered voters per college
-        const votersByCollege = await registeredVotersCollection.aggregate([{ $match: { status: "Registered" } }, { $group: { _id: "$college", count: { $sum: 1 } } }]).toArray();
-
-        console.log("New registered voters count:", votersByCollege);
-
-        // Fetch the current election config
-        const electionConfig = await electionConfigCollection.findOne();
-
-        if (electionConfig) {
-          const updatedListOfElections = electionConfig.listOfElections.map((college) => {
-            const updatedCollege = votersByCollege.find((v) => v._id.includes(college.acronym));
-            return updatedCollege ? { ...college, registeredVoters: updatedCollege.count } : college;
-          });
-
-          // Update election config in MongoDB
-          await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { listOfElections: updatedListOfElections, updatedAt: new Date() } });
-
-          console.log("Election config updated successfully!");
-        }
-      }
-    });
-  } catch (error) {
-    console.error("Error watching registered_voters:", error);
-  }
-};
-
 const startServer = async () => {
   try {
     db = await connectToDatabase();
-    await watchRegisteredVoters(db);
 
     // app.get("/api/wallet/update", (req, res) => {
     //   res.json({ success: true, message: "Wallet endpoint working." });
@@ -863,48 +821,104 @@ const startServer = async () => {
         // Check if the logged-in user's email exists in the registered_voters collection.
         const registeredVoter = await db.collection("registered_voters").findOne({ email: req.user.email });
         if (!registeredVoter) {
-          // If not registered, redirect to the registration page with an error.
           return res.redirect("/register?error=not_registered");
         }
 
-        // Now, get the voter's college and program from the registered_voters entry.
-        const voterCollege = registeredVoter.college;
-        const voterProgram = registeredVoter.program;
-        const collegeAcronym = voterCollege.match(/\(([^)]+)\)/);
+        // Get the voter's college and program.
+        const voterCollege = registeredVoter.college; // e.g., "College of Science (ABC)"
+        const voterProgram = registeredVoter.program; // e.g., "BS Computer Science"
+        const collegeAcronymMatch = voterCollege.match(/\(([^)]+)\)/);
+        const collegeAcronym = collegeAcronymMatch ? collegeAcronymMatch[1] : voterCollege;
 
-        // Fetch SSC candidates.
-        const collection = db.collection("candidates");
-        const data = await collection.find({}).toArray();
-        const allCandidates = data.map((doc) => doc.candidates).flat();
+        // Fetch all candidates from the blockchain_candidates collection.
+        const blockchainCandidatesCollection = db.collection("blockchain_candidates");
+        const allCandidatesData = await blockchainCandidatesCollection.find({}).toArray();
 
-        // Fetch LSC candidates.
-        const collectionLSC = db.collection("candidates_lsc");
-        const dataLSC = await collectionLSC.find({}).toArray();
-        const allCandidatesLSC = dataLSC.map((doc) => doc.positions.flatMap((position) => position.candidates || [])).flat();
+        // Log the raw candidate documents.
+        console.log("Raw candidate documents:", allCandidatesData);
 
-        // Fetch LSC Board Members.
-        const allBoardMembers = dataLSC
-          .map((doc) =>
-            doc.positions
-              .filter((position) => position.position === "Board Member")
-              .flatMap((position) => position.programs)
-              .flatMap((program) => {
-                // Add program.program inside each candidate object.
-                program.candidates.forEach((candidate) => {
-                  candidate.program = program.program;
-                });
-                return program.candidates;
-              })
+        // Use ethers v6 to decode the stored bytes32 strings.
+        // In ethers v6: ethers.decodeBytes32String(bytes32)
+        allCandidatesData.forEach((doc) => {
+          try {
+            doc.decodedPosition = ethers.decodeBytes32String(doc.position);
+          } catch (e) {
+            doc.decodedPosition = doc.position;
+          }
+        });
+
+        // Separate candidates by category.
+        // SSC positions: President, Vice President, Senator.
+        let sscCandidates = allCandidatesData
+          .filter((doc) => {
+            const pos = doc.decodedPosition.trim();
+            return pos === "President" || pos === "Vice President" || pos === "Senator";
+          })
+          .flatMap((doc) =>
+            doc.candidates.map((candidate) => ({
+              ...candidate,
+              name: ethers.decodeBytes32String(candidate.name),
+              party: ethers.decodeBytes32String(candidate.party),
+              position: ethers.decodeBytes32String(doc.position),
+            }))
+          );
+
+        // LSC candidates for Governor and Vice Governor.
+        let lscCandidates = allCandidatesData
+          .filter((doc) => {
+            const pos = doc.decodedPosition.trim();
+            // Expecting positions like "ABC - Governor" or "ABC - Vice Governor"
+            return (pos.endsWith("Governor") || pos.endsWith("Vice Governor")) && pos.includes(collegeAcronym);
+          })
+          .flatMap((doc) =>
+            doc.candidates.map((candidate) => ({
+              ...candidate,
+              name: ethers.decodeBytes32String(candidate.name),
+              party: ethers.decodeBytes32String(candidate.party),
+              position: ethers.decodeBytes32String(doc.position),
+            }))
+          );
+
+        // Board Member candidates.
+        let boardMemberCandidates = allCandidatesData
+          .filter((doc) => {
+            const pos = doc.decodedPosition.trim();
+            // Expecting positions like "ABC - Board Member - X"
+            return pos.includes("Board Member") && pos.includes(collegeAcronym);
+          })
+          .flatMap((doc) =>
+            doc.candidates.map((candidate) => ({
+              ...candidate,
+              name: ethers.decodeBytes32String(candidate.name),
+              party: ethers.decodeBytes32String(candidate.party),
+              position: ethers.decodeBytes32String(doc.position),
+            }))
           )
-          .flat();
+          // If candidate.program exists, check if it equals voterProgram;
+          // otherwise, include the candidate.
+          .filter((candidate) => {
+            if (candidate.program) {
+              return candidate.program === voterProgram;
+            }
+            return true;
+          });
 
-        // Render the vote page with the fetched candidate data and the registered voter's college and program.
+        // Console log the candidate groups.
+        console.log("SSC Candidates:", sscCandidates);
+        console.log("LSC Candidates (Governor/Vice Governor):", lscCandidates);
+        console.log("Board Member Candidates:", boardMemberCandidates);
+
+        // Optionally, log all candidates combined.
+        const allCandidatesCombined = [...sscCandidates, ...lscCandidates, ...boardMemberCandidates];
+        console.log("All Candidates Combined:", allCandidatesCombined);
+
+        // Render the vote page using vote.ejs with decoded data.
         res.render("voter/vote", {
-          candidates: allCandidates,
-          candidates_lsc: allCandidatesLSC,
-          lsc_board_members: allBoardMembers,
+          candidates: sscCandidates, // For President, VP, and Senators.
+          candidates_lsc: lscCandidates, // For Governor and Vice Governor.
+          lsc_board_members: boardMemberCandidates, // For Board Members.
           voterProgram,
-          voterCollege: collegeAcronym[1],
+          voterCollege: collegeAcronym,
         });
       } catch (error) {
         console.error("Error fetching candidates:", error);
@@ -1764,20 +1778,34 @@ const startServer = async () => {
             console.log(`✅ Adding ${group.position} with ${group.candidates.length} candidates`);
             positions.push(toBytes32(group.position));
 
-            let formattedCandidates = group.candidates.map((c) => ({
-              name: toBytes32(c.name),
-              party: toBytes32(c.party),
-              votes: 0, // Blockchain initializes votes at 0
-              image: c.image || "", // Retaining image property
-              moreInfo: c.moreInfo || "", // Retaining moreInfo property
-            }));
+            let formattedCandidates = group.candidates.map((c) => {
+              let candidateEntry = {
+                name: toBytes32(c.name),
+                party: toBytes32(c.party),
+              };
 
-            candidates.push(formattedCandidates);
+              // For MongoDB storage only (not pushed to blockchain)
+              let candidateForDB = {
+                ...candidateEntry,
+                votes: 0, // Blockchain initializes votes at 0
+                image: c.image || "",
+                moreInfo: c.moreInfo || "",
+              };
+
+              // Add college if position is Governor or Vice Governor
+              if (group.position.includes("Governor")) {
+                candidateForDB.college = group.college || "";
+              }
+
+              return { blockchain: candidateEntry, mongo: candidateForDB };
+            });
+
+            candidates.push(formattedCandidates.map((c) => c.blockchain)); // Store only blockchain-structured candidates
             boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
 
             blockchainData.push({
               position: toBytes32(group.position),
-              candidates: formattedCandidates,
+              candidates: formattedCandidates.map((c) => c.mongo), // Store enriched data in MongoDB
             });
           }
         });
@@ -1804,21 +1832,32 @@ const startServer = async () => {
                   console.log(`✅ Adding Board Member for ${college.collegeAcronym} under key "${uniqueKey}"`);
                   positions.push(toBytes32(uniqueKey));
 
-                  let formattedCandidates = program.candidates.map((c) => ({
-                    name: toBytes32(c.name),
-                    party: toBytes32(c.party),
-                    votes: 0,
-                    image: c.image || "",
-                    moreInfo: c.moreInfo || "",
-                  }));
+                  let formattedCandidates = program.candidates.map((c) => {
+                    let candidateEntry = {
+                      name: toBytes32(c.name),
+                      party: toBytes32(c.party),
+                    };
 
-                  candidates.push(formattedCandidates);
+                    // For MongoDB storage only (not pushed to blockchain)
+                    let candidateForDB = {
+                      ...candidateEntry,
+                      votes: 0,
+                      image: c.image || "",
+                      moreInfo: c.moreInfo || "",
+                      college: college.collegeName || "",
+                      program: program.program || "",
+                    };
+
+                    return { blockchain: candidateEntry, mongo: candidateForDB };
+                  });
+
+                  candidates.push(formattedCandidates.map((c) => c.blockchain)); // Store only blockchain-structured candidates
                   const programID = toBytes32(uniqueKey);
                   boardMemberProgramIDs.push(programID);
 
                   blockchainData.push({
                     position: toBytes32(uniqueKey),
-                    candidates: formattedCandidates,
+                    candidates: formattedCandidates.map((c) => c.mongo),
                     program_id: programID,
                   });
 
@@ -1837,9 +1876,6 @@ const startServer = async () => {
                 let formattedCandidates = pos.candidates.map((c) => ({
                   name: toBytes32(c.name),
                   party: toBytes32(c.party),
-                  votes: 0,
-                  image: c.image || "",
-                  moreInfo: c.moreInfo || "",
                 }));
 
                 candidates.push(formattedCandidates);
@@ -1847,7 +1883,13 @@ const startServer = async () => {
 
                 blockchainData.push({
                   position: toBytes32(`${college.collegeAcronym} - ${pos.position}`),
-                  candidates: formattedCandidates,
+                  candidates: pos.candidates.map((c) => ({
+                    name: toBytes32(c.name),
+                    party: toBytes32(c.party),
+                    votes: 0,
+                    image: c.image || "",
+                    moreInfo: c.moreInfo || "",
+                  })),
                 });
               }
             }
@@ -1859,9 +1901,6 @@ const startServer = async () => {
           candidates[index].push({
             name: toBytes32("Abstain"),
             party: toBytes32("None"),
-            votes: 0,
-            image: "",
-            moreInfo: "",
           });
         });
 
