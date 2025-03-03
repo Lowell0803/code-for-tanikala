@@ -291,6 +291,22 @@ const startServer = async () => {
       }
     });
 
+    app.post("/submit-votes-to-blockchain", (req, res) => {
+      const { president, vicePresident, senator, governor, viceGovernor, boardMember } = req.body;
+
+      console.log("reached!");
+
+      console.log("President:", president);
+      console.log("Vice President:", vicePresident);
+      console.log("Senator:", senator);
+      console.log("Governor:", governor);
+      console.log("Vice Governor:", viceGovernor);
+      console.log("Board Member:", boardMember);
+
+      // Render the page with stringified values if they are objects
+      res.send("hi");
+    });
+
     // New API endpoint to list all candidate details (IDs and vote counts) from the blockchain
     app.get("/api/getCandidateDetails", async (req, res) => {
       try {
@@ -986,19 +1002,19 @@ const startServer = async () => {
       const { president, vicePresident, senator, governor, viceGovernor, boardMember } = req.body;
 
       // Log the values (after checking and possibly stringifying)
-      console.log("President:", typeof president);
-      console.log("Vice President:", typeof vicePresident);
-      console.log("Senator:", typeof senator);
-      console.log("Governor:", typeof governor);
-      console.log("Vice Governor:", typeof viceGovernor);
-      console.log("Board Member:", typeof boardMember);
+      // console.log("President:", typeof president);
+      // console.log("Vice President:", typeof vicePresident);
+      // console.log("Senator:", typeof senator);
+      // console.log("Governor:", typeof governor);
+      // console.log("Vice Governor:", typeof viceGovernor);
+      // console.log("Board Member:", typeof boardMember);
 
-      console.log("President:", president);
-      console.log("Vice President:", vicePresident);
-      console.log("Senator:", senator);
-      console.log("Governor:", governor);
-      console.log("Vice Governor:", viceGovernor);
-      console.log("Board Member:", boardMember);
+      // console.log("President:", president);
+      // console.log("Vice President:", vicePresident);
+      // console.log("Senator:", senator);
+      // console.log("Governor:", governor);
+      // console.log("Vice Governor:", viceGovernor);
+      // console.log("Board Member:", boardMember);
 
       // Render the page with stringified values if they are objects
       res.render("voter/review", {
