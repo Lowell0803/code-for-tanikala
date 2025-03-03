@@ -1010,107 +1010,49 @@ const startServer = async () => {
 
     app.get("/vote", ensureAuthenticated, async (req, res) => {
       try {
-        // Check if the logged-in user's email exists in the registered_voters collection.
+        // Check if the voter is registered
         const registeredVoter = await db.collection("registered_voters").findOne({ email: req.user.email });
         if (!registeredVoter) {
           return res.redirect("/register?error=not_registered");
         }
 
-        // Get the voter's college and program.
-        const fullCollege = registeredVoter.college; // e.g., "College of Science (ABC)"
-        const program = registeredVoter.program; // e.g., "BS Computer Science"
+        // Extract the voter's college and program
+        const fullCollege = registeredVoter.college;
         const collegeMatch = fullCollege.match(/\(([^)]+)\)/);
         const college = collegeMatch ? collegeMatch[1] : fullCollege;
+        const program = registeredVoter.program;
 
-        // Fetch all candidates from the blockchain_candidates collection.
-        const blockchainCandidatesCollection = db.collection("blockchain_candidates");
-        const allCandidatesData = await blockchainCandidatesCollection.find({}).toArray();
+        // Fetch the aggregated candidates document from the database
+        const aggregatedDoc = await db.collection("aggregatedCandidates").findOne({});
+        const candidates = aggregatedDoc ? aggregatedDoc.candidates : [];
 
-        // Log the raw candidate documents.
-        console.log("Raw candidate documents:", allCandidatesData);
+        // Filter candidates per individual position:
+        const presidentCandidates = candidates.filter((candidate) => candidate.position.toLowerCase() === "president");
+        const vicePresidentCandidates = candidates.filter((candidate) => candidate.position.toLowerCase() === "vice president");
+        const senatorCandidates = candidates.filter((candidate) => candidate.position.toLowerCase() === "senator");
 
-        // Use ethers v6 to decode the stored bytes32 strings.
-        // In ethers v6: ethers.decodeBytes32String(bytes32)
-        allCandidatesData.forEach((doc) => {
-          try {
-            doc.decodedPosition = ethers.decodeBytes32String(doc.position);
-          } catch (e) {
-            doc.decodedPosition = doc.position;
-          }
-        });
+        // Separate governor and vice governor candidates based on college match
+        const governorCandidates = candidates.filter((candidate) => candidate.position.toLowerCase() === "governor" && candidate.college && candidate.college.toLowerCase() === college.toLowerCase());
+        const viceGovernorCandidates = candidates.filter((candidate) => candidate.position.toLowerCase() === "vice governor" && candidate.college && candidate.college.toLowerCase() === college.toLowerCase());
 
-        // Separate candidates by category.
-        // SSC positions: President, Vice President, Senator.
-        let sscCandidates = allCandidatesData
-          .filter((doc) => {
-            const pos = doc.decodedPosition.trim();
-            return pos === "President" || pos === "Vice President" || pos === "Senator";
-          })
-          .flatMap((doc) =>
-            doc.candidates.map((candidate) => ({
-              ...candidate,
-              name: ethers.decodeBytes32String(candidate.name),
-              party: ethers.decodeBytes32String(candidate.party),
-              position: ethers.decodeBytes32String(doc.position),
-            }))
-          );
+        // For board member candidates, filter by both college and program match
+        const boardCandidates = candidates.filter((candidate) => candidate.position.toLowerCase() === "board member" && candidate.college && candidate.college.toLowerCase() === college.toLowerCase() && candidate.program && candidate.program.toLowerCase() === program.toLowerCase());
 
-        // LSC candidates for Governor and Vice Governor.
-        let lscCandidates = allCandidatesData
-          .filter((doc) => {
-            const pos = doc.decodedPosition.trim();
-            // Expecting positions like "ABC - Governor" or "ABC - Vice Governor"
-            return (pos.endsWith("Governor") || pos.endsWith("Vice Governor")) && pos.includes(collegeAcronym);
-          })
-          .flatMap((doc) =>
-            doc.candidates.map((candidate) => ({
-              ...candidate,
-              name: ethers.decodeBytes32String(candidate.name),
-              party: ethers.decodeBytes32String(candidate.party),
-              position: ethers.decodeBytes32String(doc.position),
-            }))
-          );
+        console.log(presidentCandidates);
+        console.log(vicePresidentCandidates);
+        console.log(senatorCandidates);
+        console.log(governorCandidates);
+        console.log(viceGovernorCandidates);
+        console.log(boardCandidates);
 
-        // Board Member candidates.
-        let boardMemberCandidates = allCandidatesData
-          .filter((doc) => {
-            const pos = doc.decodedPosition.trim();
-            // Expecting positions like "ABC - Board Member - X"
-            return pos.includes("Board Member") && pos.includes(collegeAcronym);
-          })
-          .flatMap((doc) =>
-            doc.candidates.map((candidate) => ({
-              ...candidate,
-              name: ethers.decodeBytes32String(candidate.name),
-              party: ethers.decodeBytes32String(candidate.party),
-              position: ethers.decodeBytes32String(doc.position),
-            }))
-          )
-          // If candidate.program exists, check if it equals voterProgram;
-          // otherwise, include the candidate.
-          .filter((candidate) => {
-            if (candidate.program) {
-              return candidate.program === voterProgram;
-            }
-            return true;
-          });
-
-        // Console log the candidate groups.
-        console.log("SSC Candidates:", sscCandidates);
-        console.log("LSC Candidates (Governor/Vice Governor):", lscCandidates);
-        console.log("Board Member Candidates:", boardMemberCandidates);
-
-        // Optionally, log all candidates combined.
-        const allCandidatesCombined = [...sscCandidates, ...lscCandidates, ...boardMemberCandidates];
-        console.log("All Candidates Combined:", allCandidatesCombined);
-
-        // Render the vote page using vote.ejs with decoded data.
+        // Render the view with separate arrays for each position
         res.render("voter/vote", {
-          candidates: sscCandidates, // For President, VP, and Senators.
-          candidates_lsc: lscCandidates, // For Governor and Vice Governor.
-          lsc_board_members: boardMemberCandidates, // For Board Members.
-          voterProgram,
-          voterCollege: collegeAcronym,
+          presidentCandidates,
+          vicePresidentCandidates,
+          senatorCandidates,
+          governorCandidates,
+          viceGovernorCandidates,
+          boardCandidates,
         });
       } catch (error) {
         console.error("Error fetching candidates:", error);
