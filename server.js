@@ -493,31 +493,40 @@ const startServer = async () => {
       }
     });
 
-    app.post("/register", async (req, res) => {
-      try {
-        const { fullName, email, studentNumber, campus, college, program } = req.body;
+    app.get("/register", async (req, res) => {
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
 
-        if (!fullName || !email || !studentNumber || !campus || !college || !program) {
-          return res.status(400).json({ error: "All fields are required" });
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      if (!req.user) {
+        return res.redirect("/auth/microsoft");
+      }
+
+      try {
+        const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
+
+        if (voter) {
+          // Voter already registered
+          return res.redirect("/?registered=true");
         }
 
-        const newVoter = {
-          name: fullName,
-          email: email,
-          student_number: studentNumber,
-          campus: campus,
-          college: college,
-          program: program,
-          status: "Registered",
-        };
+        // Check if the user has agreed to the privacy policy
+        if (!req.query.agree) {
+          return res.render("voter/data-privacy", { user: req.user });
+        }
 
-        await db.collection("registered_voters").insertOne(newVoter);
-
-        res.redirect("/register"); // Redirect to voter info page
+        // If agreed, show the registration form
+        res.render("voter/register", { electionConfig, user: req.user, voter: null, status: req.query.status || null });
       } catch (error) {
-        console.error("Error registering voter:", error);
+        console.error("Error checking registration status:", error);
         res.status(500).send("Internal Server Error");
       }
+    });
+
+    app.get("/data-privacy", async (req, res) => {
+      res.render("voter/data-privacy");
     });
 
     app.get("/admin-login", async (req, res) => {
