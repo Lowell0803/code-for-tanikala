@@ -2,167 +2,94 @@ async function renderSSCPositions() {
   try {
     const response = await fetch("/get-vote-counts");
     const data = await response.json();
-
     if (!data.success) {
       throw new Error("Failed to fetch vote counts");
     }
 
-    console.log("📡 Raw fetched vote data:", data.results);
+    console.log("📡 Raw fetched vote data:", data.result);
 
+    // SSC positions are expected to be exactly "President", "Vice President", and "Senator"
     const positions = ["President", "Vice President", "Senator"];
     const results = {};
 
-    // Organize SSC data (including Abstain votes)
-    data.results.forEach((candidate) => {
-      const position = candidate.position;
-      const votes = parseInt(candidate.votes, 10); // Ensure votes are numbers
-
-      if (positions.includes(position)) {
-        if (!results[position]) {
-          results[position] = { candidates: [], abstain: 0 };
+    data.result.forEach((positionObj) => {
+      const pos = positionObj.position;
+      if (positions.includes(pos)) {
+        if (!results[pos]) {
+          results[pos] = { candidates: [], abstain: 0 };
         }
-
-        if (candidate.candidate.trim().toLowerCase() === "abstain") {
-          results[position].abstain += votes; // Store Abstain votes
-          console.log(`✅ Abstain votes for ${position}: ${results[position].abstain}`);
-        } else {
-          results[position].candidates.push({
-            name: candidate.candidate,
-            votes: votes,
-          });
-        }
+        positionObj.candidates.forEach((cand) => {
+          if (cand.name.trim().toLowerCase() === "abstain") {
+            results[pos].abstain += parseInt(cand.votes, 10);
+          } else {
+            results[pos].candidates.push({
+              name: cand.name,
+              votes: parseInt(cand.votes, 10),
+            });
+          }
+        });
       }
     });
 
     console.log("🔍 Filtered SSC results:", results);
-
     renderResultsSSC(results);
   } catch (error) {
     console.error("❌ Error fetching SSC vote counts:", error);
   }
 }
 
-// function renderResultsSSC(results) {
-//   Object.keys(results).forEach((position) => {
-//     const containerId = `container-${position.toLowerCase().replace(/\s+/g, "-")}`;
-//     const container = document.getElementById(containerId);
-
-//     console.log(`🖥️ Rendering position: ${position}, container ID: ${containerId}, container found:`, container !== null);
-
-//     if (container) {
-//       container.innerHTML = `<h2>${position}</h2>`;
-
-//       results[position].candidates.forEach((candidate) => {
-//         console.log(`👤 Rendering candidate: ${candidate.name} with votes: ${candidate.votes} under ${position}`);
-
-//         const candidateDiv = document.createElement("div");
-//         candidateDiv.classList.add("progress-element");
-
-//         const nameElement = document.createElement("p");
-//         nameElement.classList.add("progress-label");
-//         nameElement.textContent = `${candidate.name}`;
-
-//         const progressBar = document.createElement("progress");
-//         progressBar.max = 100;
-//         progressBar.value = candidate.votes;
-
-//         const voteCount = document.createElement("span");
-//         voteCount.textContent = `${candidate.votes} votes`;
-
-//         candidateDiv.appendChild(nameElement);
-//         candidateDiv.appendChild(progressBar);
-//         candidateDiv.appendChild(voteCount);
-//         container.appendChild(candidateDiv);
-//       });
-
-//       // 🔥 🔥 🔥 Always render Abstain votes, even if 0 🔥 🔥 🔥
-//       console.log(`🚨 Rendering Abstain votes: ${results[position].abstain} for ${position}`);
-
-//       const abstainDiv = document.createElement("div");
-//       abstainDiv.classList.add("progress-element");
-
-//       const abstainLabel = document.createElement("p");
-//       abstainLabel.classList.add("progress-label");
-//       abstainLabel.textContent = "Abstain";
-
-//       const abstainProgressBar = document.createElement("progress");
-//       abstainProgressBar.max = 100;
-//       abstainProgressBar.value = results[position].abstain;
-
-//       const abstainCount = document.createElement("span");
-//       abstainCount.textContent = `${results[position].abstain} votes`;
-
-//       abstainDiv.appendChild(abstainLabel);
-//       abstainDiv.appendChild(abstainProgressBar);
-//       abstainDiv.appendChild(abstainCount);
-//       container.appendChild(abstainDiv);
-//     } else {
-//       console.warn(`⚠️ Container not found for position: ${position}. Check if the corresponding <div> exists in the HTML.`);
-//     }
-//   });
-// }
-
-// Fetch SSC results on page load
-
 function renderResultsSSC(results) {
-  Object.keys(results).forEach((position) => {
+  const positions = ["President", "Vice President", "Senator"];
+  positions.forEach((position) => {
     const containerId = `container-${position.toLowerCase().replace(/\s+/g, "-")}`;
     const container = document.getElementById(containerId);
-
-    console.log(`🖥️ Rendering position: ${position}, container ID: ${containerId}, container found:`, container !== null);
-
     if (container) {
       container.innerHTML = `<h2>${position}</h2>`;
+      const totalVotes = results[position] ? results[position].candidates.reduce((sum, c) => sum + c.votes, 0) + results[position].abstain : 0;
+      if (results[position]) {
+        results[position].candidates.forEach((candidate) => {
+          const candidateDiv = document.createElement("div");
+          candidateDiv.classList.add("progress-element");
 
-      // 🔥 Calculate total votes for this position
-      const totalVotes = results[position].candidates.reduce((sum, c) => sum + c.votes, 0) + results[position].abstain;
-      console.log(`📊 Total votes for ${position}:`, totalVotes);
+          const nameElement = document.createElement("p");
+          nameElement.classList.add("progress-label");
+          nameElement.textContent = candidate.name;
 
-      results[position].candidates.forEach((candidate) => {
-        console.log(`👤 Rendering candidate: ${candidate.name} with votes: ${candidate.votes} under ${position}`);
+          const progressBar = document.createElement("progress");
+          progressBar.max = totalVotes;
+          progressBar.value = candidate.votes;
 
-        const candidateDiv = document.createElement("div");
-        candidateDiv.classList.add("progress-element");
+          const voteCount = document.createElement("span");
+          voteCount.textContent = `${candidate.votes} votes`;
 
-        const nameElement = document.createElement("p");
-        nameElement.classList.add("progress-label");
-        nameElement.textContent = `${candidate.name}`;
+          candidateDiv.appendChild(nameElement);
+          candidateDiv.appendChild(progressBar);
+          candidateDiv.appendChild(voteCount);
+          container.appendChild(candidateDiv);
+        });
+        const abstainDiv = document.createElement("div");
+        abstainDiv.classList.add("progress-element");
 
-        const progressBar = document.createElement("progress");
-        progressBar.max = totalVotes; // 🔥 Set total votes as max
-        progressBar.value = candidate.votes; // 🔥 Candidate's votes
+        const abstainLabel = document.createElement("p");
+        abstainLabel.classList.add("progress-label");
+        abstainLabel.textContent = "Abstain";
 
-        const voteCount = document.createElement("span");
-        voteCount.textContent = `${candidate.votes} votes`;
+        const abstainProgressBar = document.createElement("progress");
+        abstainProgressBar.max = totalVotes;
+        abstainProgressBar.value = results[position].abstain;
 
-        candidateDiv.appendChild(nameElement);
-        candidateDiv.appendChild(progressBar);
-        candidateDiv.appendChild(voteCount);
-        container.appendChild(candidateDiv);
-      });
+        const abstainCount = document.createElement("span");
+        abstainCount.textContent = `${results[position].abstain} votes`;
 
-      console.log(`🚨 Rendering Abstain votes: ${results[position].abstain} for ${position}`);
-
-      const abstainDiv = document.createElement("div");
-      abstainDiv.classList.add("progress-element");
-
-      const abstainLabel = document.createElement("p");
-      abstainLabel.classList.add("progress-label");
-      abstainLabel.textContent = "Abstain";
-
-      const abstainProgressBar = document.createElement("progress");
-      abstainProgressBar.max = totalVotes; // 🔥 Set max to total votes
-      abstainProgressBar.value = results[position].abstain; // 🔥 Abstain votes
-
-      const abstainCount = document.createElement("span");
-      abstainCount.textContent = `${results[position].abstain} votes`;
-
-      abstainDiv.appendChild(abstainLabel);
-      abstainDiv.appendChild(abstainProgressBar);
-      abstainDiv.appendChild(abstainCount);
-      container.appendChild(abstainDiv);
+        abstainDiv.appendChild(abstainLabel);
+        abstainDiv.appendChild(abstainProgressBar);
+        abstainDiv.appendChild(abstainCount);
+        container.appendChild(abstainDiv);
+      } else {
+        container.innerHTML += `<p>No data available for ${position}</p>`;
+      }
     } else {
-      console.warn(`⚠️ Container not found for position: ${position}. Check if the corresponding <div> exists in the HTML.`);
+      console.warn(`Container for ${position} not found.`);
     }
   });
 }

@@ -1,9 +1,9 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "C:\\Users\\Zarina\\Documents\\PROJECTS\\tanikala-backend\\contracts\\AdminCandidates.sol": {
-      "lastModificationDate": 1740602538523,
-      "contentHash": "526260ec1102f82c39e08542c48fdd66",
+    "C:\\Users\\Lowell\\Documents\\PROJECTS\\tanikala-backend\\contracts\\AdminCandidates.sol": {
+      "lastModificationDate": 1740938483074,
+      "contentHash": "272c14574fc22f439225022afcc25b79",
       "sourceName": "contracts/AdminCandidates.sol",
       "solcConfig": {
         "version": "0.8.21",
@@ -15,15 +15,27 @@
           },
           "outputSelection": {
             "*": {
-              "*": ["abi", "evm.bytecode", "evm.deployedBytecode", "evm.methodIdentifiers", "metadata"],
-              "": ["ast"]
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
             }
           }
         }
       },
       "imports": [],
-      "versionPragmas": ["^0.8.21"],
-      "artifacts": ["AdminCandidates"]
+      "versionPragmas": [
+        "^0.8.21"
+      ],
+      "artifacts": [
+        "AdminCandidates"
+      ]
     }
   }
 }

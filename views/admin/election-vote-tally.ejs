@@ -7,12 +7,11 @@
     <title>BulSU Voting System</title>
 
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
 
-    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-lsc.css" />
-    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-scc.css" />
-
-    <link rel="stylesheet" type="text/css" href="admin/dependencies/liner-bar.css" />
+    <link rel="stylesheet" type="text/css" href="admin/dependencies/progress-bar.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="admin/dependencies/liner-bar.css" /> -->
 
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
@@ -271,7 +270,7 @@
     </footer>
 
     <!-- Include your JS files including liner-bar-js -->
-    <script src="admin/dependencies/liner-bar.js"></script>
+    <!-- <script src="admin/dependencies/liner-bar.js"></script> -->
     <script src="admin/js/sidebar.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -279,77 +278,194 @@
           .then((response) => response.json())
           .then((data) => {
             if (!data.success) return;
-            const results = data.result;
+
+            console.log("Raw vote data:", data.result); // Log raw API data
+
             // Group for Supreme Student Council (SSC)
             let sscData = {
               President: [],
               "Vice President": [],
               Senator: [],
             };
-            // Group for Local Student Council (LSC)
+
+            // For Local Student Council (LSC) positions, we group Governor and Vice Governor by college.
             let lscData = {
               Governor: {},
               "Vice Governor": {},
-              "Board Member": {},
             };
 
-            // Process each position from API data
-            results.forEach((item) => {
+            // For Board Member positions, we'll store all result objects in an array.
+            let boardMemberData = [];
+
+            // Process each result object from API data.
+            data.result.forEach((item) => {
               const pos = item.position;
-              // SSC: Exact match on SSC positions
+              // If it's one of the SSC positions, assign it directly.
               if (pos === "President" || pos === "Vice President" || pos === "Senator") {
                 sscData[pos] = item.candidates;
               }
-              // LSC: Positions containing a hyphen (expected format: "Title - CollegeCode")
+              // Otherwise, check if the position contains "Board Member".
+              else if (pos.indexOf("Board Member") !== -1) {
+                // Push the whole board member result object.
+                boardMemberData.push(item);
+              }
+              // Otherwise, assume it's an LSC position (formatted as "COLLEGE - Position").
               else if (pos.includes(" - ")) {
                 const parts = pos.split(" - ");
                 if (parts.length === 2) {
-                  const title = parts[0].trim();
-                  const collegeKey = parts[1].trim().toLowerCase();
-                  if (!lscData[title]) {
-                    lscData[title] = {};
+                  const collegeAcronym = parts[0].trim();
+                  const posName = parts[1].trim();
+                  if (!lscData[posName]) {
+                    lscData[posName] = {};
                   }
-                  lscData[title][collegeKey] = item.candidates;
+                  lscData[posName][collegeAcronym.toLowerCase()] = item.candidates;
+                  console.log("Grouped LSC position:", posName, "for college:", collegeAcronym.toLowerCase(), "with candidates:", item.candidates);
                 }
               }
             });
+
+            console.log("Grouped SSC Data:", sscData);
+            console.log("Grouped LSC Data:", lscData);
+            console.log("Board Member Data:", boardMemberData);
 
             // Render SSC positions (left side)
             renderCandidates("container-president", sscData["President"], "President");
             renderCandidates("container-vice-president", sscData["Vice President"], "Vice President");
             renderCandidates("container-senator", sscData["Senator"], "Senator");
 
-            // Render LSC positions (right side) based on selected college from the dropdown
+            // Render LSC positions (right side)
             const collegeSelect = document.getElementById("college-selector");
             function renderLSC() {
               const selectedCollege = collegeSelect.value.toLowerCase();
-              renderCandidates("container-lsc-governor", lscData["Governor"][selectedCollege] || [], "Governor");
-              renderCandidates("container-lsc-vice-governor", lscData["Vice Governor"][selectedCollege] || [], "Vice Governor");
-              renderCandidates("container-lsc-board-member", lscData["Board Member"][selectedCollege] || [], "Board Member");
+              console.log("Selected college:", selectedCollege);
+              // Render Governor and Vice Governor groups based on college.
+              renderCandidates("container-lsc-governor", (lscData["Governor"] && lscData["Governor"][selectedCollege]) || [], "Governor");
+              renderCandidates("container-lsc-vice-governor", (lscData["Vice Governor"] && lscData["Vice Governor"][selectedCollege]) || [], "Vice Governor");
+
+              // Render Board Member groups.
+              const boardContainer = document.getElementById("container-lsc-board-member");
+              boardContainer.innerHTML = "";
+              // If "all" is selected, render all board member groups.
+              if (selectedCollege === "all") {
+                boardMemberData.forEach((group) => {
+                  let header = document.createElement("h2");
+                  // Use the program text if available; otherwise, fall back to the position string.
+                  if (group.program && group.program.length > 0) {
+                    header.textContent = group.position.replace(/- \d+$/, "").trim() + " - " + group.program;
+                  } else {
+                    header.textContent = group.position;
+                  }
+                  boardContainer.appendChild(header);
+
+                  if (group.candidates.length === 0) {
+                    boardContainer.innerHTML += `<p>No candidates for this Board Member group</p>`;
+                  } else {
+                    const totalVotes = group.candidates.reduce((sum, c) => sum + c.votes, 0);
+                    group.candidates.forEach((candidate) => {
+                      const progressElement = document.createElement("div");
+                      progressElement.classList.add("progress-element");
+
+                      const label = document.createElement("p");
+                      label.classList.add("progress-label");
+                      label.textContent = candidate.name;
+
+                      const progressBar = document.createElement("progress");
+                      progressBar.max = totalVotes;
+                      progressBar.value = candidate.votes;
+
+                      const voteCount = document.createElement("span");
+                      voteCount.textContent = `${candidate.votes} votes`;
+
+                      progressElement.appendChild(label);
+                      progressElement.appendChild(progressBar);
+                      progressElement.appendChild(voteCount);
+                      boardContainer.appendChild(progressElement);
+                    });
+                  }
+                });
+              } else {
+                // Render only board member groups that belong to the selected college.
+                const filtered = boardMemberData.filter((group) => {
+                  // Extract the college acronym from the group position.
+                  const parts = group.position.split(" - ");
+                  return parts[0].trim().toLowerCase() === selectedCollege;
+                });
+                if (filtered.length === 0) {
+                  boardContainer.innerHTML = `<p>No Board Member candidates for ${selectedCollege.toUpperCase()}</p>`;
+                } else {
+                  filtered.forEach((group) => {
+                    let header = document.createElement("h2");
+                    if (group.program && group.program.length > 0) {
+                      header.textContent = group.position.replace(/- \d+$/, "").trim() + " - " + group.program;
+                    } else {
+                      header.textContent = group.position;
+                    }
+                    boardContainer.appendChild(header);
+
+                    if (group.candidates.length === 0) {
+                      boardContainer.innerHTML += `<p>No candidates for this Board Member group</p>`;
+                    } else {
+                      const totalVotes = group.candidates.reduce((sum, c) => sum + c.votes, 0);
+                      group.candidates.forEach((candidate) => {
+                        const progressElement = document.createElement("div");
+                        progressElement.classList.add("progress-element");
+
+                        const label = document.createElement("p");
+                        label.classList.add("progress-label");
+                        label.textContent = candidate.name;
+
+                        const progressBar = document.createElement("progress");
+                        progressBar.max = totalVotes;
+                        progressBar.value = candidate.votes;
+
+                        const voteCount = document.createElement("span");
+                        voteCount.textContent = `${candidate.votes} votes`;
+
+                        progressElement.appendChild(label);
+                        progressElement.appendChild(progressBar);
+                        progressElement.appendChild(voteCount);
+                        boardContainer.appendChild(progressElement);
+                      });
+                    }
+                  });
+                }
+              }
             }
             collegeSelect.addEventListener("change", renderLSC);
             renderLSC();
           })
           .catch((error) => console.error("Error fetching vote counts:", error));
 
-        // Utility function to render candidate cards into a container.
         function renderCandidates(containerId, candidates, positionTitle) {
           const container = document.getElementById(containerId);
           container.innerHTML = "";
+          const titleElement = document.createElement("h2");
+          titleElement.textContent = positionTitle;
+          container.appendChild(titleElement);
           if (candidates.length === 0) {
-            container.innerHTML = `<p>No candidates for ${positionTitle}</p>`;
+            container.innerHTML += `<p>No candidates for ${positionTitle}</p>`;
             return;
           }
+          const totalVotes = candidates.reduce((sum, c) => sum + c.votes, 0);
           candidates.forEach((candidate) => {
-            const card = document.createElement("div");
-            card.className = "candidate-card liner-bar"; // Using liner-bar styling
-            card.innerHTML = `
-              <div class="candidate-name">${candidate.name}</div>
-              <div class="candidate-votes">${candidate.votes} votes</div>
-            `;
-            container.appendChild(card);
-            // Optionally, if LinerBar.js provides additional functions (like creating a bar chart),
-            // you can call those functions here passing candidate.votes and the card element.
+            const progressElement = document.createElement("div");
+            progressElement.classList.add("progress-element");
+
+            const label = document.createElement("p");
+            label.classList.add("progress-label");
+            label.textContent = candidate.name;
+
+            const progressBar = document.createElement("progress");
+            progressBar.max = totalVotes;
+            progressBar.value = candidate.votes;
+
+            const voteCount = document.createElement("span");
+            voteCount.textContent = `${candidate.votes} votes`;
+
+            progressElement.appendChild(label);
+            progressElement.appendChild(progressBar);
+            progressElement.appendChild(voteCount);
+            container.appendChild(progressElement);
           });
         }
       });
@@ -390,7 +506,5 @@
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
-    <script src="admin/js/vote-tally-ssc.js"></script>
-    <script src="admin/js/vote-tally-lsc.js"></script>
   </body>
 </html>

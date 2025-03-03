@@ -22,7 +22,8 @@
   min-height: 80vh;
   border-radius: 2em;
   color: black;
-  width: 80vw;
+  width: 80vw !important;
+  margin: 0px 10vw !important;
 }
 
 .ballot {
