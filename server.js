@@ -130,6 +130,75 @@ const startServer = async () => {
   try {
     db = await connectToDatabase();
 
+    const { ObjectId } = require("mongodb");
+
+    const crypto = require("crypto");
+
+    // Function to generate a random key as a hex string (16 bytes = 32 hex characters)
+    function generateRandomKey(bytes = 16) {
+      return crypto.randomBytes(bytes).toString("hex");
+    }
+
+    app.post("/api/aggregateCandidates", async (req, res) => {
+      try {
+        let aggregatedCandidates = [];
+
+        // Query the SSC candidates collection ("candidates")
+        const sscData = await db.collection("candidates").find({}).toArray();
+        sscData.forEach((group) => {
+          if (Array.isArray(group.candidates)) {
+            group.candidates.forEach((candidate) => {
+              // Assign a random unique identifier
+              candidate.uniqueId = generateRandomKey();
+              aggregatedCandidates.push(candidate);
+            });
+          }
+        });
+
+        // Query the LSC candidates collection ("candidates_lsc")
+        const lscData = await db.collection("candidates_lsc").find({}).toArray();
+        lscData.forEach((collegeGroup) => {
+          if (Array.isArray(collegeGroup.positions)) {
+            collegeGroup.positions.forEach((position) => {
+              // Positions with a direct candidates array (e.g., Governor, Vice Governor)
+              if (Array.isArray(position.candidates)) {
+                position.candidates.forEach((candidate) => {
+                  candidate.uniqueId = generateRandomKey();
+                  candidate.college = candidate.college || collegeGroup.collegeAcronym || collegeGroup.collegeName;
+                  aggregatedCandidates.push(candidate);
+                });
+              }
+              // Positions with nested programs (e.g., Board Members)
+              if (Array.isArray(position.programs)) {
+                position.programs.forEach((programGroup) => {
+                  if (Array.isArray(programGroup.candidates)) {
+                    programGroup.candidates.forEach((candidate) => {
+                      candidate.uniqueId = generateRandomKey();
+                      candidate.college = candidate.college || collegeGroup.collegeAcronym || collegeGroup.collegeName;
+                      candidate.program = candidate.program || programGroup.program;
+                      aggregatedCandidates.push(candidate);
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+
+        // Update the aggregatedCandidates document (or insert if not present)
+        const result = await db.collection("aggregatedCandidates").updateOne({}, { $set: { candidates: aggregatedCandidates } }, { upsert: true });
+
+        res.status(200).json({
+          message: "Candidates aggregated and updated successfully",
+          count: aggregatedCandidates.length,
+          result: result,
+        });
+      } catch (error) {
+        console.error("Error aggregating candidates:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
     // app.get("/api/wallet/update", (req, res) => {
     //   res.json({ success: true, message: "Wallet endpoint working." });
     // });
@@ -816,6 +885,104 @@ const startServer = async () => {
       res.render("voter/test-vote");
     });
 
+    app.get("/ballot", ensureAuthenticated, async (req, res) => {
+      try {
+        // Verify that the voter is registered.
+        const registeredVoter = await db.collection("registered_voters").findOne({ email: req.user.email });
+        if (!registeredVoter) {
+          return res.redirect("/register?error=not_registered");
+        }
+
+        // Get the voter's college and program.
+        const fullCollege = registeredVoter.college; // e.g., "College of Science (ABC)"
+        const program = registeredVoter.program; // e.g., "BS Computer Science"
+        const collegeMatch = fullCollege.match(/\(([^)]+)\)/);
+        const college = collegeMatch ? collegeMatch[1] : fullCollege;
+
+        // Fetch all candidate groups from blockchain_candidates.
+        const blockchainCandidatesCollection = db.collection("blockchain_candidates");
+        const allCandidateGroups = await blockchainCandidatesCollection.find({}).toArray();
+
+        // Define global positions.
+        const globalPositionNames = ["President", "Vice President", "Senator", "Senators"];
+
+        // Filter groups for global positions.
+        const globalCandidates = allCandidateGroups.filter((group) => {
+          const posStr = ethers.decodeBytes32String(group.position);
+          return globalPositionNames.includes(posStr);
+        });
+
+        // For college-specific candidates, we assume the position is stored as "COLLEGE - POSITION"
+        // For example: "ABC - Governor", "ABC - Vice Governor", or "ABC - Board Member - X"
+        const collegeCandidates = allCandidateGroups.filter((group) => {
+          const posStr = ethers.decodeBytes32String(group.position);
+          return posStr.startsWith(`${college} -`);
+        });
+
+        // Now separate out the college-specific positions.
+        // Governor: look for "Governor" (but not "Vice Governor" or "Board Member").
+        const governorCandidates = collegeCandidates.filter((group) => {
+          const posStr = ethers.decodeBytes32String(group.position);
+          return posStr.includes("Governor") && !posStr.includes("Vice Governor") && !posStr.includes("Board Member");
+        });
+
+        // Vice Governor: look for "Vice Governor".
+        const viceGovernorCandidates = collegeCandidates.filter((group) => {
+          const posStr = ethers.decodeBytes32String(group.position);
+          return posStr.includes("Vice Governor");
+        });
+
+        // Board Member: look for "Board Member" and then, if candidate entries have program info, filter by voter's program.
+        let boardMemberCandidates = collegeCandidates.filter((group) => {
+          const posStr = ethers.decodeBytes32String(group.position);
+          return posStr.includes("Board Member");
+        });
+
+        // If candidate entries include a 'program' field, only include those matching the voter's program.
+        boardMemberCandidates = boardMemberCandidates.filter((group) => {
+          if (!group.candidates || group.candidates.length === 0) return false;
+          // Check if at least one candidate in the group has a program field matching the voter's program.
+          return group.candidates.some((candidate) => {
+            if (candidate.program) {
+              return candidate.program === program;
+            }
+            // If no candidate in the group has program info, assume it's not program-specific.
+            return true;
+          });
+        });
+
+        // Construct the ballot object with six positions.
+        const ballot = {
+          president: globalCandidates.filter((group) => ethers.decodeBytes32String(group.position) === "President"),
+          vicePresident: globalCandidates.filter((group) => ethers.decodeBytes32String(group.position) === "Vice President"),
+          senators: globalCandidates.filter((group) => {
+            const pos = ethers.decodeBytes32String(group.position);
+            return pos === "Senator" || pos === "Senators";
+          }),
+          governor: governorCandidates,
+          viceGovernor: viceGovernorCandidates,
+          boardMember: boardMemberCandidates,
+        };
+
+        // Console log the candidate groups.
+        console.log("Ballot Candidates:");
+        console.log("Global Positions:");
+        console.log("President:", ballot.president);
+        console.log("Vice President:", ballot.vicePresident);
+        console.log("Senators:", ballot.senators);
+        console.log(`College-Specific (${college}) Positions:`);
+        console.log("Governor:", ballot.governor);
+        console.log("Vice Governor:", ballot.viceGovernor);
+        console.log("Board Member:", ballot.boardMember);
+
+        // Send the ballot response.
+        res.json({ ballot });
+      } catch (error) {
+        console.error("Error fetching ballot candidates:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    });
+
     app.get("/vote", ensureAuthenticated, async (req, res) => {
       try {
         // Check if the logged-in user's email exists in the registered_voters collection.
@@ -825,10 +992,10 @@ const startServer = async () => {
         }
 
         // Get the voter's college and program.
-        const voterCollege = registeredVoter.college; // e.g., "College of Science (ABC)"
-        const voterProgram = registeredVoter.program; // e.g., "BS Computer Science"
-        const collegeAcronymMatch = voterCollege.match(/\(([^)]+)\)/);
-        const collegeAcronym = collegeAcronymMatch ? collegeAcronymMatch[1] : voterCollege;
+        const fullCollege = registeredVoter.college; // e.g., "College of Science (ABC)"
+        const program = registeredVoter.program; // e.g., "BS Computer Science"
+        const collegeMatch = fullCollege.match(/\(([^)]+)\)/);
+        const college = collegeMatch ? collegeMatch[1] : fullCollege;
 
         // Fetch all candidates from the blockchain_candidates collection.
         const blockchainCandidatesCollection = db.collection("blockchain_candidates");
@@ -1765,9 +1932,9 @@ const startServer = async () => {
         console.log("✅ LSC candidates fetched:", candidatesLscData.length);
 
         let positions = [];
-        let candidates = []; // 2D array for CandidateEntry structs.
+        let candidates = []; // 2D array for CandidateEntry structs (for blockchain submission).
         let boardMemberProgramIDs = [];
-        let blockchainData = []; // Stores structured data for MongoDB
+        let blockchainData = []; // Stores plain text structured data for MongoDB
 
         // Process main candidates collection.
         candidatesData.forEach((group) => {
@@ -1776,23 +1943,26 @@ const startServer = async () => {
             boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
           } else {
             console.log(`✅ Adding ${group.position} with ${group.candidates.length} candidates`);
-            positions.push(toBytes32(group.position));
+            // For blockchain submission, encode the position.
+            positions.push(ethers.encodeBytes32String(group.position));
 
             let formattedCandidates = group.candidates.map((c) => {
+              // For blockchain submission, encode the candidate fields.
               let candidateEntry = {
-                name: toBytes32(c.name),
-                party: toBytes32(c.party),
+                name: ethers.encodeBytes32String(c.name),
+                party: ethers.encodeBytes32String(c.party),
               };
 
-              // For MongoDB storage only (not pushed to blockchain)
+              // For MongoDB storage, use plain text.
               let candidateForDB = {
-                ...candidateEntry,
+                name: c.name,
+                party: c.party,
                 votes: 0, // Blockchain initializes votes at 0
                 image: c.image || "",
                 moreInfo: c.moreInfo || "",
               };
 
-              // Add college if position is Governor or Vice Governor
+              // Add college if position is Governor or Vice Governor.
               if (group.position.includes("Governor")) {
                 candidateForDB.college = group.college || "";
               }
@@ -1800,19 +1970,21 @@ const startServer = async () => {
               return { blockchain: candidateEntry, mongo: candidateForDB };
             });
 
-            candidates.push(formattedCandidates.map((c) => c.blockchain)); // Store only blockchain-structured candidates
+            // Store the encoded candidates for blockchain submission.
+            candidates.push(formattedCandidates.map((c) => c.blockchain));
             boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
 
+            // Store plain text data in MongoDB.
             blockchainData.push({
-              position: toBytes32(group.position),
-              candidates: formattedCandidates.map((c) => c.mongo), // Store enriched data in MongoDB
+              position: group.position, // plain text
+              candidates: formattedCandidates.map((c) => c.mongo),
             });
           }
         });
 
         let boardMemberCounter = {};
 
-        // Process LSC candidates collection
+        // Process LSC candidates collection.
         for (const college of candidatesLscData) {
           console.log(`\n📌 Processing LSC College: ${college.collegeName}`);
           if (!boardMemberCounter[college.collegeAcronym]) {
@@ -1830,17 +2002,17 @@ const startServer = async () => {
                   const uniqueKey = `${college.collegeAcronym} - Board Member - ${count}`;
 
                   console.log(`✅ Adding Board Member for ${college.collegeAcronym} under key "${uniqueKey}"`);
-                  positions.push(toBytes32(uniqueKey));
+                  positions.push(ethers.encodeBytes32String(uniqueKey));
 
                   let formattedCandidates = program.candidates.map((c) => {
                     let candidateEntry = {
-                      name: toBytes32(c.name),
-                      party: toBytes32(c.party),
+                      name: ethers.encodeBytes32String(c.name),
+                      party: ethers.encodeBytes32String(c.party),
                     };
 
-                    // For MongoDB storage only (not pushed to blockchain)
                     let candidateForDB = {
-                      ...candidateEntry,
+                      name: c.name,
+                      party: c.party,
                       votes: 0,
                       image: c.image || "",
                       moreInfo: c.moreInfo || "",
@@ -1851,12 +2023,12 @@ const startServer = async () => {
                     return { blockchain: candidateEntry, mongo: candidateForDB };
                   });
 
-                  candidates.push(formattedCandidates.map((c) => c.blockchain)); // Store only blockchain-structured candidates
-                  const programID = toBytes32(uniqueKey);
+                  candidates.push(formattedCandidates.map((c) => c.blockchain)); // Encoded for blockchain.
+                  const programID = ethers.encodeBytes32String(uniqueKey);
                   boardMemberProgramIDs.push(programID);
 
                   blockchainData.push({
-                    position: toBytes32(uniqueKey),
+                    position: uniqueKey, // plain text key.
                     candidates: formattedCandidates.map((c) => c.mongo),
                     program_id: programID,
                   });
@@ -1871,21 +2043,22 @@ const startServer = async () => {
                 boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
               } else {
                 console.log(`✅ Adding ${pos.position} for ${college.collegeAcronym} with ${pos.candidates.length} candidates`);
-                positions.push(toBytes32(`${college.collegeAcronym} - ${pos.position}`));
+                const plainPosition = `${college.collegeAcronym} - ${pos.position}`;
+                positions.push(ethers.encodeBytes32String(plainPosition));
 
                 let formattedCandidates = pos.candidates.map((c) => ({
-                  name: toBytes32(c.name),
-                  party: toBytes32(c.party),
+                  name: ethers.encodeBytes32String(c.name),
+                  party: ethers.encodeBytes32String(c.party),
                 }));
 
                 candidates.push(formattedCandidates);
                 boardMemberProgramIDs.push(ethers.encodeBytes32String(""));
 
                 blockchainData.push({
-                  position: toBytes32(`${college.collegeAcronym} - ${pos.position}`),
+                  position: plainPosition, // plain text
                   candidates: pos.candidates.map((c) => ({
-                    name: toBytes32(c.name),
-                    party: toBytes32(c.party),
+                    name: c.name,
+                    party: c.party,
                     votes: 0,
                     image: c.image || "",
                     moreInfo: c.moreInfo || "",
@@ -1896,11 +2069,22 @@ const startServer = async () => {
           }
         }
 
-        // Add "Abstain" option
+        // Add "Abstain" option for blockchain submission.
         positions.forEach((pos, index) => {
           candidates[index].push({
-            name: toBytes32("Abstain"),
-            party: toBytes32("None"),
+            name: ethers.encodeBytes32String("Abstain"),
+            party: ethers.encodeBytes32String("None"),
+          });
+        });
+
+        // Also add "Abstain" option to the plain text data for MongoDB.
+        blockchainData.forEach((item) => {
+          item.candidates.push({
+            name: "Abstain",
+            party: "None",
+            votes: 0,
+            image: "",
+            moreInfo: "",
           });
         });
 
@@ -1917,7 +2101,7 @@ const startServer = async () => {
         await tx.wait();
         console.log("✅ Candidates submitted successfully!");
 
-        // Store structured data in MongoDB exactly like blockchain
+        // Store structured data in MongoDB exactly like blockchain but in plain text.
         await blockchainCandidatesCollection.deleteMany({});
         await blockchainCandidatesCollection.insertMany(blockchainData);
 
