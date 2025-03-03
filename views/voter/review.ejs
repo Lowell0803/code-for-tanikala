@@ -48,22 +48,24 @@
 
           <h3 class="ballot-header ballot-position">BulSU Supreme Student Council S.Y. 2025-2026</h3>
           <br />
-          <% let president = JSON.parse(unparsedPresident); let vicePresident = JSON.parse(unparsedVicePresident); let governor = JSON.parse(unparsedGovernor); let viceGovernor = JSON.parse(unparsedViceGovernor); let boardMember = JSON.parse(unparsedBoardMember); let senator = Array.isArray(unparsedSenator) ? unparsedSenator : [unparsedSenator]; senator = senator.map(item => JSON.parse(item)); %>
+          <% const safe = (value) => value == null ? "" : value; const safeParse = (value) => { try { return typeof value === 'string' ? JSON.parse(value) : value; } catch (e) { return value; } }; let president = safeParse(unparsedPresident); let vicePresident = safeParse(unparsedVicePresident); let governor = safeParse(unparsedGovernor); let viceGovernor = safeParse(unparsedViceGovernor); let boardMember = safeParse(unparsedBoardMember); let senator = Array.isArray(unparsedSenator) ?
+          unparsedSenator : [unparsedSenator]; senator = senator.map(item => safeParse(item)); %>
+
           <ul>
             <li>
               <div class="card">
                 <div class="smallIcon">
                   <div class="Icon">
-                    <img src="<%= president.image %>" alt="<%= president.name %>" />
+                    <img src="<%= safe(president.image) %>" alt="<%= safe(president.name) %>" />
                   </div>
                   <div class="Name">
-                    <h2><%= president.name %></h2>
+                    <h2><%= safe(president.name) %></h2>
                   </div>
                   <div class="Roles">
-                    <h2><%= president.position %></h2>
+                    <h2><%= safe(president.position) %></h2>
                   </div>
                   <div class="Description">
-                    <p><%= president.moreInfo %></p>
+                    <p><%= safe(president.moreInfo) %></p>
                   </div>
                 </div>
               </div>
@@ -73,16 +75,16 @@
               <div class="card">
                 <div class="smallIcon">
                   <div class="Icon">
-                    <img src="<%= vicePresident.image %>" alt="<%= vicePresident.name %>" />
+                    <img src="<%= safe(vicePresident.image) %>" alt="<%= safe(vicePresident.name) %>" />
                   </div>
                   <div class="Name">
-                    <h2><%= vicePresident.name %></h2>
+                    <h2><%= safe(vicePresident.name) %></h2>
                   </div>
                   <div class="Roles">
-                    <h2><%= vicePresident.position %></h2>
+                    <h2><%= safe(vicePresident.position) %></h2>
                   </div>
                   <div class="Description">
-                    <p><%= vicePresident.moreInfo %></p>
+                    <p><%= safe(vicePresident.moreInfo) %></p>
                   </div>
                 </div>
               </div>
@@ -94,16 +96,16 @@
                 <div class="card">
                   <div class="smallIcon">
                     <div class="Icon">
-                      <img src="<%= senatorCandidate.image %>" alt="<%= senatorCandidate.name %>" />
+                      <img src="<%= safe(senatorCandidate.image) %>" alt="<%= safe(senatorCandidate.name) %>" />
                     </div>
                     <div class="Name">
-                      <h2><%= senatorCandidate.name %></h2>
+                      <h2><%= safe(senatorCandidate.name) %></h2>
                     </div>
                     <div class="Roles">
-                      <h2><%= senatorCandidate.position %></h2>
+                      <h2><%= safe(senatorCandidate.position) %></h2>
                     </div>
                     <div class="Description">
-                      <p><%= senatorCandidate.moreInfo %></p>
+                      <p><%= safe(senatorCandidate.moreInfo) %></p>
                     </div>
                   </div>
                 </div>
@@ -112,16 +114,16 @@
                 <div class="card">
                   <div class="smallIcon">
                     <div class="Icon">
-                      <img src="<%= senator.image %>" alt="<%= senator.name %>" />
+                      <img src="<%= safe(senator.image) %>" alt="<%= safe(senator.name) %>" />
                     </div>
                     <div class="Name">
-                      <h2><%= senator.name %></h2>
+                      <h2><%= safe(senator.name) %></h2>
                     </div>
                     <div class="Roles">
-                      <h2><%= senator.position %></h2>
+                      <h2><%= safe(senator.position) %></h2>
                     </div>
                     <div class="Description">
-                      <p><%= senator.moreInfo %></p>
+                      <p><%= safe(senator.moreInfo) %></p>
                     </div>
                   </div>
                 </div>
@@ -133,16 +135,16 @@
               <div class="card">
                 <div class="smallIcon">
                   <div class="Icon">
-                    <img src="<%= governor.image %>" alt="<%= governor.name %>" />
+                    <img src="<%= safe(governor.image) %>" alt="<%= safe(governor.name) %>" />
                   </div>
                   <div class="Name">
-                    <h2><%= governor.name %></h2>
+                    <h2><%= safe(governor.name) %></h2>
                   </div>
                   <div class="Roles">
-                    <h2><%= governor.position %></h2>
+                    <h2><%= safe(governor.position) %></h2>
                   </div>
                   <div class="Description">
-                    <p><%= governor.moreInfo %></p>
+                    <p><%= safe(governor.moreInfo) %></p>
                   </div>
                 </div>
               </div>
@@ -152,16 +154,16 @@
               <div class="card">
                 <div class="smallIcon">
                   <div class="Icon">
-                    <img src="<%= viceGovernor.image %>" alt="<%= viceGovernor.name %>" />
+                    <img src="<%= safe(viceGovernor.image) %>" alt="<%= safe(viceGovernor.name) %>" />
                   </div>
                   <div class="Name">
-                    <h2><%= viceGovernor.name %></h2>
+                    <h2><%= safe(viceGovernor.name) %></h2>
                   </div>
                   <div class="Roles">
-                    <h2><%= viceGovernor.position %></h2>
+                    <h2><%= safe(viceGovernor.position) %></h2>
                   </div>
                   <div class="Description">
-                    <p><%= viceGovernor.moreInfo %></p>
+                    <p><%= safe(viceGovernor.moreInfo) %></p>
                   </div>
                 </div>
               </div>
@@ -171,16 +173,16 @@
               <div class="card">
                 <div class="smallIcon">
                   <div class="Icon">
-                    <img src="<%= boardMember.image %>" alt="<%= boardMember.name %>" />
+                    <img src="<%= safe(boardMember.image) %>" alt="<%= safe(boardMember.name) %>" />
                   </div>
                   <div class="Name">
-                    <h2><%= boardMember.name %></h2>
+                    <h2><%= safe(boardMember.name) %></h2>
                   </div>
                   <div class="Roles">
-                    <h2><%= boardMember.position %></h2>
+                    <h2><%= safe(boardMember.position) %></h2>
                   </div>
                   <div class="Description">
-                    <p><%= boardMember.moreInfo %></p>
+                    <p><%= safe(boardMember.moreInfo) %></p>
                   </div>
                 </div>
               </div>
