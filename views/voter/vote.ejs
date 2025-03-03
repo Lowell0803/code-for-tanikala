@@ -182,7 +182,7 @@
             <div id="ballot-board-member" class="ballot-choices">
               <% let abstainBoardMember = null; %> <% const filteredBoardCandidates = boardCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainBoardMember = candidate; return false; } return true; }); %> <% filteredBoardCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-board-member">
-                <input class="ballot-choice candidate-radio" data-group="boardMember" id="board-member-<%= index %>" type="radio" name="boardMember" value="<%= JSON.stringify(abstainBoardMember) %>" />
+                <input class="ballot-choice candidate-radio" data-group="boardMember" id="board-member-<%= index %>" type="radio" name="boardMember" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="board-member-<%= index %>">
                   <h4 class="party"><%= candidate.party %></h4>
                   <img class="img-board-member" src="<%= candidate.image %>" alt="<%= candidate.name %>" />

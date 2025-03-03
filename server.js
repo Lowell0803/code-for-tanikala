@@ -211,10 +211,12 @@ const startServer = async () => {
               const key = posLower + "_" + candidate.college.toLowerCase();
               govPositionsMap[key] = { position: candidate.position, college: candidate.college };
             }
+            // Build the board member map using both college and program.
           } else if (posLower === "board member") {
-            if (candidate.program) {
-              const key = posLower + "_" + candidate.program.toLowerCase();
-              boardPositionsMap[key] = { position: candidate.position, program: candidate.program };
+            if (candidate.program && candidate.college) {
+              // Use both college and program as key
+              const key = posLower + "_" + candidate.college.toLowerCase() + "_" + candidate.program.toLowerCase();
+              boardPositionsMap[key] = { position: candidate.position, college: candidate.college, program: candidate.program };
             }
           } else {
             generalPositions.add(candidate.position); // Preserve original case
@@ -251,14 +253,16 @@ const startServer = async () => {
         });
 
         // Add abstain candidate for each board member (per program)
-        Object.values(boardPositionsMap).forEach(({ position, program }) => {
+        // Add abstain candidate for each board member (per college and program)
+        Object.values(boardPositionsMap).forEach(({ position, college, program }) => {
           const abstainCandidate = {
-            _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase() + "_" + program.replace(/\s+/g, "_").toLowerCase(),
+            _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase() + "_" + college.replace(/\s+/g, "_").toLowerCase() + "_" + program.replace(/\s+/g, "_").toLowerCase(),
             party: "",
             name: "Abstain",
             image: "",
             moreInfo: "Abstain",
             position: position,
+            college: college, // now included
             program: program,
             uniqueId: generateRandomKey(),
           };
@@ -998,12 +1002,12 @@ const startServer = async () => {
 
       // Render the page with stringified values if they are objects
       res.render("voter/review", {
-        president: president,
-        vicePresident: vicePresident,
-        senator: senator,
-        governor: governor,
-        viceGovernor: viceGovernor,
-        boardMember: boardMember,
+        president: JSON.parse(president),
+        vicePresident: JSON.parse(vicePresident),
+        senator: JSON.parse(senator),
+        governor: JSON.parse(governor),
+        viceGovernor: JSON.parse(viceGovernor),
+        boardMember: JSON.parse(boardMember),
       });
     });
 
