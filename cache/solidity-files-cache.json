@@ -15,27 +15,15 @@
           },
           "outputSelection": {
             "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
+              "*": ["abi", "evm.bytecode", "evm.deployedBytecode", "evm.methodIdentifiers", "metadata"],
+              "": ["ast"]
             }
           }
         }
       },
       "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "AdminCandidates"
-      ]
+      "versionPragmas": ["^0.8.21"],
+      "artifacts": ["AdminCandidates"]
     }
   }
 }

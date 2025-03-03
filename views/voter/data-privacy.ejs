@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>TANIKALA Voting System</title>
+
+    <link rel="stylesheet" type="text/css" href="../css/index.css"/>
+      <link rel="stylesheet" type="text/css" href="css/index_voter.css"/>
+    <link rel="stylesheet" type="text/css" href="css/data-privacy.css"/>
+    
+    <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap"
+    rel="stylesheet">
+
+</head>
+<body>
+    <header class="header">
+        <div class="header-logo">
+            <img src="../img/logo_tanikala.png" alt="Tanikala Voting System"/>
+        </div>
+        <div class="header-nav">
+            <ul class="header-nav-content">
+                <li id="active-link">Voter Registration</li>
+            </ul>
+        <div class="header-bottom-line"></div>
+    </header>
+
+    <div class="content">
+        <div class="main-first">
+            <img src="../img/logo_bulsu.png" class="logo" alt="BulSU Logo"/>
+            <div class="first-text">
+                <h1 class="title">BulSU Student Government Elections<br />2024 - 2025</h1>
+            </div>
+            <img src="../img/logo_bulsu_ucse.png" class="logo" alt="BulSU UCSE Logo"/>
+        </div>
+        <div class="main-second">
+            <h3 class="center">Privacy Notice</h3> <br />
+            <p>In compliance with the Data Privacy Act of 2012 (RA 10173), your personal information will be collected solely for the purpose of verifying your eligibility to vote in the BulSU Student Government Elections S.Y. 2025-2026. Additionally, this information will be used to generate an accurate ballot specific to each student based on details such as campus, college, and program.<br /> <br />
+                Only authorized personnel will have access to this data, and strict security measures are in place to ensure its confidentiality and integrity throughout the voting process.<br /> <br />
+            By checking "I Agree," you acknowledge that you have read and understood this notice.<br /> <br />
+            </p> <br />
+                <label for="agreement-check">
+                <input type="checkbox" id="agreement"  onchange="toggleButton()" required />
+                I Agree
+                 </label> <br />
+                 <div class="center">
+                 <button onclick="location.href='register.html'" class="proceed" id="proceedBtn" >Proceed</button>
+</div>
+
+        </div>
+        </div>
+
+        <script>
+ 
+</script>
+
+    
+    <footer class="footer">
+      <div class="footer-left">
+        <img src="../img/calendar.png" class="footer-img" />
+        <p id="datetime">OCTOBER 23, 2024 - 04:17 AM</p>
+      </div>
+
+      <div class="footer-center">
+        <img src="../img/copyright.png" class="footer-img" id="copyright-img" />
+        <p>2025 - Fourmula 1</p>
+      </div>
+      <!-- <div class="footer-right">
+        <img src="../img/log-in.png" class="footer-img" id="admin-img" />
+        <p>Admin? Log in&nbsp;</p>
+        <a href="../admin_login.html"> here.</a>
+      </div> -->
+    </footer>
+    <script src="../js/index.js"></script>
+  </body>
+</html>

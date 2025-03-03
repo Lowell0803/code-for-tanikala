@@ -3,14 +3,6 @@
   /* border: .2rem solid; */
 }
 
-.first-main {
-  display: flex;
-  flex-direction: row;
-  flex-basis: 100%;
-  margin-bottom: 1.5rem;
-  margin-top: 1.5rem;
-}
-
 #election-configuration {
   display: flex;
   flex-direction: column;
@@ -46,7 +38,7 @@
   margin-bottom: 1rem;
 }
 
-hr {
+.first-main hr {
   margin: 0.5rem 0;
 }
 

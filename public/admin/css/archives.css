@@ -1,7 +1,15 @@
-.main {
+table {
+  outline: 2px solid #245414;
+}
+
+th {
+  background-color: #245414;
+}
+
+/* tr:nth-child(odd) {
   background-color: #faf2db;
 }
 
-.no {
-  padding: 0;
-}
+tr:nth-child(even) {
+  background-color: #f2ddb4;
+} */

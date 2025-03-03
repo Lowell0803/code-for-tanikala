@@ -34,7 +34,7 @@
 
   /* main sizes */
   --height-header: 14vh;
-  --height-footer: 4vh;
+  --height-footer: 10vh;
   --height-content: calc(100vh - var(--height-header) - var(--height-footer));
   --width-aside: 18vw;
 
@@ -92,8 +92,8 @@ h6 {
 }
 
 .header-user img {
-  width: 2.5rem; /* Set the width */
-  height: 2.5rem; /* Set the height */
+  width: 3rem; /* Set the width */
+  height: 3rem; /* Set the height */
   border-radius: 50%; /* Makes the image circular */
   object-fit: cover; /* Ensures the image covers the area without distortion */
   margin: 0 0.875rem 0 0.75rem;
@@ -293,7 +293,8 @@ h6 {
   border-right: 0.62rem solid transparent;
   border-top: 0.63rem solid #e1ae5b;
   display: inline-block;
-  margin-left: 0.7rem;
+  margin-left: 0.2rem;
+  margin-top: -1.1rem;
 }
 
 .dropdown-line {
@@ -373,9 +374,8 @@ h6 {
   /* overflow-x: hidden;  */
   /* max-height: 100%;
   max-width: 100%; */
-  padding: 1.5rem;
-  background-color: #faf2db;
-  padding-bottom: 3rem;
+  padding: 1.5rem !important;
+  background-color: #faf2db !important;
 }
 
 .container-overlay {
@@ -392,41 +392,32 @@ h6 {
   font-weight: bold;
 }
 
-.edit-button {
+.button {
+  font-weight: bold;
+  font-size: 0.9em;
+  color: white;
+  padding: 1em 2em;
+  border-radius: 5em;
+  border: none;
+}
+
+.edit-button,
+.button-edit {
   background-color: #0024e4;
 }
 
-.save-button {
+.save-button,
+.button-save {
   background-color: #369f2c;
 }
 
-.cancel-button {
+.cancel-button,
+.button-cancel {
   background-color: #c11515;
 }
 
 .blockchain-button {
   background-color: #503a96;
-}
-
-.button {
-  border-radius: 1em;
-  padding: 1em;
-  font-size: 1rem;
-  color: white;
-  border: none;
-  font-weight: bold;
-}
-
-.button-edit {
-  background-color: #0024e4;
-}
-
-.button-save {
-  background-color: #369f2c;
-}
-
-.button-cancel {
-  background-color: #c11515;
 }
 
 .button-blockchain {
@@ -439,7 +430,7 @@ h6 {
 }
 
 .button-brown {
-  background-color: #370606;
+  background: linear-gradient(#6e1311, #310505);
 }
 
 .button-container-center {
@@ -575,7 +566,6 @@ h6 {
 }
 
 #copyright-img {
-  margin-top: 0.2%;
   height: 2.3vh;
 }
 
@@ -608,20 +598,9 @@ h6 {
 }
 
 .right-text {
-  color: #f4ab2a; /* Always yellow */
+  color: #e1ae5b; /* Always yellow */
 }
 
-.main {
-  /* border: 3px solid black; */
-  background-color: #faf2db;
-}
-
-.title {
-  color: #480404;
-  font-style: italic;
-  font-size: 2rem;
-  text-decoration: underline;
-}
 .title-container {
   display: flex;
   flex-direction: row;
@@ -629,7 +608,7 @@ h6 {
   align-items: center;
   width: 100%;
   padding: 1rem;
-  padding-bottom: 3rem;
+  /* padding-bottom: 3rem; */
   padding-right: 5rem;
   padding-left: 2rem;
   /* border: 3px solid black; */
@@ -649,33 +628,103 @@ h6 {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .r i {
-  font-size: 2rem;
-  color: #480404;
+  font-size: 2.3rem;
 }
 
 .actions {
   margin: 0.5rem;
 }
 
+/* title color */
+.title,
+.r i {
+  color: #885708;
+}
+
+.title-line {
+  border: 0.1rem solid #885708;
+  width: 95%;
+  margin: 0 auto; /* Centers the element horizontally */
+  display: block; /* Ensures margin auto works */
+}
+
+.title {
+  /* font-style: italic; */
+  font-size: 2rem;
+  /* text-decoration: underline; */
+}
+
+.first-main {
+  padding: 2rem;
+  /* border: 1px solid black; */
+}
+
+.light-yellow {
+  color: #f2ddb4;
+}
+
+.header-content p {
+  color: #f2ddb4;
+}
+
+strong {
+  color: #faf2db;
+}
+
+.brown {
+  color: #482e03;
+}
+
+/* table */
+
 /* table design */
 
 table {
-  background-color: black;
+  /* background-color: #5fb643; */
   text-align: center;
+  border-radius: 1.5rem;
+  overflow: hidden; /* Ensures rounded corners are clean */
+  border-collapse: separate; /* Avoids sharp corners */
+  border-spacing: 0;
+  outline: 2px solid #482e03;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 20px, rgba(0, 0, 0, 0.15) 0px 3px 8px;
+  width: 100%;
+  /* box-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 2px 5px; */
 }
 
 td {
   width: 12.5rem;
-  height: 2.5rem;
-  background-color: #f8eac2;
+  height: 2rem;
+  padding: 0.5rem;
+}
+
+.no {
+  width: 5rem;
 }
 
 th {
-  height: 2.5rem;
-  background-color: #e1ae5b;
-  padding: 0.5rem;
+  height: 5rem;
+  background-color: #97873a;
+  padding: 0.3rem;
+  color: #faf2db;
+}
+
+tr:nth-child(odd) {
+  background-color: #faf2db;
+}
+
+tr:nth-child(even) {
+  background-color: #d3cdc3;
+}
+
+.indent {
+  padding-left: 2rem;
+}
+
+.box-shadow {
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 20px, rgba(0, 0, 0, 0.15) 0px 3px 8px;
 }

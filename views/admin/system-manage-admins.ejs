@@ -11,8 +11,9 @@
     <link rel="stylesheet" type="text/css" href="admin/css/system-manage-accounts.css" />
 
     <!-- Boxicons CDN Link -->
-    <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
+ <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
   </head>
@@ -83,7 +84,10 @@
       </div>
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <span class="job"><%= loggedInAdmin.role %></span>
+        </div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="/edit-account">View Account</a>
@@ -183,8 +187,8 @@
           </li>
 
           <li>
-            <div class="icon-link">
-              <a href="/edit-account">
+            <div class="icon-link" id="active-tab">
+              <a href=#>
                 <i class="fa fa-tasks"></i>
                 <span class="link_name">System</span>
               </a>
@@ -193,7 +197,7 @@
             <ul class="sub-menu">
               <li><a class="link_name" href="/edit-account">System</a></li>
               <li><a href="/edit-account">Edit Account</a></li>
-              <li><a href="/manage-admins">Manage Admins</a></li>
+              <li><a href="/manage-admins" id="active-sub">Manage Admins</a></li>
               <li><a href="/help-page">Help Page</a></li>
               <li><a href="/system-activity-log">System Activity Log</a></li>
             </ul>
@@ -201,20 +205,22 @@
         </ul>
       </div>
       <main class="main">
-        <div class="title-container">
-          <h1 class="title">Admin Account Management</h1>
-          <button type="submit" class="action-buttons button-brown">Add Admin</button>
+         <div class="title-container">
+          <div class="r">
+           <i class="fa-solid fa-user-tie"></i>
+            <h1 class="title">Admin Account Management</h1>
+          </div>
         </div>
-        <br />
+        <hr class="title-line" />
+        <div class="first-main">
+       
         <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
         <div class="space">
           <form id="add-admin-form" action="/admin-accounts/add" method="POST">
             <label>Name:</label>
             <input type="text" name="name" required />
 
-            <label>Username:</label>
-            <input type="text" name="username" required />
-
+           
             <label>Role:</label>
             <select name="role" class="role" required>
               <option value="Electoral Board">Electoral Board</option>
@@ -223,22 +229,25 @@
               <option value="Developers">Developers</option>
             </select>
           </form>
+           <button type="submit" class="button button-brown">Add Admin</button>
+
         </div>
         <% } %>
-
-        <br />
+       
+       
         <br />
         <div class="table-container">
           <table>
             <thead>
               <tr>
-                <th>Image</th>
-                <th>Name</th>
-                <th>Role</th>
-                <th>Username</th>
-                <th>Password</th>
+                <th>IMAGE</th>
+                <th>NAME</th>
+                <th>ROLE</th>
+                <th>EMAIL</th>
+                <th>PASSWORD</th>
+                 <th>STATUS</th>
                 <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
-                <th>Actions</th>
+                <th>ACTIONS</th>
                 <% } %>
               </tr>
             </thead>
@@ -253,8 +262,9 @@
                 <td><%= admin.username %></td>
                 <td>
                   <span class="password-mask">********</span>
-                  <button type="button" onclick="togglePassword(this)" data-password="<%= admin.password %>">Show</button>
+                  <button type="button" onclick="togglePassword(this)" data-password="<%= admin.password %>"><i class="fa-solid fa-magnifying-glass"></i>show</button>
                 </td>
+                <td><%= admin.status %></td>
                 <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
                 <td>
                   <div class="actions">

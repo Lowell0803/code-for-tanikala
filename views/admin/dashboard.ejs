@@ -51,8 +51,8 @@
               placeholderText = "ELECTION NOT ACTIVE | No Configuration";
               leftColor = "#004aad";
             } else if (electionName === "Results Are Out Period" || electionName === "Results Double Checking Period") {
-              placeholderText = "ELECTION ENDED | " + electionName;
-              leftColor = "#a60212";
+              placeholderText = "ELECTION ENDED  |  " + electionName;
+              leftColor = "#e50e24";
             } else if (electionName === "Temporarily Closed") {
               placeholderText = "TEMPORARILY CLOSED";
               leftColor = "a60212";
@@ -83,7 +83,10 @@
       </div>
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <span class="job"><%= loggedInAdmin.role %></span>
+        </div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="/edit-account">View Account</a>
@@ -98,7 +101,7 @@
         <div class="profile-details">
           <img src="<%= loggedInAdmin.img %>" />
           <span class="profile-name"><%= loggedInAdmin.name %></span>
-          <span class="job"><%= loggedInAdmin.role %></span>
+          <i> <span class="job"><%= loggedInAdmin.role %></span> </i>
         </div>
 
         <ul class="nav-links">
@@ -208,6 +211,7 @@
               <h1 class="title">Dashboard</h1>
             </div>
           </div>
+          <hr class="title-line" />
           <div class="first-main">
             <div class="main-column">
               <div class="form" id="election-settings">

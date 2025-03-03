@@ -4,11 +4,6 @@ const connectToDatabase = require("./db");
 require("dotenv").config();
 const session = require("express-session");
 
-// function toBytes32(str) {
-//   if (!str) return ethers.toUtf8Bytes("");
-//   return ethers.toUtf8Bytes(str.substring(0, 32).padEnd(32, "\0"));
-// }
-
 function toBytes32(str) {
   if (!str) return ethers.encodeBytes32String("");
   return ethers.encodeBytes32String(str.slice(0, 31));
@@ -1608,28 +1603,6 @@ const startServer = async () => {
     // console.log("Ethers object:", ethers);
     // console.log("Ethers utils:", ethers.utils);
 
-    function toBytes32(str) {
-      // If no string, encode an empty string
-      if (!str) return ethers.encodeBytes32String("");
-      // Limit string to 31 characters so there's room for the null terminator
-      return ethers.encodeBytes32String(str.slice(0, 31));
-    }
-
-    function fromBytes32(hexStr) {
-      try {
-        // Try decoding normally first
-        return ethers.decodeBytes32String(hexStr);
-      } catch (error) {
-        // If it fails, force a null terminator:
-        let bytes = ethers.arrayify(hexStr);
-        // Ensure the last byte is 0
-        if (bytes[bytes.length - 1] !== 0) {
-          bytes[bytes.length - 1] = 0;
-        }
-        return ethers.toUtf8String(bytes);
-      }
-    }
-
     app.get("/get-vote-counts", async (req, res) => {
       try {
         const positions = await contract.getPositionList();
@@ -2018,19 +1991,7 @@ const startServer = async () => {
 
     // GET /configuration
     app.get("/configuration", ensureAdminAuthenticated, async (req, res) => {
-      let electionConfig = (await db.collection("election_config").findOne({})) || {
-        electionName: "",
-        registrationStart: "",
-        registrationEnd: "",
-        votingStart: "",
-        votingEnd: "",
-        partylists: [],
-        listOfElections: [], // Use listOfElections to store college data (voters, registeredVoters, numberOfVoted)
-        totalStudents: 0,
-        fakeCurrentDate: null,
-        electionStatus: "Election Not Active",
-        currentPeriod: { name: "Election Not Active", duration: "", waitingFor: null },
-      };
+      let electionConfig = await db.collection("election_config").findOne({});
 
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
@@ -2501,69 +2462,25 @@ const startServer = async () => {
       res.render("contact");
     });
 
-    // app.post("/vote", async (req, res) => {
-    //   try {
-    //     const { voterId, college, votes } = req.body;
-    //     if (!voterId || !college || !votes) {
-    //       return res.status(400).json({ error: "Missing voterId, college, or votes" });
-    //     }
+    app.get("/index-results-are-out-period", async (req, res) => {
+      res.render("homepages/index-results-are-out-period");
+    });
 
-    //     let positions = [];
-    //     let indices = [];
+    app.get("/rvs-about", async (req, res) => {
+      res.render("homepages/rvs-about");
+    });
 
-    //     // Single-choice votes
-    //     if (votes.president !== undefined) {
-    //       positions.push(ethers.encodeBytes32String("President"));
-    //       indices.push(votes.president);
-    //     }
-    //     if (votes.vicePresident !== undefined) {
-    //       positions.push(ethers.encodeBytes32String("Vice President"));
-    //       indices.push(votes.vicePresident);
-    //     }
+    app.get("/rvs-voter-turnout", async (req, res) => {
+      res.render("homepages/rvs-voter-turnout");
+    });
 
-    //     // Multi-choice: Senators (allowing multiple votes)
-    //     if (Array.isArray(votes.senators)) {
-    //       votes.senators.forEach((candidateIndex) => {
-    //         positions.push(ethers.encodeBytes32String("Senator"));
-    //         indices.push(candidateIndex);
-    //       });
-    //     }
+    app.get("/rvs-votes-per-candidate", async (req, res) => {
+      res.render("homepages/rvs-votes-per-candidate");
+    });
 
-    //     // College-specific positions (e.g., Governor and Vice Governor)
-    //     if (votes.governor !== undefined) {
-    //       const governorPos = `${college} - Governor`;
-    //       positions.push(ethers.encodeBytes32String(governorPos));
-    //       indices.push(votes.governor);
-    //     }
-    //     if (votes.viceGovernor !== undefined) {
-    //       const viceGovernorPos = `${college} - Vice Governor`;
-    //       positions.push(ethers.encodeBytes32String(viceGovernorPos));
-    //       indices.push(votes.viceGovernor);
-    //     }
-
-    //     // Board Member vote (based on the voter's program)
-    //     // Expecting a boardMemberKey which was used during candidate submission
-    //     if (votes.boardMember !== undefined && votes.boardMemberKey) {
-    //       positions.push(ethers.encodeBytes32String(votes.boardMemberKey));
-    //       indices.push(votes.boardMember);
-    //     }
-
-    //     // Create a unique voter hash.
-    //     // Here we use keccak256 on the voterId (converted to UTF-8 bytes)
-    //     const voterHash = ethers.keccak256(ethers.toUtf8Bytes(voterId));
-
-    //     // Submit the votes in one transaction using batchVote.
-    //     const tx = await contract.batchVote(positions, indices, voterHash);
-    //     await tx.wait();
-
-    //     res.json({ message: "Vote submitted successfully!", txHash: tx.hash });
-    //   } catch (error) {
-    //     console.error("Vote submission error:", error);
-    //     res.status(500).json({ error: "Failed to submit vote", details: error.toString() });
-    //   }
-    // });
-
-    // Example function to list out all candidate positions and their indices
+    app.get("/rvs-election-results", async (req, res) => {
+      res.render("homepages/rvs-election-results");
+    });
 
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);

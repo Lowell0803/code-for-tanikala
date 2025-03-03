@@ -19,6 +19,11 @@
   --height-content: calc(100vh - var(--height-header) - var(--height-footer));
 }
 
+#active-tab,
+#active-sub {
+  background-color: var(--color-hover);
+}
+
 .sidebar {
   position: relative;
   top: 0;
@@ -34,6 +39,8 @@
 
   z-index: 100;
   transition: all 0.5s ease;
+  box-shadow: rgba(0, 0, 0, 0.1) 5px 5px 15px, rgba(0, 0, 0, 0.05) 5px 5px 15px;
+  /* box-shadow: rgba(0, 0, 0, 0.1) 5px 5px 15px, rgba(0, 0, 0, 0.05) 10px 0px 10px; */
 }
 
 .sidebar.close {
@@ -71,7 +78,7 @@
 
 .sidebar .user-details .user-name {
   font-size: 1.375rem; /* changed from 22px to 1.375rem */
-  color: black;
+  color: #480404;
   font-weight: 600;
   transition: 0.3s ease;
   transition-delay: 0.1s;
@@ -116,7 +123,7 @@
   min-width: 6rem; /* changed from 78px to 6rem */
   text-align: center;
   line-height: 3rem; /* changed from 50px to 3rem */
-  color: black;
+  color: #480404;
   font-size: 1.25rem; /* changed from 20px to 1.25rem */
   cursor: pointer;
   transition: all 0.3s ease;
@@ -140,7 +147,7 @@
 .sidebar .nav-links li a .link_name {
   font-size: 1.125rem; /* changed from 18px to 1.125rem */
   font-weight: 400;
-  color: black;
+  color: #480404;
   transition: all 0.4s ease;
 }
 
@@ -162,7 +169,7 @@
 }
 
 .sidebar .nav-links li .sub-menu a {
-  color: black;
+  color: #480404;
   font-weight: 500;
   font-size: 0.9375rem; /* changed from 15px to 0.9375rem */
   padding: 0.3125rem 0; /* changed from 5px to 0.3125rem */
@@ -256,20 +263,22 @@
   border-radius: 50%;
 }
 
-.sidebar .profile-details .profile-name,
+.sidebar .profile-details .profile-name {
+  margin-bottom: 0.1rem;
+}
+
 .sidebar .profile-details .job,
 .sidebar .profile-details img {
-  margin-bottom: 2%;
+  margin-bottom: 0.5rem;
 }
 
 .sidebar.close .profile-details img {
   padding: 0.625rem; /* changed from 10px to 0.625rem */
 }
 
-.sidebar .profile-details .profile-name,
-.sidebar .profile-details .job {
-  color: #000000;
-  font-size: 1.125rem; /* changed from 18px to 1.125rem */
+.sidebar .profile-details .profile-name {
+  color: #480404;
+  font-size: 1.125rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -280,7 +289,8 @@
 
 .sidebar .profile-details .job {
   font-size: 1rem;
-  color: rgb(40, 40, 40);
+  color: #560505;
+  font-style: italic;
 }
 
 .sidebar.close .profile-details i,
@@ -329,8 +339,29 @@
   }
 }
 
-hr {
+.nav-links hr {
   display: block;
   border: 0;
-  border-top: 0.1rem solid #000000;
+  border-top: 0.1rem solid #480404 !important;
+}
+
+.profile-details .profile-name {
+  color: #480404;
+}
+
+.header-user .profile {
+  padding-right: 0.8rem;
+  line-height: 1.3rem;
+  color: #f2ddb4;
+  /* border: 1px solid black; */
+}
+
+.header-user .profile .admin-name {
+  color: #e1ae5b;
+  font-weight: bold;
+}
+
+.header-user .job {
+  font-size: 0.8rem;
+  font-style: italic;
 }

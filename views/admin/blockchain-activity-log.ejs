@@ -8,10 +8,12 @@
 
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/blockchain-activity-log.css" />
 
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
   </head>
@@ -82,7 +84,10 @@
       </div>
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <span class="job"><%= loggedInAdmin.role %></span>
+        </div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="/edit-account">View Account</a>
@@ -139,7 +144,7 @@
           </li>
 
           <li>
-            <div class="icon-link">
+            <div class="icon-link" id="active-tab">
               <a href="/blockchain-management">
                 <i class="fa fa-link"></i>
                 <span class="link_name">Blockchain</span>
@@ -149,7 +154,7 @@
             <ul class="sub-menu">
               <li><a class="link_name" href="/blockchain-management">Blockchain</a></li>
               <li><a href="/blockchain-management">Blockchain Management</a></li>
-              <li><a href="/blockchain-activity-log">Activity Log</a></li>
+              <li><a href="/blockchain-activity-log" id="active-sub">Activity Log</a></li>
             </ul>
           </li>
 
@@ -199,7 +204,45 @@
           </li>
         </ul>
       </div>
-      <main class="main"></main>
+      <main class="main">
+        <div class="title-container">
+          <div class="r">
+            <i class="fa-brands fa-ethereum"></i>
+            <h1 class="title">Blockchain Activity Log</h1>
+          </div>
+        </div>
+        <hr class="title-line" />
+        <div class="first-main">
+          <h3 class="brown indent">Blockchain Link: <span></span></h3>
+          <br />
+          <table id="blockchainActivityTable">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Transaction Hash</th>
+                <th>Action</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- logic -->
+              <tr>
+                <td>2025-02-20 10:30 AM</td>
+                <td>0xA1wjwdininfenifei</td>
+                <td>Smart Contract Deployed</td>
+                <td>Election contract deployed.</td>
+              </tr>
+              <!-- logic -->
+              <tr>
+                <td>2025-02-20 10:30 AM</td>
+                <td>0xA1wjwdininfenifei</td>
+                <td>Smart Contract Deployed</td>
+                <td>Election contract deployed.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
 
     <footer class="footer">

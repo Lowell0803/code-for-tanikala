@@ -13,6 +13,7 @@
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
   </head>
@@ -83,7 +84,10 @@
       </div>
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <span class="job"><%= loggedInAdmin.role %></span>
+        </div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="/edit-account">View Account</a>
@@ -155,7 +159,7 @@
           </li>
 
           <li>
-            <div class="icon-link">
+            <div class="icon-link" id="active-tab">
               <a href="/voter-info">
                 <i class="fa fa-bar-chart"></i>
                 <span class="link_name">Election</span>
@@ -164,7 +168,7 @@
             </div>
             <ul class="sub-menu">
               <li><a class="link_name" href="/voter-info"><%= electionConfig.electionName || "No Election Ongoing" %></a></li>
-              <li><a href="/voter-info">Voter Info</a></li>
+              <li><a href="/voter-info" id="active-sub">Voter Info</a></li>
               <li><a href="/voter-turnout">Voter Turnout</a></li>
               <li><a href="/vote-tally">Vote Tally</a></li>
               <li><a href="/results">Results</a></li>
@@ -201,22 +205,38 @@
         </ul>
       </div>
       <main class="main">
+        <div class="title-container">
+          <div class="r">
+            <i class="fa-regular fa-address-card"></i>
+            <h1 class="title">Voter Information</h1>
+          </div>
+        </div>
+        <hr class="title-line" />
         <div class="main-header">
           <div class="main-header-title">
-            <h1>List of Registered Student Voters</h1>
+            <h1 class="brown">List of Registered Student Voters</h1>
           </div>
-          <div class="main-header-search">
-            <input type="text" />
+          <div class="group">
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+              <g>
+                <path
+                  d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"
+                ></path>
+              </g>
+            </svg>
+            <input placeholder="Search" type="search" class="input" />
           </div>
           <div class="main-header-options">
             <img src="../img/setting.png" class="option-filter" />
             <img src="../img/printer.png" class="option-print" />
           </div>
         </div>
+        <br />
         <div class="main-content">
           <table id="studentTable">
             <thead>
               <tr>
+                <th class="no">NO.</th>
                 <th>NAME</th>
                 <th>EMAIL</th>
                 <th>STUDENT NO.</th>
@@ -229,6 +249,7 @@
             <tbody>
               <% if (voters.length > 0) { %> <% voters.forEach(voter => { %>
               <tr>
+                <td><%= voter.no %></td>
                 <td><%= voter.name %></td>
                 <td><%= voter.email %></td>
                 <td><%= voter.student_number %></td>

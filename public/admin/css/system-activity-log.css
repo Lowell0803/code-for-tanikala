@@ -1,0 +1,19 @@
+th {
+  background: #323847;
+}
+
+table {
+  outline: 2px solid #323847;
+}
+
+.select-log {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  justify-content: flex-end;
+  padding-right: 2rem;
+}
+
+.select-log input {
+  margin-right: 0.3rem;
+}

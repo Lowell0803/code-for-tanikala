@@ -83,7 +83,10 @@
       </div>
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <span class="job"><%= loggedInAdmin.role %></span>
+        </div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="/edit-account">View Account</a>
@@ -172,13 +175,13 @@
             </ul>
           </li>
 
-          <li>
+          <li id="active-tab">
             <a href="/archives">
               <i class="bx bx-archive"></i>
               <span class="link_name">Election Archives</span>
             </a>
             <ul class="sub-menu blank">
-              <li><a class="link_name" href="/archives">Election Archives</a></li>
+              <li><a class="link_name" id="active-sub" href="/archives">Election Archives</a></li>
             </ul>
           </li>
 
@@ -201,7 +204,14 @@
         </ul>
       </div>
       <main class="main">
-        <div class="title-container"><h1 class="title">Archived Elections</h1></div>
+         <div class="title-container">
+          <div class="r">
+             <i class="bx bx-archive"></i>
+            <h1 class="title">Election Archives</h1>
+          </div>
+        </div>
+        <hr class="title-line" />
+        <div class="first-main">
 
         <section class="archive-list">
           <% if (archives && archives.length > 0) { %>
@@ -213,13 +223,13 @@
                 <th>Registration Period</th>
                 <th>Voting Period</th>
                 <th>Election Status</th>
-                <th>Archived At</th>
                 <!-- New column for exporting candidate data -->
                 <th>Election Details</th>
                 <th>Candidates</th>
                 <th>Voter Turnout</th>
                 <th>Vote Tally</th>
                 <th>Blockchain Details</th>
+                <th>Archived At</th>
               </tr>
             </thead>
             <tbody>
@@ -230,7 +240,6 @@
                 <td><%= archive.registrationStart ? new Date(archive.registrationStart).toLocaleString() : "N/A" %> - <%= archive.registrationEnd ? new Date(archive.registrationEnd).toLocaleString() : "N/A" %></td>
                 <td><%= archive.votingStart ? new Date(archive.votingStart).toLocaleString() : "N/A" %> - <%= archive.votingEnd ? new Date(archive.votingEnd).toLocaleString() : "N/A" %></td>
                 <td><%= archive.electionStatus %></td>
-                <td><%= archive.archivedAt ? new Date(archive.archivedAt).toLocaleString() : "N/A" %></td>
                 <!-- Export button/link -->
                 <td>
                   <a href="/api/export-archive/<%= archive._id %>" target="_blank">Export</a>
@@ -247,6 +256,7 @@
                 <td>
                   <a href="/api/export-archive/<%= archive._id %>" target="_blank">Export</a>
                 </td>
+                 <td><%= archive.archivedAt ? new Date(archive.archivedAt).toLocaleString() : "N/A" %></td>
               </tr>
               <% }); %>
             </tbody>
