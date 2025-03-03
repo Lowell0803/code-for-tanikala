@@ -221,17 +221,20 @@ const startServer = async () => {
 
     app.get("/api/listCandidates", async (req, res) => {
       try {
-        const candidateCount = await contract.getCandidateCount();
-        const candidates = [];
-        // Loop through each candidate index
+        // Get the total number of candidates as a BigInt and convert to a Number.
+        const candidateCount = Number(await contract.getCandidateCount());
+        let candidates = [];
+
+        // Loop over all candidate indices to retrieve candidate ID and vote count
         for (let i = 0; i < candidateCount; i++) {
           const candidateId = await contract.candidateList(i);
           const votes = await contract.candidateVotes(candidateId);
           candidates.push({
-            candidateId: candidateId,
-            votes: votes.toString(),
+            candidateId,
+            votes: votes.toString(), // Convert BigInt to string for response
           });
         }
+
         res.status(200).json({ candidates });
       } catch (error) {
         console.error("Error fetching candidates:", error);
