@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\Lowell\\Documents\\PROJECTS\\tanikala-backend\\contracts\\AdminCandidates.sol": {
-      "lastModificationDate": 1741014609141,
-      "contentHash": "73eedb5eee1b794f7e58c7544f62322d",
+      "lastModificationDate": 1741017413760,
+      "contentHash": "805b6e2a30984a50f083021599cedd56",
       "sourceName": "contracts/AdminCandidates.sol",
       "solcConfig": {
         "version": "0.8.21",

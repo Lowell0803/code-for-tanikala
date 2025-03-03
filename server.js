@@ -200,7 +200,6 @@ const startServer = async () => {
         const candidateIds = aggregatedCandidates.map((candidate) => candidate.uniqueId);
 
         // Submit the candidate unique IDs to the blockchain using the smart contract.
-        // Since we're using ethers.js, we call the function directly and wait for the transaction.
         const tx = await contract.registerCandidates(candidateIds);
         const receipt = await tx.wait();
 
@@ -219,25 +218,18 @@ const startServer = async () => {
       }
     });
 
-    app.get("/api/listCandidates", async (req, res) => {
+    // New API endpoint to list all candidate details (IDs and vote counts) from the blockchain
+    app.get("/api/getCandidateDetails", async (req, res) => {
       try {
-        // Get the total number of candidates as a BigInt and convert to a Number.
-        const candidateCount = Number(await contract.getCandidateCount());
-        let candidates = [];
+        // Call the getCandidateDetails function from the contract
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
 
-        // Loop over all candidate indices to retrieve candidate ID and vote count
-        for (let i = 0; i < candidateCount; i++) {
-          const candidateId = await contract.candidateList(i);
-          const votes = await contract.candidateVotes(candidateId);
-          candidates.push({
-            candidateId,
-            votes: votes.toString(), // Convert BigInt to string for response
-          });
-        }
+        // Convert voteCounts to strings for JSON serialization
+        const serializedVoteCounts = voteCounts.map((vote) => vote.toString());
 
-        res.status(200).json({ candidates });
+        res.status(200).json({ candidateIds, voteCounts: serializedVoteCounts });
       } catch (error) {
-        console.error("Error fetching candidates:", error);
+        console.error("Error fetching candidate details:", error);
         res.status(500).json({ error: error.message });
       }
     });

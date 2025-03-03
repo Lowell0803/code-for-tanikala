@@ -45,4 +45,16 @@ contract AdminCandidates {
     function getCandidateCount() external view returns (uint256) {
         return candidateList.length;
     }
+
+    /**
+     * @notice Returns an array of candidate IDs and an array of corresponding vote counts.
+     */
+    function getCandidateDetails() external view returns (bytes32[] memory, uint256[] memory) {
+        uint256 count = candidateList.length;
+        uint256[] memory votes = new uint256[](count);
+        for (uint256 i = 0; i < count; i++) {
+            votes[i] = candidateVotes[candidateList[i]];
+        }
+        return (candidateList, votes);
+    }
 }
