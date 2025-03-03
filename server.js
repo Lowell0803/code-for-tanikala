@@ -981,22 +981,31 @@ const startServer = async () => {
     app.post("/review", (req, res) => {
       const { president, vicePresident, senator, governor, viceGovernor, boardMember } = req.body;
 
-      // Commented out console logs
-      // console.log("President:", president);
-      // console.log("Vice President:", vicePresident);
-      // console.log("Senator:", senator);
-      // console.log("Governor:", governor);
-      // console.log("Vice Governor:", viceGovernor);
-      // console.log("Board Member:", boardMember);
+      // Parse and log each position candidate
+      console.log("President:", JSON.parse(president));
+      console.log("Vice President:", JSON.parse(vicePresident));
 
-      // Render the 'voter/review' view and pass the data
+      // Senator can be an array or a single JSON string:
+      if (Array.isArray(senator)) {
+        senator.forEach((item, index) => {
+          console.log(`Senator ${index}:`, JSON.parse(item));
+        });
+      } else {
+        console.log("Senator:", JSON.parse(senator));
+      }
+
+      console.log("Governor:", JSON.parse(governor));
+      console.log("Vice Governor:", JSON.parse(viceGovernor));
+      console.log("Board Member:", JSON.parse(boardMember));
+
+      // Render the review view and pass the data along
       res.render("voter/review", {
-        president,
-        vicePresident,
-        senator,
-        governor,
-        viceGovernor,
-        boardMember,
+        unparsedPresident: president,
+        unparsedVicePresident: vicePresident,
+        unparsedSenator: senator,
+        unparsedGovernor: governor,
+        unparsedViceGovernor: viceGovernor,
+        unparsedBoardMember: boardMember,
       });
     });
 

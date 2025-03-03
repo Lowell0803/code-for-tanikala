@@ -48,14 +48,23 @@
 
           <h3 class="ballot-header ballot-position">BulSU Supreme Student Council S.Y. 2025-2026</h3>
           <br />
+          <% let president = JSON.parse(unparsedPresident); let vicePresident = JSON.parse(unparsedVicePresident); let governor = JSON.parse(unparsedGovernor); let viceGovernor = JSON.parse(unparsedViceGovernor); let boardMember = JSON.parse(unparsedBoardMember); let senator = Array.isArray(unparsedSenator) ? unparsedSenator : [unparsedSenator]; senator = senator.map(item => JSON.parse(item)); %>
           <ul>
             <li>
               <div class="card">
                 <div class="smallIcon">
-                  <div class="Icon"><img src="image-placeholder.jpg" /></div>
-                  <div class="Name"><h2>President Name</h2></div>
-                  <div class="Roles"><h2>President Position</h2></div>
-                  <div class="Description"><p>Additional information about the president.</p></div>
+                  <div class="Icon">
+                    <img src="<%= president.image %>" alt="<%= president.name %>" />
+                  </div>
+                  <div class="Name">
+                    <h2><%= president.name %></h2>
+                  </div>
+                  <div class="Roles">
+                    <h2><%= president.position %></h2>
+                  </div>
+                  <div class="Description">
+                    <p><%= president.moreInfo %></p>
+                  </div>
                 </div>
               </div>
             </li>
@@ -63,34 +72,78 @@
             <li>
               <div class="card">
                 <div class="smallIcon">
-                  <div class="Icon"><img src="image-placeholder.jpg" /></div>
-                  <div class="Name"><h2>Vice President Name</h2></div>
-                  <div class="Roles"><h2>Vice President Position</h2></div>
-                  <div class="Description"><p>Additional information about the vice president.</p></div>
+                  <div class="Icon">
+                    <img src="<%= vicePresident.image %>" alt="<%= vicePresident.name %>" />
+                  </div>
+                  <div class="Name">
+                    <h2><%= vicePresident.name %></h2>
+                  </div>
+                  <div class="Roles">
+                    <h2><%= vicePresident.position %></h2>
+                  </div>
+                  <div class="Description">
+                    <p><%= vicePresident.moreInfo %></p>
+                  </div>
                 </div>
               </div>
             </li>
             <br />
             <li>
               <div class="senator-cards">
+                <% if (Array.isArray(senator)) { %> <% senator.forEach(function(senatorCandidate) { %>
                 <div class="card">
                   <div class="smallIcon">
-                    <div class="Icon"><img src="image-placeholder.jpg" /></div>
-                    <div class="Name"><h2>Senator Name</h2></div>
-                    <div class="Roles"><h2>Senator Position</h2></div>
-                    <div class="Description"><p>Additional information about the senator.</p></div>
+                    <div class="Icon">
+                      <img src="<%= senatorCandidate.image %>" alt="<%= senatorCandidate.name %>" />
+                    </div>
+                    <div class="Name">
+                      <h2><%= senatorCandidate.name %></h2>
+                    </div>
+                    <div class="Roles">
+                      <h2><%= senatorCandidate.position %></h2>
+                    </div>
+                    <div class="Description">
+                      <p><%= senatorCandidate.moreInfo %></p>
+                    </div>
                   </div>
                 </div>
                 <br />
+                <% }); %> <% } else { %>
+                <div class="card">
+                  <div class="smallIcon">
+                    <div class="Icon">
+                      <img src="<%= senator.image %>" alt="<%= senator.name %>" />
+                    </div>
+                    <div class="Name">
+                      <h2><%= senator.name %></h2>
+                    </div>
+                    <div class="Roles">
+                      <h2><%= senator.position %></h2>
+                    </div>
+                    <div class="Description">
+                      <p><%= senator.moreInfo %></p>
+                    </div>
+                  </div>
+                </div>
+                <br />
+                <% } %>
               </div>
             </li>
             <li>
               <div class="card">
                 <div class="smallIcon">
-                  <div class="Icon"><img src="image-placeholder.jpg" /></div>
-                  <div class="Name"><h2>Governor Name</h2></div>
-                  <div class="Roles"><h2>Governor Position</h2></div>
-                  <div class="Description"><p>Additional information about the governor.</p></div>
+                  <div class="Icon">
+                    <img src="<%= governor.image %>" alt="<%= governor.name %>" />
+                  </div>
+                  <div class="Name">
+                    <h2><%= governor.name %></h2>
+                  </div>
+                  <div class="Roles">
+                    <h2><%= governor.position %></h2>
+                  </div>
+                  <div class="Description">
+                    <p><%= governor.moreInfo %></p>
+                  </div>
                 </div>
               </div>
             </li>
@@ -98,10 +151,18 @@
             <li>
               <div class="card">
                 <div class="smallIcon">
-                  <div class="Icon"><img src="image-placeholder.jpg" /></div>
-                  <div class="Name"><h2>Vice Governor Name</h2></div>
-                  <div class="Roles"><h2>Vice Governor Position</h2></div>
-                  <div class="Description"><p>Additional information about the vice governor.</p></div>
+                  <div class="Icon">
+                    <img src="<%= viceGovernor.image %>" alt="<%= viceGovernor.name %>" />
+                  </div>
+                  <div class="Name">
+                    <h2><%= viceGovernor.name %></h2>
+                  </div>
+                  <div class="Roles">
+                    <h2><%= viceGovernor.position %></h2>
+                  </div>
+                  <div class="Description">
+                    <p><%= viceGovernor.moreInfo %></p>
+                  </div>
                 </div>
               </div>
             </li>
@@ -109,15 +170,24 @@
             <li>
               <div class="card">
                 <div class="smallIcon">
-                  <div class="Icon"><img src="image-placeholder.jpg" /></div>
-                  <div class="Name"><h2>Board Member Name</h2></div>
-                  <div class="Roles"><h2>Board Member Position</h2></div>
-                  <div class="Description"><p>Additional information about the board member.</p></div>
+                  <div class="Icon">
+                    <img src="<%= boardMember.image %>" alt="<%= boardMember.name %>" />
+                  </div>
+                  <div class="Name">
+                    <h2><%= boardMember.name %></h2>
+                  </div>
+                  <div class="Roles">
+                    <h2><%= boardMember.position %></h2>
+                  </div>
+                  <div class="Description">
+                    <p><%= boardMember.moreInfo %></p>
+                  </div>
                 </div>
               </div>
             </li>
             <br />
           </ul>
+
           <form id="voteForm">
             <input type="hidden" id="voterHash" value="20292002480@ms.bulsu.edu.ph" />
 
@@ -130,7 +200,7 @@
               </button>
 
               <input type="hidden" id="voteData" value="Vote data placeholder" />
-              <button type="button" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" class="button">
+              <button type="button" id="submitBtn" value="Submit Votes to Blockchain" onclick="" class="button">
                 <span class="fold"></span>
 
                 <div class="points_wrapper">
@@ -170,76 +240,5 @@
         <p>© 2024 - Fourmula 1</p>
       </div>
     </div>
-
-    <script>
-      async function submitVote(event) {
-        if (event) event.preventDefault(); // Prevent form submission
-
-        let votes = JSON.parse(document.getElementById("voteData").value);
-        let voterHash = document.getElementById("voterHash").value;
-
-        console.log("📡 Submitting Vote - Voter Hash:", voterHash); // Debug log
-
-        if (!voterHash) {
-          alert("❌ Missing voter hash!");
-          return;
-        }
-
-        let hashedVoterHash = await sha256(voterHash);
-        console.log("🔐 Hashed Voter Hash:", hashedVoterHash);
-
-        const voterCollege = "voterCollege placeholder";
-        const voterProgram = "voterProgram placeholder";
-
-        let formattedVotes = {
-          President: votes.president,
-          "Vice President": votes.vicePresident,
-          Senator: votes.senator,
-        };
-
-        if (votes.governor) {
-          formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
-        }
-        if (votes.viceGovernor) {
-          formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
-        }
-        if (votes.boardMember) {
-          formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
-        }
-
-        console.log("📡 Sending Request to Server:", formattedVotes);
-
-        try {
-          let response = await fetch("/submit-vote", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ votes: formattedVotes, voterHash: hashedVoterHash, voterCollege, voterProgram }),
-          });
-
-          console.log("📡 Server Response:", response.status, response.statusText);
-
-          if (response.ok) {
-            let data = await response.json();
-            console.log("✅ Redirecting to", data.redirect);
-            window.location.href = data.redirect;
-          } else {
-            let data = await response.json();
-            console.error("❌ Submission failed:", data.error);
-            alert("❌ Submission failed: " + data.error);
-          }
-        } catch (error) {
-          console.error("❌ Error submitting vote:", error);
-          alert("❌ Failed to submit votes. Please check the console for details.");
-        }
-      }
-
-      async function sha256(input) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(input);
-        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
-      }
-    </script>
   </body>
 </html>
