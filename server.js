@@ -981,6 +981,14 @@ const startServer = async () => {
     app.post("/review", (req, res) => {
       const { president, vicePresident, senator, governor, viceGovernor, boardMember } = req.body;
 
+      // Log the values (after checking and possibly stringifying)
+      console.log("President:", typeof president);
+      console.log("Vice President:", typeof vicePresident);
+      console.log("Senator:", typeof senator);
+      console.log("Governor:", typeof governor);
+      console.log("Vice Governor:", typeof viceGovernor);
+      console.log("Board Member:", typeof boardMember);
+
       console.log("President:", president);
       console.log("Vice President:", vicePresident);
       console.log("Senator:", senator);
@@ -988,31 +996,14 @@ const startServer = async () => {
       console.log("Vice Governor:", viceGovernor);
       console.log("Board Member:", boardMember);
 
-      // // Parse and log each position candidate
-      // console.log("President:", JSON.parse(president));
-      // console.log("Vice President:", JSON.parse(vicePresident));
-
-      // // Senator can be an array or a single JSON string:
-      // if (Array.isArray(senator)) {
-      //   senator.forEach((item, index) => {
-      //     console.log(`Senator ${index}:`, JSON.parse(item));
-      //   });
-      // } else {
-      //   console.log("Senator:", JSON.parse(senator));
-      // }
-
-      // console.log("Governor:", JSON.parse(governor));
-      // console.log("Vice Governor:", JSON.parse(viceGovernor));
-      // console.log("Board Member:", JSON.parse(boardMember));
-
-      // Render the review view and pass the data along
+      // Render the page with stringified values if they are objects
       res.render("voter/review", {
-        unparsedPresident: president,
-        unparsedVicePresident: vicePresident,
-        unparsedSenator: senator,
-        unparsedGovernor: governor,
-        unparsedViceGovernor: viceGovernor,
-        unparsedBoardMember: boardMember,
+        president: president,
+        vicePresident: vicePresident,
+        senator: senator,
+        governor: governor,
+        viceGovernor: viceGovernor,
+        boardMember: boardMember,
       });
     });
 

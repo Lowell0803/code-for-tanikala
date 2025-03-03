@@ -48,8 +48,7 @@
 
           <h3 class="ballot-header ballot-position">BulSU Supreme Student Council S.Y. 2025-2026</h3>
           <br />
-          <% const safe = (value) => value == null ? "" : value; const safeParse = (value) => { try { return typeof value === 'string' ? JSON.parse(value) : value; } catch (e) { return value; } }; let president = safeParse(unparsedPresident); let vicePresident = safeParse(unparsedVicePresident); let governor = safeParse(unparsedGovernor); let viceGovernor = safeParse(unparsedViceGovernor); let boardMember = safeParse(unparsedBoardMember); let senator = Array.isArray(unparsedSenator) ?
-          unparsedSenator : [unparsedSenator]; senator = senator.map(item => safeParse(item)); %>
+          <% const safe = (value) => value == null ? "" : value; %>
 
           <ul>
             <li>
