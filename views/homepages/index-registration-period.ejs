@@ -148,8 +148,8 @@
         const now = baseNow + elapsed;
         let distance = 0;
         if (now < registrationStart) {
-          electionPeriodElem.textContent = "Waiting for Registration Period:";
-          timeLeftElem.textContent = "Starts In:";
+          electionPeriodElem.textContent = "Registration Period:";
+          timeLeftElem.textContent = "Time Until Registration Opens:";
           distance = registrationStart - now;
           registerButton.style.display = "none";
         } else if (now >= registrationStart && now <= registrationEnd) {

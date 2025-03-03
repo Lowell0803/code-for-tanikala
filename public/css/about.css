@@ -91,10 +91,6 @@
   width: 7em;
 }
 
-li {
-  list-style-type: disc;
-}
-
 .header-nav li {
   list-style-type: none;
 }
@@ -167,7 +163,7 @@ h4 {
 }
 
 .light-yellow {
-  color: rgb(181, 25, 25);
+  color: #e1ae5b;
 }
 
 .center {
@@ -204,10 +200,6 @@ h5 {
 .highlight {
   color: var(--color-mediumYellow);
   font-weight: bold;
-}
-
-ol {
-  padding-left: 1rem;
 }
 
 .text-left {

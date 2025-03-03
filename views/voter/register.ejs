@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>TANIKALA Voting System</title>
     <link rel="stylesheet" type="text/css" href="css/index.css" />
-    <link rel="stylesheet" type="text/css" href="voter/css/index_voter.css" />
+    <link rel="stylesheet" type="text/css" href="voter/css/index-voter.css" />
     <link rel="stylesheet" type="text/css" href="voter/css/register.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="components/notification.css" />
@@ -16,11 +16,11 @@
       <div class="header-logo">
         <img src="../img/logo_tanikala.png" alt="TANIKALA Voting System" />
       </div>
-      <div class="header-nav">
+      <nav class="header-nav">
         <ul class="header-nav-content">
           <li>Voter Registration</li>
         </ul>
-      </div>
+      </nav>
       <div class="header-bottom-line"></div>
     </header>
 
@@ -28,7 +28,7 @@
       <div class="main-first">
         <img src="../img/logo_bulsu.png" class="logo" alt="BulSU Logo" />
         <div class="first-text">
-          <h1 class="title">BulSU Student Government Elections<br />2024 - 2025</h1>
+          <h2 class="title">BulSU Student Government Elections<br />2025 - 2026</h2>
         </div>
         <img src="../img/logo_bulsu_ucse.png" class="logo" alt="BulSU UCSE Logo" />
       </div>
@@ -36,23 +36,23 @@
         <form id="form-registration" action="/register" method="POST">
           <div class="row">
             <img src="../img/voter-registration.png" />
-            <h1>Voter Registration Form</h1>
+            <h6>Voter Registration Form</h6>
           </div>
           <br />
 
           <div class="form-input-container">
             <label for="full-name" class="form-label">Name: </label>
-            <input type="text" id="full-name" class="form-input" name="fullName" value="<%= user ? user.name : '' %>" placeholder="e.g. Yvan Lowell Aquino" readonly />
+            <input type="text" id="full-name" class="form-input" name="fullName" value="<%= user ? user.name : '' %>" placeholder="e.g. Juan Dela Cruz" readonly />
           </div>
 
           <div class="form-input-container">
             <label for="bulsu-account" class="form-label">BulSU Email: </label>
-            <input type="email" id="bulsu-account" class="form-input" name="email" value="<%= user ? user.email : '' %>" placeholder="e.g. 2021100291@ms.bulsu.edu.ph" readonly />
+            <input type="email" id="bulsu-account" class="form-input" name="email" value="<%= user ? user.email : '' %>" placeholder="e.g. 2021123456@ms.bulsu.edu.ph" readonly />
           </div>
 
           <div class="form-input-container">
             <label for="student-number" class="form-label">Student Number: </label>
-            <input type="number" id="student-number" class="form-input" name="studentNumber" placeholder="e.g. 2021100291" readonly />
+            <input type="number" id="student-number" class="form-input" name="studentNumber" placeholder="e.g. 2021123456" readonly />
           </div>
 
           <div class="form-input-container">
@@ -90,7 +90,7 @@
               <option value="" disabled selected>Select a College First</option>
             </select>
           </div>
-
+          <br />
           <div class="form-button">
             <!-- <input type="reset" value="RESET" /> -->
             <!-- Change submit type to button -->

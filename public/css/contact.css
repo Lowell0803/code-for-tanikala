@@ -57,7 +57,7 @@
   margin-left: 4%;
   margin-bottom: 5%;
 
-  height: 77vh;
+  height: 75vh;
 }
 
 .message {
@@ -163,4 +163,8 @@ input:-webkit-autofill:active {
 
 .text {
   font-size: 1.2rem;
+}
+
+.red {
+  color: #6e1311;
 }

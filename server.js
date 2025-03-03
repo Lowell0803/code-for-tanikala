@@ -2497,6 +2497,26 @@ const startServer = async () => {
       res.render("contact");
     });
 
+    app.get("/index-results-are-out-period", async (req, res) => {
+      res.render("homepages/index-results-are-out-period");
+    });
+
+    app.get("/rvs-about", async (req, res) => {
+      res.render("homepages/rvs-about");
+    });
+
+    app.get("/rvs-voter-turnout", async (req, res) => {
+      res.render("homepages/rvs-voter-turnout");
+    });
+
+    app.get("/rvs-votes-per-candidate", async (req, res) => {
+      res.render("homepages/rvs-votes-per-candidate");
+    });
+
+    app.get("/rvs-election-results", async (req, res) => {
+      res.render("homepages/rvs-election-results");
+    });
+
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
     });

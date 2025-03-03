@@ -198,18 +198,12 @@ form img {
   background-color: #c11515;
 }
 
-.ssc {
-  color: #a60212;
-}
-.lsc {
-  color: #0b8000;
-}
-
 .purple {
-  color: #402e7b;
+  color: #511e77;
 }
 
 .smart-contract-status {
   font-weight: normal;
+  color: #482e03;
   /* border: 1px solid black; */
 }

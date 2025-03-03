@@ -95,7 +95,10 @@
       </div>
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <i> <span class="job"><%= loggedInAdmin.role %></span></i>
+        </div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="/edit-account">View Account</a>
@@ -213,104 +216,112 @@
         </ul>
       </div>
       <main class="main">
-        <!-- Display Current Election Configuration -->
-        <h1 class="settings-title">Election Configuration</h1>
-        <br />
-        <section class="election-info">
-          <% if (electionConfig.electionName) { %>
-          <p class="election-name">&nbsp;<strong>Election Name:</strong> <%= electionConfig.electionName %></p>
-          <hr />
-          <% } %> <% if (electionConfig.currentPeriod.name) { %>
-          <p><i class="bx bx-calendar-check"></i>&nbsp;<strong>Status:</strong> <%= electionConfig.currentPeriod.name %></p>
-          <% } %> <% if (electionConfig.registrationStart && electionConfig.registrationEnd) { %>
-          <p>
-            <i class="bx bx-edit-alt"></i>
-            <strong>Registration Period:</strong>
-            <%= new Date(electionConfig.registrationStart).toLocaleString() %> - <%= new Date(electionConfig.registrationEnd).toLocaleString() %>
-          </p>
-          <% } %> <% if (electionConfig.votingStart && electionConfig.votingEnd) { %>
-          <p>
-            <i class="bx bx-list-ul"></i>
-            <strong>Voting Period:</strong>
-            <%= new Date(electionConfig.votingStart).toLocaleString() %> - <%= new Date(electionConfig.votingEnd).toLocaleString() %>
-          </p>
-          <% } %>
-        </section>
-        <br />
-        <!-- Election Creation / Update Form -->
-        <section class="create-election">
-          <h2>Create / Update Election</h2>
-          <hr />
-          <form action="/configuration" method="POST">
-            <div>
-              <label for="electionName">Election Name:</label>
-              <input class="input" type="text" id="electionName" name="electionName" value="<%= electionConfig.electionName %>" required />
-            </div>
-            <div>
-              <label for="registrationStart">Registration Start Date:</label>
-              <input class="input" type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig.registrationStart ? new Date(electionConfig.registrationStart).toISOString().slice(0,16) : '' %>" required />
-            </div>
-            <div>
-              <label for="registrationEnd">Registration End Date:</label>
-              <input class="input" type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig.registrationEnd ? new Date(electionConfig.registrationEnd).toISOString().slice(0,16) : '' %>" required />
-            </div>
-            <div>
-              <label for="votingStart">Voting Start Date:</label>
-              <input class="input" type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig.votingStart ? new Date(electionConfig.votingStart).toISOString().slice(0,16) : '' %>" required />
-            </div>
-            <div>
-              <label for="votingEnd">Voting End Date:</label>
-              <input class="input" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig.votingEnd ? new Date(electionConfig.votingEnd).toISOString().slice(0,16) : '' %>" required />
-            </div>
-            <div>
-              <label for="partylists">Partylists (comma separated):</label>
-              <input class="input" type="text" id="partylists" name="partylists" value="<%= electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
-            </div>
-            <fieldset>
-              <legend><strong>Number of Students Per College</strong></legend>
-              <% if (electionConfig.listOfElections && electionConfig.listOfElections.length > 0) { %> <% electionConfig.listOfElections.forEach(function(college) { %>
-              <div class="num-of-students">
-                <div>
-                  <img height="50" src="img/colleges/<%= college.acronym %>.png" />
-                  <label for="<%= college.acronym %>"> <%= college.name %> (<%= college.acronym %>): </label>
-                </div>
-                <input class="input" type="number" id="<%= college.acronym %>" name="colleges[<%= college.acronym %>]" value="<%= college.voters %>" min="0" required />
-              </div>
-              <% }); %> <% } else { %>
-              <p>No college data available.</p>
-              <% } %>
-            </fieldset>
-
-            <button class="button button-save" type="submit">Save Election Configuration</button>
-          </form>
-
-          <!-- Action Buttons -->
-          <% const effectiveDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date(); %>
-          <div style="margin-top: 20px">
-            <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
-            <form action="/resume-election" method="POST">
-              <button type="submit" style="background-color: #4caf50; color: #fff">Resume Election</button>
-            </form>
-            <% } else { %>
-            <form action="/temporarily-closed" method="POST">
-              <button type="submit" style="background-color: #f44336; color: #fff">Temporarily Close Election</button>
-            </form>
-            <% } %> <% if (electionConfig.votingEnd && effectiveDate > new Date(electionConfig.votingEnd) && electionConfig.electionStatus !== "Results Are Out") { %>
-            <form action="/set-results-out" method="POST">
-              <button type="submit" style="background-color: #4caf50; color: #fff">Set Results Are Out</button>
-            </form>
-            <% } %>
-            <form action="/reset-election" method="POST">
-              <button type="submit" style="background-color: #000; color: #fff">Reset Election</button>
-            </form>
+        <div class="title-container">
+          <div class="r">
+            <i class="fa fa-cogs"></i>
+            <h1 class="title">Configuration</h1>
           </div>
-        </section>
+        </div>
+        <hr class="title-line" />
+        <div class="first-main">
+          <!-- Display Current Election Configuration -->
 
-        <!-- Test Date Picker for simulating the current date -->
-        <div class="test-date">
-          <label for="testDatePicker">Test Current Date:</label>
-          <input type="datetime-local" id="testDatePicker" onchange="updateCurrentPeriod()" />
-          <small>(Select a datetime to simulate the current date and update the phase)</small>
+          <section class="election-info">
+            <% if (electionConfig.electionName) { %>
+            <p class="election-name">&nbsp;<strong>Election Name:</strong> <%= electionConfig.electionName %></p>
+            <hr />
+            <% } %> <% if (electionConfig.currentPeriod.name) { %>
+            <p><i class="bx bx-calendar-check"></i>&nbsp;<strong>Status:</strong> <%= electionConfig.currentPeriod.name %></p>
+            <% } %> <% if (electionConfig.registrationStart && electionConfig.registrationEnd) { %>
+            <p>
+              <i class="bx bx-edit-alt"></i>
+              <strong>Registration Period:</strong>
+              <%= new Date(electionConfig.registrationStart).toLocaleString() %> - <%= new Date(electionConfig.registrationEnd).toLocaleString() %>
+            </p>
+            <% } %> <% if (electionConfig.votingStart && electionConfig.votingEnd) { %>
+            <p>
+              <i class="bx bx-list-ul"></i>
+              <strong>Voting Period:</strong>
+              <%= new Date(electionConfig.votingStart).toLocaleString() %> - <%= new Date(electionConfig.votingEnd).toLocaleString() %>
+            </p>
+            <% } %>
+          </section>
+          <br />
+          <!-- Election Creation / Update Form -->
+          <section class="create-election">
+            <h2>Create / Update Election</h2>
+            <hr />
+            <form action="/configuration" method="POST">
+              <div>
+                <label for="electionName">Election Name:</label>
+                <input class="input" type="text" id="electionName" name="electionName" value="<%= electionConfig.electionName %>" required />
+              </div>
+              <div>
+                <label for="registrationStart">Registration Start Date:</label>
+                <input class="input" type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig.registrationStart ? new Date(electionConfig.registrationStart).toISOString().slice(0,16) : '' %>" required />
+              </div>
+              <div>
+                <label for="registrationEnd">Registration End Date:</label>
+                <input class="input" type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig.registrationEnd ? new Date(electionConfig.registrationEnd).toISOString().slice(0,16) : '' %>" required />
+              </div>
+              <div>
+                <label for="votingStart">Voting Start Date:</label>
+                <input class="input" type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig.votingStart ? new Date(electionConfig.votingStart).toISOString().slice(0,16) : '' %>" required />
+              </div>
+              <div>
+                <label for="votingEnd">Voting End Date:</label>
+                <input class="input" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig.votingEnd ? new Date(electionConfig.votingEnd).toISOString().slice(0,16) : '' %>" required />
+              </div>
+              <div>
+                <label for="partylists">Partylists (comma separated):</label>
+                <input class="input" type="text" id="partylists" name="partylists" value="<%= electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
+              </div>
+              <fieldset>
+                <legend><strong>Number of Students Per College</strong></legend>
+                <% if (electionConfig.listOfElections && electionConfig.listOfElections.length > 0) { %> <% electionConfig.listOfElections.forEach(function(college) { %>
+                <div class="num-of-students">
+                  <div>
+                    <img height="50" src="img/colleges/<%= college.acronym %>.png" />
+                    <label for="<%= college.acronym %>"> <%= college.name %> (<%= college.acronym %>): </label>
+                  </div>
+                  <input class="input" type="number" id="<%= college.acronym %>" name="colleges[<%= college.acronym %>]" value="<%= college.voters %>" min="0" required />
+                </div>
+                <% }); %> <% } else { %>
+                <p>No college data available.</p>
+                <% } %>
+              </fieldset>
+
+              <button class="button button-save" type="submit">Save Election Configuration</button>
+            </form>
+
+            <!-- Action Buttons -->
+            <% const effectiveDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date(); %>
+            <div style="margin-top: 20px">
+              <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
+              <form action="/resume-election" method="POST">
+                <button type="submit" style="background-color: #4caf50; color: #fff">Resume Election</button>
+              </form>
+              <% } else { %>
+              <form action="/temporarily-closed" method="POST">
+                <button type="submit" style="background-color: #f44336; color: #fff">Temporarily Close Election</button>
+              </form>
+              <% } %> <% if (electionConfig.votingEnd && effectiveDate > new Date(electionConfig.votingEnd) && electionConfig.electionStatus !== "Results Are Out") { %>
+              <form action="/set-results-out" method="POST">
+                <button type="submit" style="background-color: #4caf50; color: #fff">Set Results Are Out</button>
+              </form>
+              <% } %>
+              <form action="/reset-election" method="POST">
+                <button type="submit" style="background-color: #000; color: #fff">Reset Election</button>
+              </form>
+            </div>
+          </section>
+
+          <!-- Test Date Picker for simulating the current date -->
+          <div class="test-date">
+            <label for="testDatePicker">Test Current Date:</label>
+            <input type="datetime-local" id="testDatePicker" onchange="updateCurrentPeriod()" />
+            <small>(Select a datetime to simulate the current date and update the phase)</small>
+          </div>
         </div>
       </main>
     </div>
