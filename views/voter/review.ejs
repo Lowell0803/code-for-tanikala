@@ -8,37 +8,6 @@
     <link rel="stylesheet" type="text/css" href="voter/css/index_voter.css" />
     <link rel="stylesheet" type="text/css" href="voter/css/review.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
-
-    <style>
-      .loading-bar-container {
-        width: 100%;
-        height: 5px;
-        background: #ddd;
-        position: relative;
-        overflow: hidden;
-        margin-top: 10px;
-      }
-
-      .loading-bar {
-        width: 0%;
-        height: 100%;
-        background: black;
-        position: absolute;
-        animation: loading-animation 2s infinite linear;
-      }
-
-      @keyframes loading-animation {
-        0% {
-          width: 0%;
-        }
-        50% {
-          width: 50%;
-        }
-        100% {
-          width: 100%;
-        }
-      }
-    </style>
   </head>
 
   <body>
@@ -83,10 +52,10 @@
             <li>
               <div class="card">
                 <div class="smallIcon">
-                  <div class="Icon"><img src="<%= votes.president.image %>" /></div>
-                  <div class="Name"><h2><%= votes.president.name %></h2></div>
-                  <div class="Roles"><h2><%= votes.president.position %></h2></div>
-                  <div class="Description"><p><%= votes.president.moreInfo %></p></div>
+                  <div class="Icon"><img src="image-placeholder.jpg" /></div>
+                  <div class="Name"><h2>President Name</h2></div>
+                  <div class="Roles"><h2>President Position</h2></div>
+                  <div class="Description"><p>Additional information about the president.</p></div>
                 </div>
               </div>
             </li>
@@ -94,36 +63,34 @@
             <li>
               <div class="card">
                 <div class="smallIcon">
-                  <div class="Icon"><img src="<%= votes.vicePresident.image %>" /></div>
-                  <div class="Name"><h2><%= votes.vicePresident.name %></h2></div>
-                  <div class="Roles"><h2><%= votes.vicePresident.position %></h2></div>
-                  <div class="Description"><p><%= votes.vicePresident.moreInfo %></p></div>
+                  <div class="Icon"><img src="image-placeholder.jpg" /></div>
+                  <div class="Name"><h2>Vice President Name</h2></div>
+                  <div class="Roles"><h2>Vice President Position</h2></div>
+                  <div class="Description"><p>Additional information about the vice president.</p></div>
                 </div>
               </div>
             </li>
             <br />
             <li>
               <div class="senator-cards">
-                <% votes.senator.forEach((senator) => { %>
                 <div class="card">
                   <div class="smallIcon">
-                    <div class="Icon"><img src="<%= senator.image %>" /></div>
-                    <div class="Name"><h2><%= senator.name %></h2></div>
-                    <div class="Roles"><h2><%= senator.position %></h2></div>
-                    <div class="Description"><p><%= senator.moreInfo %></p></div>
+                    <div class="Icon"><img src="image-placeholder.jpg" /></div>
+                    <div class="Name"><h2>Senator Name</h2></div>
+                    <div class="Roles"><h2>Senator Position</h2></div>
+                    <div class="Description"><p>Additional information about the senator.</p></div>
                   </div>
                 </div>
                 <br />
-                <% }); %>
               </div>
             </li>
             <li>
               <div class="card">
                 <div class="smallIcon">
-                  <div class="Icon"><img src="<%= votes.governor.image %>" /></div>
-                  <div class="Name"><h2><%= votes.governor.name %></h2></div>
-                  <div class="Roles"><h2><%= votes.governor.position %></h2></div>
-                  <div class="Description"><p><%= votes.governor.moreInfo %></p></div>
+                  <div class="Icon"><img src="image-placeholder.jpg" /></div>
+                  <div class="Name"><h2>Governor Name</h2></div>
+                  <div class="Roles"><h2>Governor Position</h2></div>
+                  <div class="Description"><p>Additional information about the governor.</p></div>
                 </div>
               </div>
             </li>
@@ -131,10 +98,10 @@
             <li>
               <div class="card">
                 <div class="smallIcon">
-                  <div class="Icon"><img src="<%= votes.viceGovernor.image %>" /></div>
-                  <div class="Name"><h2><%= votes.viceGovernor.name %></h2></div>
-                  <div class="Roles"><h2><%= votes.viceGovernor.position %></h2></div>
-                  <div class="Description"><p><%= votes.viceGovernor.moreInfo %></p></div>
+                  <div class="Icon"><img src="image-placeholder.jpg" /></div>
+                  <div class="Name"><h2>Vice Governor Name</h2></div>
+                  <div class="Roles"><h2>Vice Governor Position</h2></div>
+                  <div class="Description"><p>Additional information about the vice governor.</p></div>
                 </div>
               </div>
             </li>
@@ -142,10 +109,10 @@
             <li>
               <div class="card">
                 <div class="smallIcon">
-                  <div class="Icon"><img src="<%= votes.boardMember.image %>" /></div>
-                  <div class="Name"><h2><%= votes.boardMember.name %></h2></div>
-                  <div class="Roles"><h2><%= votes.boardMember.position %></h2></div>
-                  <div class="Description"><p><%= votes.boardMember.moreInfo %></p></div>
+                  <div class="Icon"><img src="image-placeholder.jpg" /></div>
+                  <div class="Name"><h2>Board Member Name</h2></div>
+                  <div class="Roles"><h2>Board Member Position</h2></div>
+                  <div class="Description"><p>Additional information about the board member.</p></div>
                 </div>
               </div>
             </li>
@@ -159,14 +126,11 @@
                 <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12H4.5m0 0l6.75-6.75M4.5 12l6.75 6.75"></path>
                 </svg>
-
                 <div class="text">Go Back</div>
               </button>
 
-              <input type="hidden" id="voteData" value="<%= JSON.stringify(votes) %>" />
-              <!-- <input type="button" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" /> -->
-              <!-- From Uiverse.io by ilkhoeri -->
-              <button type="button" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" type="button" class="button">
+              <input type="hidden" id="voteData" value="Vote data placeholder" />
+              <button type="button" id="submitBtn" value="Submit Votes to Blockchain" onclick="submitVote()" class="button">
                 <span class="fold"></span>
 
                 <div class="points_wrapper">
@@ -194,86 +158,6 @@
 
           <br /><br />
           <hr />
-
-          <p id="queuePosition" style="font-weight: bold; color: black; display: block">Queue Position: <span id="queueNumber"></span></p>
-
-          <hr />
-          <br />
-          <div id="loading-bar" class="loading-bar-container" style="display: none">
-            <div class="loading-bar"></div>
-          </div>
-          <br /><br /><br />
-
-          <script>
-            async function submitVote(event) {
-              if (event) event.preventDefault(); // Prevent form submission
-
-              let votes = JSON.parse(document.getElementById("voteData").value);
-              let voterHash = document.getElementById("voterHash").value;
-
-              console.log("📡 Submitting Vote - Voter Hash:", voterHash); // Debug log
-
-              if (!voterHash) {
-                alert("❌ Missing voter hash!");
-                return;
-              }
-
-              let hashedVoterHash = await sha256(voterHash);
-              console.log("🔐 Hashed Voter Hash:", hashedVoterHash);
-
-              const voterCollege = "<%= voterCollege %>";
-              const voterProgram = "<%= voterProgram %>";
-
-              let formattedVotes = {
-                President: votes.president,
-                "Vice President": votes.vicePresident,
-                Senator: votes.senator,
-              };
-
-              if (votes.governor) {
-                formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
-              }
-              if (votes.viceGovernor) {
-                formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
-              }
-              if (votes.boardMember) {
-                formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
-              }
-
-              console.log("📡 Sending Request to Server:", formattedVotes);
-
-              try {
-                let response = await fetch("/submit-vote", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ votes: formattedVotes, voterHash: hashedVoterHash, voterCollege, voterProgram }),
-                });
-
-                console.log("📡 Server Response:", response.status, response.statusText);
-
-                if (response.ok) {
-                  let data = await response.json();
-                  console.log("✅ Redirecting to", data.redirect);
-                  window.location.href = data.redirect;
-                } else {
-                  let data = await response.json();
-                  console.error("❌ Submission failed:", data.error);
-                  alert("❌ Submission failed: " + data.error);
-                }
-              } catch (error) {
-                console.error("❌ Error submitting vote:", error);
-                alert("❌ Failed to submit votes. Please check the console for details.");
-              }
-            }
-
-            async function sha256(input) {
-              const encoder = new TextEncoder();
-              const data = encoder.encode(input);
-              const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-              const hashArray = Array.from(new Uint8Array(hashBuffer));
-              return hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
-            }
-          </script>
         </div>
       </div>
     </div>
@@ -287,6 +171,75 @@
       </div>
     </div>
 
-    <script></script>
+    <script>
+      async function submitVote(event) {
+        if (event) event.preventDefault(); // Prevent form submission
+
+        let votes = JSON.parse(document.getElementById("voteData").value);
+        let voterHash = document.getElementById("voterHash").value;
+
+        console.log("📡 Submitting Vote - Voter Hash:", voterHash); // Debug log
+
+        if (!voterHash) {
+          alert("❌ Missing voter hash!");
+          return;
+        }
+
+        let hashedVoterHash = await sha256(voterHash);
+        console.log("🔐 Hashed Voter Hash:", hashedVoterHash);
+
+        const voterCollege = "voterCollege placeholder";
+        const voterProgram = "voterProgram placeholder";
+
+        let formattedVotes = {
+          President: votes.president,
+          "Vice President": votes.vicePresident,
+          Senator: votes.senator,
+        };
+
+        if (votes.governor) {
+          formattedVotes[`Governor - ${voterCollege}`] = votes.governor;
+        }
+        if (votes.viceGovernor) {
+          formattedVotes[`Vice Governor - ${voterCollege}`] = votes.viceGovernor;
+        }
+        if (votes.boardMember) {
+          formattedVotes[`Board Member - ${voterProgram}`] = votes.boardMember;
+        }
+
+        console.log("📡 Sending Request to Server:", formattedVotes);
+
+        try {
+          let response = await fetch("/submit-vote", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ votes: formattedVotes, voterHash: hashedVoterHash, voterCollege, voterProgram }),
+          });
+
+          console.log("📡 Server Response:", response.status, response.statusText);
+
+          if (response.ok) {
+            let data = await response.json();
+            console.log("✅ Redirecting to", data.redirect);
+            window.location.href = data.redirect;
+          } else {
+            let data = await response.json();
+            console.error("❌ Submission failed:", data.error);
+            alert("❌ Submission failed: " + data.error);
+          }
+        } catch (error) {
+          console.error("❌ Error submitting vote:", error);
+          alert("❌ Failed to submit votes. Please check the console for details.");
+        }
+      }
+
+      async function sha256(input) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(input);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+      }
+    </script>
   </body>
 </html>
