@@ -1157,9 +1157,9 @@ const startServer = async () => {
     app.get("/verify", async (req, res) => {
       const voterReceipt = req.session.voterReceipt;
 
-      if (!voterReceipt) {
-        return res.redirect("/vote"); // Redirect to voting page if no data
-      }
+      // if (!voterReceipt) {
+      //   return res.redirect("/vote"); // Redirect to voting page if no data
+      // }
 
       res.render("voter/verify", {
         votes: voterReceipt.votes,
