@@ -22,7 +22,7 @@
   min-height: 80vh;
   border-radius: 2em;
   color: black;
-  width: 80vw !important;
+  width: 60vw !important;
   margin: 0px 10vw !important;
 }
 
@@ -48,6 +48,12 @@
 
 .ballot-council {
   background-color: var(--color-red);
+  font-size: 1.6rem;
+  text-transform: uppercase;
+}
+
+.ballot-lsc-council {
+  background-color: rgb(52, 179, 52);
   font-size: 1.6rem;
   text-transform: uppercase;
 }
@@ -621,4 +627,8 @@
 .dimmed {
   filter: brightness(50%);
   transition: filter 0.3s ease-in-out;
+}
+
+.content {
+  flex-direction: column;
 }

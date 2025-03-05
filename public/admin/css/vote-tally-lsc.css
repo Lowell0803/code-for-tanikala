@@ -56,7 +56,7 @@
 }
 
 .container-ssc {
-  background-color: var(--background-light-red);
+  background-color: rgb(184, 214, 233);
   margin: 2%;
   padding: 6%;
   border-radius: 2em;
@@ -74,11 +74,15 @@
 }
 
 #container-lsc-governor {
-  background-color: #b4d091;
+  background-color: #bfd99e;
 }
 
 #container-president {
-  background-color: #f6ac9f;
+  background-color: #f0bca9;
+}
+
+#container-vice-president {
+  background-color: #f9cebe;
 }
 
 .ssc {

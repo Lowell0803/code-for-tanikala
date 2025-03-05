@@ -1,44 +1,37 @@
 :root {
-    --height-main-first: 20%;
-    --height-main-second: 80%;
+  --height-main-first: 20%;
+  --height-main-second: 80%;
 }
 
 .header-nav-content {
-    padding-left: 10rem;
+  padding-left: 10rem;
 }
 
 .logo {
-    height: 6.5em;
-    width: auto;
-    opacity: 0.6;
-}
-
-.main-first {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    max-height: var(--height-main-first);
-    width: 70%;
-    margin: 2%;
-}
-
-.first-text {
-    padding: 0% 3%;
+  height: 7rem;
+  width: auto;
+  opacity: 0.6;
 }
 
 .main-second {
-    display: flex;
-    flex-direction: column;
-    flex-basis: var(--height-main-second);
-    width: 46%;
-    margin: 2%;
-    text-align: justify;
+  display: flex;
+  flex-direction: column;
+  flex-basis: var(--height-main-second);
+  width: 50%;
+  /* margin: ; */
+  text-align: justify;
 }
 
 .proceed {
-    width: 20%;
-    padding: 1%;
-    border-radius: 0.5em;
+  width: 20%;
+  padding: 1%;
+  border-radius: 0.5em;
 }
 
+.center {
+  text-align: center;
+}
+
+.yellow {
+  color: #e1ae5b;
+}

@@ -102,6 +102,7 @@ h6 {
 
   align-items: center;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .content-header {
@@ -129,12 +130,6 @@ h6 {
   height: 100%;
 }
 
-.content-main {
-  min-height: var(--height-content-main);
-  /* flex-grow: 1; */
-  min-width: 50%;
-}
-
 /* FOOTER */
 .footer {
   display: flex;
@@ -150,13 +145,7 @@ h6 {
 }
 
 .main-first {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  max-height: var(--height-main-first);
-  width: 70%;
-  margin: 3.5%;
+  margin: 3rem;
 }
 
 .first-text {
@@ -165,4 +154,16 @@ h6 {
 
 .title {
   color: var(--color-darkYellow);
+}
+
+.content {
+  padding-bottom: 4%;
+}
+
+button {
+  cursor: pointer;
+}
+
+.content-main {
+  flex-direction: column;
 }

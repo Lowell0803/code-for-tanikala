@@ -16,11 +16,10 @@
     border: 1px solid black;
   } */
 
-.main {
+.first-main {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  background-color: var(--background-lighter-yellow);
 }
 
 .main-left {
@@ -37,7 +36,7 @@
 
 .container-ssc {
   background-color: var(--background-light-yellow);
-  margin: 4%;
+  margin: 2%;
   padding: 6%;
   border-radius: 2em;
 }

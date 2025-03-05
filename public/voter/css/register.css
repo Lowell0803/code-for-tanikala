@@ -38,7 +38,7 @@
   background: linear-gradient(to bottom, var(--color-mediumYellow), var(--color-lightYellow));
   border-radius: 1.5rem;
   padding: 2%;
-  margin-bottom: 5%;
+  /* margin-bottom: 4%; */
   width: 40vw;
   color: var(--color-mediumRed);
 }
@@ -115,4 +115,8 @@ input:-webkit-autofill:active {
 
 li {
   color: #f5ab29;
+}
+
+#submitBtn {
+  cursor: pointer;
 }

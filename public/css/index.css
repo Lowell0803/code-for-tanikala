@@ -302,7 +302,7 @@ button {
 }
 
 button {
-  cursor: pointer;
+  cursor: pointer !important;
   box-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
 }
 
@@ -402,6 +402,14 @@ ol {
 .profile {
   padding-right: 2rem;
   border: 1px solid black;
+}
+
+p {
+  font-size: 1.3rem;
+}
+
+footer p {
+  font-size: 0.85rem;
 }
 
 /* button:hover {
