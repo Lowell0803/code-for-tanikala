@@ -2667,7 +2667,13 @@ const startServer = async () => {
     });
 
     app.get("/rvs-voter-turnout", async (req, res) => {
-      res.render("homepages/rvs-voter-turnout");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("homepages/rvs-voter-turnout", { electionConfig });
     });
 
     app.get("/rvs-votes-per-candidate", async (req, res) => {
