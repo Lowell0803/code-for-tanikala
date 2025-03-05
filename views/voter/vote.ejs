@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <link rel="stylesheet" type="text/css" href="components/notification.css" />
   </head>
 
   <body>
@@ -300,6 +302,59 @@
           }, this);
         });
       </script>
+
+      <script>
+        document.getElementById("voteForm").addEventListener("submit", function (e) {
+          // For President
+          const presidentSelected = document.querySelector('input[name="president"]:checked');
+          const abstainPresident = document.getElementById("abstain-president").checked;
+          if (!presidentSelected && !abstainPresident) {
+            e.preventDefault();
+            notify("Please select a candidate for President or Abstain.", "error", 3000);
+            return;
+          }
+
+          // For Vice President
+          const vicePresidentSelected = document.querySelector('input[name="vicePresident"]:checked');
+          const abstainVicePresident = document.getElementById("abstain-vice-president").checked;
+          if (!vicePresidentSelected && !abstainVicePresident) {
+            e.preventDefault();
+            notify("Please select a candidate for Vice President or check the Abstain option.", "error", 3000);
+            return;
+          }
+
+          // For Local Student Council: Governor
+          const governorSelected = document.querySelector('input[name="governor"]:checked');
+          const abstainGovernor = document.getElementById("abstain-governor").checked;
+          if (!governorSelected && !abstainGovernor) {
+            e.preventDefault();
+            notify("Please select a candidate for Governor or check the Abstain option.", "error", 3000);
+            return;
+          }
+
+          // For Local Student Council: Vice Governor
+          const viceGovernorSelected = document.querySelector('input[name="viceGovernor"]:checked');
+          const abstainViceGovernor = document.getElementById("abstain-vice-governor").checked;
+          if (!viceGovernorSelected && !abstainViceGovernor) {
+            e.preventDefault();
+            notify("Please select a candidate for Vice Governor or check the Abstain option.", "error", 3000);
+            return;
+          }
+
+          // For Local Student Council: Board Member
+          const boardMemberSelected = document.querySelector('input[name="boardMember"]:checked');
+          const abstainBoardMember = document.getElementById("abstain-board-member").checked;
+          if (!boardMemberSelected && !abstainBoardMember) {
+            e.preventDefault();
+            notify("Please select a candidate for Board Member or check the Abstain option.", "error", 3000);
+            return;
+          }
+
+          // Note: Senators are allowed to be unselected.
+        });
+      </script>
+
+      <script type="module" src="components/notificationHandler.js"></script>
     </div>
 
     <footer class="footer">
