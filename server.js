@@ -113,7 +113,7 @@ app.set("views", path.join(__dirname, "views"));
 
 let db;
 
-const { MongoClient } = require("mongodb");
+const { MongoClient, ExplainVerbosity } = require("mongodb");
 
 const startServer = async () => {
   try {
@@ -193,13 +193,23 @@ const startServer = async () => {
 
     app.get("/auth/microsoft", passport.authenticate("azure_ad_oauth2"));
 
+    // app.get("/auth/microsoft/callback", passport.authenticate("azure_ad_oauth2", { failureRedirect: "/register" }), async (req, res) => {
+    //   const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
+    //   if (!voter) {
+    //     return res.redirect("/register?error=not_registered");
+    //   }
+    //   const redirectUrl = req.session.returnTo || "/";
+    //   delete req.session.returnTo;
+    //   res.redirect(redirectUrl);
+    // });
     app.get("/auth/microsoft/callback", passport.authenticate("azure_ad_oauth2", { failureRedirect: "/register" }), async (req, res) => {
       const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
       if (!voter) {
         return res.redirect("/register?error=not_registered");
       }
-      const redirectUrl = req.session.returnTo || "/";
-      delete req.session.returnTo;
+      // Redirect to the stored returnTo URL or default to "/vote"
+      const redirectUrl = req.session.returnTo || "/vote";
+      delete req.session.returnTo; // Clear after use
       res.redirect(redirectUrl);
     });
 
@@ -314,11 +324,28 @@ const startServer = async () => {
 
         console.log("Session set for admin:", req.session.admin);
 
-        res.redirect("/dashboard"); // Redirect to dashboard after login
+        // Save the session explicitly before redirecting
+        req.session.save((err) => {
+          if (err) {
+            console.error("Session save error:", err);
+            return res.redirect("/admin-login?error=session_error");
+          }
+          res.redirect("/dashboard"); // Redirect to dashboard after login
+        });
       } catch (error) {
         console.error("Login error:", error);
         res.redirect("/admin-login?error=server_error");
       }
+    });
+
+    app.get("/voter/logout", (req, res) => {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error logging out:", err);
+          return res.status(500).send("Error logging out");
+        }
+        res.redirect("/?loggedOut=true");
+      });
     });
 
     app.get("/logout", (req, res) => {
@@ -327,7 +354,7 @@ const startServer = async () => {
           console.error("Error logging out:", err);
           return res.status(500).send("Error logging out");
         }
-        res.redirect("/admin-login?loggedOut=true"); // Redirect with a query parameter
+        res.redirect("/admin-login");
       });
     });
 
@@ -441,22 +468,16 @@ const startServer = async () => {
 
     app.get("/", async (req, res) => {
       // Retrieve the configuration or use defaults
-      let electionConfig = (await db.collection("election_config").findOne({})) || {
-        electionName: "",
-        registrationStart: "",
-        registrationEnd: "",
-        votingStart: "",
-        votingEnd: "",
-        partylists: [],
-        listOfElections: [],
-        fakeCurrentDate: null,
-        currentPeriod: { name: "Election Not Active", duration: "", nextPeriod: { name: "", remainingDays: 0 } },
-      };
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
       console.log("Dynamic Index Route: Raw electionConfig from DB:", electionConfig);
 
       // Use the fake current date if available; otherwise, use the actual current date.
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      // const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       console.log("Dynamic Index Route: Using current date =", now);
 
       // Compute the current phase based on the dates and current/fake date
@@ -859,23 +880,25 @@ const startServer = async () => {
       }
     });
 
-    // Example using ethers.js
     app.post("/submit-votes-to-blockchain", async (req, res) => {
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
       try {
-        // Destructure candidate data from the request body.
         const { president, vicePresident, senator, governor, viceGovernor, boardMember, college, program, email } = req.body;
+
         console.log("President:", typeof president);
         console.log("Vice President:", typeof vicePresident);
         console.log("Senator:", typeof senator);
         console.log("Governor:", typeof governor);
         console.log("Vice Governor:", typeof viceGovernor);
         console.log("Board Member:", typeof boardMember);
-
         console.log("President:", president);
         console.log("Parsed Senator:", parseVote(senator, true));
         console.log("Governor", parseVote(governor));
 
-        // Parse the JSON strings to obtain candidate objects.
         const parsedCandidates = {
           president: typeof president === "string" ? JSON.parse(president) : president,
           vicePresident: typeof vicePresident === "string" ? JSON.parse(vicePresident) : vicePresident,
@@ -885,36 +908,33 @@ const startServer = async () => {
           boardMember: typeof boardMember === "string" ? JSON.parse(boardMember) : boardMember,
         };
 
-        // Create an array of candidate unique IDs.
-        // For properties that are arrays (like senator), iterate over each element.
         let candidateIds = [];
-
         for (const [key, value] of Object.entries(parsedCandidates)) {
           if (Array.isArray(value)) {
-            value.forEach((candidate) => {
-              candidateIds.push(candidate.uniqueId);
-            });
+            value.forEach((candidate) => candidateIds.push(candidate.uniqueId));
           } else {
             candidateIds.push(value.uniqueId);
           }
         }
-
-        // Log the candidate IDs for debugging.
         console.log("Candidate IDs:", candidateIds);
-
-        // Ensure no candidate ID is undefined.
         if (candidateIds.some((id) => id === undefined)) {
           throw new Error("One or more candidate unique IDs are undefined");
         }
 
-        // Call the contract's batch voting function.
         const tx = await contract.voteForCandidates(candidateIds);
         console.log("Batch vote cast for candidates:", candidateIds);
-
-        // Optionally wait for the transaction to be confirmed.
         await tx.wait();
 
-        res.send("Votes submitted to the blockchain successfully.");
+        // Hash the email using SHA-256
+        const hashedEmail = crypto.createHash("sha256").update(email).digest("hex");
+
+        res.render("voter/verify", {
+          voterCollege: college,
+          voterProgram: program,
+          voterHash: hashedEmail,
+          txHash: tx.hash,
+          electionConfig,
+        });
       } catch (error) {
         console.error("Error submitting votes to blockchain:", error);
         res.status(500).send("An error occurred while submitting votes.");
@@ -935,12 +955,17 @@ const startServer = async () => {
         delete req.session.otpExpires;
         return res.redirect("/vote");
       } else {
-        return res.render("/verify-otp", { email: req.user.email, error: "Invalid or expired OTP. Please try again." });
+        return res.render("voter/verify-otp", { email: req.user.email, error: "Invalid or expired OTP. Please try again." });
       }
     });
 
     app.get("/vote", ensureAuthenticated, async (req, res) => {
       try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
         // Check if the voter is registered
         const registeredVoter = await db.collection("registered_voters").findOne({ email: req.user.email });
         if (!registeredVoter) {
@@ -967,7 +992,7 @@ const startServer = async () => {
           console.log(`OTP sent to ${req.user.email} - OTP: ${otp}`);
 
           // Render the OTP entry page
-          return res.render("verify-otp", { email: req.user.email });
+          return res.render("voter/verify-otp", { email: req.user.email });
         }
 
         // OTP has been verified—continue with extracting candidate info
@@ -997,6 +1022,7 @@ const startServer = async () => {
           college,
           program,
           email: req.user.email,
+          electionConfig,
         });
       } catch (error) {
         console.error("Error fetching candidates:", error);
@@ -1030,6 +1056,10 @@ const startServer = async () => {
         return res.render("verify-otp", { email: req.user.email, error: "Failed to resend OTP. Please try again." });
       }
     });
+
+    // app.get("/verify-otp", async (req, res) => {
+    //   res.render("voter/verify-otp");
+    // });
 
     app.get("/review", async (req, res) => {
       res.send("This page is only expecting a POST request :)");
@@ -1067,7 +1097,13 @@ const startServer = async () => {
       }
     }
 
-    app.post("/review", (req, res) => {
+    app.post("/review", async (req, res) => {
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
       const { president, vicePresident, senator, governor, viceGovernor, boardMember, college, program, email } = req.body;
 
       console.log("President:", typeof president);
@@ -1090,6 +1126,7 @@ const startServer = async () => {
         college,
         program,
         email,
+        electionConfig,
       });
     });
 
@@ -1649,81 +1686,6 @@ const startServer = async () => {
     // ==================================== SUBMIT CANDIDATES  ====================================
     // console.log("Ethers object:", ethers);
     // console.log("Ethers utils:", ethers.utils);
-
-    app.get("/get-vote-counts", async (req, res) => {
-      try {
-        const positions = await contract.getPositionList();
-        const [allCandidates, allVotes] = await contract.getVoteCounts();
-        const boardProgramsCollection = db.collection("board_member_programs");
-
-        // Fetch candidate arrays concurrently.
-        const candidatesPerPosition = await Promise.all(positions.map((pos) => contract.getCandidates(pos)));
-
-        // Build a list of board member lookups.
-        const boardLookupRequests = [];
-        const boardLookupIndexes = [];
-        positions.forEach((pos, index) => {
-          const decodedPos = fromBytes32(pos);
-          if (decodedPos.indexOf("Board Member") !== -1) {
-            // For board member positions, queue up the lookup.
-            boardLookupIndexes.push(index);
-            boardLookupRequests.push(
-              (async () => {
-                const programID = await contract.boardMemberProgramIDs(pos);
-                if (programID !== ethers.encodeBytes32String("")) {
-                  const boardProgram = await boardProgramsCollection.findOne({
-                    programID: programID.toString(),
-                  });
-                  return boardProgram ? boardProgram.programText : "";
-                }
-                return "";
-              })()
-            );
-          }
-        });
-        // Wait for all board member program texts concurrently.
-        const boardProgramResults = await Promise.all(boardLookupRequests);
-        // Build a map: position index => program text.
-        const boardProgramMap = {};
-        boardLookupIndexes.forEach((idx, i) => {
-          boardProgramMap[idx] = boardProgramResults[i];
-        });
-
-        // Build final result.
-        let result = [];
-        let totalCandidateCounter = 0;
-        for (let i = 0; i < positions.length; i++) {
-          const pos = positions[i];
-          let decodedPos = fromBytes32(pos);
-          const posCandidates = candidatesPerPosition[i];
-
-          // If this is a Board Member position, modify the display name using our pre-fetched map.
-          if (decodedPos.indexOf("Board Member") !== -1 && boardProgramMap[i]) {
-            const parts = decodedPos.split(" - ");
-            // Reconstruct with the program text.
-            decodedPos = `${parts[0]} - Board Member - ${boardProgramMap[i]}`;
-          }
-
-          const candidatesData = posCandidates.map((candidate, index) => {
-            const decodedName = fromBytes32(candidate.name);
-            const decodedParty = fromBytes32(candidate.party);
-            const votes = Number(allVotes[totalCandidateCounter + index]);
-            return { name: decodedName, party: decodedParty, votes };
-          });
-          totalCandidateCounter += posCandidates.length;
-          let positionObj = {
-            position: decodedPos,
-            candidates: candidatesData,
-          };
-          result.push(positionObj);
-        }
-
-        res.json({ success: true, result });
-      } catch (error) {
-        console.error("Error fetching candidate details:", error);
-        res.status(500).json({ error: error.message });
-      }
-    });
 
     // Helper to calculate the current period based on configuration and current date
     function calculateCurrentPeriod(config, now) {
@@ -2290,13 +2252,73 @@ const startServer = async () => {
     });
 
     app.get("/voter-turnout", ensureAdminAuthenticated, async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        // Calculate overall totals from the registered_voters collection
+        const votersCollection = db.collection("registered_voters");
+        const totalRegistered = await votersCollection.countDocuments({});
+        const totalVoted = await votersCollection.countDocuments({ status: "Voted" });
+        const totalNotVoted = await votersCollection.countDocuments({ status: "Registered" });
 
-      res.render("admin/election-voter-turnout", { electionConfig, loggedInAdmin: req.session.admin });
+        // Log the overall turnout counts to the console
+        console.log("Voter Turnout:");
+        console.log("Total Registered:", totalRegistered);
+        console.log("Total Voted:", totalVoted);
+        console.log("Total Not Voted:", totalNotVoted);
+
+        // Add these overall totals to electionConfig and update the document
+        electionConfig.totalRegistered = totalRegistered;
+        electionConfig.totalVoted = totalVoted;
+        electionConfig.totalNotVoted = totalNotVoted;
+
+        await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { totalRegistered, totalVoted, totalNotVoted } });
+
+        // Aggregate counts per college from the registered_voters collection.
+        // Each group’s _id will be the college string (e.g., "College of Architecture and Fine Arts (CAFA)")
+        // and we sum the total number of documents and count how many voted.
+        const collegeAggregation = await votersCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$college",
+                registered: { $sum: 1 },
+                voted: { $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] } },
+              },
+            },
+          ])
+          .toArray();
+
+        // Update each college in electionConfig.listOfElections.
+        // We match based on the acronym. The registered_voters documents store college as something like
+        // "College of Architecture and Fine Arts (CAFA)"; we extract the acronym using regex.
+        electionConfig.listOfElections.forEach((collegeObj) => {
+          // Find the aggregation result whose _id contains the same acronym as collegeObj.acronym
+          const group = collegeAggregation.find((g) => {
+            const match = g._id.match(/\(([^)]+)\)/);
+            return match && match[1] === collegeObj.acronym;
+          });
+          if (group) {
+            collegeObj.registeredVoters = group.registered;
+            collegeObj.numberOfVoted = group.voted;
+            // Update "students" as well; here we set it equal to the total registered in that college.
+            // Adjust this logic if "students" should be a fixed capacity.
+            collegeObj.students = group.registered;
+          }
+        });
+
+        // Optionally update the election_config document with the updated listOfElections array
+        await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { listOfElections: electionConfig.listOfElections } });
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        res.render("admin/election-voter-turnout", { electionConfig, loggedInAdmin: req.session.admin });
+      } catch (error) {
+        console.error("Error fetching voter turnout:", error);
+        res.status(500).send("Server error while fetching voter turnout");
+      }
     });
 
     // New API endpoint to list all candidate details (IDs and vote counts) from the blockchain

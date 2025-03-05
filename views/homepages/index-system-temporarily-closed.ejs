@@ -52,7 +52,7 @@
     <footer class="footer">
       <div class="footer-left">
         <img src="img/calendar.png" class="footer-img" />
-        <p id="datetime">OCTOBER 23, 2024 - 04:17 AM</p>
+        <p id="datetime" data-date="<%= electionConfig.fakeCurrentDate %>"></p>
       </div>
 
       <div class="footer-center">
@@ -66,5 +66,38 @@
       </div>
     </footer>
     <script src="js/index.js"></script>
+
+    <script>
+      function formatDate(isoString) {
+        const date = new Date(isoString);
+        const options = {
+          month: "long",
+          day: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        };
+        return date.toLocaleString("en-US", options).toUpperCase();
+      }
+
+      function updateDateTime() {
+        const datetimeElement = document.getElementById("datetime");
+        if (!datetimeElement) return;
+
+        // Get the initial time from the data attribute
+        let currentTime = new Date(datetimeElement.getAttribute("data-date"));
+
+        function update() {
+          datetimeElement.textContent = formatDate(currentTime);
+          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+        }
+
+        update(); // Set initial formatted date
+        setInterval(update, 60000); // Update every minute (60000ms)
+      }
+
+      document.addEventListener("DOMContentLoaded", updateDateTime);
+    </script>
   </body>
 </html>

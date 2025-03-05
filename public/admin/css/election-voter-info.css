@@ -16,7 +16,7 @@ td {
   flex-grow: 1;
 
   align-items: center;
-  justify-content: center;
+  justify-content: start;
 
   background-color: var(--background-lighter-yellow);
   padding: 1.5rem;
@@ -50,6 +50,9 @@ td {
 
 .option-filter {
   margin-right: 8%;
+}
+
+.studentTable {
 }
 
 .main-content {

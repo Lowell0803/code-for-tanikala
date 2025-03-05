@@ -11,9 +11,25 @@
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
 
     <link rel="stylesheet" type="text/css" href="admin/dependencies/progress-bar.css" />
-    <!-- <link rel="stylesheet" type="text/css" href="admin/dependencies/liner-bar.css" /> -->
 
-    <!-- Boxicons CDN Link -->
+    <style>
+      .progress-bar {
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        width: 100%;
+        height: 20px;
+        overflow: hidden;
+        margin: 5px 0;
+      }
+
+      .progress {
+        background-color: #4caf50;
+        height: 100%;
+        width: 0; /* this value is set inline from the EJS variable */
+        transition: width 0.5s ease-in-out;
+      }
+    </style>
+
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
@@ -219,39 +235,86 @@
           <!-- Supreme Student Council Section -->
           <div class="main-left">
             <h1 class="ssc">Supreme Student Council</h1>
+            <% const presidentCandidates = candidates.filter(candidate => candidate.position === 'president'); const totalVotes = presidentCandidates.reduce((acc, candidate) => acc + Number(candidate.voteCount), 0); %>
+
             <div class="container-ssc" id="container-president">
               <h1>President</h1>
-              <% candidates.filter(candidate => candidate.position === 'president').forEach(candidate => { %>
+              <% presidentCandidates.forEach(candidate => { const percentage = totalVotes > 0 ? ((candidate.voteCount / totalVotes) * 100).toFixed(2) : 0; %>
               <div class="candidate">
                 <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 <h3><%= candidate.name %></h3>
                 <p>Party: <%= candidate.party %></p>
                 <p>Votes: <%= candidate.voteCount %></p>
+                <div class="progress-bar">
+                  <div class="progress" data-target="<%= percentage %>%" style="width: 0"></div>
+                </div>
+                <p><%= percentage %>%</p>
               </div>
               <% }); %>
             </div>
+
+            <script>
+              window.addEventListener("load", function () {
+                const progressElements = document.querySelectorAll(".progress");
+                progressElements.forEach((el) => {
+                  const targetWidth = el.getAttribute("data-target");
+                  el.style.width = targetWidth;
+                });
+              });
+            </script>
+
+            <% const viceCandidates = candidates.filter(candidate => candidate.position === 'vice president'); const totalVotesVice = viceCandidates.reduce((acc, candidate) => acc + Number(candidate.voteCount), 0); %>
             <div class="container-ssc" id="container-vice-president">
               <h1>Vice President</h1>
-              <% candidates.filter(candidate => candidate.position === 'vice president').forEach(candidate => { %>
+              <% viceCandidates.forEach(candidate => { const percentage = totalVotesVice > 0 ? ((candidate.voteCount / totalVotesVice) * 100).toFixed(2) : 0; %>
               <div class="candidate">
                 <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 <h3><%= candidate.name %></h3>
                 <p>Party: <%= candidate.party %></p>
                 <p>Votes: <%= candidate.voteCount %></p>
+                <div class="progress-bar">
+                  <div class="progress" data-target="<%= percentage %>%" style="width: 0"></div>
+                </div>
+                <p><%= percentage %>%</p>
               </div>
               <% }); %>
             </div>
+            <script>
+              window.addEventListener("load", function () {
+                const progressElements = document.querySelectorAll(".progress");
+                progressElements.forEach((el) => {
+                  const targetWidth = el.getAttribute("data-target");
+                  el.style.width = targetWidth;
+                });
+              });
+            </script>
+
+            <% const senatorCandidates = candidates.filter(candidate => candidate.position === 'senator'); const maxVote = senatorCandidates.reduce((max, candidate) => Math.max(max, Number(candidate.voteCount)), 0); %>
             <div class="container-ssc" id="container-senator">
               <h1>Senators</h1>
-              <% candidates.filter(candidate => candidate.position === 'senator').forEach(candidate => { %>
+              <% senatorCandidates.forEach(candidate => { const percentage = maxVote > 0 ? ((candidate.voteCount / maxVote) * 100).toFixed(2) : 0; %>
               <div class="candidate">
                 <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 <h3><%= candidate.name %></h3>
                 <p>Party: <%= candidate.party %></p>
                 <p>Votes: <%= candidate.voteCount %></p>
+                <div class="progress-bar">
+                  <div class="progress" data-target="<%= percentage %>%" style="width: 0"></div>
+                </div>
+                <p><%= percentage %>%</p>
               </div>
               <% }); %>
             </div>
+
+            <script>
+              window.addEventListener("load", function () {
+                const progressElements = document.querySelectorAll(".progress");
+                progressElements.forEach((el) => {
+                  const targetWidth = el.getAttribute("data-target");
+                  el.style.width = targetWidth;
+                });
+              });
+            </script>
           </div>
 
           <!-- Local Student Council Section -->
@@ -379,205 +442,6 @@
           filterLSCCandidates();
         });
       </script>
-
-      <script>
-        document.addEventListener("DOMContentLoaded", function () {
-          fetch("/get-vote-counts")
-            .then((response) => response.json())
-            .then((data) => {
-              if (!data.success) return;
-
-              console.log("Raw vote data:", data.result); // Log raw API data
-
-              // Group for Supreme Student Council (SSC)
-              let sscData = {
-                President: [],
-                "Vice President": [],
-                Senator: [],
-              };
-
-              // For Local Student Council (LSC) positions, we group Governor and Vice Governor by college.
-              let lscData = {
-                Governor: {},
-                "Vice Governor": {},
-              };
-
-              // For Board Member positions, we'll store all result objects in an array.
-              let boardMemberData = [];
-
-              // Process each result object from API data.
-              data.result.forEach((item) => {
-                const pos = item.position;
-                // If it's one of the SSC positions, assign it directly.
-                if (pos === "President" || pos === "Vice President" || pos === "Senator") {
-                  sscData[pos] = item.candidates;
-                }
-                // Otherwise, check if the position contains "Board Member".
-                else if (pos.indexOf("Board Member") !== -1) {
-                  // Push the whole board member result object.
-                  boardMemberData.push(item);
-                }
-                // Otherwise, assume it's an LSC position (formatted as "COLLEGE - Position").
-                else if (pos.includes(" - ")) {
-                  const parts = pos.split(" - ");
-                  if (parts.length === 2) {
-                    const collegeAcronym = parts[0].trim();
-                    const posName = parts[1].trim();
-                    if (!lscData[posName]) {
-                      lscData[posName] = {};
-                    }
-                    lscData[posName][collegeAcronym.toLowerCase()] = item.candidates;
-                    console.log("Grouped LSC position:", posName, "for college:", collegeAcronym.toLowerCase(), "with candidates:", item.candidates);
-                  }
-                }
-              });
-
-              console.log("Grouped SSC Data:", sscData);
-              console.log("Grouped LSC Data:", lscData);
-              console.log("Board Member Data:", boardMemberData);
-
-              // Render SSC positions (left side)
-              renderCandidates("container-president", sscData["President"], "President");
-              renderCandidates("container-vice-president", sscData["Vice President"], "Vice President");
-              renderCandidates("container-senator", sscData["Senator"], "Senator");
-
-              // Render LSC positions (right side)
-              const collegeSelect = document.getElementById("college-selector");
-              function renderLSC() {
-                const selectedCollege = collegeSelect.value.toLowerCase();
-                console.log("Selected college:", selectedCollege);
-                // Render Governor and Vice Governor groups based on college.
-                renderCandidates("container-lsc-governor", (lscData["Governor"] && lscData["Governor"][selectedCollege]) || [], "Governor");
-                renderCandidates("container-lsc-vice-governor", (lscData["Vice Governor"] && lscData["Vice Governor"][selectedCollege]) || [], "Vice Governor");
-
-                // Render Board Member groups.
-                const boardContainer = document.getElementById("container-lsc-board-member");
-                boardContainer.innerHTML = "";
-                // If "all" is selected, render all board member groups.
-                if (selectedCollege === "all") {
-                  boardMemberData.forEach((group) => {
-                    let header = document.createElement("h2");
-                    // Use the program text if available; otherwise, fall back to the position string.
-                    if (group.program && group.program.length > 0) {
-                      header.textContent = group.position.replace(/- \d+$/, "").trim() + " - " + group.program;
-                    } else {
-                      header.textContent = group.position;
-                    }
-                    boardContainer.appendChild(header);
-
-                    if (group.candidates.length === 0) {
-                      boardContainer.innerHTML += `<p>No candidates for this Board Member group</p>`;
-                    } else {
-                      const totalVotes = group.candidates.reduce((sum, c) => sum + c.votes, 0);
-                      group.candidates.forEach((candidate) => {
-                        const progressElement = document.createElement("div");
-                        progressElement.classList.add("progress-element");
-
-                        const label = document.createElement("p");
-                        label.classList.add("progress-label");
-                        label.textContent = candidate.name;
-
-                        const progressBar = document.createElement("progress");
-                        progressBar.max = totalVotes;
-                        progressBar.value = candidate.votes;
-
-                        const voteCount = document.createElement("span");
-                        voteCount.textContent = `${candidate.votes} votes`;
-
-                        progressElement.appendChild(label);
-                        progressElement.appendChild(progressBar);
-                        progressElement.appendChild(voteCount);
-                        boardContainer.appendChild(progressElement);
-                      });
-                    }
-                  });
-                } else {
-                  // Render only board member groups that belong to the selected college.
-                  const filtered = boardMemberData.filter((group) => {
-                    // Extract the college acronym from the group position.
-                    const parts = group.position.split(" - ");
-                    return parts[0].trim().toLowerCase() === selectedCollege;
-                  });
-                  if (filtered.length === 0) {
-                    boardContainer.innerHTML = `<p>No Board Member candidates for ${selectedCollege.toUpperCase()}</p>`;
-                  } else {
-                    filtered.forEach((group) => {
-                      let header = document.createElement("h2");
-                      if (group.program && group.program.length > 0) {
-                        header.textContent = group.position.replace(/- \d+$/, "").trim() + " - " + group.program;
-                      } else {
-                        header.textContent = group.position;
-                      }
-                      boardContainer.appendChild(header);
-
-                      if (group.candidates.length === 0) {
-                        boardContainer.innerHTML += `<p>No candidates for this Board Member group</p>`;
-                      } else {
-                        const totalVotes = group.candidates.reduce((sum, c) => sum + c.votes, 0);
-                        group.candidates.forEach((candidate) => {
-                          const progressElement = document.createElement("div");
-                          progressElement.classList.add("progress-element");
-
-                          const label = document.createElement("p");
-                          label.classList.add("progress-label");
-                          label.textContent = candidate.name;
-
-                          const progressBar = document.createElement("progress");
-                          progressBar.max = totalVotes;
-                          progressBar.value = candidate.votes;
-
-                          const voteCount = document.createElement("span");
-                          voteCount.textContent = `${candidate.votes} votes`;
-
-                          progressElement.appendChild(label);
-                          progressElement.appendChild(progressBar);
-                          progressElement.appendChild(voteCount);
-                          boardContainer.appendChild(progressElement);
-                        });
-                      }
-                    });
-                  }
-                }
-              }
-              collegeSelect.addEventListener("change", renderLSC);
-              renderLSC();
-            })
-            .catch((error) => console.error("Error fetching vote counts:", error));
-
-          function renderCandidates(containerId, candidates, positionTitle) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = "";
-            const titleElement = document.createElement("h2");
-            titleElement.textContent = positionTitle;
-            container.appendChild(titleElement);
-            if (candidates.length === 0) {
-              container.innerHTML += `<p>No candidates for ${positionTitle}</p>`;
-              return;
-            }
-            const totalVotes = candidates.reduce((sum, c) => sum + c.votes, 0);
-            candidates.forEach((candidate) => {
-              const progressElement = document.createElement("div");
-              progressElement.classList.add("progress-element");
-
-              const label = document.createElement("p");
-              label.classList.add("progress-label");
-              label.textContent = candidate.name;
-
-              const progressBar = document.createElement("progress");
-              progressBar.max = totalVotes;
-              progressBar.value = candidate.votes;
-
-              const voteCount = document.createElement("span");
-              voteCount.textContent = `${candidate.votes} votes`;
-
-              progressElement.appendChild(label);
-              progressElement.appendChild(progressBar);
-              progressElement.appendChild(voteCount);
-              container.appendChild(progressElement);
-            });
-          }
-        });
-      </script>
     </div>
 
     <footer class="footer">
@@ -598,8 +462,6 @@
       </div>
     </footer>
 
-    <!-- Include your JS files including liner-bar-js -->
-    <!-- <script src="admin/dependencies/liner-bar.js"></script> -->
     <script src="admin/js/sidebar.js"></script>
 
     <script>

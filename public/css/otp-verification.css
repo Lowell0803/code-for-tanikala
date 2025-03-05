@@ -1,13 +1,53 @@
 .card {
+  display: flex;
+  flex-direction: column;
   width: 40vw;
-  padding: 3rem;
+  padding: 2.5rem;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  background: var(--color-mediumYellow);
+  background: #f0f1e1;
   border-radius: 1.5rem;
-  color: black;
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
+  color: rgb(0, 0, 0);
+  /* position: relative; */
   /* margin-bottom: 2rem; */
 }
 
-.card p {
-  font-size: 1rem;
+i {
+  font-size: 5rem;
+  color: var(--color-darkBlue);
+}
+
+.blue {
+  color: var(--color-darkBlue);
+}
+
+.otp-field {
+  width: 10rem;
+  height: 2rem;
+  padding: 0.3rem;
+}
+
+input {
+  border: 2px solid var(--color-lightBlue); /* Default border */
+  outline: none; /* Remove default focus outline */
+}
+
+input:focus {
+  border-color: var(--color-darkBlue); /* Change border color on focus */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Optional glow effect */
+}
+
+#resend-btn {
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  border-radius: 1rem;
+  border: 0.1rem solid var(--color-lightBlue);
+}
+
+button:hover {
+  background-color: var(--color-lightBlue);
+  font-weight: bold;
+  color: white;
 }
