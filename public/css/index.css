@@ -255,11 +255,6 @@ img {
   font-weight: bold;
 }
 
-button {
-  cursor: pointer;
-  border-style: outset;
-}
-
 #active-link {
   color: var(--color-darkYellow);
 }
@@ -412,6 +407,23 @@ footer p {
   font-size: 0.85rem;
 }
 
-/* button:hover {
-  background-color: #245414;
-} */
+.red {
+  color: #6e1311;
+}
+
+button {
+  cursor: pointer;
+  border-style: outset;
+}
+
+button:hover {
+  background-color: var(--color-lightRed);
+  color: #ffeba7;
+  box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
+}
+
+.button:hover {
+  background-color: var(--color-lightRed);
+  color: #ffeba7;
+  box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
+}

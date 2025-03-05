@@ -9,6 +9,8 @@
     <link rel="stylesheet" type="text/css" href="voter/css/vote.css" />
     <link rel="stylesheet" type="text/css" href="voter/css/vote_choice.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   </head>
 
   <body>
@@ -18,11 +20,27 @@
       </div>
       <nav class="header-nav">
         <ul class="header-nav-content">
-          <li><a href="/vote" id="active-link">Vote</a></li>
-          <li><a href="/review">Review</a></li>
-          <li><a href="verify.html">Verify</a></li>
+          <li id="active-link">Vote</li>
+          <p>|</p>
+          <li>Review</li>
+          <p>|</p>
+          <li>Verify</li>
+          <div class="dropdown">
+            <div class="settings">
+              <i class="fa-solid fa-user"></i>
+              <button class="dropdown-toggle">
+                <i class="fas fa-caret-down"></i>
+              </button>
+
+              <div class="dropdown-menu">
+                <a href="#">Logged in as <span>Microsoft Email</span></a>
+                <a href="#">Log Out</a>
+              </div>
+            </div>
+          </div>
         </ul>
       </nav>
+
       <div class="header-bottom-line"></div>
     </header>
 
@@ -123,7 +141,6 @@
           <div class="ballot ballot-lsc">
             <br />
             <h3 class="ballot-header ballot-lsc-council">Local Student Council - [Voter College]</h3>
-            <br />
             <br />
 
             <!-- Governor Candidates -->
@@ -284,15 +301,18 @@
       </script>
     </div>
 
-    <div class="footer">
+    <footer class="footer">
       <div class="footer-left">
-        <p>OCTOBER 23, 2024 - 04:17 AM</p>
+        <img src="img/calendar.png" class="footer-img" />
+        <p id="datetime">OCTOBER 23, 2024 - 04:17 AM</p>
       </div>
-      <div class="footer-right">
-        <p>© 2024 - Fourmula 1</p>
-      </div>
-    </div>
 
+      <div class="footer-center">
+        <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+        <p>2025 - Fourmula 1</p>
+      </div>
+      <div class="footer-right"></div>
+    </footer>
     <script>
       function toggleOverlay(checkboxId, targetClass) {
         document.querySelector(`#${checkboxId}`).addEventListener("change", function () {
@@ -314,5 +334,6 @@
       toggleOverlay("abstain-vice-governor", "label-vice-governor");
       toggleOverlay("abstain-board-member", "label-board-member");
     </script>
+    <script src="js/index.js"></script>
   </body>
 </html>
