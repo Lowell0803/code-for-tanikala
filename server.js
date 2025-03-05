@@ -348,44 +348,6 @@ const startServer = async () => {
       }
     });
 
-    // New API endpoint to list all candidate details (IDs and vote counts) from the blockchain
-    app.get("/vote-tally", ensureAdminAuthenticated, async (req, res) => {
-      try {
-        const electionConfigCollection = db.collection("election_config");
-        let electionConfig = await electionConfigCollection.findOne({});
-
-        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-        // Call the getCandidateDetails function from the contract
-        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
-
-        // Fetch candidates from MongoDB
-        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
-        const allCandidates = aggregatedData.candidates;
-
-        // Combine Blockchain Data with Candidate Info
-        const candidates = candidateIds.map((id, index) => {
-          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
-
-          return {
-            candidateId: id.toString(),
-            name: candidate ? candidate.name : "Unknown Candidate",
-            party: candidate ? candidate.party : "Unknown Party",
-            position: candidate ? candidate.position : "Unknown Position",
-            image: candidate ? candidate.image : "No Image",
-            college: candidate ? candidate.college : "",
-            program: candidate ? candidate.program : "",
-            voteCount: voteCounts[index].toString(),
-          };
-        });
-
-        res.render("admin/election-vote-tally", { candidates, electionConfig, loggedInAdmin: req.session.admin });
-      } catch (error) {
-        console.error("Error fetching candidate details:", error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-
     // app.get("/api/wallet/update", (req, res) => {
     //   res.json({ success: true, message: "Wallet endpoint working." });
     // });
@@ -636,7 +598,7 @@ const startServer = async () => {
 
         console.log("Session set for admin:", req.session.admin);
 
-        res.redirect("/manage-admins"); // Redirect to dashboard after login
+        res.redirect("/dashboard"); // Redirect to dashboard after login
       } catch (error) {
         console.error("Login error:", error);
         res.redirect("/admin-login?error=server_error");
@@ -2363,39 +2325,166 @@ const startServer = async () => {
       res.render("admin/election-voter-turnout", { electionConfig, loggedInAdmin: req.session.admin });
     });
 
-    app.get("/vote-tally", async (req, res) => {
+    // New API endpoint to list all candidate details (IDs and vote counts) from the blockchain
+    app.get("/vote-tally", ensureAdminAuthenticated, async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
         let electionConfig = await electionConfigCollection.findOne({});
 
-        const votersCollection = db.collection("voters");
-        const colleges = await votersCollection.find({}).toArray();
-        const voterCounts = {};
-
-        colleges.forEach((college) => {
-          voterCounts[college.acronym] = {
-            name: college.college,
-            voters: college.voters,
-          };
-        });
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        // Call the getCandidateDetails function from the contract
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
 
-        res.render("admin/election-vote-tally", { voterCounts, electionConfig, loggedInAdmin: req.session.admin });
+        // Fetch candidates from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine Blockchain Data with Candidate Info
+        const candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+          };
+        });
+
+        res.render("admin/election-vote-tally", { candidates, electionConfig, loggedInAdmin: req.session.admin });
       } catch (error) {
-        console.error("Error fetching voter counts:", error);
-        res.status(500).send("Internal Server Error");
+        console.error("Error fetching candidate details:", error);
+        res.status(500).json({ error: error.message });
       }
     });
 
-    app.get("/results", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
+    app.get("/results", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/election-results", { electionConfig, loggedInAdmin: req.session.admin });
+        // Call the getCandidateDetails function from the contract
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+        // Fetch candidates from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine Blockchain Data with Candidate Info
+        const candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            // Standardize the position to lowercase for consistency
+            position: candidate ? candidate.position.toLowerCase() : "unknown position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+          };
+        });
+
+        // Helper function for non-senator groups: get candidate(s) with highest voteCount
+        function getTopCandidates(candidatesArray) {
+          if (!candidatesArray.length) return [];
+          const maxVote = Math.max(...candidatesArray.map((c) => parseInt(c.voteCount, 10)));
+          return candidatesArray.filter((c) => parseInt(c.voteCount, 10) === maxVote);
+        }
+
+        // Helper function for senators: get top 7 candidates (including ties at 7th position)
+        function getTopSenators(candidatesArray) {
+          if (!candidatesArray.length) return [];
+          // Sort descending by voteCount
+          const sorted = candidatesArray.slice().sort((a, b) => parseInt(b.voteCount, 10) - parseInt(a.voteCount, 10));
+          if (sorted.length <= 7) return sorted;
+          const cutoff = parseInt(sorted[6].voteCount, 10);
+          return sorted.filter((candidate) => parseInt(candidate.voteCount, 10) >= cutoff);
+        }
+
+        // 1. Group candidates by position
+        const groupedByPosition = candidates.reduce((acc, candidate) => {
+          const pos = candidate.position; // already lowercased
+          if (!acc[pos]) {
+            acc[pos] = [];
+          }
+          acc[pos].push(candidate);
+          return acc;
+        }, {});
+
+        // 2. For positions that require grouping by college, group accordingly.
+        // Positions: Governor, Vice Governor, Board Member
+        const positionsGroupedByCollege = ["governor", "vice governor", "board member"];
+        positionsGroupedByCollege.forEach((pos) => {
+          if (groupedByPosition[pos]) {
+            // Group by college
+            const byCollege = groupedByPosition[pos].reduce((acc, candidate) => {
+              const college = candidate.college || "Unknown College";
+              if (!acc[college]) {
+                acc[college] = [];
+              }
+              acc[college].push(candidate);
+              return acc;
+            }, {});
+            // For board members, further group by program within each college
+            if (pos === "board member") {
+              Object.keys(byCollege).forEach((college) => {
+                byCollege[college] = byCollege[college].reduce((acc, candidate) => {
+                  const program = candidate.program || "Unknown Program";
+                  if (!acc[program]) {
+                    acc[program] = [];
+                  }
+                  acc[program].push(candidate);
+                  return acc;
+                }, {});
+              });
+            }
+            groupedByPosition[pos] = byCollege;
+          }
+        });
+
+        // 3. Recursively traverse the grouped structure and select the top candidate(s)
+        function processGroupings(grouping, positionKey = null) {
+          if (Array.isArray(grouping)) {
+            if (positionKey === "senator") {
+              return getTopSenators(grouping);
+            } else {
+              return getTopCandidates(grouping);
+            }
+          } else if (typeof grouping === "object" && grouping !== null) {
+            const result = {};
+            Object.keys(grouping).forEach((key) => {
+              result[key] = processGroupings(grouping[key], positionKey);
+            });
+            return result;
+          }
+          return grouping;
+        }
+
+        const finalResults = {};
+        Object.keys(groupedByPosition).forEach((position) => {
+          finalResults[position] = processGroupings(groupedByPosition[position], position);
+        });
+
+        // Render the view with the final grouped results.
+        res.render("admin/election-results", {
+          groupedResults: finalResults,
+          electionConfig,
+          loggedInAdmin: req.session.admin,
+        });
+      } catch (error) {
+        console.error("Error fetching candidate details:", error);
+        res.status(500).json({ error: error.message });
+      }
     });
 
     app.get("/reset", async (req, res) => {
