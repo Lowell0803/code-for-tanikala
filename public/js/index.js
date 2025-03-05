@@ -20,8 +20,15 @@ function updateDateTime() {
 updateDateTime();
 setInterval(updateDateTime, 45000); // update every 45 seconds
 
-function toggleButton() {
-  const checkbox = document.getElementById("agreement");
-  const button = document.getElementById("proceedBtn");
-  button.disabled = !checkbox.checked; // Enable when checked, disable when unchecked
-}
+document.querySelector(".dropdown-toggle").addEventListener("click", function () {
+  const dropdown = this.parentElement.parentElement;
+  dropdown.classList.toggle("active");
+});
+
+// Close dropdown if clicked outside
+window.addEventListener("click", function (e) {
+  const dropdown = document.querySelector(".dropdown");
+  if (!dropdown.contains(e.target)) {
+    dropdown.classList.remove("active");
+  }
+});

@@ -51,7 +51,7 @@
   padding: 3rem;
   text-align: center;
   background: var(--color-mediumYellow);
-  border-radius: 1rem;
+  border-radius: 1.5rem;
   color: black;
   /* margin-bottom: 2rem; */
 }
@@ -93,7 +93,7 @@
 
 /*Buttons*/
 .btn {
-  margin-top: 2rem;
+  margin-top: 2.5rem;
   margin-bottom: 1.5rem;
   border: none;
   border-radius: 0.5rem;
@@ -101,10 +101,8 @@
   font-size: 0.8em;
   text-transform: uppercase;
   padding: 0.6em 1.2em;
-  background-color: var(--color-lightRed);
+  background-color: var(--color-mediumRed);
   color: #ffffff;
-  box-shadow: 0 8px 24px 0 rgb(255 235 167 / 20%);
-  transition: all 0.3s ease-in-out;
 }
 
 .btn-link {
@@ -127,7 +125,7 @@
 }
 
 .btn-link:hover {
-  color: var(--color-mediumRed);
+  color: var(--color-lightRed);
 }
 
 input:-webkit-autofill,

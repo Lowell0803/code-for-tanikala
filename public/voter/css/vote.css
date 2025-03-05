@@ -46,24 +46,6 @@
   margin: 2% 0;
 }
 
-.ballot-council {
-  background-color: var(--color-red);
-  font-size: 1.6rem;
-  text-transform: uppercase;
-}
-
-.ballot-lsc-council {
-  background-color: rgb(52, 179, 52);
-  font-size: 1.6rem;
-  text-transform: uppercase;
-}
-
-.ballot-position {
-  background-color: var(--color-yellow);
-  color: black;
-  font-size: 1.5rem;
-}
-
 /* .ballot-choices > div:first-child {
   display: flex;
   flex-direction: row;
@@ -137,16 +119,6 @@
   padding: 0;
 }
 
-.ballot-tile .party {
-  color: var(--color-party);
-  font-size: 1rem;
-  font-style: italic;
-}
-
-.ballot-tile .name {
-  font-size: 2rem;
-}
-
 .label-container hr {
   width: 80%;
   /* border: red; */
@@ -155,6 +127,62 @@
 .ballot-tile {
   display: block;
   border: 1px solid #707070;
+}
+
+.ballot-council {
+  background-color: var(--color-red);
+  font-size: 1.6rem;
+  text-transform: uppercase;
+}
+
+.ballot-lsc-council {
+  background-color: rgb(52, 179, 52);
+  font-size: 1.6rem;
+  text-transform: uppercase;
+}
+
+.ballot-position {
+  background-color: var(--color-yellow);
+  color: black;
+  font-size: 1.5rem;
+}
+
+.label-senator .ballot-tile .party {
+  font-size: 1rem;
+}
+
+.label-senator .ballot-tile .name {
+  font-size: 1.5rem;
+}
+
+.label-senator .ballot-tile .info {
+  font-size: 0.8rem;
+}
+
+.ballot-lsc .label-senator .ballot-tile .party {
+  font-size: 1rem;
+}
+
+.ballot-lsc .label-senator .ballot-tile .name {
+  font-size: 1.75rem;
+}
+
+.ballot-lsc .label-senator .ballot-tile .info {
+  font-size: 0.9rem;
+}
+
+.ballot p {
+  font-size: 0.9rem;
+}
+
+.ballot-tile .party {
+  color: var(--color-party);
+  font-size: 1rem;
+  font-style: italic;
+}
+
+.ballot-tile .name {
+  font-size: 2rem;
 }
 
 .ballot-tile img {
@@ -174,40 +202,16 @@
   flex-basis: 25%;
 }
 
-.label-senator .ballot-tile .party {
-  font-size: 1rem;
-}
-
 .label-senator .ballot-tile img {
   width: 40%;
-}
-
-.label-senator .ballot-tile .name {
-  font-size: 1.5rem;
-}
-
-.label-senator .ballot-tile .info {
-  font-size: 0.8rem;
 }
 
 .ballot-lsc .label-container {
   flex-basis: 27.5%;
 }
 
-.ballot-lsc .label-senator .ballot-tile .party {
-  font-size: 1rem;
-}
-
 .ballot-lsc .label-senator .ballot-tile img {
   width: 50%;
-}
-
-.ballot-lsc .label-senator .ballot-tile .name {
-  font-size: 1.75rem;
-}
-
-.ballot-lsc .label-senator .ballot-tile .info {
-  font-size: 0.9rem;
 }
 
 .ballot-choice:checked + .ballot-tile {
@@ -631,4 +635,12 @@
 
 .content {
   flex-direction: column;
+}
+
+.header-nav-content p {
+  color: #f2ddb4;
+}
+
+.header-nav-content {
+  gap: 2rem;
 }

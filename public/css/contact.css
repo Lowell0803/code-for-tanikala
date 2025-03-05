@@ -95,8 +95,9 @@
   color: white;
   font-weight: bold;
   text-align: center;
-  line-height: normal; /* Helps with centering */
-  height: auto; /* Ensure no forced height issues */
+  line-height: normal;
+  height: auto;
+  cursor: pointer;
 }
 
 form {
@@ -163,8 +164,4 @@ input:-webkit-autofill:active {
 
 .text {
   font-size: 1.2rem;
-}
-
-.red {
-  color: #6e1311;
 }

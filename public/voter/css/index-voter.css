@@ -167,3 +167,64 @@ button {
 .content-main {
   flex-direction: column;
 }
+
+.disabled-link {
+  pointer-events: none;
+}
+
+.header-nav-content a {
+  padding-left: 1rem;
+}
+
+.header-nav-content i {
+  font-size: 1.7rem;
+  color: #e1ae5b;
+}
+
+button.dropdown-toggle {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Dropdown menu styles */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.settings i {
+  margin: 0.2rem;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 90%;
+  left: 0;
+  background-color: #e1ae5b;
+  border: 1px solid #ddd;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  z-index: 10;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 8px 16px;
+  color: #333;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* .dropdown-menu a:hover {
+  background-color: #f0f0f0;
+} */
+
+/* Show dropdown when clicked */
+.dropdown.active .dropdown-menu {
+  display: block;
+}
