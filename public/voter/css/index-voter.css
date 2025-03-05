@@ -172,10 +172,6 @@ button {
   pointer-events: none;
 }
 
-.header-nav-content a {
-  padding-left: 1rem;
-}
-
 .header-nav-content i {
   font-size: 1.7rem;
   color: #e1ae5b;
@@ -227,4 +223,12 @@ button.dropdown-toggle {
 /* Show dropdown when clicked */
 .dropdown.active .dropdown-menu {
   display: block;
+}
+
+.header-nav-content p {
+  color: #f2ddb4;
+}
+
+.header-nav-content {
+  gap: 2rem;
 }
