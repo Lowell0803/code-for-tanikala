@@ -290,7 +290,17 @@ const startServer = async () => {
     app.post("/submit-votes-to-blockchain", async (req, res) => {
       try {
         // Destructure candidate data from the request body.
-        const { president, vicePresident, senator, governor, viceGovernor, boardMember } = req.body;
+        const { president, vicePresident, senator, governor, viceGovernor, boardMember, college, program, email } = req.body;
+        console.log("President:", typeof president);
+        console.log("Vice President:", typeof vicePresident);
+        console.log("Senator:", typeof senator);
+        console.log("Governor:", typeof governor);
+        console.log("Vice Governor:", typeof viceGovernor);
+        console.log("Board Member:", typeof boardMember);
+
+        console.log("President:", president);
+        console.log("Parsed Senator:", parseVote(senator, true));
+        console.log("Governor", parseVote(governor));
 
         // Parse the JSON strings to obtain candidate objects.
         const parsedCandidates = {
@@ -339,15 +349,37 @@ const startServer = async () => {
     });
 
     // New API endpoint to list all candidate details (IDs and vote counts) from the blockchain
-    app.get("/api/getCandidateDetails", async (req, res) => {
+    app.get("/vote-tally", ensureAdminAuthenticated, async (req, res) => {
       try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
         // Call the getCandidateDetails function from the contract
         const [candidateIds, voteCounts] = await contract.getCandidateDetails();
 
-        // Convert voteCounts to strings for JSON serialization
-        const serializedVoteCounts = voteCounts.map((vote) => vote.toString());
+        // Fetch candidates from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
 
-        res.status(200).json({ candidateIds, voteCounts: serializedVoteCounts });
+        // Combine Blockchain Data with Candidate Info
+        const candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+          };
+        });
+
+        res.render("admin/election-vote-tally", { candidates, electionConfig, loggedInAdmin: req.session.admin });
       } catch (error) {
         console.error("Error fetching candidate details:", error);
         res.status(500).json({ error: error.message });
@@ -1053,6 +1085,9 @@ const startServer = async () => {
           governorCandidates,
           viceGovernorCandidates,
           boardCandidates,
+          college,
+          program,
+          email: req.user.email,
         });
       } catch (error) {
         console.error("Error fetching candidates:", error);
@@ -1065,32 +1100,60 @@ const startServer = async () => {
       // res.render("voter/review");
     });
 
+    function parseVote(vote, multiple = false) {
+      if (Array.isArray(vote)) {
+        if (multiple) {
+          // Parse every element if multiple votes are allowed.
+          return vote.map((v) => {
+            try {
+              return JSON.parse(v);
+            } catch (e) {
+              console.error("Error parsing vote element:", v, e);
+              return null;
+            }
+          });
+        } else {
+          // For single vote groups, parse only the first element.
+          try {
+            return JSON.parse(vote[0]);
+          } catch (e) {
+            console.error("Error parsing vote:", vote[0], e);
+            return null;
+          }
+        }
+      } else {
+        try {
+          return JSON.parse(vote);
+        } catch (e) {
+          console.error("Error parsing vote:", vote, e);
+          return null;
+        }
+      }
+    }
+
     app.post("/review", (req, res) => {
-      const { president, vicePresident, senator, governor, viceGovernor, boardMember } = req.body;
+      const { president, vicePresident, senator, governor, viceGovernor, boardMember, college, program, email } = req.body;
 
-      // Log the values (after checking and possibly stringifying)
-      // console.log("President:", typeof president);
-      // console.log("Vice President:", typeof vicePresident);
-      // console.log("Senator:", typeof senator);
-      // console.log("Governor:", typeof governor);
-      // console.log("Vice Governor:", typeof viceGovernor);
-      // console.log("Board Member:", typeof boardMember);
+      console.log("President:", typeof president);
+      console.log("Vice President:", typeof vicePresident);
+      console.log("Senator:", typeof senator);
+      console.log("Governor:", typeof governor);
+      console.log("Vice Governor:", typeof viceGovernor);
+      console.log("Board Member:", typeof boardMember);
 
-      // console.log("President:", president);
-      // console.log("Vice President:", vicePresident);
-      // console.log("Senator:", senator);
-      // console.log("Governor:", governor);
-      // console.log("Vice Governor:", viceGovernor);
-      // console.log("Board Member:", boardMember);
+      console.log("Senator:", senator);
+      console.log("Parsed Senator:", parseVote(senator, true));
 
-      // Render the page with stringified values if they are objects
       res.render("voter/review", {
-        president: JSON.parse(president),
-        vicePresident: JSON.parse(vicePresident),
-        senator: JSON.parse(senator),
-        governor: JSON.parse(governor),
-        viceGovernor: JSON.parse(viceGovernor),
-        boardMember: JSON.parse(boardMember),
+        president: parseVote(president),
+        vicePresident: parseVote(vicePresident),
+        senator: parseVote(senator, true), // allow multiple votes for senators
+        governor: parseVote(governor),
+        viceGovernor: parseVote(viceGovernor),
+        boardMember: parseVote(boardMember),
+        college,
+        program,
+        email,
       });
     });
 

@@ -16,6 +16,11 @@
     border: 1px solid black;
   } */
 
+.main img {
+  width: 5rem;
+  height: 5rem;
+}
+
 .first-main {
   display: flex;
   flex-direction: row;
