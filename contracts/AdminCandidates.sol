@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.21;
 
 contract AdminCandidates {
     // Mapping to check if a candidate is registered
@@ -30,13 +30,16 @@ contract AdminCandidates {
     }
 
     /**
-     * @notice Allows voting for a candidate.
-     * @param candidateId The unique ID of the candidate.
+     * @notice Allows batch voting for candidates.
+     * @param candidateIds An array of candidate unique IDs (bytes32) to vote for.
      */
-    function voteForCandidate(bytes32 candidateId) external {
-        require(isRegistered[candidateId], "Candidate not registered");
-        candidateVotes[candidateId]++;
-        emit VoteCasted(candidateId, candidateVotes[candidateId]);
+    function voteForCandidates(bytes32[] calldata candidateIds) external {
+        for (uint256 i = 0; i < candidateIds.length; i++) {
+            bytes32 candidateId = candidateIds[i];
+            require(isRegistered[candidateId], "Candidate not registered");
+            candidateVotes[candidateId]++;
+            emit VoteCasted(candidateId, candidateVotes[candidateId]);
+        }
     }
 
     /**

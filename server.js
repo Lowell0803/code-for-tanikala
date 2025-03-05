@@ -289,12 +289,11 @@ const startServer = async () => {
     // Example using ethers.js
     app.post("/submit-votes-to-blockchain", async (req, res) => {
       try {
-        // Destructure the candidate data from the request body.
-        // These might be JSON strings, so we need to parse them.
+        // Destructure candidate data from the request body.
         const { president, vicePresident, senator, governor, viceGovernor, boardMember } = req.body;
 
         // Parse the JSON strings to obtain candidate objects.
-        const candidates = {
+        const parsedCandidates = {
           president: typeof president === "string" ? JSON.parse(president) : president,
           vicePresident: typeof vicePresident === "string" ? JSON.parse(vicePresident) : vicePresident,
           senator: typeof senator === "string" ? JSON.parse(senator) : senator,
@@ -303,21 +302,34 @@ const startServer = async () => {
           boardMember: typeof boardMember === "string" ? JSON.parse(boardMember) : boardMember,
         };
 
-        // Loop through each candidate vote
-        for (const role in candidates) {
-          const candidate = candidates[role];
-          // Extract the candidate's uniqueId (assumed to be a bytes32 hex string)
-          const candidateId = candidate.uniqueId;
+        // Create an array of candidate unique IDs.
+        // For properties that are arrays (like senator), iterate over each element.
+        let candidateIds = [];
 
-          // Call the contract function to vote for the candidate
-          // 'contract' should be your connected instance of the AdminCandidates contract.
-          // The function voteForCandidate takes a bytes32 candidateId.
-          const tx = await contract.voteForCandidate(candidateId);
-          console.log(`Vote cast for ${role} with candidateId: ${candidateId}`);
-
-          // Optionally wait for the transaction to be confirmed
-          await tx.wait();
+        for (const [key, value] of Object.entries(parsedCandidates)) {
+          if (Array.isArray(value)) {
+            value.forEach((candidate) => {
+              candidateIds.push(candidate.uniqueId);
+            });
+          } else {
+            candidateIds.push(value.uniqueId);
+          }
         }
+
+        // Log the candidate IDs for debugging.
+        console.log("Candidate IDs:", candidateIds);
+
+        // Ensure no candidate ID is undefined.
+        if (candidateIds.some((id) => id === undefined)) {
+          throw new Error("One or more candidate unique IDs are undefined");
+        }
+
+        // Call the contract's batch voting function.
+        const tx = await contract.voteForCandidates(candidateIds);
+        console.log("Batch vote cast for candidates:", candidateIds);
+
+        // Optionally wait for the transaction to be confirmed.
+        await tx.wait();
 
         res.send("Votes submitted to the blockchain successfully.");
       } catch (error) {
@@ -441,6 +453,33 @@ const startServer = async () => {
     // ==================================================================================================
     //                                        AUTHENTICATION
     // ==================================================================================================
+
+    app.post("/register", async (req, res) => {
+      try {
+        const { fullName, email, studentNumber, campus, college, program } = req.body;
+
+        if (!fullName || !email || !studentNumber || !campus || !college || !program) {
+          return res.status(400).json({ error: "All fields are required" });
+        }
+
+        const newVoter = {
+          name: fullName,
+          email: email,
+          student_number: studentNumber,
+          campus: campus,
+          college: college,
+          program: program,
+          status: "Registered",
+        };
+
+        await db.collection("registered_voters").insertOne(newVoter);
+
+        res.redirect("/register");
+      } catch (error) {
+        console.error("Error registering voter:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
 
     app.get("/auth/microsoft", passport.authenticate("azure_ad_oauth2"));
 
