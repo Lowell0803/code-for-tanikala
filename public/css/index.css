@@ -269,6 +269,7 @@ img {
   padding-bottom: 1rem;
   justify-content: center;
   align-items: center;
+  gap: 0;
   /* border: 1px solid black; */
 }
 

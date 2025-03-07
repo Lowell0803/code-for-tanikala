@@ -44,32 +44,27 @@
             </p>
           </div>
         </div>
-       
+
         <div class="beside">
           <i class="fa-solid fa-house"></i>
-           <a href="/index-results-are-out-period">Go Back to Homepage.</a>
+          <a href="/index-results-are-out-period">Go Back to Homepage.</a>
         </div>
-       
+
         <div class="main-container">
-        <p>
-          This platform allows you to view and verify the results of the Bulacan State University Student Government Elections. Powered by blockchain technology, we ensure a secure, reliable, and transparent election process. Every vote is securely recorded and cannot be altered, while your identity
-          remains private. <br />
+          This platform allows you to view and verify the results of the Bulacan State University Student Government Elections. Powered by blockchain technology, we ensure a secure, reliable, and transparent election process. Every vote is securely recorded and cannot be altered, while your identity remains private. <br />
           <br />
-          Why You Can Trust the TANIKALA Voting System <br /> <br />
+          Why You Can Trust the TANIKALA Voting System <br />
+          <br />
           <ul>
-            <li>Secure and Tamper-Proof Votes: Every vote is stored on a blockchain, a secure digital ledger where data cannot be changed or deleted. This ensures the election results are accurate and reliable.
-</li>
-<br />
-            <li>Your Privacy is Protected:  Your identity stays private. No one, not even system administrators, can see who you voted for. Each vote is hashed—a process that secures your vote without revealing your identity—and cannot be traced back to you.</li>
+            <li>Secure and Tamper-Proof Votes: Every vote is stored on a blockchain, a secure digital ledger where data cannot be changed or deleted. This ensures the election results are accurate and reliable.</li>
+            <br />
+            <li>Your Privacy is Protected: Your identity stays private. No one, not even system administrators, can see who you voted for. Each vote is hashed—a process that secures your vote without revealing your identity—and cannot be traced back to you.</li>
             <br />
             <li>Transparent and Verifiable Results: You can check the total votes for each candidate and verify your vote using your unique transaction receipt. This receipt contains a summary of your vote and a transaction hash, allowing you to confirm it was recorded correctly on the blockchain.</li>
           </ul>
           <br />
-</p>
-<p>
-          By combining security, privacy, and transparency, this platform ensures the election is fair and tamper-proof, with every vote counting as it should.
-</p>
-        
+
+          <p>By combining security, privacy, and transparency, this platform ensures the election is fair and tamper-proof, with every vote counting as it should.</p>
         </div>
       </div>
     </div>
@@ -77,19 +72,53 @@
     <footer class="footer">
       <div class="footer-left">
         <img src="img/calendar.png" class="footer-img" />
-        <p id="datetime">OCTOBER 23, 2024 - 04:17 AM</p>
+        <p id="datetime" data-date="<%= electionConfig.fakeCurrentDate %>"></p>
       </div>
 
       <div class="footer-center">
         <img src="img/copyright.png" class="footer-img" id="copyright-img" />
         <p>2025 - Fourmula 1</p>
       </div>
+
       <div class="footer-right">
-        <img src="img/log-in.png" class="footer-img" id="admin-img" />
-        <p>Admin? Log in&nbsp;</p>
-        <a href="admin_login.html"> here.</a>
+        <img src="img/info.png" class="footer-img" id="info-img" />
+        <p>Need help? Click&nbsp;</p>
+        <a href="help_page">here.</a>
       </div>
     </footer>
+
+    <script>
+      function formatDate(isoString) {
+        const date = new Date(isoString);
+        const options = {
+          month: "long",
+          day: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        };
+        return date.toLocaleString("en-US", options).replace(",", " -").toUpperCase();
+      }
+
+      function updateDateTime() {
+        const datetimeElement = document.getElementById("datetime");
+        if (!datetimeElement) return;
+
+        // Get the initial time from the data attribute
+        let currentTime = new Date(datetimeElement.getAttribute("data-date"));
+
+        function update() {
+          datetimeElement.textContent = formatDate(currentTime);
+          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+        }
+
+        update(); // Set initial formatted date
+        setInterval(update, 60000); // Update every minute (60000ms)
+      }
+
+      document.addEventListener("DOMContentLoaded", updateDateTime);
+    </script>
     <script src="js/index.js"></script>
   </body>
 </html>
