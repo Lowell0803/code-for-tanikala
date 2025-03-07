@@ -65,7 +65,8 @@
           </div>
 
           <!-- Label for the countdown -->
-          <h2 id="time-left" class="h1">Left to Vote</h2>
+          <h2 id="time-left" class="h1"></h2>
+          <h2 id="prepare-to-cast-your-votes" class="waiting-text" class="h1"></h2>
           <br />
           <br />
 
@@ -160,6 +161,7 @@
       const minutesElem = document.getElementById("minutes");
       const secondsElem = document.getElementById("seconds");
       const timeLeftElem = document.getElementById("time-left");
+      const prepareToCastYourVotesElem = document.getElementById("prepare-to-cast-your-votes");
       const votingButton = document.getElementById("voting-button");
 
       function updatePhase() {
@@ -168,12 +170,14 @@
         if (now < votingStart) {
           electionPeriodElem.textContent = "Voting Period:";
           timeLeftElem.textContent = "Time Until Voting Begins";
+          prepareToCastYourVotesElem.textContent = "Prepare to Cast Your Votes!";
           distance = votingStart - now;
           votingButton.style.display = "none";
         } else if (now >= votingStart && now <= votingEnd) {
           electionPeriodElem.textContent = "Voting Period:";
           timeLeftElem.textContent = "Left to Vote";
           distance = votingEnd - now;
+          prepareToCastYourVotesElem.textContent = "";
           votingButton.style.display = "block";
         } else {
           electionPeriodElem.textContent = "Voting Ended";

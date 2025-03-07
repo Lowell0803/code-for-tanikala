@@ -69,7 +69,8 @@
           </div>
 
           <!-- Label for the countdown -->
-          <h2 id="time-left" class="h1">Left to Register</h2>
+          <h2 id="time-left" class="h1"></h2>
+          <h2 id="get-ready-to-register" class="h1"></h2>
           <br />
           <br />
 
@@ -142,6 +143,7 @@
       const minutesElem = document.getElementById("minutes");
       const secondsElem = document.getElementById("seconds");
       const timeLeftElem = document.getElementById("time-left");
+      const getReadyToRegisterElem = document.getElementById("get-ready-to-register");
       const registerButton = document.getElementById("register-button");
 
       function updatePhase() {
@@ -150,11 +152,13 @@
         if (now < registrationStart) {
           electionPeriodElem.textContent = "Registration Period:";
           timeLeftElem.textContent = "Time Until Registration Opens";
+          getReadyToRegisterElem.textContent = "Get Ready to Register!";
           distance = registrationStart - now;
           registerButton.style.display = "none";
         } else if (now >= registrationStart && now <= registrationEnd) {
           electionPeriodElem.textContent = "Registration Period:";
           timeLeftElem.textContent = "Left to Register";
+          getReadyToRegisterElem.textContent = "";
           distance = registrationEnd - now;
           registerButton.style.display = "block";
         } else {

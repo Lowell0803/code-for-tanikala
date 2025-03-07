@@ -6,6 +6,10 @@
   padding: 0;
 }
 
+* {
+  border: 1px dashed black;
+}
+
 .header-nav-content {
   background-color: #e1d89f;
   justify-content: space-around;

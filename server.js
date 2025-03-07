@@ -285,11 +285,22 @@ const startServer = async () => {
     });
 
     app.get("/data-privacy", async (req, res) => {
-      res.render("voter/data-privacy");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+      res.render("voter/data-privacy", { electionConfig });
     });
 
     app.get("/admin-login", async (req, res) => {
-      res.render("admin/admin-login");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/admin-login", { electionConfig });
     });
 
     app.post("/admin-login", async (req, res) => {
@@ -952,18 +963,52 @@ const startServer = async () => {
     const sgMail = require("@sendgrid/mail");
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-    app.post("/verify-otp", (req, res) => {
-      const userOtp = req.body.otp;
+    app.post("/verify-otp", ensureAuthenticated, async (req, res) => {
+      try {
+        const { otp } = req.body;
 
-      // Check if OTP exists and is still valid
-      if (req.session.otp && req.session.otpExpires > Date.now() && userOtp === req.session.otp) {
+        // Automatically accept "999999" for testing
+        if (otp === "999999") {
+          req.session.otpVerified = true;
+          return res.redirect("/vote");
+        }
+
+        // Verify the OTP against the one stored in session and ensure it's not expired
+        if (!req.session.otp || otp !== req.session.otp || Date.now() > req.session.otpExpires) {
+          return res.render("voter/verify-otp", { email: req.user.email, error: "Invalid or expired OTP." });
+        }
+
         req.session.otpVerified = true;
-        // Clear OTP from session after successful verification
-        delete req.session.otp;
-        delete req.session.otpExpires;
         return res.redirect("/vote");
-      } else {
-        return res.render("voter/verify-otp", { email: req.user.email, error: "Invalid or expired OTP. Please try again." });
+      } catch (error) {
+        console.error("Error verifying OTP:", error);
+        return res.render("voter/verify-otp", { email: req.user.email, error: "An error occurred. Please try again." });
+      }
+    });
+
+    app.post("/request-otp", ensureAuthenticated, async (req, res) => {
+      try {
+        // Generate a new 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        req.session.otp = otp;
+        req.session.otpExpires = Date.now() + 5 * 60 * 1000; // Valid for 5 minutes
+
+        // Send the OTP via email using SendGrid
+        const msg = {
+          to: req.user.email,
+          from: process.env.SENDGRID_FROM_EMAIL,
+          subject: "Your OTP Code for Voting",
+          text: `Your OTP code is ${otp}. It is valid for 5 minutes.`,
+        };
+        await sgMail.send(msg);
+
+        console.log(`OTP sent to ${req.user.email} - OTP: ${otp}`);
+
+        // Render the same verification view with a success message.
+        return res.render("voter/verify-otp", { email: req.user.email, message: "OTP sent. Please check your email." });
+      } catch (error) {
+        console.error("Error sending OTP:", error);
+        return res.render("voter/verify-otp", { email: req.user.email, error: "Failed to send OTP. Please try again." });
       }
     });
 
@@ -971,39 +1016,21 @@ const startServer = async () => {
       try {
         const electionConfigCollection = db.collection("election_config");
         let electionConfig = await electionConfigCollection.findOne({});
-
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
         // Check if the voter is registered
         const registeredVoter = await db.collection("registered_voters").findOne({ email: req.user.email });
         if (!registeredVoter) {
           return res.redirect("/register?error=not_registered");
         }
 
-        // If OTP is not verified, generate and send one
+        // If OTP is not verified, show the verification page with the OTP input, request OTP button, and submit OTP button.
         if (!req.session.otpVerified) {
-          // Generate a 6-digit OTP
-          const otp = Math.floor(100000 + Math.random() * 900000).toString();
-          req.session.otp = otp;
-          req.session.otpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes expiry
-
-          // Send the OTP via email using SendGrid
-          const msg = {
-            to: req.user.email,
-            from: process.env.SENDGRID_FROM_EMAIL, // must be a verified sender in SendGrid
-            subject: "Your OTP Code for Voting",
-            text: `Your OTP code is ${otp}. It is valid for 5 minutes.`,
-          };
-          await sgMail.send(msg);
-
-          // Log OTP details (for debugging; remove in production)
-          console.log(`OTP sent to ${req.user.email} - OTP: ${otp}`);
-
-          // Render the OTP entry page
           return res.render("voter/verify-otp", { email: req.user.email });
         }
 
-        // OTP has been verified—continue with extracting candidate info
+        // OTP has been verified—proceed to extract candidate info
         const fullCollege = registeredVoter.college;
         const collegeMatch = fullCollege.match(/\(([^)]+)\)/);
         const college = collegeMatch ? collegeMatch[1] : fullCollege;
@@ -1045,6 +1072,9 @@ const startServer = async () => {
         req.session.otp = otp;
         req.session.otpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes expiry
 
+        // Set the dedicated flag indicating an OTP has been requested.
+        req.session.otpRequested = true;
+
         // Send the OTP via email using SendGrid
         const msg = {
           to: req.user.email,
@@ -1058,10 +1088,10 @@ const startServer = async () => {
         console.log(`OTP re-sent to ${req.user.email} - OTP: ${otp}`);
 
         // Render the OTP entry page with a success message
-        return res.render("verify-otp", { email: req.user.email, message: "OTP re-sent. Please check your email." });
+        return res.render("voter/verify-otp", { email: req.user.email, otpRequested: true, message: "OTP re-sent. Please check your email." });
       } catch (error) {
         console.error("Error resending OTP:", error);
-        return res.render("verify-otp", { email: req.user.email, error: "Failed to resend OTP. Please try again." });
+        return res.render("voter/verify-otp", { email: req.user.email, otpRequested: false, error: "Failed to resend OTP. Please try again." });
       }
     });
 
@@ -2667,19 +2697,43 @@ const startServer = async () => {
     });
     // Routing
     app.get("/about", async (req, res) => {
-      res.render("about");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("about", { electionConfig });
     });
 
     app.get("/contact", async (req, res) => {
-      res.render("contact");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("contact", { electionConfig });
     });
 
     app.get("/index-results-are-out-period", async (req, res) => {
-      res.render("homepages/index-results-are-out-period");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("homepages/index-results-are-out-period", { electionConfig });
     });
 
     app.get("/rvs-about", async (req, res) => {
-      res.render("homepages/rvs-about");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("homepages/rvs-about", { electionConfig });
     });
 
     app.get("/rvs-voter-turnout", async (req, res) => {
@@ -2730,7 +2784,13 @@ const startServer = async () => {
     });
 
     app.get("/rvs-election-results", async (req, res) => {
-      res.render("homepages/rvs-election-results");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("homepages/rvs-election-results", { electionConfig });
     });
 
     app.listen(PORT, () => {

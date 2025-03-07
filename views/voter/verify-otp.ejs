@@ -3,13 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>TANIKALA Voting System</title>
+    <title>TANIKALA Voting System - OTP Verification</title>
 
     <link rel="stylesheet" type="text/css" href="css/index.css" />
     <link rel="stylesheet" type="text/css" href="css/otp-verification.css" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
   </head>
   <body>
@@ -29,53 +28,28 @@
         <div class="card">
           <i class="fa-solid fa-envelope"></i>
           <br />
-
           <h2 class="blue">User Verification</h2>
           <br />
-          <p>
-            One Time Password (OTP) has been sent via email to <span><%= email %></span>. <br />
-            <br />
-            Enter the OTP below to verify it.
-          </p>
-          <br />
+          <% var message = typeof message !== 'undefined' ? message : ''; var error = typeof error !== 'undefined' ? error : ''; %> <% if (message) { %>
+          <p class="success-message"><%= message %></p>
+          <% } %> <% if (error) { %>
+          <p class="error-message"><%= error %></p>
+          <% } %>
+          <p>Enter the OTP sent to <span><%= email %></span>. For testing, you may enter <strong>999999</strong>.</p>
+          <!-- Form to request an OTP -->
+          <form action="/request-otp" method="POST" style="margin-bottom: 20px">
+            <button type="submit">Request OTP</button>
+          </form>
+          <!-- Form to submit the OTP -->
           <form action="/verify-otp" method="POST">
             <input type="tel" name="otp" inputmode="numeric" pattern="\d{6}" maxlength="6" placeholder="Enter OTP" class="otp-field" required />
             <br />
-            <button id="resend-btn" type="submit">Submit OTP</button>
-          </form>
-
-          <br />
-
-          <span id="timer"></span>
-          <form action="/resend-otp" method="POST" style="margin-top: 20px">
-            <button type="submit" id="resend-btn" disabled style="cursor: not-allowed">Resend OTP</button>
+            <button type="submit">Submit OTP</button>
           </form>
         </div>
       </div>
     </div>
 
     <script src="js/index.js"></script>
-
-    <!-- put in index.js file -->
-    <script>
-      // Set up a 30-second timer
-      let timeLeft = 30;
-      const resendButton = document.getElementById("resend-btn");
-      const timerDisplay = document.getElementById("timer");
-
-      // Function to update the timer display
-      function updateTimer() {
-        if (timeLeft > 0) {
-          timerDisplay.textContent = `Resend OTP in ${timeLeft} seconds`;
-          timeLeft--;
-        } else {
-          timerDisplay.textContent = "";
-          resendButton.disabled = false; // Enable resend button after 30 seconds
-        }
-      }
-
-      // Initial call to start the timer
-      setInterval(updateTimer, 1000);
-    </script>
   </body>
 </html>
