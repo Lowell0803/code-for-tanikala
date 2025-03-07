@@ -48,13 +48,15 @@
       <div class="main-first">
         <img src="img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
         <div class="first-text">
-          <h2 class="title">BulSU Student Government Elections<br />S.Y. 2025 - 2026</h2>
+          <h2 class="title"><%= electionConfig.electionName %></h2>
         </div>
         <img src="img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
       </div>
       <form action="/review" method="POST" id="voteForm">
         <div class="content-main">
-          <p><i>You can submit your votes by pressing the SUBMIT BALLOT button below.</i></p>
+          <p>
+            <i>You can submit your votes by pressing the SUBMIT BALLOT button below.</i>
+          </p>
           <br />
 
           <!-- Supreme Student Council Section -->
@@ -222,9 +224,11 @@
 
             <div>
               <br />
-              <hr class="review-line" />
-              <p class="review"><i>You still need to review and confirm your votes in the next page.</i></p>
-              <hr class="review-line" />
+              <hr />
+              <p>
+                <i>You still need to review and confirm your votes in the next page.</i>
+              </p>
+              <hr />
               <br />
               <button class="continue-application">
                 <div>
@@ -256,29 +260,38 @@
 
       <!-- Toggle Script: Disable candidate radios when abstain checkbox is checked -->
       <script>
-                      document.querySelectorAll(".abstain-checkbox").forEach((checkbox) => {
-                        checkbox.addEventListener("change", function () {
-                          const group = this.getAttribute("data-group");
-                          const radios = document.querySelectorAll('input[name="' + group + '"].candidate-radio');
-                          if (this.checked) {
-                            radios.forEach((radio) => {
-                              radio.disabled = true;
-                              radio.checked = false;
-                            });
-                          } else {
-                            radios.forEach((radio) => {
-                              radio.disabled = false;
-                            });
-                          }
-                        });
-                      });
+        document.querySelectorAll(".abstain-checkbox").forEach((checkbox) => {
+          checkbox.addEventListener("change", function () {
+            const group = this.getAttribute("data-group");
+            const radios = document.querySelectorAll(
+              'input[name="' + group + '"].candidate-radio'
+            );
+            if (this.checked) {
+              radios.forEach((radio) => {
+                radio.disabled = true;
+                radio.checked = false;
+              });
+            } else {
+              radios.forEach((radio) => {
+                radio.disabled = false;
+              });
+            }
+          });
+        });
 
-                      // On form submission, for each group, if nothing is selected (and the abstain checkbox is not checked), add a hidden input with the abstain value.
-                      document.getElementById("voteForm").addEventListener("submit", function (e) {
-          const groups = ["president", "vicePresident", "governor", "viceGovernor", "boardMember", "senator"];
+        // On form submission, for each group, if nothing is selected (and the abstain checkbox is not checked), add a hidden input with the abstain value.
+        document.getElementById("voteForm").addEventListener("submit", function (e) {
+          const groups = [
+            "president",
+            "vicePresident",
+            "governor",
+            "viceGovernor",
+            "boardMember",
+            "senator",
+          ];
           groups.forEach(function (group) {
             // Remove any previously added hidden inputs for this group
-            document.querySelectorAll('input.hidden-' + group).forEach(el => el.remove());
+            document.querySelectorAll('input.hidden-' + group).forEach((el) => el.remove());
 
             // Check if a candidate is already selected in this group
             const selected = document.querySelectorAll('input[name="' + group + '"]:checked');
@@ -293,7 +306,9 @@
                 }
               } else {
                 // Get the abstain checkbox for this group (note: these inputs do NOT have a name)
-                const abstainInput = document.querySelector('input[data-group="' + group + '"].abstain-checkbox');
+                const abstainInput = document.querySelector(
+                  'input[data-group="' + group + '"].abstain-checkbox'
+                );
                 if (abstainInput && abstainInput.checked) {
                   abstainValue = abstainInput.value;
                 }
@@ -363,7 +378,80 @@
         });
       </script>
 
+      <!-- New Script: Limit Senator Selection to 7 -->
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const senatorCheckboxes = document.querySelectorAll('input[name="senator"]');
+          senatorCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener("change", function () {
+              const checkedCount = document.querySelectorAll('input[name="senator"]:checked').length;
+              if (checkedCount > 7) {
+                this.checked = false;
+                notify("You can select a maximum of 7 senators.", "error", 3000);
+              }
+            });
+          });
+        });
+      </script>
+
       <script type="module" src="components/notificationHandler.js"></script>
+
+      <script>
+        function toggleOverlay(checkboxId, targetClass) {
+          document.querySelector(`#${checkboxId}`).addEventListener("change", function () {
+            document.querySelectorAll(`.${targetClass}`).forEach((element) => {
+              if (this.checked) {
+                element.style.position = "relative";
+                element.style.filter = "brightness(50%)"; // Darken the image when abstaining
+              } else {
+                element.style.filter = "brightness(100%)"; // Reset brightness when voting
+              }
+            });
+          });
+        }
+
+        // Example usage:
+        toggleOverlay("abstain-president", "label-president");
+        toggleOverlay("abstain-vice-president", "label-vice-president");
+        toggleOverlay("abstain-governor", "label-governor");
+        toggleOverlay("abstain-vice-governor", "label-vice-governor");
+        toggleOverlay("abstain-board-member", "label-board-member");
+      </script>
+      <script src="js/index.js"></script>
+
+      <script>
+        function formatDate(isoString) {
+          const date = new Date(isoString);
+          const options = {
+            month: "long",
+            day: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          };
+          return date.toLocaleString("en-US", options).toUpperCase();
+        }
+
+        function updateDateTime() {
+          const datetimeElement = document.getElementById("datetime");
+          if (!datetimeElement) return;
+
+          // Get the initial time from the data attribute
+          let currentTime = new Date(datetimeElement.getAttribute("data-date"));
+
+          function update() {
+            datetimeElement.textContent = formatDate(currentTime);
+            currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+          }
+
+          update(); // Set initial formatted date
+          setInterval(update, 60000); // Update every minute (60000ms)
+        }
+
+        document.addEventListener("DOMContentLoaded", updateDateTime);
+      </script>
+      <script src="js/dropdown.js"></script>
     </div>
 
     <footer class="footer">
@@ -378,61 +466,5 @@
       </div>
       <div class="footer-right"></div>
     </footer>
-    <script>
-      function toggleOverlay(checkboxId, targetClass) {
-        document.querySelector(`#${checkboxId}`).addEventListener("change", function () {
-          document.querySelectorAll(`.${targetClass}`).forEach((element) => {
-            if (this.checked) {
-              element.style.position = "relative";
-              element.style.filter = "brightness(50%)"; // Darken the image when abstaining
-            } else {
-              element.style.filter = "brightness(100%)"; // Reset brightness when voting
-            }
-          });
-        });
-      }
-
-      // Example usage:
-      toggleOverlay("abstain-president", "label-president");
-      toggleOverlay("abstain-vice-president", "label-vice-president");
-      toggleOverlay("abstain-governor", "label-governor");
-      toggleOverlay("abstain-vice-governor", "label-vice-governor");
-      toggleOverlay("abstain-board-member", "label-board-member");
-    </script>
-    <script src="js/index.js"></script>
-
-    <script>
-      function formatDate(isoString) {
-        const date = new Date(isoString);
-        const options = {
-          month: "long",
-          day: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        };
-        return date.toLocaleString("en-US", options).toUpperCase();
-      }
-
-      function updateDateTime() {
-        const datetimeElement = document.getElementById("datetime");
-        if (!datetimeElement) return;
-
-        // Get the initial time from the data attribute
-        let currentTime = new Date(datetimeElement.getAttribute("data-date"));
-
-        function update() {
-          datetimeElement.textContent = formatDate(currentTime);
-          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
-        }
-
-        update(); // Set initial formatted date
-        setInterval(update, 60000); // Update every minute (60000ms)
-      }
-
-      document.addEventListener("DOMContentLoaded", updateDateTime);
-    </script>
-    <script src="js/dropdown.js"></script>
   </body>
 </html>
