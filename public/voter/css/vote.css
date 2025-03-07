@@ -126,20 +126,20 @@
 
 .ballot-council {
   background-color: var(--color-red);
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   text-transform: uppercase;
 }
 
 .ballot-lsc-council {
   background-color: rgb(52, 179, 52);
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   text-transform: uppercase;
 }
 
 .ballot-position {
-  background-color: var(--color-yellow);
-  color: black;
-  font-size: 1.5rem;
+  background-color: #1e66c4;
+  color: white;
+  font-size: 1.2rem;
 }
 
 .label-senator .ballot-tile .party {

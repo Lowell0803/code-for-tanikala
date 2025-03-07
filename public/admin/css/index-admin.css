@@ -189,6 +189,7 @@ h6 {
 
 .dropdown-menu a:hover {
   color: var(--background-red);
+  font-weight: bold;
 }
 /* .header-user img {
   padding-right: 5%;
@@ -300,7 +301,7 @@ h6 {
 .dropdown-line {
   border: none;
   width: 85%;
-  height: 0.05rem;
+  height: 0.1rem;
   background-color: #423a2c;
 
   opacity: 60%;
@@ -326,6 +327,7 @@ h6 {
   padding: 0.7rem 2rem;
   text-decoration: none;
   display: block;
+  font-weight: 500;
 }
 
 /* Hover effect for links
