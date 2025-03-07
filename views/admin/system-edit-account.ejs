@@ -75,7 +75,10 @@
       </div>
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <span class="job"><%= loggedInAdmin.role %></span>
+        </div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="/edit-account">View Account</a>
@@ -173,7 +176,7 @@
             </ul>
           </li>
 
-          <li>
+          <li id="active-tab">
             <div class="icon-link">
               <a href="/edit-account">
                 <i class="fa fa-tasks"></i>
@@ -183,7 +186,7 @@
             </div>
             <ul class="sub-menu">
               <li><a class="link_name" href="/edit-account">System</a></li>
-              <li><a href="/edit-account">Edit Account</a></li>
+              <li><a href="/edit-account" id="active-sub">Edit Account</a></li>
               <li><a href="/manage-admins">Manage Admins</a></li>
               <li><a href="/help-page">Help Page</a></li>
               <li><a href="/system-activity-log">System Activity Log</a></li>

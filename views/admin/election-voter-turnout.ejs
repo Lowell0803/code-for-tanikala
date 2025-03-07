@@ -15,6 +15,7 @@
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" /> -->
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
   </head>
@@ -85,7 +86,10 @@
       </div>
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <span class="job"><%= loggedInAdmin.role %></span>
+        </div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="/edit-account">View Account</a>
@@ -156,7 +160,7 @@
             </ul>
           </li>
 
-          <li>
+          <li id="active-tab">
             <div class="icon-link">
               <a href="/voter-info">
                 <i class="fa fa-bar-chart"></i>
@@ -167,7 +171,7 @@
             <ul class="sub-menu">
               <li><a class="link_name" href="/voter-info"><%= electionConfig.electionName || "No Election Ongoing" %></a></li>
               <li><a href="/voter-info">Voter Info</a></li>
-              <li><a href="/voter-turnout">Voter Turnout</a></li>
+              <li id="active-sub"><a href="/voter-turnout">Voter Turnout</a></li>
               <li><a href="/vote-tally">Vote Tally</a></li>
               <li><a href="/results">Results</a></li>
               <li><a href="/reset">Reset Election</a></li>
@@ -205,7 +209,7 @@
       <main class="main">
         <div class="title-container">
           <div class="r">
-            <i class="fa fa-cogs"></i>
+            <i class="fa fa-pie-chart" aria-hidden="true"></i>
             <h1 class="title">Voter Turnout</h1>
           </div>
         </div>

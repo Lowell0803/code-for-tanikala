@@ -15,9 +15,10 @@
     <link rel="stylesheet" type="text/css" href="admin/css/candidates.css" />
 
     <!-- Boxicons CDN Link -->
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
   </head>
@@ -88,7 +89,10 @@
       </div>
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <span class="job"><%= loggedInAdmin.role %></span>
+        </div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="/edit-account">View Account</a>
@@ -134,7 +138,7 @@
               <li><a class="link_name" href="/configuration">Configuration</a></li>
             </ul>
           </li>
-          <li>
+          <li id="active-tab">
             <a href="/candidates">
               <i class="fa fa-users"></i>
               <span class="link_name">Candidates</span>
@@ -1150,7 +1154,8 @@
     </script>
 
     <script src="admin/js/sidebar.js"></script>
-    <script src="admin/js/index_admin.js"></script>
-    <script src="admin/js/dropdown.js"></script>
+
+    <script src="admin/js/index-admin.js"></script>
+    <script src="js/dropdown.js"></script>
   </body>
 </html>
