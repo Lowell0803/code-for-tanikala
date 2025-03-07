@@ -167,7 +167,7 @@
         let distance = 0;
         if (now < votingStart) {
           electionPeriodElem.textContent = "Voting Period:";
-          timeLeftElem.textContent = "Time Until Voting Begins:";
+          timeLeftElem.textContent = "Time Until Voting Begins";
           distance = votingStart - now;
           votingButton.style.display = "none";
         } else if (now >= votingStart && now <= votingEnd) {
