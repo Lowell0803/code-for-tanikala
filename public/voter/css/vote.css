@@ -5,8 +5,8 @@
   --color-blue: #004aad;
 
   --color-party: #525252;
-  --color-selected: #550c0a;
-  --color-selected-bg: #f8cac9;
+  --color-selected: #023e17;
+  --color-selected-bg: #b2eea0;
 }
 
 /* .ballot-choices div {
@@ -116,12 +116,16 @@
 
 .label-container hr {
   width: 80%;
+  border: none;
+  height: 0.1rem;
+  background: black;
   /* border: red; */
 }
 
 .ballot-tile {
   display: block;
   border: 1px solid #707070;
+  padding: 1rem;
 }
 
 .ballot-council {
@@ -373,17 +377,18 @@
 
 .checkbox-wrapper-10 .tgl-flip + .tgl-btn:after,
 .checkbox-wrapper-10 .tgl-flip + .tgl-btn:before {
-  display: inline-block;
+  display: flex; /* Use flexbox */
+  align-items: center; /* Vertically center content */
+  justify-content: center; /* Horizontally center content */
   transition: all 1s ease;
   width: 100%;
-  text-align: center;
-  position: absolute;
-  line-height: 2em;
-  font-weight: bold;
-  color: #fff;
+  height: 100%;
   position: absolute;
   top: 0;
   left: 0;
+  line-height: normal; /* Reset line-height if needed */
+  font-weight: bold;
+  color: #fff;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   border-radius: 4px;

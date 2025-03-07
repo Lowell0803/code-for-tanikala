@@ -116,6 +116,7 @@
 
             <!-- Senator Candidates -->
             <h3 class="ballot-header ballot-position">Senators (7)</h3>
+            <br />
             <div id="ballot-senator" class="ballot-choices">
               <% let abstainSenator = null; %> <% const filteredSenatorCandidates = senatorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainSenator = candidate; return false; } return true; }); %> <% filteredSenatorCandidates.forEach(function(candidate,
               index) { %>
@@ -132,6 +133,7 @@
               <% }); %>
             </div>
             <br />
+            <br />
             <!-- Note: For senators, no separate abstain checkbox in the UI -->
           </div>
           <br />
@@ -140,7 +142,7 @@
           <div class="ballot ballot-lsc">
             <br />
             <h3 class="ballot-header ballot-lsc-council">Local Student Council - <%= college %></h3>
-            <br /><br />
+            <br />
 
             <!-- Governor Candidates -->
             <h3 class="ballot-header ballot-position">Governor (1)</h3>
@@ -240,6 +242,7 @@
                 </div>
                 Review Your Votes
               </button>
+              <br />
               <br />
             </div>
             <br />

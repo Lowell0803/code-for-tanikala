@@ -66,9 +66,8 @@
 
           <!-- Label for the countdown -->
           <h2 id="time-left" class="h1"></h2>
-          <h2 id="prepare-to-cast-your-votes" class="waiting-text" class="h1"></h2>
-          <br />
-          <br />
+          <!-- <h2 id="prepare-to-cast-your-votes" class="h1 waiting-text"></h2> -->
+          <h2 id="prepare-to-container" class="h1 waiting-text">| &nbsp;<span id="prepare-to-cast-your-votes"></span></h2>
 
           <!-- The voting button uses an id for stable reference -->
           <button id="voting-button" class="button-rounded-yellow" onclick="window.location.href='/vote';">VOTE NOW</button>
@@ -76,7 +75,7 @@
 
         <div class="content-main-right">
           <img src="img/logo_bulsu_ucse.png" alt="BulSU UCSE Logo" class="logo-opacity" /><br />
-          <p class="montserrat">Vote Now for the Student Government Elections!</p>
+          <p class="montserrat" id="vote-now">Vote Now for the Student Government Elections!</p>
         </div>
       </div>
     </div>
@@ -162,6 +161,7 @@
       const secondsElem = document.getElementById("seconds");
       const timeLeftElem = document.getElementById("time-left");
       const prepareToCastYourVotesElem = document.getElementById("prepare-to-cast-your-votes");
+      const prepareToCastYourVotesContainer = document.getElementById("prepare-to-container");
       const votingButton = document.getElementById("voting-button");
 
       function updatePhase() {
@@ -177,7 +177,7 @@
           electionPeriodElem.textContent = "Voting Period:";
           timeLeftElem.textContent = "Left to Vote";
           distance = votingEnd - now;
-          prepareToCastYourVotesElem.textContent = "";
+          prepareToCastYourVotesContainer.textContent = "";
           votingButton.style.display = "block";
         } else {
           electionPeriodElem.textContent = "Voting Ended";
