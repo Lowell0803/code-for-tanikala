@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TANIKALA Voting System</title>
+
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" type="text/css" href="css/home.css" />
+    <link rel="stylesheet" type="text/css" href="css/index_election.css" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-logo">
+        <img src="img/logo_tanikala.png" alt="Tanikala Voting System" />
+      </div>
+      <nav class="header-nav">
+        <ul class="header-nav-content">
+          <li><a href="/" id="active-link">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="header-bottom-line"></div>
+    </header>
+
+    <div class="content">
+      <div class="content-title">
+        <h3 class="h3">ONLINE VOTING SYSTEM FOR THE STUDENT GOVERNMENT ELECTIONS AT BULACAN STATE UNIVERSITY</h3>
+      </div>
+
+      <div class="content-main">
+        <div class="main-first">
+          <img src="img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
+          <div class="first-text">
+            <h2 class="montserrat period">The <span>BulSU Student Government Elections S.Y. 2025-2026</span> Vote Checking Period Is Ongoing</h2>
+          </div>
+          <img src="img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
+        </div>
+        <div class="main-container">
+          <p class="bigger-text">
+            Thank you for your patience! The vote checking period for the <span class="election-name">BulSU Student Government Elections S.Y. 2025-2026</span> is currently underway. <br />
+            <br />
+            To stay updated, please refer to the University Commission on Student Elections (BulSU UCSE) official page: <a href="https://www.facebook.com/ucsebulsu">https://www.facebook.com/ucsebulsu</a> <br />
+            <br />
+            Official results will be announced soon. Stay tuned!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-left">
+        <img src="img/calendar.png" class="footer-img" />
+        <p id="datetime" data-date="<%= electionConfig.fakeCurrentDate %>"></p>
+      </div>
+
+      <div class="footer-center">
+        <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+        <p>2025 - Fourmula 1</p>
+      </div>
+      <div class="footer-right">
+        <img src="img/log-in.png" class="footer-img" id="admin-img" />
+        <p>Admin? Log in&nbsp;</p>
+        <a href="/admin-login"> here.</a>
+      </div>
+    </footer>
+    <script src="js/index.js"></script>
+
+    <script>
+      function formatDate(isoString) {
+        const date = new Date(isoString);
+        const options = {
+          month: "long",
+          day: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        };
+        return date.toLocaleString("en-US", options).toUpperCase();
+      }
+
+      function updateDateTime() {
+        const datetimeElement = document.getElementById("datetime");
+        if (!datetimeElement) return;
+
+        // Get the initial time from the data attribute
+        let currentTime = new Date(datetimeElement.getAttribute("data-date"));
+
+        function update() {
+          datetimeElement.textContent = formatDate(currentTime);
+          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+        }
+
+        update(); // Set initial formatted date
+        setInterval(update, 60000); // Update every minute (60000ms)
+      }
+
+      document.addEventListener("DOMContentLoaded", updateDateTime);
+    </script>
+  </body>
+</html>

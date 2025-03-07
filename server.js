@@ -880,6 +880,7 @@ const startServer = async () => {
       }
     });
 
+    //test
     app.post("/submit-votes-to-blockchain", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});
@@ -927,6 +928,13 @@ const startServer = async () => {
 
         // Hash the email using SHA-256
         const hashedEmail = crypto.createHash("sha256").update(email).digest("hex");
+
+        // Update candidate_hashes collection:
+        // For each candidate uniqueId, add the hashedEmail to the emails array (no duplicates).
+        const candidateHashesCollection = db.collection("candidate_hashes");
+        for (const candidateId of candidateIds) {
+          await candidateHashesCollection.updateOne({ candidateId: candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true });
+        }
 
         res.render("voter/verify", {
           voterCollege: college,
@@ -2649,6 +2657,14 @@ const startServer = async () => {
       res.render("admin/system-activity-log", { electionConfig, loggedInAdmin: req.session.admin });
     });
 
+    app.get("/please", async (req, res) => {
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+      res.render("homepages/index-vote-checking-period", { electionConfig });
+    });
     // Routing
     app.get("/about", async (req, res) => {
       res.render("about");
@@ -2667,11 +2683,50 @@ const startServer = async () => {
     });
 
     app.get("/rvs-voter-turnout", async (req, res) => {
-      res.render("homepages/rvs-voter-turnout");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("homepages/rvs-voter-turnout", { electionConfig });
     });
 
     app.get("/rvs-votes-per-candidate", async (req, res) => {
-      res.render("homepages/rvs-votes-per-candidate");
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      // const candidateHashesCollection = db.collection("candidateHashes");
+      // let candidateHashes = await electionConfigCollection.findOne({});
+      const candidateHashes = await db.collection("candidate_hashes").find({}).toArray();
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      // Call the getCandidateDetails function from the contract
+      const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+      // Fetch candidates from MongoDB
+      const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+      const allCandidates = aggregatedData.candidates;
+
+      // Combine Blockchain Data with Candidate Info
+      const candidates = candidateIds.map((id, index) => {
+        const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+
+        return {
+          candidateId: id.toString(),
+          name: candidate ? candidate.name : "Unknown Candidate",
+          party: candidate ? candidate.party : "Unknown Party",
+          position: candidate ? candidate.position : "Unknown Position",
+          image: candidate ? candidate.image : "No Image",
+          college: candidate ? candidate.college : "",
+          program: candidate ? candidate.program : "",
+          voteCount: voteCounts[index].toString(),
+        };
+      });
+
+      res.render("homepages/rvs-votes-per-candidate", { candidates, electionConfig, candidateHashes });
     });
 
     app.get("/rvs-election-results", async (req, res) => {

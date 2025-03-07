@@ -8,6 +8,8 @@
     <link rel="stylesheet" type="text/css" href="voter/css/index-voter.css" />
     <link rel="stylesheet" type="text/css" href="voter/css/verify.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
       /* Ensure long hashes break properly */
       .hash-break {
@@ -59,7 +61,8 @@
       </div>
 
       <!-- Wrap the receipt in a container for exporting -->
-      <div class="content-main receipt-container" style="padding: 20px; border: 1px solid #ccc">
+      <!-- <div class="content-main receipt-container" style="padding: 20px; border: 1px solid #ccc"> -->
+      <div class="content-main receipt-container">
         <div class="verify">
           <div class="row">
             <div class="column">
@@ -162,7 +165,7 @@
 
       <!-- Export Button -->
       <div style="text-align: center; margin: 20px">
-        <button id="exportBtn" style="padding: 10px 20px; font-size: 16px" class="button-save">Export Receipt as Image</button>
+        <button id="exportBtn" style="border-radius: 6px; padding: 10px 20px; font-size: 16px" class="button-save">Export Receipt as Image</button>
       </div>
     </div>
 
@@ -210,7 +213,7 @@
         // Export Receipt as Image using html-to-image
         document.getElementById("exportBtn").addEventListener("click", function () {
           htmlToImage
-            .toPng(document.querySelec  tor(".receipt-container"))
+            .toPng(document.querySelector(".receipt-container"))
             .then(function (dataUrl) {
               var link = document.createElement("a");
               link.download = "receipt.png";
@@ -256,5 +259,6 @@
 
       document.addEventListener("DOMContentLoaded", updateDateTime);
     </script>
+    <script src="js/index.js"></script>
   </body>
 </html>

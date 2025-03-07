@@ -9,10 +9,13 @@
     <link rel="stylesheet" type="text/css" href="css/home.css" />
     <!-- <link rel="stylesheet" type="text/css" href="css/index_election.css" /> -->
     <link rel="stylesheet" type="text/css" href="css/rvs.css" />
+    <link rel="stylesheet" href="admin/dependencies/liner-bar.css" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+    <!-- <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" /> -->
+    <link rel="stylesheet" type="text/css" href="admin/css/voter-turnout.css" />
   </head>
   <body>
     <header class="header">
@@ -52,6 +55,46 @@
 
         <div class="main-container">
           <p>This page shows the total number of students who participated in the election, providing a clear overview of voter engagement. Explore the participation rate across SSC and LSC elections to see how many students made their voices heard.</p>
+          <div class="content" style="color: black">
+            <main class="main">
+              <div class="title-container">
+                <div class="r">
+                  <h1><i class="fa fa-cogs"></i> Voter Turnout</h1>
+                </div>
+              </div>
+              <hr class="title-line" />
+              <div class="first-main">
+                <div class="main-header">
+                  <select class="select">
+                    <option>Main Campus</option>
+                  </select>
+                  <p id="text-blockchain-link">
+                    <b>Blockchain Link:</b>
+                    <span><a href="https://www.blockchain.com/ucsebulsu">https://www.blockchain.com/ucsebulsu</a></span>
+                  </p>
+                </div>
+                <div class="main-content">
+                  <div class="main-left">
+                    <h2>LSC Voter Turnout</h2>
+                    <div id="container-charts"></div>
+                  </div>
+                  <div class="main-right">
+                    <h2>BulSU Total Voter Turnout</h2>
+                    <div class="content-box-2">
+                      <br />
+                      <canvas id="chart-turnout"></canvas>
+
+                      <div class="summary-text">
+                        <span></span>
+                      </div>
+                    </div>
+                    <br />
+                    <div class="content-colleges"></div>
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
         </div>
       </div>
     </div>
@@ -72,6 +115,128 @@
         <a href="admin_login.html"> here.</a>
       </div>
     </footer>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Get the container where liner bars will be rendered
+        const container = document.getElementById("container-charts");
+        if (!container) return;
+
+        // Retrieve the list of colleges from electionConfig
+        const colleges = <%- JSON.stringify(electionConfig.listOfElections) %>;
+        console.log("Colleges data:", colleges);
+
+        // Loop through each college
+        colleges.forEach((college) => {
+          // Create a container for the liner bar and give it a unique id
+          const div = document.createElement("div");
+          div.id = `liner-bar-college-${college.acronym}`;
+          div.classList.add("liner-bar-college"); // optional for additional styling
+          container.appendChild(div);
+
+          // Prepare the data for the liner bar:
+          // "Voted" is 0 and "Not Yet Voted" is set to the total number of voters for that college.
+          const data = {
+            title: college.name,
+            dark: false, // change to true if you want a dark theme
+            items: [
+              { name: "Voted", value: college.numberOfVoted, color: "#5fb643" },
+              { name: "Not Yet Voted", value: college.registeredVoters - college.numberOfVoted, color: "#FC440F" }
+            ]
+          };
+
+          // Instantiate the liner bar using your LinerBar class from liner-bar.js.
+          // Note: liner-bar.js exposes the constructor as LinerBar.
+          const bar = new LinerBar(`#${div.id}`, data);
+          bar.render();
+
+          // container.appendChild("<br>");
+
+
+
+        });
+      });
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Retrieve the list of colleges from electionConfig passed via EJS
+        const colleges = <%- JSON.stringify(electionConfig.listOfElections) %>;
+
+        // Sum up total registered voters and total voted across all colleges
+        let totalRegistered = 0;
+        let totalVoted = 0;
+        colleges.forEach(college => {
+          totalRegistered += college.registeredVoters;
+          totalVoted += college.numberOfVoted;
+        });
+        const notVoted = totalRegistered - totalVoted;
+
+        // Setup Chart.js chart data
+        const ctx = document.getElementById('chart-turnout').getContext('2d');
+        const data = {
+          labels: ['Voted', 'Not Yet Voted'],
+          datasets: [{
+            data: [totalVoted, notVoted],
+            backgroundColor: ['#5fb643', '#FC440F'],
+            borderWidth: 1,
+          }]
+        };
+
+        // Instantiate the pie chart using Chart.js
+        new Chart(ctx, {
+          type: 'pie', // Change to 'doughnut' if you prefer a donut chart
+          data: data,
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              },
+              title: {
+                display: true,
+                text: 'BulSU Total Voter Turnout'
+              }
+            }
+          }
+        });
+      });
+    </script>
+
+    <script>
+      function formatDate(isoString) {
+        const date = new Date(isoString);
+        const options = {
+          month: "long",
+          day: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        };
+        return date.toLocaleString("en-US", options).replace(",", " -").toUpperCase();
+      }
+
+      function updateDateTime() {
+        const datetimeElement = document.getElementById("datetime");
+        if (!datetimeElement) return;
+
+        // Get the initial time from the data attribute
+        let currentTime = new Date(datetimeElement.getAttribute("data-date"));
+
+        function update() {
+          datetimeElement.textContent = formatDate(currentTime);
+          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+        }
+
+        update(); // Set initial formatted date
+        setInterval(update, 60000); // Update every minute (60000ms)
+      }
+
+      document.addEventListener("DOMContentLoaded", updateDateTime);
+    </script>
+
+    <script src="admin/dependencies/liner-bar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/index.js"></script>
   </body>
 </html>
