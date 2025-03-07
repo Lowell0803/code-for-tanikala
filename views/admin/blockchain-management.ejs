@@ -85,7 +85,10 @@
       </div>
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <span class="job"><%= loggedInAdmin.role %></span>
+        </div>
         <div class="dropdown" onclick="toggleDropdown()"></div>
         <div class="dropdown-menu">
           <a href="/edit-account">View Account</a>
@@ -457,6 +460,6 @@
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
-    <script src="admin/js/dropdown.js"></script>
+    <script src="js/dropdown.js"></script>
   </body>
 </html>

@@ -94,7 +94,6 @@
         <p><strong>End Date:</strong> <%= endDate %></p>
       </div>
       <div class="header-user">
-        <i class="fa-solid fa-bell"></i>
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
         <div class="profile">
           <div class="admin-name"><%= loggedInAdmin.name %></div>
@@ -136,7 +135,7 @@
             </ul>
           </li>
 
-          <li>
+          <li id="active-tab">
             <a href="/configuration">
               <i class="fa fa-cogs"></i>
               <span class="link_name">Configuration</span>
@@ -456,6 +455,7 @@
         history.replaceState({}, document.title, window.location.pathname);
       }
     </script>
-    <script src="admin/js/dropdown.js"></script>
+    <script src="admin/js/index-admin.js"></script>
+    <script src="js/dropdown.js"></script>
   </body>
 </html>

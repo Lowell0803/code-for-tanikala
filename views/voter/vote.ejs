@@ -27,17 +27,15 @@
           <li>Review</li>
           <p>|</p>
           <li>Verify</li>
-          <div class="dropdown">
-            <div class="settings">
-              <i class="fa-solid fa-user"></i>
-              <button class="dropdown-toggle">
-                <i class="fas fa-caret-down"></i>
-              </button>
 
-              <div class="dropdown-menu">
-                <a href="#">Logged in as <span>Microsoft Email</span></a>
-                <a href="/voter/logout">Log Out</a>
-              </div>
+          <div class="settings">
+            <i class="fa-solid fa-user"></i>
+
+            <div class="dropdown" onclick="toggleDropdownVoter()"></div>
+            <div class="dropdown-menu">
+              <a href="/edit-account">Logged in as <span>Microsoft Email</span></a>
+              <hr class="dropdown-line" />
+              <a href="/voter/logout">Log Out</a>
             </div>
           </div>
         </ul>
@@ -432,5 +430,6 @@
 
       document.addEventListener("DOMContentLoaded", updateDateTime);
     </script>
+    <script src="js/dropdown.js"></script>
   </body>
 </html>
