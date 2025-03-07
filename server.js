@@ -1099,11 +1099,6 @@ const startServer = async () => {
     //   res.render("voter/verify-otp");
     // });
 
-    app.get("/review", async (req, res) => {
-      res.send("This page is only expecting a POST request :)");
-      // res.render("voter/review");
-    });
-
     function parseVote(vote, multiple = false) {
       if (Array.isArray(vote)) {
         if (multiple) {
@@ -1134,6 +1129,195 @@ const startServer = async () => {
         }
       }
     }
+
+    /* for zarina - design */
+    app.get("/review", async (req, res) => {
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      // Temporary candidate data in the appropriate format
+      const tempData = {
+        president: {
+          _id: "president_1",
+          party: "PEOPLE'S PARTY",
+          position: "president",
+          name: "John Doe",
+          image: "img/candidates/placeholder-1.jpg",
+          moreInfo: "A dedicated leader with years of experience in governance.",
+          uniqueId: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+        },
+        vicePresident: {
+          _id: "vp_1",
+          party: "UNITY PARTY",
+          position: "vicePresident",
+          name: "Jane Smith",
+          image: "img/candidates/placeholder-2.jpg",
+          moreInfo: "Advocate for sustainable development and equality.",
+          uniqueId: "0x9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef",
+        },
+        senator: [
+          {
+            _id: "senator_6",
+            party: "KASAMA - BulSU",
+            position: "senator",
+            name: "Patricia V. Garcia",
+            image: "img/candidates/placeholder-1.jpg",
+            moreInfo: "A philanthropist at heart, with a mission to support underprivileged communities and promote leadership.",
+            uniqueId: "0xd72ba5adf3148a908b86811edf0e9d659caf088ec1a5d19f1468b4675bd4ab09",
+          },
+          {
+            _id: "senator_3",
+            party: "PROGRESSIVE MOVEMENT",
+            position: "senator",
+            name: "Robert Brown",
+            image: "img/candidates/placeholder-3.jpg",
+            moreInfo: "Fighting for workers' rights and fair wages.",
+            uniqueId: "0xa1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef",
+          },
+        ],
+        governor: {
+          _id: "governor_2",
+          party: "UNITY PARTY",
+          position: "governor",
+          name: "Michael Green",
+          image: "img/candidates/placeholder-4.jpg",
+          moreInfo: "Focused on infrastructure and community development.",
+          uniqueId: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+        },
+        viceGovernor: {
+          _id: "viceGovernor_1",
+          party: "PEOPLE'S PARTY",
+          position: "viceGovernor",
+          name: "Sarah White",
+          image: "img/candidates/placeholder-5.jpg",
+          moreInfo: "Committed to education reforms and youth empowerment.",
+          uniqueId: "0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        },
+        boardMember: {
+          _id: "board_1",
+          party: "INDEPENDENT",
+          position: "boardMember",
+          name: "David Black",
+          image: "img/candidates/placeholder-6.jpg",
+          moreInfo: "Experienced policymaker with a focus on social welfare.",
+          uniqueId: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+        },
+        college: "Engineering",
+        program: "Computer Science",
+        email: "example@email.com",
+      };
+
+      res.render("voter/review", {
+        president: tempData.president,
+        vicePresident: tempData.vicePresident,
+        senator: tempData.senator, // temporary senator array
+        governor: tempData.governor,
+        viceGovernor: tempData.viceGovernor,
+        boardMember: tempData.boardMember,
+        college: tempData.college,
+        program: tempData.program,
+        email: tempData.email,
+        electionConfig,
+      });
+    });
+
+    app.get("/submit-votes-to-blockchain", async (req, res) => {
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      // Temporary candidate data
+      const tempData = {
+        president: {
+          _id: "president_1",
+          party: "PEOPLE'S PARTY",
+          position: "president",
+          name: "John Doe",
+          image: "img/candidates/placeholder-1.jpg",
+          moreInfo: "A dedicated leader with years of experience in governance.",
+          uniqueId: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+        },
+        vicePresident: {
+          _id: "vp_1",
+          party: "UNITY PARTY",
+          position: "vicePresident",
+          name: "Jane Smith",
+          image: "img/candidates/placeholder-2.jpg",
+          moreInfo: "Advocate for sustainable development and equality.",
+          uniqueId: "0x9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef",
+        },
+        senator: [
+          {
+            _id: "senator_6",
+            party: "KASAMA - BulSU",
+            position: "senator",
+            name: "Patricia V. Garcia",
+            image: "img/candidates/placeholder-1.jpg",
+            moreInfo: "A philanthropist at heart, with a mission to support underprivileged communities and promote leadership.",
+            uniqueId: "0xd72ba5adf3148a908b86811edf0e9d659caf088ec1a5d19f1468b4675bd4ab09",
+          },
+          {
+            _id: "senator_3",
+            party: "PROGRESSIVE MOVEMENT",
+            position: "senator",
+            name: "Robert Brown",
+            image: "img/candidates/placeholder-3.jpg",
+            moreInfo: "Fighting for workers' rights and fair wages.",
+            uniqueId: "0xa1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef",
+          },
+        ],
+        governor: {
+          _id: "governor_2",
+          party: "UNITY PARTY",
+          position: "governor",
+          name: "Michael Green",
+          image: "img/candidates/placeholder-4.jpg",
+          moreInfo: "Focused on infrastructure and community development.",
+          uniqueId: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+        },
+        viceGovernor: {
+          _id: "viceGovernor_1",
+          party: "PEOPLE'S PARTY",
+          position: "viceGovernor",
+          name: "Sarah White",
+          image: "img/candidates/placeholder-5.jpg",
+          moreInfo: "Committed to education reforms and youth empowerment.",
+          uniqueId: "0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        },
+        boardMember: {
+          _id: "board_1",
+          party: "INDEPENDENT",
+          position: "boardMember",
+          name: "David Black",
+          image: "img/candidates/placeholder-6.jpg",
+          moreInfo: "Experienced policymaker with a focus on social welfare.",
+          uniqueId: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+        },
+        voterCollege: "Engineering",
+        voterProgram: "Computer Science",
+        voterHash: "temporaryhashedemail1234567890abcdef",
+        txHash: "0x123abc456def789ghi", // Sample blockchain transaction hash
+      };
+
+      res.render("voter/verify", {
+        president: tempData.president,
+        vicePresident: tempData.vicePresident,
+        senator: tempData.senator,
+        governor: tempData.governor,
+        viceGovernor: tempData.viceGovernor,
+        boardMember: tempData.boardMember,
+        voterCollege: tempData.voterCollege,
+        voterProgram: tempData.voterProgram,
+        voterHash: tempData.voterHash,
+        txHash: tempData.txHash,
+        electionConfig,
+      });
+    });
 
     app.post("/review", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");

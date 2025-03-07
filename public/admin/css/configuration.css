@@ -3,6 +3,10 @@
   /* border: .2rem solid; */
 }
 
+.main {
+  color: black;
+}
+
 #election-configuration {
   display: flex;
   flex-direction: column;
