@@ -30,17 +30,15 @@
           <li>Review</li>
           <p>|</p>
           <li id="active-link">Verify</li>
-          <div class="dropdown">
-            <div class="settings">
-              <i class="fa-solid fa-user"></i>
-              <button class="dropdown-toggle">
-                <i class="fas fa-caret-down"></i>
-              </button>
 
-              <div class="dropdown-menu">
-                <a href="#">Logged in as <span>Microsoft Email</span></a>
-                <a href="/voter/logout">Log Out</a>
-              </div>
+          <div class="settings">
+            <i class="fa-solid fa-user"></i>
+
+            <div class="dropdown" onclick="toggleDropdownVoter()"></div>
+            <div class="dropdown-menu">
+              <a href="/edit-account">Logged in as <span>Microsoft Email</span></a>
+              <hr class="dropdown-line" />
+              <a href="/voter/logout">Log Out</a>
             </div>
           </div>
         </ul>
@@ -55,7 +53,7 @@
       <div class="main-first">
         <img src="img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
         <div class="first-text">
-          <h2 class="title">BulSU Student Government Elections<br />2025 - 2026</h2>
+          <h2 class="title">BulSU Student Government Elections<br />S.Y. 2025 - 2026</h2>
         </div>
         <img src="img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
       </div>

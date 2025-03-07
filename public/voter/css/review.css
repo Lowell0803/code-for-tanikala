@@ -99,7 +99,7 @@
   min-height: 120px; /* Prevents excessive shrinking */
   height: auto;
   border-radius: 0.8em;
-  background-color: #ff5858;
+  background-color: #563434;
   padding-left: 2%;
   padding-top: 2%;
   /* text-align: center; */
@@ -123,10 +123,6 @@
   color: #262626;
   font-weight: bold;
   font-size: 1rem;
-}
-
-.smallIcon img {
-  border: 1px solid gray;
 }
 
 .Icon {
@@ -465,4 +461,15 @@
   to {
     fill: white;
   }
+}
+
+.smallIcon {
+  width: 100%;
+}
+
+.smallIcon img {
+  width: 5em;
+  height: 5em; /* Match width for a perfect circle */
+  border-radius: 50%;
+  object-fit: cover; /* Ensures the image fills the circle without distortion */
 }

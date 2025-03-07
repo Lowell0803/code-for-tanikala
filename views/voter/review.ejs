@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" href="css/index.css" />
     <link rel="stylesheet" type="text/css" href="voter/css/index-voter.css" />
     <link rel="stylesheet" type="text/css" href="voter/css/review.css" />
+    <link rel="stylesheet" type="text/css" href="voter/css/vote.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
@@ -35,17 +36,14 @@
           <li id="active-link">Review</li>
           <p>|</p>
           <li>Verify</li>
-          <div class="dropdown">
-            <div class="settings">
-              <i class="fa-solid fa-user"></i>
-              <button class="dropdown-toggle">
-                <i class="fas fa-caret-down"></i>
-              </button>
+          <div class="settings">
+            <i class="fa-solid fa-user"></i>
 
-              <div class="dropdown-menu">
-                <a href="#">Logged in as <span>Microsoft Email</span></a>
-                <a href="/voter/logout">Log Out</a>
-              </div>
+            <div class="dropdown" onclick="toggleDropdownVoter()"></div>
+            <div class="dropdown-menu">
+              <a href="/edit-account">Logged in as <span>Microsoft Email</span></a>
+              <hr class="dropdown-line" />
+              <a href="/voter/logout">Log Out</a>
             </div>
           </div>
         </ul>
@@ -58,7 +56,7 @@
       <div class="main-first">
         <img src="img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
         <div class="first-text">
-          <h2 class="title">BulSU Student Government Elections<br />2025 - 2026</h2>
+          <h2 class="title">BulSU Student Government Elections<br />S.Y. 2025 - 2026</h2>
         </div>
         <img src="img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
       </div>
@@ -68,9 +66,10 @@
         <br />
         <div class="review">
           <br />
-          <h3 class="ballot-header ballot-council">Vote Summary</h3>
 
-          <h3 class="ballot-header ballot-position">BulSU Supreme Student Council S.Y. 2025-2026</h3>
+          <h3 class="ballot-header ballot-summary">VOTE SUMMARY</h3>
+
+          <h3 class="ballot-header ballot-council">BulSU Supreme Student Council</h3>
           <br />
 
           <ul>
@@ -150,10 +149,13 @@
                     </div>
                   </div>
                 </div>
-                <br />
+
                 <% } %>
               </div>
             </li>
+            <br />
+            <h3 class="ballot-header ballot-lsc-council">BulSU Local Student Council - <%= college %></h3>
+            <br />
             <li>
               <div class="card">
                 <div class="smallIcon">
@@ -224,6 +226,7 @@
             <input type="hidden" name="college" value="<%= college %>" />
             <input type="hidden" name="program" value="<%= program %>" />
             <input type="hidden" name="email" value="<%= email %>" />
+            <br />
             <!-- Submit button -->
             <div class="button-container">
               <button class="button-back" type="button" onclick="window.location.href='/vote'">
@@ -254,13 +257,16 @@
                   <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5">
                     <polyline points="13.18 1.37 13.18 9.64 21.45 9.64 10.82 22.63 10.82 14.36 2.55 14.36 13.18 1.37"></polyline>
                   </svg>
-                  <span>Submit Votes</span>
+                  <span>Submit Votes to Blockchain</span>
                 </span>
               </button>
             </div>
 
             <!-- Loading bar as a block element -->
             <div id="loadingBar" class="loading-bar"></div>
+            <!-- <hr class="review-line" />
+            <p class="review"><i>You still need to review and confirm your votes in the next page.</i></p>
+            <hr class="review-line" /> -->
           </form>
 
           <script>
@@ -270,8 +276,11 @@
           </script>
 
           <br /><br />
-          <hr />
         </div>
+
+        <input type="hidden" name="college" value="<%= college %>" />
+        <input type="hidden" name="program" value="<%= program %>" />
+        <input type="hidden" name="email" value="<%= email %>" />
       </div>
     </div>
 

@@ -55,8 +55,9 @@
 
 .ballot-choices img {
   width: 5em;
-  height: auto;
-  border-radius: 1em;
+  height: 5em; /* Match width for a perfect circle */
+  border-radius: 50%;
+  object-fit: cover; /* Ensures the image fills the circle without distortion */
 }
 
 .ballot-choices input[type="radio"] {
@@ -118,7 +119,7 @@
   width: 80%;
   border: none;
   height: 0.1rem;
-  background: black;
+  background: gray;
   /* border: red; */
 }
 
@@ -162,9 +163,9 @@
   font-size: 1rem;
 }
 
-.ballot-lsc .label-senator .ballot-tile .name {
+/* .ballot-lsc .label-senator .ballot-tile .name {
   font-size: 1.75rem;
-}
+} */
 
 .ballot-lsc .label-senator .ballot-tile .info {
   font-size: 0.9rem;
@@ -181,7 +182,8 @@
 }
 
 .ballot-tile .name {
-  font-size: 2rem;
+  font-size: 1.5rem;
+  padding: 0.75rem 0;
 }
 
 .ballot-tile img {
@@ -637,4 +639,33 @@
 
 .content {
   flex-direction: column;
+}
+
+.info {
+  padding: 0.75rem 1.4rem;
+
+  text-align: center;
+}
+
+#ballot-senator .info {
+  padding: 0.75rem 0.9rem;
+}
+
+.continue-application:hover {
+  background-color: rgb(8, 146, 8);
+}
+
+.review {
+  color: rgb(51, 48, 48);
+}
+
+/* .review-line {
+  border: none;
+  background: gray;
+  height: 0.08rem;
+} */
+
+.ballot-summary {
+  font-size: 1.5rem;
+  background-color: #f5ab29;
 }
