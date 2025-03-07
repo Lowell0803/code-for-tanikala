@@ -54,7 +54,9 @@
       </div>
       <form action="/review" method="POST" id="voteForm">
         <div class="content-main">
-          <p><i>You can submit your votes by pressing the SUBMIT BALLOT button below.</i></p>
+          <p>
+            <i>You can submit your votes by pressing the SUBMIT BALLOT button below.</i>
+          </p>
           <br />
 
           <!-- Supreme Student Council Section -->
@@ -67,8 +69,7 @@
             <h3 class="ballot-header ballot-position">President (1)</h3>
             <br />
             <div id="ballot-president" class="ballot-choices">
-              <% let abstainPresident = null; %> <% const filteredPresidentCandidates = presidentCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainPresident = candidate; return false; } return true; }); %> <%
-              filteredPresidentCandidates.forEach(function(candidate, index) { %>
+              <% let abstainPresident = null; %> <% const filteredPresidentCandidates = presidentCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainPresident = candidate; return false; } return true; }); %> <% filteredPresidentCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-president">
                 <input class="ballot-choice candidate-radio" data-group="president" id="president-<%= index %>" type="radio" name="president" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="president-<%= index %>">
@@ -93,8 +94,7 @@
             <h3 class="ballot-header ballot-position">Vice President (1)</h3>
             <br />
             <div id="ballot-vice-president" class="ballot-choices">
-              <% let abstainVicePresident = null; %> <% const filteredVicePresidentCandidates = vicePresidentCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainVicePresident = candidate; return false; } return true; }); %> <%
-              filteredVicePresidentCandidates.forEach(function(candidate, index) { %>
+              <% let abstainVicePresident = null; %> <% const filteredVicePresidentCandidates = vicePresidentCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainVicePresident = candidate; return false; } return true; }); %> <% filteredVicePresidentCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-vice-president">
                 <input class="ballot-choice candidate-radio" data-group="vicePresident" id="vice-president-<%= index %>" type="radio" name="vicePresident" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="vice-president-<%= index %>">
@@ -117,8 +117,7 @@
             <!-- Senator Candidates -->
             <h3 class="ballot-header ballot-position">Senators (7)</h3>
             <div id="ballot-senator" class="ballot-choices">
-              <% let abstainSenator = null; %> <% const filteredSenatorCandidates = senatorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainSenator = candidate; return false; } return true; }); %> <% filteredSenatorCandidates.forEach(function(candidate,
-              index) { %>
+              <% let abstainSenator = null; %> <% const filteredSenatorCandidates = senatorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainSenator = candidate; return false; } return true; }); %> <% filteredSenatorCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-senator">
                 <input class="ballot-choice candidate-radio" data-group="senator" id="senator-<%= index %>" type="checkbox" name="senator" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="senator-<%= index %>">
@@ -146,8 +145,7 @@
             <h3 class="ballot-header ballot-position">Governor (1)</h3>
             <br />
             <div id="ballot-governor" class="ballot-choices">
-              <% let abstainGovernor = null; %> <% const filteredGovernorCandidates = governorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainGovernor = candidate; return false; } return true; }); %> <%
-              filteredGovernorCandidates.forEach(function(candidate, index) { %>
+              <% let abstainGovernor = null; %> <% const filteredGovernorCandidates = governorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainGovernor = candidate; return false; } return true; }); %> <% filteredGovernorCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-governor">
                 <input class="ballot-choice candidate-radio" data-group="governor" id="governor-<%= index %>" type="radio" name="governor" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="governor-<%= index %>">
@@ -171,8 +169,7 @@
             <h3 class="ballot-header ballot-position">Vice Governor (1)</h3>
             <br />
             <div id="ballot-vice-governor" class="ballot-choices">
-              <% let abstainViceGovernor = null; %> <% const filteredViceGovernorCandidates = viceGovernorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainViceGovernor = candidate; return false; } return true; }); %> <%
-              filteredViceGovernorCandidates.forEach(function(candidate, index) { %>
+              <% let abstainViceGovernor = null; %> <% const filteredViceGovernorCandidates = viceGovernorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainViceGovernor = candidate; return false; } return true; }); %> <% filteredViceGovernorCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-vice-governor">
                 <input class="ballot-choice candidate-radio" data-group="viceGovernor" id="vice-governor-<%= index %>" type="radio" name="viceGovernor" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="vice-governor-<%= index %>">
@@ -196,8 +193,7 @@
             <h3 class="ballot-header ballot-position">Board Member (1)</h3>
             <br />
             <div id="ballot-board-member" class="ballot-choices">
-              <% let abstainBoardMember = null; %> <% const filteredBoardCandidates = boardCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainBoardMember = candidate; return false; } return true; }); %> <%
-              filteredBoardCandidates.forEach(function(candidate, index) { %>
+              <% let abstainBoardMember = null; %> <% const filteredBoardCandidates = boardCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainBoardMember = candidate; return false; } return true; }); %> <% filteredBoardCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-board-member">
                 <input class="ballot-choice candidate-radio" data-group="boardMember" id="board-member-<%= index %>" type="radio" name="boardMember" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="board-member-<%= index %>">
@@ -221,7 +217,9 @@
             <div>
               <br />
               <hr />
-              <p><i>You still need to review and confirm your votes in the next page.</i></p>
+              <p>
+                <i>You still need to review and confirm your votes in the next page.</i>
+              </p>
               <hr />
               <br />
               <button class="continue-application">
@@ -230,9 +228,7 @@
                   <div class="folder">
                     <div class="top">
                       <svg viewBox="0 0 24 27">
-                        <path
-                          d="M1,0 L23,0 C23.5522847,-1.01453063e-16 24,0.44771525 24,1 L24,8.17157288 C24,8.70200585 23.7892863,9.21071368 23.4142136,9.58578644 L20.5857864,12.4142136 C20.2107137,12.7892863 20,13.2979941 20,13.8284271 L20,26 C20,26.5522847 19.5522847,27 19,27 L1,27 C0.44771525,27 6.76353751e-17,26.5522847 0,26 L0,1 C-6.76353751e-17,0.44771525 0.44771525,1.01453063e-16 1,0 Z"
-                        ></path>
+                        <path d="M1,0 L23,0 C23.5522847,-1.01453063e-16 24,0.44771525 24,1 L24,8.17157288 C24,8.70200585 23.7892863,9.21071368 23.4142136,9.58578644 L20.5857864,12.4142136 C20.2107137,12.7892863 20,13.2979941 20,13.8284271 L20,26 C20,26.5522847 19.5522847,27 19,27 L1,27 C0.44771525,27 6.76353751e-17,26.5522847 0,26 L0,1 C-6.76353751e-17,0.44771525 0.44771525,1.01453063e-16 1,0 Z"></path>
                       </svg>
                     </div>
                     <div class="paper"></div>
@@ -253,29 +249,38 @@
 
       <!-- Toggle Script: Disable candidate radios when abstain checkbox is checked -->
       <script>
-                      document.querySelectorAll(".abstain-checkbox").forEach((checkbox) => {
-                        checkbox.addEventListener("change", function () {
-                          const group = this.getAttribute("data-group");
-                          const radios = document.querySelectorAll('input[name="' + group + '"].candidate-radio');
-                          if (this.checked) {
-                            radios.forEach((radio) => {
-                              radio.disabled = true;
-                              radio.checked = false;
-                            });
-                          } else {
-                            radios.forEach((radio) => {
-                              radio.disabled = false;
-                            });
-                          }
-                        });
-                      });
+        document.querySelectorAll(".abstain-checkbox").forEach((checkbox) => {
+          checkbox.addEventListener("change", function () {
+            const group = this.getAttribute("data-group");
+            const radios = document.querySelectorAll(
+              'input[name="' + group + '"].candidate-radio'
+            );
+            if (this.checked) {
+              radios.forEach((radio) => {
+                radio.disabled = true;
+                radio.checked = false;
+              });
+            } else {
+              radios.forEach((radio) => {
+                radio.disabled = false;
+              });
+            }
+          });
+        });
 
-                      // On form submission, for each group, if nothing is selected (and the abstain checkbox is not checked), add a hidden input with the abstain value.
-                      document.getElementById("voteForm").addEventListener("submit", function (e) {
-          const groups = ["president", "vicePresident", "governor", "viceGovernor", "boardMember", "senator"];
+        // On form submission, for each group, if nothing is selected (and the abstain checkbox is not checked), add a hidden input with the abstain value.
+        document.getElementById("voteForm").addEventListener("submit", function (e) {
+          const groups = [
+            "president",
+            "vicePresident",
+            "governor",
+            "viceGovernor",
+            "boardMember",
+            "senator",
+          ];
           groups.forEach(function (group) {
             // Remove any previously added hidden inputs for this group
-            document.querySelectorAll('input.hidden-' + group).forEach(el => el.remove());
+            document.querySelectorAll('input.hidden-' + group).forEach((el) => el.remove());
 
             // Check if a candidate is already selected in this group
             const selected = document.querySelectorAll('input[name="' + group + '"]:checked');
@@ -290,7 +295,9 @@
                 }
               } else {
                 // Get the abstain checkbox for this group (note: these inputs do NOT have a name)
-                const abstainInput = document.querySelector('input[data-group="' + group + '"].abstain-checkbox');
+                const abstainInput = document.querySelector(
+                  'input[data-group="' + group + '"].abstain-checkbox'
+                );
                 if (abstainInput && abstainInput.checked) {
                   abstainValue = abstainInput.value;
                 }
@@ -360,7 +367,80 @@
         });
       </script>
 
+      <!-- New Script: Limit Senator Selection to 7 -->
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const senatorCheckboxes = document.querySelectorAll('input[name="senator"]');
+          senatorCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener("change", function () {
+              const checkedCount = document.querySelectorAll('input[name="senator"]:checked').length;
+              if (checkedCount > 7) {
+                this.checked = false;
+                notify("You can select a maximum of 7 senators.", "error", 3000);
+              }
+            });
+          });
+        });
+      </script>
+
       <script type="module" src="components/notificationHandler.js"></script>
+
+      <script>
+        function toggleOverlay(checkboxId, targetClass) {
+          document.querySelector(`#${checkboxId}`).addEventListener("change", function () {
+            document.querySelectorAll(`.${targetClass}`).forEach((element) => {
+              if (this.checked) {
+                element.style.position = "relative";
+                element.style.filter = "brightness(50%)"; // Darken the image when abstaining
+              } else {
+                element.style.filter = "brightness(100%)"; // Reset brightness when voting
+              }
+            });
+          });
+        }
+
+        // Example usage:
+        toggleOverlay("abstain-president", "label-president");
+        toggleOverlay("abstain-vice-president", "label-vice-president");
+        toggleOverlay("abstain-governor", "label-governor");
+        toggleOverlay("abstain-vice-governor", "label-vice-governor");
+        toggleOverlay("abstain-board-member", "label-board-member");
+      </script>
+      <script src="js/index.js"></script>
+
+      <script>
+        function formatDate(isoString) {
+          const date = new Date(isoString);
+          const options = {
+            month: "long",
+            day: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          };
+          return date.toLocaleString("en-US", options).toUpperCase();
+        }
+
+        function updateDateTime() {
+          const datetimeElement = document.getElementById("datetime");
+          if (!datetimeElement) return;
+
+          // Get the initial time from the data attribute
+          let currentTime = new Date(datetimeElement.getAttribute("data-date"));
+
+          function update() {
+            datetimeElement.textContent = formatDate(currentTime);
+            currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+          }
+
+          update(); // Set initial formatted date
+          setInterval(update, 60000); // Update every minute (60000ms)
+        }
+
+        document.addEventListener("DOMContentLoaded", updateDateTime);
+      </script>
+      <script src="js/dropdown.js"></script>
     </div>
 
     <footer class="footer">
@@ -375,61 +455,5 @@
       </div>
       <div class="footer-right"></div>
     </footer>
-    <script>
-      function toggleOverlay(checkboxId, targetClass) {
-        document.querySelector(`#${checkboxId}`).addEventListener("change", function () {
-          document.querySelectorAll(`.${targetClass}`).forEach((element) => {
-            if (this.checked) {
-              element.style.position = "relative";
-              element.style.filter = "brightness(50%)"; // Darken the image when abstaining
-            } else {
-              element.style.filter = "brightness(100%)"; // Reset brightness when voting
-            }
-          });
-        });
-      }
-
-      // Example usage:
-      toggleOverlay("abstain-president", "label-president");
-      toggleOverlay("abstain-vice-president", "label-vice-president");
-      toggleOverlay("abstain-governor", "label-governor");
-      toggleOverlay("abstain-vice-governor", "label-vice-governor");
-      toggleOverlay("abstain-board-member", "label-board-member");
-    </script>
-    <script src="js/index.js"></script>
-
-    <script>
-      function formatDate(isoString) {
-        const date = new Date(isoString);
-        const options = {
-          month: "long",
-          day: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        };
-        return date.toLocaleString("en-US", options).toUpperCase();
-      }
-
-      function updateDateTime() {
-        const datetimeElement = document.getElementById("datetime");
-        if (!datetimeElement) return;
-
-        // Get the initial time from the data attribute
-        let currentTime = new Date(datetimeElement.getAttribute("data-date"));
-
-        function update() {
-          datetimeElement.textContent = formatDate(currentTime);
-          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
-        }
-
-        update(); // Set initial formatted date
-        setInterval(update, 60000); // Update every minute (60000ms)
-      }
-
-      document.addEventListener("DOMContentLoaded", updateDateTime);
-    </script>
-    <script src="js/dropdown.js"></script>
   </body>
 </html>

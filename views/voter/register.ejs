@@ -28,7 +28,7 @@
       <div class="main-first">
         <img src="img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
         <div class="first-text">
-          <h2 class="title">BulSU Student Government Elections<br />2025 - 2026</h2>
+          <h2 class="title"><%= electionConfig.electionName %></h2>
         </div>
         <img src="img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
       </div>
@@ -40,32 +40,38 @@
           </div>
           <br />
 
+          <!-- Name Field -->
           <div class="form-input-container">
             <label for="full-name" class="form-label">Name: </label>
             <input type="text" id="full-name" class="form-input" name="fullName" value="<%= user ? user.name : '' %>" placeholder="e.g. Juan Dela Cruz" readonly />
           </div>
 
+          <!-- BulSU Email Field -->
           <div class="form-input-container">
             <label for="bulsu-account" class="form-label">BulSU Email: </label>
             <input type="email" id="bulsu-account" class="form-input" name="email" value="<%= user ? user.email : '' %>" placeholder="e.g. 2021123456@ms.bulsu.edu.ph" readonly />
           </div>
 
+          <!-- Student Number Field -->
           <div class="form-input-container">
             <label for="student-number" class="form-label">Student Number: </label>
             <input type="number" id="student-number" class="form-input" name="studentNumber" placeholder="e.g. 2021123456" readonly />
           </div>
 
+          <!-- Campus Field (Disabled Select + Hidden Input) -->
           <div class="form-input-container">
-            <label for="campus" class="form-label">Campus: </label>
-            <select name="campus" id="campus">
-              <option disabled selected>Select Campus</option>
+            <label for="campus_display" class="form-label">Campus: </label>
+            <select id="campus_display" disabled>
               <option value="Malolos (Main) Campus" selected>Malolos (Main) Campus</option>
             </select>
+            <!-- Hidden input ensures the campus value is submitted -->
+            <input type="hidden" name="campus" id="campus" value="Malolos (Main) Campus" />
           </div>
 
+          <!-- College Field (Disabled Select + Hidden Input) -->
           <div class="form-input-container">
-            <label for="college" class="form-label">College: </label>
-            <select name="college" id="college">
+            <label for="college_display" class="form-label">College: </label>
+            <select id="college_display" disabled>
               <option value="" disabled selected>Select College</option>
               <option value="College of Architecture and Fine Arts (CAFA)">College of Architecture and Fine Arts (CAFA)</option>
               <option value="College of Arts and Letters (CAL)">College of Arts and Letters (CAL)</option>
@@ -81,9 +87,11 @@
               <option value="College of Sports, Exercise, and Recreation (CSER)">College of Sports, Exercise, and Recreation (CSER)</option>
               <option value="College of Social Sciences and Philosophy (CSSP)">College of Social Sciences and Philosophy (CSSP)</option>
             </select>
-            <br />
+            <!-- Hidden input ensures the college value is submitted -->
+            <input type="hidden" name="college" id="college" />
           </div>
 
+          <!-- Program Field -->
           <div class="form-input-container">
             <label for="program" class="form-label">Program: </label>
             <select name="program" id="program">
@@ -92,15 +100,14 @@
           </div>
           <br />
           <div class="form-button">
-            <!-- <input type="reset" value="RESET" /> -->
-            <!-- Change submit type to button -->
+            <!-- Submit button -->
             <input type="button" id="submitBtn" value="SUBMIT" />
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Validation and submission script -->
+    <!-- Validation and Submission Script -->
     <script type="module">
       import { createNotification } from "/components/notification.js";
 
@@ -109,7 +116,7 @@
         const submitBtn = document.getElementById("submitBtn");
 
         submitBtn.addEventListener("click", () => {
-          // Retrieve and trim field values
+          // Use hidden inputs for campus and college values
           const fullName = document.getElementById("full-name").value.trim();
           const email = document.getElementById("bulsu-account").value.trim();
           const studentNumber = document.getElementById("student-number").value.trim();
@@ -117,25 +124,24 @@
           const college = document.getElementById("college").value.trim();
           const program = document.getElementById("program").value.trim();
 
-          // Check if any required field is empty
-
           if (!fullName || !email || !studentNumber || !campus || !college || !program) {
             createNotification("Please fill in all required fields.", "error", 3000);
             return;
           }
-
-          // If all fields are filled, submit the form programmatically
           form.submit();
         });
       });
     </script>
 
-    <!-- Auto-populate college and program fields scripts -->
+    <!-- Auto-Populate College and Fetch Programs -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const jobTitle = "<%= user ? user.jobTitle : '' %>";
-        const collegeSelect = document.getElementById("college");
+        const collegeDisplay = document.getElementById("college_display");
+        const collegeHidden = document.getElementById("college");
+
         if (jobTitle) {
+          // Expecting jobTitle format like "Some Title - CAL"
           const collegeAcronym = jobTitle.split(" - ")[1];
           const collegeMap = {
             CAFA: "College of Architecture and Fine Arts (CAFA)",
@@ -152,25 +158,21 @@
             CSER: "College of Sports, Exercise, and Recreation (CSER)",
             CSSP: "College of Social Sciences and Philosophy (CSSP)",
           };
+
           if (collegeAcronym in collegeMap) {
-            collegeSelect.value = collegeMap[collegeAcronym];
-            collegeSelect.dispatchEvent(new Event("change")); // Trigger program update
+            const selectedCollege = collegeMap[collegeAcronym];
+            collegeDisplay.value = selectedCollege;
+            collegeHidden.value = selectedCollege;
+            // Fetch the programs based on the selected college.
+            fetchPrograms(selectedCollege);
           }
         }
       });
     </script>
 
+    <!-- Fetch Programs Based on College -->
     <script>
-      function formatEmail(event) {
-        const studentNumber = document.getElementById("student-number").value.trim();
-        const emailField = document.getElementById("bulsu-account");
-        if (!emailField.value.trim() && studentNumber) {
-          emailField.value = `${studentNumber}@ms.bulsu.edu.ph`;
-        }
-      }
-
-      document.getElementById("college").addEventListener("change", async function () {
-        const college = this.value;
+      async function fetchPrograms(college) {
         const programSelect = document.getElementById("program");
         programSelect.innerHTML = "<option disabled selected>Loading...</option>";
         try {
@@ -191,9 +193,21 @@
           console.error("Error fetching programs:", error);
           programSelect.innerHTML = "<option disabled>Error loading programs</option>";
         }
-      });
+      }
     </script>
 
+    <!-- Format Email Script (if student number is available) -->
+    <script>
+      function formatEmail(event) {
+        const studentNumber = document.getElementById("student-number").value.trim();
+        const emailField = document.getElementById("bulsu-account");
+        if (!emailField.value.trim() && studentNumber) {
+          emailField.value = `${studentNumber}@ms.bulsu.edu.ph`;
+        }
+      }
+    </script>
+
+    <!-- Auto-Fill Student Number from Email -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const emailField = document.getElementById("bulsu-account");
@@ -207,50 +221,7 @@
       });
     </script>
 
-    <script>
-      document.getElementById("college").addEventListener("change", async function () {
-        const college = this.value;
-        const programSelect = document.getElementById("program");
-        programSelect.innerHTML = "<option disabled selected>Loading...</option>";
-        try {
-          const response = await fetch(`/api/programs?college=${encodeURIComponent(college)}`);
-          const data = await response.json();
-          if (data.programs) {
-            programSelect.innerHTML = "<option value='' disabled selected>Select Program</option>";
-            data.programs.forEach((program) => {
-              const option = document.createElement("option");
-              option.value = program;
-              option.textContent = program;
-              programSelect.appendChild(option);
-            });
-          } else {
-            programSelect.innerHTML = "<option disabled>No programs available</option>";
-          }
-        } catch (error) {
-          console.error("Error fetching programs:", error);
-          programSelect.innerHTML = "<option disabled>Error loading programs</option>";
-        }
-      });
-    </script>
-
-    <footer class="footer">
-      <div class="footer-left">
-        <img src="img/calendar.png" class="footer-img" />
-        <p id="datetime" data-date="<%= electionConfig.fakeCurrentDate %>"></p>
-      </div>
-
-      <div class="footer-center">
-        <img src="img/copyright.png" class="footer-img" id="copyright-img" />
-        <p>2025 - Fourmula 1</p>
-      </div>
-
-      <div class="footer-right">
-        <!-- <img src="img/info.png" class="footer-img" id="info-img" />
-        <p>Need help? Click&nbsp;</p>
-        <a href="help_page">here.</a> -->
-      </div>
-    </footer>
-
+    <!-- Date and Time Script -->
     <script>
       function formatDate(isoString) {
         const date = new Date(isoString);
@@ -268,20 +239,34 @@
       function updateDateTime() {
         const datetimeElement = document.getElementById("datetime");
         if (!datetimeElement) return;
-
-        // Get the initial time from the data attribute
         let currentTime = new Date(datetimeElement.getAttribute("data-date"));
-
         function update() {
           datetimeElement.textContent = formatDate(currentTime);
-          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+          currentTime.setMinutes(currentTime.getMinutes() + 1);
         }
-
-        update(); // Set initial formatted date
-        setInterval(update, 60000); // Update every minute (60000ms)
+        update();
+        setInterval(update, 60000);
       }
-
       document.addEventListener("DOMContentLoaded", updateDateTime);
     </script>
+
+    <footer class="footer">
+      <div class="footer-left">
+        <img src="img/calendar.png" class="footer-img" />
+        <p id="datetime" data-date="<%= electionConfig.fakeCurrentDate %>"></p>
+      </div>
+
+      <div class="footer-center">
+        <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+        <p>2025 - Fourmula 1</p>
+      </div>
+
+      <div class="footer-right">
+        <!-- Optional Help Section -->
+        <!-- <img src="img/info.png" class="footer-img" id="info-img" />
+        <p>Need help? Click&nbsp;</p>
+        <a href="help_page">here.</a> -->
+      </div>
+    </footer>
   </body>
 </html>
