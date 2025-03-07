@@ -19,15 +19,31 @@
     <!-- Header -->
     <header class="header">
       <div class="header-logo">
-        <img src="/img/logo_tanikala.png" alt="Tanikala Voting System" />
+        <img src="img/logo_tanikala.png" alt="Tanikala Voting System" />
       </div>
       <nav class="header-nav">
         <ul class="header-nav-content">
-          <li><a href="/vote">Vote</a></li>
-          <li><a href="/review" id="active-link">Review</a></li>
-          <li><a href="/verify">Verify</a></li>
+          <li>Vote</li>
+          <p>|</p>
+          <li>Review</li>
+          <p>|</p>
+          <li id="active-link">Verify</li>
+          <div class="dropdown">
+            <div class="settings">
+              <i class="fa-solid fa-user"></i>
+              <button class="dropdown-toggle">
+                <i class="fas fa-caret-down"></i>
+              </button>
+
+              <div class="dropdown-menu">
+                <a href="#">Logged in as <span>Microsoft Email</span></a>
+                <a href="/voter/logout">Log Out</a>
+              </div>
+            </div>
+          </div>
         </ul>
       </nav>
+
       <div class="header-bottom-line"></div>
     </header>
 
