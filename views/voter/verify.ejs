@@ -4,11 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Voting Receipt</title>
-    <link rel="stylesheet" type="text/css" href="css/index.css" />
-    <link rel="stylesheet" type="text/css" href="voter/css/index-voter.css" />
-    <link rel="stylesheet" type="text/css" href="voter/css/verify.css" />
+    <link rel="stylesheet" type="text/css" href="/css/index.css" />
+    <link rel="stylesheet" type="text/css" href="/voter/css/index-voter.css" />
+    <link rel="stylesheet" type="text/css" href="/voter/css/verify.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
       /* Ensure long hashes break properly */
@@ -18,10 +17,10 @@
     </style>
   </head>
   <body>
-    <!-- Header -->
+    <!-- Header (unchanged) -->
     <header class="header">
       <div class="header-logo">
-        <img src="img/logo_tanikala.png" alt="Tanikala Voting System" />
+        <img src="/img/logo_tanikala.png" alt="Tanikala Voting System" />
       </div>
       <nav class="header-nav">
         <ul class="header-nav-content">
@@ -30,10 +29,8 @@
           <li>Review</li>
           <p>|</p>
           <li id="active-link">Verify</li>
-
           <div class="settings">
             <i class="fa-solid fa-user"></i>
-
             <div class="dropdown" onclick="toggleDropdownVoter()"></div>
             <div class="dropdown-menu">
               <a href="/edit-account">Logged in as <span>Microsoft Email</span></a>
@@ -43,24 +40,25 @@
           </div>
         </ul>
       </nav>
-
       <div class="header-bottom-line"></div>
     </header>
 
-    <!-- Receipt Container -->
+    <!-- Content Section -->
     <div class="content">
       <br />
       <div class="main-first">
-        <img src="img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
+        <img src="/img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
         <div class="first-text">
-          <h2 class="title">BulSU Student Government Elections<br />S.Y. 2025 - 2026</h2>
+          <h2 class="title">
+            BulSU Student Government Elections<br />
+            S.Y. 2025 - 2026
+          </h2>
         </div>
-        <img src="img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
+        <img src="/img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
       </div>
 
-      <!-- Wrap the receipt in a container for exporting -->
-      <!-- <div class="content-main receipt-container" style="padding: 20px; border: 1px solid #ccc"> -->
-      <div class="content-main receipt-container">
+      <!-- Receipt Container -->
+      <div id="receiptContainer" class="content-main receipt-container">
         <div class="verify">
           <div class="row">
             <div class="column box-shadow">
@@ -77,7 +75,6 @@
               <br />
               <hr />
               <br />
-              <!-- Voting Hash with auto-break -->
               <div class="d-flex flex-col justify-content-center">
                 <h4>
                   Voter ID: <br />
@@ -85,7 +82,7 @@
                 </h4>
               </div>
               <br />
-              <!-- Table with candidate selections -->
+              <!-- Candidate selections table -->
               <table>
                 <thead>
                   <tr>
@@ -94,44 +91,43 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <!-- President -->
+                  <% if (candidates && candidates.president) { %>
                   <tr>
                     <td data-label="Position">President</td>
-                    <td data-label="Candidate" colspan="2">Zarina B. Dungo – BulSUONE</td>
+                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.president)) { %> <%= candidates.president.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.president.name %> <% } %></td>
                   </tr>
-                  <!-- Vice President -->
+                  <% } %> <% if (candidates && candidates.vicePresident) { %>
                   <tr>
                     <td data-label="Position">Vice President</td>
-                    <td data-label="Candidate" colspan="2">Yvan Lowell T. Aquino – KASAMA – BulSU</td>
+                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.vicePresident)) { %> <%= candidates.vicePresident.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.vicePresident.name %> <% } %></td>
                   </tr>
-                  <!-- Senator(s) -->
+                  <% } %> <% if (candidates && candidates.senator) { %>
                   <tr>
                     <td data-label="Position">Senator(s)</td>
-                    <td data-label="Candidate" colspan="2">Zarina B. Aquino – KASAMA – BulSU, Zarina B. Aquino</td>
+                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.senator)) { %> <%= candidates.senator.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.senator.name %> <% } %></td>
                   </tr>
-                  <!-- Governor -->
+                  <% } %> <% if (candidates && candidates.governor) { %>
                   <tr>
                     <td data-label="Position">Governor</td>
-                    <td data-label="Candidate" colspan="2">Brandon L. Cruz – BulSUONE</td>
+                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.governor)) { %> <%= candidates.governor.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.governor.name %> <% } %></td>
                   </tr>
-                  <!-- Vice Governor -->
+                  <% } %> <% if (candidates && candidates.viceGovernor) { %>
                   <tr>
                     <td data-label="Position">Vice Governor</td>
-                    <td data-label="Candidate" colspan="2">Derek F. Ramirez – BulSUONE</td>
+                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.viceGovernor)) { %> <%= candidates.viceGovernor.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.viceGovernor.name %> <% } %></td>
                   </tr>
-                  <!-- Board Member -->
+                  <% } %> <% if (candidates && candidates.boardMember) { %>
                   <tr>
                     <td data-label="Position">Board Member</td>
-                    <td data-label="Candidate" colspan="2">Quentin S. Morales – KASAMA – BulSU</td>
+                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.boardMember)) { %> <%= candidates.boardMember.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.boardMember.name %> <% } %></td>
                   </tr>
+                  <% } %>
                 </tbody>
               </table>
               <hr />
               <br />
-              <!-- College and Program Details -->
               <div class="d-flex justify-content-between">
                 <strong>College</strong>
-                <!-- College acronym displayed then replaced on client-side -->
                 <span id="collegeDisplay"><%= voterCollege %></span>
               </div>
               <hr />
@@ -141,12 +137,11 @@
               </div>
               <br />
               <hr />
-              <!-- Transaction Confirmation -->
               <div class="d-flex flex-col">
                 <span>Votes Submitted To Blockchain</span>
                 <span>
                   Transaction Hash:
-                  <span class="hash-break"><%= txHash %></span>
+                  <span class="hash-break" id="txHashDisplay"><%= txHash %></span>
                 </span>
                 <span>Thank You.</span>
               </div>
@@ -160,7 +155,7 @@
         </div>
       </div>
 
-      <!-- Export Button -->
+      <!-- Export Button (if needed) -->
       <div style="text-align: center; margin: 20px">
         <button id="exportBtn" style="border-radius: 6px; padding: 10px 20px; font-size: 16px" class="button-save">Export Receipt as Image</button>
       </div>
@@ -168,24 +163,34 @@
 
     <footer class="footer">
       <div class="footer-left">
-        <img src="img/calendar.png" class="footer-img" />
+        <img src="/img/calendar.png" class="footer-img" />
         <p id="datetime" data-date="<%= electionConfig.fakeCurrentDate %>"></p>
       </div>
-
       <div class="footer-center">
-        <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+        <img src="/img/copyright.png" class="footer-img" id="copyright-img" />
         <p>2025 - Fourmula 1</p>
       </div>
       <div class="footer-right"></div>
     </footer>
 
-    <!-- Load html-to-image from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.10.3/dist/html-to-image.min.js"></script>
+    <!-- Include Socket.IO client library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      // Optionally, if you want real-time updates on the receipt page,
+      // you could still use Socket.IO to listen for any final updates.
+      const socket = io();
+      const voteId = "<%= voteId %>";
+      socket.emit("joinVoteRoom", { voteId });
+      socket.on("voteError", (data) => {
+        // You might show an error message if needed.
+        console.error("Vote Error: ", data.error);
+      });
+    </script>
 
-    <!-- Client-side mapping for full college name and export functionality -->
+    <!-- Your existing client-side scripts (export, datetime update, etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.10.3/dist/html-to-image.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        // Mapping for college acronym to full name
         var collegeMap = {
           CAFA: "College of Architecture and Fine Arts",
           CAL: "College of Arts and Letters",
@@ -207,7 +212,6 @@
           collegeElem.textContent = collegeMap[acronym] || acronym;
         }
 
-        // Export Receipt as Image using html-to-image
         document.getElementById("exportBtn").addEventListener("click", function () {
           htmlToImage
             .toPng(document.querySelector(".receipt-container"))
@@ -223,7 +227,6 @@
         });
       });
     </script>
-
     <script>
       function formatDate(isoString) {
         const date = new Date(isoString);
@@ -237,23 +240,17 @@
         };
         return date.toLocaleString("en-US", options).toUpperCase();
       }
-
       function updateDateTime() {
         const datetimeElement = document.getElementById("datetime");
         if (!datetimeElement) return;
-
-        // Get the initial time from the data attribute
         let currentTime = new Date(datetimeElement.getAttribute("data-date"));
-
         function update() {
           datetimeElement.textContent = formatDate(currentTime);
-          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+          currentTime.setMinutes(currentTime.getMinutes() + 1);
         }
-
-        update(); // Set initial formatted date
-        setInterval(update, 60000); // Update every minute (60000ms)
+        update();
+        setInterval(update, 60000);
       }
-
       document.addEventListener("DOMContentLoaded", updateDateTime);
     </script>
     <script src="js/index.js"></script>

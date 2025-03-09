@@ -111,6 +111,31 @@ passport.deserializeUser((obj, done) => {
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+// -----------------------
+// SOCKET.IO SETUP
+// -----------------------
+const http = require("http");
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+
+io.on("connection", (socket) => {
+  console.log("Client connected: " + socket.id);
+
+  // Client should join a room for their vote using voteId
+  socket.on("joinVoteRoom", (data) => {
+    const { voteId } = data;
+    if (voteId) {
+      socket.join(voteId);
+      console.log(`Socket ${socket.id} joined room ${voteId}`);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected: " + socket.id);
+  });
+});
+
 let db;
 
 const { MongoClient, ExplainVerbosity } = require("mongodb");
@@ -892,25 +917,92 @@ const startServer = async () => {
     });
 
     //test
+    // app.post("/submit-votes-to-blockchain", async (req, res) => {
+    //   const electionConfigCollection = db.collection("election_config");
+    //   let electionConfig = await electionConfigCollection.findOne({});
+
+    //   const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //   electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+    //   try {
+    //     const { president, vicePresident, senator, governor, viceGovernor, boardMember, college, program, email } = req.body;
+
+    //     console.log("President:", typeof president);
+    //     console.log("Vice President:", typeof vicePresident);
+    //     console.log("Senator:", typeof senator);
+    //     console.log("Governor:", typeof governor);
+    //     console.log("Vice Governor:", typeof viceGovernor);
+    //     console.log("Board Member:", typeof boardMember);
+    //     console.log("President:", president);
+    //     console.log("Parsed Senator:", parseVote(senator, true));
+    //     console.log("Governor", parseVote(governor));
+
+    //     const parsedCandidates = {
+    //       president: typeof president === "string" ? JSON.parse(president) : president,
+    //       vicePresident: typeof vicePresident === "string" ? JSON.parse(vicePresident) : vicePresident,
+    //       senator: typeof senator === "string" ? JSON.parse(senator) : senator,
+    //       governor: typeof governor === "string" ? JSON.parse(governor) : governor,
+    //       viceGovernor: typeof viceGovernor === "string" ? JSON.parse(viceGovernor) : viceGovernor,
+    //       boardMember: typeof boardMember === "string" ? JSON.parse(boardMember) : boardMember,
+    //     };
+
+    //     let candidateIds = [];
+    //     for (const [key, value] of Object.entries(parsedCandidates)) {
+    //       if (Array.isArray(value)) {
+    //         value.forEach((candidate) => candidateIds.push(candidate.uniqueId));
+    //       } else {
+    //         candidateIds.push(value.uniqueId);
+    //       }
+    //     }
+    //     console.log("Candidate IDs:", candidateIds);
+    //     if (candidateIds.some((id) => id === undefined)) {
+    //       throw new Error("One or more candidate unique IDs are undefined");
+    //     }
+
+    //     const tx = await contract.voteForCandidates(candidateIds);
+    //     console.log("Batch vote cast for candidates:", candidateIds);
+    //     await tx.wait();
+
+    //     // Hash the email using SHA-256
+    //     const hashedEmail = crypto.createHash("sha256").update(email).digest("hex");
+
+    //     // Update candidate_hashes collection:
+    //     // For each candidate uniqueId, add the hashedEmail to the emails array (no duplicates).
+    //     const candidateHashesCollection = db.collection("candidate_hashes");
+    //     for (const candidateId of candidateIds) {
+    //       await candidateHashesCollection.updateOne({ candidateId: candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true });
+    //     }
+
+    //     res.render("voter/verify", {
+    //       voterCollege: college,
+    //       voterProgram: program,
+    //       voterHash: hashedEmail,
+    //       txHash: tx.hash,
+    //       electionConfig,
+    //     });
+    //   } catch (error) {
+    //     console.error("Error submitting votes to blockchain:", error);
+    //     res.status(500).send("An error occurred while submitting votes.");
+    //   }
+    // });
+
+    // --- In your /submit-votes-to-blockchain route ---
+
     app.post("/submit-votes-to-blockchain", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
-
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
       try {
-        const { president, vicePresident, senator, governor, viceGovernor, boardMember, college, program, email } = req.body;
+        const {
+          president,
+          vicePresident,
+          senator,
+          governor,
+          viceGovernor,
+          boardMember,
+          college,
+          program,
+          email,
+          socketId, // optional: if passing socket id from client
+        } = req.body;
 
-        console.log("President:", typeof president);
-        console.log("Vice President:", typeof vicePresident);
-        console.log("Senator:", typeof senator);
-        console.log("Governor:", typeof governor);
-        console.log("Vice Governor:", typeof viceGovernor);
-        console.log("Board Member:", typeof boardMember);
-        console.log("President:", president);
-        console.log("Parsed Senator:", parseVote(senator, true));
-        console.log("Governor", parseVote(governor));
-
+        // Parse candidate data if they are JSON strings
         const parsedCandidates = {
           president: typeof president === "string" ? JSON.parse(president) : president,
           vicePresident: typeof vicePresident === "string" ? JSON.parse(vicePresident) : vicePresident,
@@ -928,35 +1020,194 @@ const startServer = async () => {
             candidateIds.push(value.uniqueId);
           }
         }
-        console.log("Candidate IDs:", candidateIds);
         if (candidateIds.some((id) => id === undefined)) {
           throw new Error("One or more candidate unique IDs are undefined");
         }
 
-        const tx = await contract.voteForCandidates(candidateIds);
-        console.log("Batch vote cast for candidates:", candidateIds);
-        await tx.wait();
-
+        const crypto = require("crypto");
         // Hash the email using SHA-256
         const hashedEmail = crypto.createHash("sha256").update(email).digest("hex");
 
-        // Update candidate_hashes collection:
-        // For each candidate uniqueId, add the hashedEmail to the emails array (no duplicates).
-        const candidateHashesCollection = db.collection("candidate_hashes");
-        for (const candidateId of candidateIds) {
-          await candidateHashesCollection.updateOne({ candidateId: candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true });
-        }
+        // Generate a unique voteId for tracking
+        const { v4: uuidv4 } = require("uuid");
+        const voteId = uuidv4();
 
-        res.render("voter/verify", {
+        // Compute queue number:
+        const waitingCollection = db.collection("waiting_votes");
+        const voteCreatedAt = new Date();
+        const pendingCount = await waitingCollection.countDocuments({
+          status: "pending",
+          createdAt: { $lte: voteCreatedAt },
+        });
+        const queueNumber = pendingCount + 1;
+
+        // Insert vote details along with queueNumber into waiting_votes collection
+        await waitingCollection.insertOne({
+          voteId,
+          candidateIds,
+          hashedEmail,
+          status: "pending",
+          createdAt: voteCreatedAt,
+          queueNumber,
+          // Store candidate details and voter info for later retrieval:
+          candidates: parsedCandidates,
           voterCollege: college,
           voterProgram: program,
-          voterHash: hashedEmail,
-          txHash: tx.hash,
-          electionConfig,
         });
+
+        // Instead of rendering the receipt directly, redirect to the GET route.
+        res.redirect(`/vote-status?voteId=${voteId}`);
+
+        // Process the vote asynchronously without blocking the response.
+        processVoteSubmission(voteId, candidateIds, hashedEmail, socketId);
       } catch (error) {
         console.error("Error submitting votes to blockchain:", error);
         res.status(500).send("An error occurred while submitting votes.");
+      }
+    });
+
+    app.get("/vote-status", async (req, res) => {
+      try {
+        const voteId = req.query.voteId;
+        if (!voteId) {
+          return res.status(400).send("Invalid voteId");
+        }
+
+        const waitingCollection = db.collection("waiting_votes");
+        const voteRecord = await waitingCollection.findOne({ voteId });
+
+        if (!voteRecord) {
+          return res.status(404).send("Vote not found");
+        }
+
+        if (voteRecord.status === "pending") {
+          // Render waiting page (e.g., waiting.ejs)
+          return res.render("voter/waiting", {
+            voterCollege: voteRecord.voterCollege || "Unknown College",
+            voterProgram: voteRecord.voterProgram || "Unknown Program",
+            voterHash: voteRecord.hashedEmail,
+            voteId: voteRecord.voteId,
+            electionConfig: {}, // pass additional config if needed
+            queueNumber: voteRecord.queueNumber,
+            candidates: voteRecord.candidates, // if you stored candidate data
+          });
+        } else if (voteRecord.status === "completed") {
+          // Render receipt page (verify.ejs)
+          return res.render("voter/verify", {
+            voterCollege: voteRecord.voterCollege || "Unknown College",
+            voterProgram: voteRecord.voterProgram || "Unknown Program",
+            voterHash: voteRecord.hashedEmail,
+            voteId: voteRecord.voteId,
+            electionConfig: {},
+            txHash: voteRecord.txHash,
+            waiting: false,
+            queueNumber: voteRecord.queueNumber,
+            candidates: voteRecord.candidates,
+          });
+        } else if (voteRecord.status === "error") {
+          return res.render("voter/verify", { error: voteRecord.error, waiting: false });
+        }
+      } catch (error) {
+        console.error("Error retrieving vote status:", error);
+        res.status(500).send("An error occurred.");
+      }
+    });
+
+    // --- Asynchronous vote processing function ---
+    async function processVoteSubmission(voteId, candidateIds, hashedEmail, socketId) {
+      try {
+        // Submit votes to the blockchain.
+        // Replace the simulated call below with your actual contract call:
+        // const tx = await contract.voteForCandidates(candidateIds);
+        // await tx.wait();
+        // For demonstration, simulate a delay with a fake transaction hash:
+        const tx = { hash: "0x1234567890abcdef" };
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
+        // Update the waiting vote record with transaction details.
+        const waitingCollection = db.collection("waiting_votes");
+        await waitingCollection.updateOne(
+          { voteId },
+          {
+            $set: {
+              status: "completed",
+              txHash: tx.hash,
+              completedAt: new Date(),
+            },
+          }
+        );
+
+        // Update candidate_hashes collection: add the hashed email for each candidate.
+        const candidateHashesCollection = db.collection("candidate_hashes");
+        await Promise.all(candidateIds.map((candidateId) => candidateHashesCollection.updateOne({ candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true })));
+
+        // Notify the client (in the Socket.IO room named after voteId) that the vote is confirmed.
+        io.to(voteId).emit("voteConfirmed", { txHash: tx.hash });
+      } catch (error) {
+        console.error("Error processing vote submission:", error);
+        const waitingCollection = db.collection("waiting_votes");
+        await waitingCollection.updateOne(
+          { voteId },
+          {
+            $set: {
+              status: "error",
+              error: error.message,
+              completedAt: new Date(),
+            },
+          }
+        );
+        io.to(voteId).emit("voteError", { error: error.message });
+      }
+    }
+
+    app.get("/vote-status", async (req, res) => {
+      try {
+        const voteId = req.query.voteId;
+        if (!voteId) {
+          return res.status(400).send("Invalid voteId");
+        }
+
+        const waitingCollection = db.collection("waiting_votes");
+        const voteRecord = await waitingCollection.findOne({ voteId });
+
+        if (!voteRecord) {
+          return res.status(404).send("Vote not found");
+        }
+
+        // Render the verify page based on vote status
+        if (voteRecord.status === "pending") {
+          return res.render("voter/verify", {
+            voterCollege: voteRecord.voterCollege || "Unknown College", // optionally stored from session or the POST route
+            voterProgram: voteRecord.voterProgram || "Unknown Program",
+            voterHash: voteRecord.hashedEmail,
+            voteId: voteRecord.voteId,
+            electionConfig: {}, // pass config if needed
+            txHash: null,
+            waiting: true, // show waiting screen
+            queueNumber: voteRecord.queueNumber,
+            candidates: voteRecord.candidates, // if you stored candidate data
+          });
+        } else if (voteRecord.status === "completed") {
+          return res.render("voter/verify", {
+            voterCollege: voteRecord.voterCollege || "Unknown College",
+            voterProgram: voteRecord.voterProgram || "Unknown Program",
+            voterHash: voteRecord.hashedEmail,
+            voteId: voteRecord.voteId,
+            electionConfig: {}, // pass config if needed
+            txHash: voteRecord.txHash,
+            waiting: false, // receipt view
+            queueNumber: voteRecord.queueNumber,
+            candidates: voteRecord.candidates, // candidate data
+          });
+        } else if (voteRecord.status === "error") {
+          return res.render("voter/verify", {
+            error: voteRecord.error,
+            waiting: false,
+          });
+        }
+      } catch (error) {
+        console.error("Error retrieving vote status:", error);
+        res.status(500).send("An error occurred.");
       }
     });
 
@@ -2961,7 +3212,7 @@ const startServer = async () => {
       res.render("homepages/rvs-election-results", { electionConfig });
     });
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
   } catch (error) {
