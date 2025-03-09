@@ -184,6 +184,10 @@ img {
   background: #f5ab29;
 }
 
+.bigger-text {
+  font-size: 0.4rem;
+}
+
 /* FOOTER */
 .footer {
   display: flex;
@@ -552,5 +556,10 @@ button:hover {
   .content-main,
   .footer {
     justify-content: center;
+  }
+
+  .header-nav-content a,
+  .header-nav-content li {
+    font-size: 0.9rem;
   }
 }
