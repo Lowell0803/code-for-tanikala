@@ -33,7 +33,10 @@
 
             <div class="dropdown" onclick="toggleDropdownVoter()"></div>
             <div class="dropdown-menu">
-              <a href="/edit-account">Logged in as <span>Microsoft Email</span></a>
+              <p>
+                Logged in as <br />
+                <%= email %>
+              </p>
               <hr class="dropdown-line" />
               <a href="/voter/logout">Log Out</a>
             </div>

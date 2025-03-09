@@ -42,43 +42,102 @@
 
         <script>
           document.addEventListener("DOMContentLoaded", function () {
-            const periodDisplay = document.getElementById("currentPeriodDisplay");
-            const periodName = document.getElementById("currentPeriodName");
+            const selectCollege = document.getElementById("collegeSelect");
+            const governorContainer = document.getElementById("container-lsc-governor");
+            const viceGovernorContainer = document.getElementById("container-lsc-vice-governor");
+            const boardMemberContainer = document.getElementById("container-lsc-board-member");
 
-            if (!periodDisplay || !periodName) return;
+            selectCollege.addEventListener("change", function () {
+              updateLSCCandidates(selectCollege.value);
+            });
 
-            // Get the election name from EJS
-            let electionName = periodDisplay.getAttribute("data-status") || "";
-            console.log(electionName);
-            let placeholderText = "";
-            let leftColor = "#f4ab2a"; // Default color for active periods
+            async function updateLSCCandidates(collegeAcronym) {
+              try {
+                const response = await fetch(`/api/lsc-candidates?college=${collegeAcronym}`);
+                const data = await response.json();
 
-            if (electionName === "Election Not Active") {
-              placeholderText = "ELECTION NOT ACTIVE | No Configuration";
-              leftColor = "#004aad";
-            } else if (electionName === "Results Are Out Period" || electionName === "Results Double Checking Period") {
-              placeholderText = "ELECTION ENDED | " + electionName;
-              leftColor = "#a60212";
-            } else if (electionName === "Temporarily Closed") {
-              placeholderText = "TEMPORARILY CLOSED";
-              leftColor = "a60212";
-            } else {
-              placeholderText = "ELECTION ACTIVE | " + electionName;
-              leftColor = "#5fb643  ";
+                if (data.error) {
+                  console.warn("API Error:", data.error);
+                  return;
+                }
+
+                // Governor Section
+                governorContainer.innerHTML = `
+        <div class="container-position">
+          <h1 class="position-lsc">Governor</h1>
+          <button class="button button-add" onclick="addCandidateLSC('Governor')">Add Candidate</button>
+        </div>
+        <hr />
+        <div>
+          ${data.governor.length ? data.governor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}
+        </div>
+      `;
+
+                // Vice Governor Section
+                viceGovernorContainer.innerHTML = `
+        <div class="container-position">
+          <h2 class="position-lsc">Vice Governor</h2>
+          <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add Candidate</button>
+        </div>
+        <hr />
+        <div>
+          ${data.viceGovernor.length ? data.viceGovernor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}
+        </div>
+      `;
+
+                // Board Members Section
+                boardMemberContainer.innerHTML = `
+        <div class="container-position">
+          <h2 class="position-lsc">Board Members</h2>
+        </div>
+        <hr />
+        <div>
+          ${data.boardMembers.length ? data.boardMembers.map((candidate) => createBoardMemberCard(candidate, collegeAcronym)).join("") : "<p>No board members found.</p>"}
+        </div>
+      `;
+              } catch (error) {
+                console.error("Error fetching LSC candidates:", error);
+              }
             }
 
-            if (electionName != "Temporarily Closed") {
-              let parts = placeholderText.split(" | ");
-              let leftText = parts[0];
-              let rightText = parts.length > 1 ? parts[1] : "";
-
-              // Update the UI
-              periodDisplay.textContent = leftText;
-              periodDisplay.style.color = leftColor;
-              periodName.textContent = rightText;
-            } else {
-              preiodDisplay.style.color = leftColor;
+            function createCandidateCard(candidate, collegeAcronym) {
+              return `
+      <div class="candidate">
+        <div class="candidate-content">
+          <div class="img-container">
+            <img src="${candidate.image}" alt="${candidate.name}">
+          </div>
+          <div>
+            <h2>${candidate.name}</h2>
+            <p>Party: ${candidate.party}</p>
+          </div>
+        </div>
+        <button class="button button-edit"
+          onclick="editCandidateLSC('${candidate._id}', '${candidate.position}', '${candidate.party}', '${candidate.name}', '${candidate.moreInfo}', '${candidate.image}', '${collegeAcronym}')">
+          Edit
+        </button>
+      </div>
+    `;
             }
+
+            function createBoardMemberCard(candidate, collegeAcronym) {
+              return `
+      <div class="candidate">
+        <img src="${candidate.image}" alt="${candidate.name}">
+        <h3>${candidate.name}</h3>
+        <p>Party: ${candidate.party}</p>
+        <p>Program: ${candidate.program}</p>
+        <p>${candidate.moreInfo}</p>
+        <button class="button button-edit"
+          onclick="editCandidateLSC('${candidate._id}', '${candidate.position}', '${candidate.party}', '${candidate.name}', '${candidate.moreInfo}', '${candidate.image}', '${collegeAcronym}', '${candidate.program}')">
+          Edit
+        </button>
+      </div>
+    `;
+            }
+
+            // Load default selection on first page load
+            updateLSCCandidates(selectCollege.value);
           });
         </script>
 
