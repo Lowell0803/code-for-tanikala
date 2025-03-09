@@ -7,8 +7,10 @@
     <title>BulSU Voting System</title>
 
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
-    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/candidates.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="admin/css/sample/vote-tally.css" /> -->
 
     <link rel="stylesheet" type="text/css" href="admin/dependencies/progress-bar.css" />
 
@@ -238,17 +240,27 @@
             <% const presidentCandidates = candidates.filter(candidate => candidate.position === 'president'); const totalVotes = presidentCandidates.reduce((acc, candidate) => acc + Number(candidate.voteCount), 0); %>
 
             <div class="container-ssc" id="container-president">
-              <h1>President</h1>
+              <div class="container-position">
+                <h1 class="position-ssc">President</h1>
+              </div>
+              <hr />
+              <br />
               <% presidentCandidates.forEach(candidate => { const percentage = totalVotes > 0 ? ((candidate.voteCount / totalVotes) * 100).toFixed(2) : 0; %>
               <div class="candidate">
-                <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                <h3><%= candidate.name %></h3>
-                <p>Party: <%= candidate.party %></p>
-                <p>Votes: <%= candidate.voteCount %></p>
-                <div class="progress-bar">
-                  <div class="progress" data-target="<%= percentage %>%" style="width: 0"></div>
+                <div class="img-container">
+                  <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 </div>
-                <p><%= percentage %>%</p>
+
+                <div class="candidate-info">
+                  <h2><%= candidate.name %></h2>
+                  <p>Party: <%= candidate.party %></p>
+                  <div class="row">
+                    <div class="progress-bar">
+                      <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= candidate.voteCount %> votes</div>
+                    </div>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
+                  </div>
+                </div>
               </div>
               <% }); %>
             </div>
@@ -265,17 +277,26 @@
 
             <% const viceCandidates = candidates.filter(candidate => candidate.position === 'vice president'); const totalVotesVice = viceCandidates.reduce((acc, candidate) => acc + Number(candidate.voteCount), 0); %>
             <div class="container-ssc" id="container-vice-president">
-              <h1>Vice President</h1>
+              <div class="container-position">
+                <h1 class="position-ssc">Vice President</h1>
+              </div>
+              <hr />
+              <br />
               <% viceCandidates.forEach(candidate => { const percentage = totalVotesVice > 0 ? ((candidate.voteCount / totalVotesVice) * 100).toFixed(2) : 0; %>
               <div class="candidate">
-                <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                <h3><%= candidate.name %></h3>
-                <p>Party: <%= candidate.party %></p>
-                <p>Votes: <%= candidate.voteCount %></p>
-                <div class="progress-bar">
-                  <div class="progress" data-target="<%= percentage %>%" style="width: 0"></div>
+                <div class="img-container">
+                  <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 </div>
-                <p><%= percentage %>%</p>
+                <div class="candidate-info">
+                  <h3><%= candidate.name %></h3>
+                  <p>Party: <%= candidate.party %></p>
+                  <div class="row">
+                    <div class="progress-bar">
+                      <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= candidate.voteCount %> votes</div>
+                    </div>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
+                  </div>
+                </div>
               </div>
               <% }); %>
             </div>
@@ -291,17 +312,27 @@
 
             <% const senatorCandidates = candidates.filter(candidate => candidate.position === 'senator'); const maxVote = senatorCandidates.reduce((max, candidate) => Math.max(max, Number(candidate.voteCount)), 0); %>
             <div class="container-ssc" id="container-senator">
-              <h1>Senators</h1>
+              <div class="container-position">
+                <h1 class="position-ssc">Senators</h1>
+              </div>
+              <hr />
+              <br />
               <% senatorCandidates.forEach(candidate => { const percentage = maxVote > 0 ? ((candidate.voteCount / maxVote) * 100).toFixed(2) : 0; %>
               <div class="candidate">
-                <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                <h3><%= candidate.name %></h3>
-                <p>Party: <%= candidate.party %></p>
-                <p>Votes: <%= candidate.voteCount %></p>
-                <div class="progress-bar">
-                  <div class="progress" data-target="<%= percentage %>%" style="width: 0"></div>
+                <div class="img-container">
+                  <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 </div>
-                <p><%= percentage %>%</p>
+                <div class="candidate-info">
+                  <h3><%= candidate.name %></h3>
+                  <p>Party: <%= candidate.party %></p>
+                  <p>Votes: <%= candidate.voteCount %></p>
+                  <div class="row">
+                    <div class="progress-bar">
+                      <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= candidate.voteCount %> votes</div>
+                    </div>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
+                  </div>
+                </div>
               </div>
               <% }); %>
             </div>
@@ -343,13 +374,20 @@
             <div id="lsc-container">
               <!-- Governor Container -->
               <div class="container-lsc" id="container-lsc-governor">
-                <h1>Governor</h1>
+                <div class="container-position">
+                  <h1>Governor</h1>
+                </div>
+                <hr />
+                <br />
                 <% candidates.filter(candidate => candidate.position === 'governor' && candidate.college).forEach(candidate => { %>
                 <div class="candidate lsc-candidate" data-college="<%= candidate.college %>">
-                  <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                  <h3><%= candidate.name %></h3>
-                  <p>Party: <%= candidate.party %></p>
-                  <p>Votes: <%= candidate.voteCount %></p>
+                  <div class="img-container">
+                    <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
+                  </div>
+                  <div class="candidate-info">
+                    <h2><%= candidate.name %></h2>
+                    <p>Party: <%= candidate.party %></p>
+                  </div>
                 </div>
                 <% }); %>
               </div>

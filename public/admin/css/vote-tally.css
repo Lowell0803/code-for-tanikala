@@ -71,3 +71,38 @@
   align-items: center;
   justify-content: center;
 }
+
+/* .candidate {
+  width: 100%;
+  text-align: left;
+  border: 1px solid black;
+} */
+
+.row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  /* border: 1px solid black; */
+}
+
+.candidate {
+  /* border: 1px solid black; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.candidate-info {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 1rem;
+  padding-left: 3rem;
+
+  /* border: 1px solid black; */
+}
+
+.container-position {
+  padding: 0;
+}
