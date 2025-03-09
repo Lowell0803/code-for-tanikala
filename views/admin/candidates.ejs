@@ -463,7 +463,7 @@
                 document.getElementById("statusMessage").innerText = "Submitting candidates...";
 
                 // Send request to submit candidates to the blockchain
-                const response = await fetch("/api/aggregateCandidates", {
+                const response = await fetch("/submit-candidates", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                 });

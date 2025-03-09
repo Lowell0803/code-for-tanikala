@@ -144,6 +144,57 @@ const startServer = async () => {
   try {
     db = await connectToDatabase();
 
+    /**
+     * Logs an activity to a specified MongoDB collection.
+     *
+     * This function retrieves the currently logged in admin's details from the session (or falls back to req.user),
+     * and records the event using the admin's username (or name) and role.
+     *
+     * @param {string} collectionName - The MongoDB collection to insert the log into.
+     * @param {string} eventName - A description of the event (what happened).
+     * @param {string} activityType - The type/category of activity (e.g., "CREATE", "UPDATE", "DELETE").
+     * @param {object} req - The Express request object (from which the current admin is extracted).
+     * @param {string} [details='No details'] - Optional additional details for the log entry.
+     */
+    async function logActivity(collectionName, eventName, activityType, req, details = "No details") {
+      try {
+        // Check for admin details in session; fall back to req.user if needed.
+        let adminDetails = req.session && req.session.admin;
+        let adminUsername = "Unknown Admin";
+        let adminRole = "Unknown Role";
+        let adminEmail = "Unknown Email";
+
+        if (adminDetails) {
+          // Use the admin details from the session.
+          // If "username" is not set, fall back to "name".
+          adminUsername = adminDetails.username || adminDetails.name || "Unknown Admin";
+          adminRole = adminDetails.role || "Unknown Role";
+          adminEmail = adminDetails.email || "Unknown Email";
+        } else if (req.user) {
+          // Fallback if using a different authentication method.
+          adminUsername = req.user.username || req.user.name || "Unknown Admin";
+          adminRole = req.user.role || "Unknown Role";
+          adminEmail = req.user.email || "Unknown Email";
+        }
+
+        // Create the log entry object with a timestamp and provided details.
+        const logEntry = {
+          timestamp: new Date(),
+          eventName, // Description of the event
+          activityType, // Type of activity (e.g., "CREATE", "UPDATE")
+          details, // Additional details about the event
+          adminEmail, // Email of the logged in admin
+          adminUsername, // The admin's username (or name if username is unavailable)
+          adminRole, // The admin's role
+        };
+
+        // Insert the log entry into the specified collection.
+        await db.collection(collectionName).insertOne(logEntry);
+      } catch (error) {
+        console.error("Error logging activity:", error);
+      }
+    }
+
     const { ObjectId } = require("mongodb");
 
     // ==================================================================================================
@@ -330,14 +381,14 @@ const startServer = async () => {
 
     app.post("/admin-login", async (req, res) => {
       try {
-        const { username, password } = req.body;
-        console.log("Login attempt for username:", username);
+        const { email, password } = req.body;
+        console.log("Login attempt for email:", email);
 
-        // Find admin by username
+        // Find admin by email
         const admin = await db.collection("admin_accounts").findOne({ username });
 
         if (!admin) {
-          console.log("Admin not found for username:", username);
+          console.log("Admin not found for email:", email);
           return res.redirect("/admin-login?error=invalid_credentials");
         }
 
@@ -345,7 +396,7 @@ const startServer = async () => {
 
         // Direct password comparison (since passwords are stored in plain text)
         if (password !== admin.password) {
-          console.log("Incorrect password for username:", username);
+          console.log("Incorrect password for email:", email);
           return res.redirect("/admin-login?error=invalid_credentials");
         }
 
@@ -353,7 +404,7 @@ const startServer = async () => {
         req.session.admin = {
           id: admin._id,
           name: admin.name,
-          username: admin.username,
+          email: admin.email,
           role: admin.role,
           img: admin.img,
         };
@@ -775,7 +826,7 @@ const startServer = async () => {
       }
     });
 
-    app.post("/api/aggregateCandidates", async (req, res) => {
+    app.post("/submit-candidates", async (req, res) => {
       try {
         let aggregatedCandidates = [];
 
@@ -904,11 +955,34 @@ const startServer = async () => {
         // Optionally, update your database with the aggregated candidate data
         const result = await db.collection("aggregatedCandidates").updateOne({}, { $set: { candidates: aggregatedCandidates } }, { upsert: true });
 
+        await logActivity("system_activity_logs", "Candidates Submitted", "Admin", req);
+
+        // ---------------------------
+        // Store blockchain transaction details
+        // ---------------------------
+        // Create a blockchain information object. Adjust the fields as needed.
+        const blockchainInfo = {
+          blockchainLink: `https://etherscan.io/tx/${receipt.transactionHash}`, // Change the URL based on your blockchain/explorer
+          dateSent: new Date(),
+          // Calculate the total fee spent (gasUsed * effectiveGasPrice) if available.
+          // Note: The calculation below assumes you are using a BigNumber library (like ethers.js).
+          amountSpent: receipt.gasUsed.mul(receipt.effectiveGasPrice).toString(), // Total fee in Wei
+          gasUsed: receipt.gasUsed.toString(),
+          tokenUsed: "ETH", // Adjust if using another token type
+          transactionHash: receipt.transactionHash,
+          // You can add additional fields here if needed.
+        };
+
+        // Store the blockchain info in a new MongoDB collection called "blockchainInfo"
+        const bcResult = await db.collection("blockchainInfo").updateOne({}, { $set: blockchainInfo }, { upsert: true });
+
+        // Send response including both candidate submission and blockchain info results
         res.status(200).json({
           message: "Candidates aggregated and submitted to blockchain successfully",
           count: aggregatedCandidates.length,
           dbResult: result,
           blockchainTx: receipt,
+          blockchainInfo: bcResult,
         });
       } catch (error) {
         console.error("Error aggregating candidates:", error);
@@ -1700,6 +1774,8 @@ const startServer = async () => {
           }
         );
 
+        await logActivity("system_activity_logs", "Candidate Updated", "Admin", req);
+
         console.log("Update result:", result);
 
         if (result.modifiedCount > 0) {
@@ -1872,6 +1948,8 @@ const startServer = async () => {
 
         // Push new candidate into the candidates array
         const result = await collection.updateOne({ position: candidatePosition }, { $push: { candidates: newCandidate } });
+
+        await logActivity("system_activity_logs", "Candidate Added", "Admin", req);
 
         if (result.modifiedCount > 0) {
           console.log(`Candidate ${name} added successfully.`);
@@ -2427,6 +2505,8 @@ const startServer = async () => {
           fakeCurrentDate: "2025-02-12T12:40:00.000Z",
         });
 
+        await logActivity("system_activity_logs", "Election Reset", "Admin", req);
+
         console.log("Election configuration reset complete.");
 
         res.redirect("configuration");
@@ -2544,6 +2624,8 @@ const startServer = async () => {
 
         await db.collection("election_config").updateOne({}, { $set: update, $setOnInsert: { createdAt: new Date() } }, { upsert: true });
         const savedConfig = await db.collection("election_config").findOne({});
+
+        await logActivity("system_activity_logs", "Configuration Saved", "Admin", req);
         console.log("Saved Configuration:", savedConfig);
         res.redirect("configuration?saved=true");
       } catch (error) {
@@ -3106,13 +3188,25 @@ const startServer = async () => {
       res.render("admin/system-help-page", { electionConfig, loggedInAdmin: req.session.admin });
     });
     app.get("/system-activity-log", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/system-activity-log", { electionConfig, loggedInAdmin: req.session.admin });
+        // Fetch system activity logs, sorted by most recent first.
+        const activityLogs = await db.collection("system_activity_logs").find({}).sort({ timestamp: -1 }).toArray();
+
+        res.render("admin/system-activity-log", {
+          electionConfig,
+          loggedInAdmin: req.session.admin,
+          activityLogs,
+        });
+      } catch (error) {
+        console.error("Error fetching activity logs:", error);
+        res.status(500).send("Internal Server Error");
+      }
     });
 
     app.get("/please", async (req, res) => {

@@ -237,25 +237,24 @@
                 <th>Role</th>
                 <th>Action</th>
                 <th>Details</th>
+                <th>Type</th>
               </tr>
             </thead>
             <tbody>
-              <!-- logic -->
+              <% if (activityLogs && activityLogs.length) { %> <% activityLogs.forEach(log => { %>
               <tr>
-                <td>2025-02-20 10:30 AM</td>
-                <td>Zarina Dungo</td>
-                <td>Developer</td>
-                <td>Election Configuration.</td>
-                <td>Changed election name.</td>
+                <td><%= new Date(log.timestamp).toLocaleString() %></td>
+                <td><%= log.adminUsername %></td>
+                <td><%= log.adminRole %></td>
+                <td><%= log.eventName %></td>
+                <td><%= log.details %></td>
+                <td><%= log.activityType %></td>
               </tr>
-              <!-- logic -->
+              <% }) %> <% } else { %>
               <tr>
-                <td>2025-02-20 10:30 AM</td>
-                <td>Zarina Dungo</td>
-                <td>Developer</td>
-                <td>Election Configuration.</td>
-                <td>Changed election name.</td>
+                <td colspan="6">No activity logs found.</td>
               </tr>
+              <% } %>
             </tbody>
           </table>
         </div>
