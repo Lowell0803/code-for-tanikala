@@ -1128,15 +1128,11 @@ const startServer = async () => {
     // Asynchronous function to process the vote submission to the blockchain.
     async function processVoteSubmission(voteId, candidateIds, hashedEmail, socketId) {
       try {
-        // Atomically increment and retrieve the current nonce
-        const nonceRecord = await db.collection("nonce_counter").findOneAndUpdate({ wallet: wallet.address }, { $inc: { nonce: 1 } }, { upsert: true, returnDocument: "after" });
-        const currentNonce = nonceRecord.value.nonce;
-
-        // Submit your transaction with the specific nonce override
-        const tx = await contract.voteForCandidates(candidateIds, { nonce: currentNonce });
+        // Actual blockchain call (replace with your working logic)
+        const tx = await contract.voteForCandidates(candidateIds);
         await tx.wait();
 
-        // Update your vote record in waiting_votes
+        // Update the waiting vote record with transaction details.
         const waitingCollection = db.collection("waiting_votes");
         await waitingCollection.updateOne(
           { voteId },
@@ -1149,8 +1145,11 @@ const startServer = async () => {
           }
         );
 
-        // Update candidate_hashes collection and notify via Socket.IO, etc.
-        // ...
+        // Update candidate_hashes collection: add the hashed email for each candidate.
+        const candidateHashesCollection = db.collection("candidate_hashes");
+        await Promise.all(candidateIds.map((candidateId) => candidateHashesCollection.updateOne({ candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true })));
+
+        // Notify the client (if using Socket.IO) that the vote is confirmed.
         io.to(voteId).emit("voteConfirmed", { txHash: tx.hash });
       } catch (error) {
         console.error("Error processing vote submission:", error);
