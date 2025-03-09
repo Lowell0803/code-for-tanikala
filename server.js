@@ -987,6 +987,7 @@ const startServer = async () => {
 
     // --- In your /submit-votes-to-blockchain route ---
 
+    // POST route: Submits votes to the blockchain
     app.post("/submit-votes-to-blockchain", async (req, res) => {
       try {
         const {
@@ -1002,7 +1003,7 @@ const startServer = async () => {
           socketId, // optional: if passing socket id from client
         } = req.body;
 
-        // Parse candidate data if they are JSON strings
+        // Parse candidate data if sent as JSON strings
         const parsedCandidates = {
           president: typeof president === "string" ? JSON.parse(president) : president,
           vicePresident: typeof vicePresident === "string" ? JSON.parse(vicePresident) : vicePresident,
@@ -1032,7 +1033,7 @@ const startServer = async () => {
         const { v4: uuidv4 } = require("uuid");
         const voteId = uuidv4();
 
-        // Compute queue number:
+        // Compute queue number: Count all pending votes with createdAt <= now
         const waitingCollection = db.collection("waiting_votes");
         const voteCreatedAt = new Date();
         const pendingCount = await waitingCollection.countDocuments({
@@ -1041,7 +1042,7 @@ const startServer = async () => {
         });
         const queueNumber = pendingCount + 1;
 
-        // Insert vote details along with queueNumber into waiting_votes collection
+        // Insert vote details along with candidate details and voter info into waiting_votes collection
         await waitingCollection.insertOne({
           voteId,
           candidateIds,
@@ -1049,13 +1050,12 @@ const startServer = async () => {
           status: "pending",
           createdAt: voteCreatedAt,
           queueNumber,
-          // Store candidate details and voter info for later retrieval:
-          candidates: parsedCandidates,
+          candidates: parsedCandidates, // store candidate objects for later rendering
           voterCollege: college,
           voterProgram: program,
         });
 
-        // Instead of rendering the receipt directly, redirect to the GET route.
+        // Redirect the user to the vote status page.
         res.redirect(`/vote-status?voteId=${voteId}`);
 
         // Process the vote asynchronously without blocking the response.
@@ -1066,6 +1066,7 @@ const startServer = async () => {
       }
     });
 
+    // GET route: Checks vote status and renders appropriate view
     app.get("/vote-status", async (req, res) => {
       try {
         const voteId = req.query.voteId;
@@ -1075,13 +1076,12 @@ const startServer = async () => {
 
         const waitingCollection = db.collection("waiting_votes");
         const voteRecord = await waitingCollection.findOne({ voteId });
-
         if (!voteRecord) {
           return res.status(404).send("Vote not found");
         }
 
+        // If the vote is still pending, render the waiting view.
         if (voteRecord.status === "pending") {
-          // Render waiting page (e.g., waiting.ejs)
           return res.render("voter/waiting", {
             voterCollege: voteRecord.voterCollege || "Unknown College",
             voterProgram: voteRecord.voterProgram || "Unknown Program",
@@ -1089,10 +1089,10 @@ const startServer = async () => {
             voteId: voteRecord.voteId,
             electionConfig: {}, // pass additional config if needed
             queueNumber: voteRecord.queueNumber,
-            candidates: voteRecord.candidates, // if you stored candidate data
+            candidates: voteRecord.candidates, // candidate data
           });
         } else if (voteRecord.status === "completed") {
-          // Render receipt page (verify.ejs)
+          // Render the receipt view (verify.ejs)
           return res.render("voter/verify", {
             voterCollege: voteRecord.voterCollege || "Unknown College",
             voterProgram: voteRecord.voterProgram || "Unknown Program",
@@ -1105,7 +1105,10 @@ const startServer = async () => {
             candidates: voteRecord.candidates,
           });
         } else if (voteRecord.status === "error") {
-          return res.render("voter/verify", { error: voteRecord.error, waiting: false });
+          return res.render("voter/verify", {
+            error: voteRecord.error,
+            waiting: false,
+          });
         }
       } catch (error) {
         console.error("Error retrieving vote status:", error);
@@ -1113,16 +1116,12 @@ const startServer = async () => {
       }
     });
 
-    // --- Asynchronous vote processing function ---
+    // Asynchronous function to process the vote submission to the blockchain.
     async function processVoteSubmission(voteId, candidateIds, hashedEmail, socketId) {
       try {
-        // Submit votes to the blockchain.
-        // Replace the simulated call below with your actual contract call:
-        // const tx = await contract.voteForCandidates(candidateIds);
-        // await tx.wait();
-        // For demonstration, simulate a delay with a fake transaction hash:
-        const tx = { hash: "0x1234567890abcdef" };
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        // Actual blockchain call (replace with your working logic)
+        const tx = await contract.voteForCandidates(candidateIds);
+        await tx.wait();
 
         // Update the waiting vote record with transaction details.
         const waitingCollection = db.collection("waiting_votes");
@@ -1141,7 +1140,7 @@ const startServer = async () => {
         const candidateHashesCollection = db.collection("candidate_hashes");
         await Promise.all(candidateIds.map((candidateId) => candidateHashesCollection.updateOne({ candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true })));
 
-        // Notify the client (in the Socket.IO room named after voteId) that the vote is confirmed.
+        // Notify the client (if using Socket.IO) that the vote is confirmed.
         io.to(voteId).emit("voteConfirmed", { txHash: tx.hash });
       } catch (error) {
         console.error("Error processing vote submission:", error);
@@ -1203,6 +1202,7 @@ const startServer = async () => {
           return res.render("voter/verify", {
             error: voteRecord.error,
             waiting: false,
+            candidates: {}, // Provide a default value
           });
         }
       } catch (error) {
