@@ -996,6 +996,29 @@ const startServer = async () => {
     // Call this after your database connection is established:
     initializeNonce();
 
+    // Global queue to hold vote submission jobs
+    const voteQueue = [];
+    let processingQueue = false;
+
+    function queueVoteSubmission(job) {
+      voteQueue.push(job);
+      processQueue();
+    }
+
+    async function processQueue() {
+      if (processingQueue) return;
+      processingQueue = true;
+      while (voteQueue.length > 0) {
+        const job = voteQueue.shift();
+        try {
+          await job();
+        } catch (error) {
+          console.error("Error processing vote job:", error);
+        }
+      }
+      processingQueue = false;
+    }
+
     // POST route: Submits votes to the blockchain
     app.post("/submit-votes-to-blockchain", async (req, res) => {
       try {
@@ -1068,7 +1091,7 @@ const startServer = async () => {
         res.redirect(`/vote-status?voteId=${voteId}`);
 
         // Process the vote asynchronously without blocking the response.
-        processVoteSubmission(voteId, candidateIds, hashedEmail, socketId);
+        queueVoteSubmission(() => processVoteSubmission(voteId, candidateIds, hashedEmail, socketId));
       } catch (error) {
         console.error("Error submitting votes to blockchain:", error);
         res.status(500).send("An error occurred while submitting votes.");
