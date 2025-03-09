@@ -1224,7 +1224,7 @@ const startServer = async () => {
       });
     });
 
-    app.get("/submit-votes-to-blockchain", async (req, res) => {
+    app.get("/verify", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});
 
@@ -1412,22 +1412,6 @@ const startServer = async () => {
       }
       return null;
     }
-
-    app.get("/verify", async (req, res) => {
-      const voterReceipt = req.session.voterReceipt;
-
-      // if (!voterReceipt) {
-      //   return res.redirect("/vote"); // Redirect to voting page if no data
-      // }
-
-      res.render("voter/verify", {
-        votes: voterReceipt.votes,
-        voterHash: voterReceipt.voterHash,
-        voterCollege: voterReceipt.voterCollege,
-        voterProgram: voterReceipt.voterProgram,
-        txHash: voterReceipt.txHash,
-      });
-    });
 
     app.post("/update-candidate", async (req, res) => {
       console.log("Form data:", req.body);

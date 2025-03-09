@@ -7,7 +7,6 @@
 }
 
 .verify {
-  /* background-color: white; */
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -32,7 +31,7 @@
 .column {
   border-radius: 1em;
   color: black;
-  background-color: var(--color-lighter-yellow);
+  background-color: #544721;
   border: 2px solid black;
   width: 40%;
   padding: 2rem 3rem;
@@ -48,6 +47,11 @@
 }
 .d-flex {
   display: flex;
+}
+
+.d-flex img {
+  width: 50%;
+  height: auto;
 }
 .flex-col {
   flex-direction: column;
