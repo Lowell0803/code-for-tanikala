@@ -49,15 +49,25 @@
 
     <div class="content">
       <div class="main-first">
-        <img src="img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
+        <img src="img/logo_bulsu.png" class="main-first-logo no-mobile" alt="BulSU Logo" />
         <div class="first-text">
           <h2 class="title"><%= electionConfig.electionName %></h2>
+          <br />
         </div>
-        <img src="img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
+        <!-- <div class="content-mobile logos">
+          <div class="content-main-left">
+            <img src="img/logo_bulsu.png" alt="BulSU Logo" class="logo-opacity" />
+          </div>
+
+          <div class="content-main-right">
+            <img src="img/logo_bulsu_ucse.png" alt="BulSU UCSE Logo" class="logo-opacity" />
+          </div>
+        </div> -->
+        <img src="img/logo_bulsu_ucse.png" class="main-first-logo no-mobile" alt="BulSU UCSE Logo" />
       </div>
       <form action="/review" method="POST" id="voteForm">
         <div class="content-main">
-          <p>
+          <p class="instructions">
             <i>You can submit your votes by pressing the SUBMIT BALLOT button below.</i>
           </p>
           <br />
@@ -72,8 +82,7 @@
             <h3 class="ballot-header ballot-position">President (1)</h3>
             <br />
             <div id="ballot-president" class="ballot-choices">
-              <% let abstainPresident = null; %> <% const filteredPresidentCandidates = presidentCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainPresident = candidate; return false; } return true; }); %> <%
-              filteredPresidentCandidates.forEach(function(candidate, index) { %>
+              <% let abstainPresident = null; %> <% const filteredPresidentCandidates = presidentCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainPresident = candidate; return false; } return true; }); %> <% filteredPresidentCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-president">
                 <input class="ballot-choice candidate-radio" data-group="president" id="president-<%= index %>" type="radio" name="president" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="president-<%= index %>">
@@ -98,8 +107,7 @@
             <h3 class="ballot-header ballot-position">Vice President (1)</h3>
             <br />
             <div id="ballot-vice-president" class="ballot-choices">
-              <% let abstainVicePresident = null; %> <% const filteredVicePresidentCandidates = vicePresidentCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainVicePresident = candidate; return false; } return true; }); %> <%
-              filteredVicePresidentCandidates.forEach(function(candidate, index) { %>
+              <% let abstainVicePresident = null; %> <% const filteredVicePresidentCandidates = vicePresidentCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainVicePresident = candidate; return false; } return true; }); %> <% filteredVicePresidentCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-vice-president">
                 <input class="ballot-choice candidate-radio" data-group="vicePresident" id="vice-president-<%= index %>" type="radio" name="vicePresident" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="vice-president-<%= index %>">
@@ -123,8 +131,7 @@
             <h3 class="ballot-header ballot-position">Senators (7)</h3>
             <br />
             <div id="ballot-senator" class="ballot-choices">
-              <% let abstainSenator = null; %> <% const filteredSenatorCandidates = senatorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainSenator = candidate; return false; } return true; }); %> <% filteredSenatorCandidates.forEach(function(candidate,
-              index) { %>
+              <% let abstainSenator = null; %> <% const filteredSenatorCandidates = senatorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainSenator = candidate; return false; } return true; }); %> <% filteredSenatorCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-senator">
                 <input class="ballot-choice candidate-radio" data-group="senator" id="senator-<%= index %>" type="checkbox" name="senator" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="senator-<%= index %>">
@@ -153,8 +160,7 @@
             <h3 class="ballot-header ballot-position">Governor (1)</h3>
             <br />
             <div id="ballot-governor" class="ballot-choices">
-              <% let abstainGovernor = null; %> <% const filteredGovernorCandidates = governorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainGovernor = candidate; return false; } return true; }); %> <%
-              filteredGovernorCandidates.forEach(function(candidate, index) { %>
+              <% let abstainGovernor = null; %> <% const filteredGovernorCandidates = governorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainGovernor = candidate; return false; } return true; }); %> <% filteredGovernorCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-governor">
                 <input class="ballot-choice candidate-radio" data-group="governor" id="governor-<%= index %>" type="radio" name="governor" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="governor-<%= index %>">
@@ -178,8 +184,7 @@
             <h3 class="ballot-header ballot-position">Vice Governor (1)</h3>
             <br />
             <div id="ballot-vice-governor" class="ballot-choices">
-              <% let abstainViceGovernor = null; %> <% const filteredViceGovernorCandidates = viceGovernorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainViceGovernor = candidate; return false; } return true; }); %> <%
-              filteredViceGovernorCandidates.forEach(function(candidate, index) { %>
+              <% let abstainViceGovernor = null; %> <% const filteredViceGovernorCandidates = viceGovernorCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainViceGovernor = candidate; return false; } return true; }); %> <% filteredViceGovernorCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-vice-governor">
                 <input class="ballot-choice candidate-radio" data-group="viceGovernor" id="vice-governor-<%= index %>" type="radio" name="viceGovernor" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="vice-governor-<%= index %>">
@@ -203,8 +208,7 @@
             <h3 class="ballot-header ballot-position">Board Member (1)</h3>
             <br />
             <div id="ballot-board-member" class="ballot-choices">
-              <% let abstainBoardMember = null; %> <% const filteredBoardCandidates = boardCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainBoardMember = candidate; return false; } return true; }); %> <%
-              filteredBoardCandidates.forEach(function(candidate, index) { %>
+              <% let abstainBoardMember = null; %> <% const filteredBoardCandidates = boardCandidates.filter(function(candidate) { if(candidate.name.toLowerCase() === 'abstain'){ abstainBoardMember = candidate; return false; } return true; }); %> <% filteredBoardCandidates.forEach(function(candidate, index) { %>
               <div class="label-container label-board-member">
                 <input class="ballot-choice candidate-radio" data-group="boardMember" id="board-member-<%= index %>" type="radio" name="boardMember" value="<%= JSON.stringify(candidate) %>" />
                 <label class="ballot-tile" for="board-member-<%= index %>">
@@ -239,9 +243,7 @@
                   <div class="folder">
                     <div class="top">
                       <svg viewBox="0 0 24 27">
-                        <path
-                          d="M1,0 L23,0 C23.5522847,-1.01453063e-16 24,0.44771525 24,1 L24,8.17157288 C24,8.70200585 23.7892863,9.21071368 23.4142136,9.58578644 L20.5857864,12.4142136 C20.2107137,12.7892863 20,13.2979941 20,13.8284271 L20,26 C20,26.5522847 19.5522847,27 19,27 L1,27 C0.44771525,27 6.76353751e-17,26.5522847 0,26 L0,1 C-6.76353751e-17,0.44771525 0.44771525,1.01453063e-16 1,0 Z"
-                        ></path>
+                        <path d="M1,0 L23,0 C23.5522847,-1.01453063e-16 24,0.44771525 24,1 L24,8.17157288 C24,8.70200585 23.7892863,9.21071368 23.4142136,9.58578644 L20.5857864,12.4142136 C20.2107137,12.7892863 20,13.2979941 20,13.8284271 L20,26 C20,26.5522847 19.5522847,27 19,27 L1,27 C0.44771525,27 6.76353751e-17,26.5522847 0,26 L0,1 C-6.76353751e-17,0.44771525 0.44771525,1.01453063e-16 1,0 Z"></path>
                       </svg>
                     </div>
                     <div class="paper"></div>

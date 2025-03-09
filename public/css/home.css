@@ -310,7 +310,7 @@
   }
 
   .content-mobile {
-    margin-top: -rem;
+    margin-top: -1rem;
     display: flex;
     order: 4;
     align-items: start;
