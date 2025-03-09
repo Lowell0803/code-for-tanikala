@@ -1081,76 +1081,84 @@
     </script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const selectCollege = document.getElementById("collegeSelect");
-        const governorContainer = document.getElementById("container-lsc-governor");
-        const viceGovernorContainer = document.getElementById("container-lsc-vice-governor");
-        const boardMemberContainer = document.getElementById("container-lsc-board-member");
+            document.addEventListener("DOMContentLoaded", function () {
+              const selectCollege = document.getElementById("collegeSelect");
+              const governorContainer = document.getElementById("container-lsc-governor");
+              const viceGovernorContainer = document.getElementById("container-lsc-vice-governor");
+              const boardMemberContainer = document.getElementById("container-lsc-board-member");
 
-        selectCollege.addEventListener("change", function () {
-          updateLSCCandidates(selectCollege.value);
-        });
+              selectCollege.addEventListener("change", function () {
+                updateLSCCandidates(selectCollege.value);
+              });
 
-        async function updateLSCCandidates(collegeAcronym) {
-          try {
-            const response = await fetch(`/api/lsc-candidates?college=${collegeAcronym}`);
-            const data = await response.json();
+              async function updateLSCCandidates(collegeAcronym) {
+                try {
+                  const response = await fetch(`/api/lsc-candidates?college=${collegeAcronym}`);
+                  const data = await response.json();
 
-            if (data.error) {
-              console.warn("API Error:", data.error);
-              return;
-            }
+                  if (data.error) {
+                    console.warn("API Error:", data.error);
+                    return;
+                  }
 
-            // Governor Section
-            governorContainer.innerHTML = `<h2>Governor</h2>
-                <button class="button button-add" onclick="addCandidateLSC('Governor')">Add Candidate</button>
-                <div>${data.governor.length ? data.governor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}</div>`;
+                  // Governor Section
+                   <div class="container-position">
+                  governorContainer.innerHTML = `<h1>Governor</h1>
+                    <button class="button button-add" onclick="addCandidateLSC('Governor')">Add Candidate</button>
+                      <div>${data.governor.length ? data.governor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}</div>`;
+      </div>
+      <hr />
+                  // Vice Governor Section
+                  viceGovernorContainer.innerHTML = `<h2>Vice Governor</h2>
+                      <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add Candidate</button>
+                      <div>${data.viceGovernor.length ? data.viceGovernor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}</div>`;
 
-            // Vice Governor Section
-            viceGovernorContainer.innerHTML = `<h2>Vice Governor</h2>
-                <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add Candidate</button>
-                <div>${data.viceGovernor.length ? data.viceGovernor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}</div>`;
+                  // Board Members Section
+                  boardMemberContainer.innerHTML = `<h2>Board Members</h2>
+                      <div>${data.boardMembers.length ? data.boardMembers.map((candidate) => createBoardMemberCard(candidate, collegeAcronym)).join("") : "<p>No board members found.</p>"}</div>`;
+                } catch (error) {
+                  console.error("Error fetching LSC candidates:", error);
+                }
+              }
 
-            // Board Members Section
-            boardMemberContainer.innerHTML = `<h2>Board Members</h2>
-                <div>${data.boardMembers.length ? data.boardMembers.map((candidate) => createBoardMemberCard(candidate, collegeAcronym)).join("") : "<p>No board members found.</p>"}</div>`;
-          } catch (error) {
-            console.error("Error fetching LSC candidates:", error);
-          }
-        }
+              function createCandidateCard(candidate, collegeAcronym) {
+                return `
+                  <div class="candidate">
+                     <div class="candidate-content">
+                      <div class="img-container">
+                      <img src="${candidate.image}" alt="${candidate.name}">
+                      </div>
+                       <div>
+                      <h2>${candidate.name}</h2>
+                      <p>Party: ${candidate.party}</p>
+                       </div>
+                            </div>
 
-        function createCandidateCard(candidate, collegeAcronym) {
-          return `
-            <div class="candidate">
-                <img src="${candidate.image}" alt="${candidate.name}">
-                <h3>${candidate.name}</h3>
-                <p>Party: ${candidate.party}</p>
-                <p>${candidate.moreInfo}</p>
-                <button class="button button-edit"
-                    onclick="editCandidateLSC('${candidate._id}', '${candidate.position}', '${candidate.party}', '${candidate.name}', '${candidate.moreInfo}', '${candidate.image}', '${collegeAcronym}')">
-                    Edit
-                </button>
-            </div>`;
-        }
+                      <button class="button button-edit"
+                          onclick="editCandidateLSC('${candidate._id}', '${candidate.position}', '${candidate.party}', '${candidate.name}', '${candidate.moreInfo}', '${candidate.image}', '${collegeAcronym}')">
+                          Edit
+                      </button>
+                  </div>`;
+              }
 
-        function createBoardMemberCard(candidate, collegeAcronym) {
-          return `
-            <div class="candidate">
-                <img src="${candidate.image}" alt="${candidate.name}">
-                <h3>${candidate.name}</h3>
-                <p>Party: ${candidate.party}</p>
-                <p>Program: ${candidate.program}</p>
-                <p>${candidate.moreInfo}</p>
-                <button class="button button-edit"
-                    onclick="editCandidateLSC('${candidate._id}', '${candidate.position}', '${candidate.party}', '${candidate.name}', '${candidate.moreInfo}', '${candidate.image}', '${collegeAcronym}', '${candidate.program}')">
-                    Edit
-                </button>
-            </div>`;
-        }
+              function createBoardMemberCard(candidate, collegeAcronym) {
+                return `
+                  <div class="candidate">
+                      <img src="${candidate.image}" alt="${candidate.name}">
+                      <h3>${candidate.name}</h3>
+                      <p>Party: ${candidate.party}</p>
+                      <p>Program: ${candidate.program}</p>
+                      <p>${candidate.moreInfo}</p>
+                      <button class="button button-edit"
+                          onclick="editCandidateLSC('${candidate._id}', '${candidate.position}', '${candidate.party}', '${candidate.name}', '${candidate.moreInfo}', '${candidate.image}', '${collegeAcronym}', '${candidate.program}')">
+                          Edit
+                      </button>
+                  </div>`;
+              }
 
-        // Load default selection on first page load
-        updateLSCCandidates(selectCollege.value);
-      });
+              // Load default selection on first page load
+              updateLSCCandidates(selectCollege.value);
+            });
     </script>
 
     <script src="admin/js/sidebar.js"></script>
