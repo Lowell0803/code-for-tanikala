@@ -100,14 +100,14 @@
   height: auto;
   border-radius: 0.8em;
   background-color: #563434;
-  padding-left: 2%;
+  /* padding-left: 2%; */
   padding-top: 2%;
   /* text-align: center; */
 }
 
 .smallIcon {
   border: 1px solid black;
-  background-color: #f3f3f3;
+  background-color: #9d2020;
 }
 
 .smallIcon div {
@@ -179,6 +179,11 @@
   float: left;
   /* transform: translate(0px, -5px); */
   border-radius: 5px;
+}
+
+.review ul {
+  padding: 2rem;
+  margin: 0;
 }
 
 @keyframes load89234 {
@@ -465,6 +470,12 @@
 
 .smallIcon {
   width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.card {
+  width: 100%;
 }
 
 .smallIcon img {
@@ -472,4 +483,12 @@
   height: 5em; /* Match width for a perfect circle */
   border-radius: 50%;
   object-fit: cover; /* Ensures the image fills the circle without distortion */
+}
+
+.card .small-icon .Icon,
+.card .small-icon .Name,
+.card .small-icon .Roles,
+.card .small-icon .Description {
+  background-color: #b2eea0;
+  color: pink;
 }

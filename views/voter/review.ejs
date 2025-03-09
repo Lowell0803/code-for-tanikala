@@ -43,7 +43,7 @@
             <div class="dropdown-menu">
               <p>
                 Logged in as <br />
-                <%= email %>
+                <strong><%= email %></strong>
               </p>
               <hr class="dropdown-line" />
               <a href="/voter/logout">Log Out</a>
@@ -71,21 +71,21 @@
           <br />
 
           <h3 class="ballot-header ballot-summary">VOTE SUMMARY</h3>
-
+          <br />
           <h3 class="ballot-header ballot-council">BulSU Supreme Student Council</h3>
           <br />
-
           <ul>
             <li>
               <% president %>
               <div class="card">
                 <div class="smallIcon">
                   <div class="Icon">
+                    <div class="position">
+                      <h2><%= president.name %></h2>
+                    </div>
                     <img src="<%= president.image %>" alt="<%= president.name %>" />
                   </div>
-                  <div class="Name">
-                    <h2><%= president.name %></h2>
-                  </div>
+                  <div class="Name"></div>
                   <div class="Roles">
                     <h2><%= president.position %></h2>
                   </div>
@@ -156,9 +156,11 @@
                 <% } %>
               </div>
             </li>
-            <br />
-            <h3 class="ballot-header ballot-lsc-council">BulSU Local Student Council - <%= college %></h3>
-            <br />
+          </ul>
+
+          <h3 class="ballot-header ballot-lsc-council">BulSU Local Student Council - <%= college %></h3>
+
+          <ul>
             <li>
               <div class="card">
                 <div class="smallIcon">

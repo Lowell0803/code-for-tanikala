@@ -1674,6 +1674,7 @@ const startServer = async () => {
         voterHash: tempData.voterHash,
         txHash: tempData.txHash,
         electionConfig,
+        // email,
       });
     });
 

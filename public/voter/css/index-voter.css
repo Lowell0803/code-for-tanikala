@@ -229,8 +229,9 @@ button {
 }
 
 /* Style for the links inside the dropdown */
-.dropdown-menu a {
-  color: #480404;
+.dropdown-menu a,
+.dropdown-menu p {
+  color: #480404 !important;
   padding: 0.7rem 2rem;
   text-decoration: none;
   display: block;
@@ -238,7 +239,7 @@ button {
   font-size: 1rem;
 }
 
-.dropdown-menu a:hover {
+.dropdown-menu .dropdown-menu a:hover {
   color: #a60212;
   font-weight: bold;
 }
