@@ -441,7 +441,7 @@ button {
 }
 
 /* Mobile responsiveness */
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
   body {
     font-size: 0.9rem;
   }
@@ -479,6 +479,7 @@ button {
 
   .header-nav ul li a {
     text-decoration: none;
+    font-size: 0.75rem;
   }
 
   .header-nav-content {
@@ -571,5 +572,16 @@ button {
   .header-nav-content a,
   .header-nav-content li {
     font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .header img {
+    width: 100%;
+  }
+
+  .header-nav ul li a {
+    text-decoration: none;
+    font-size: 0.5rem;
   }
 }
