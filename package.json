@@ -20,6 +20,7 @@
     "p-queue": "^8.1.0",
     "passport": "^0.7.0",
     "passport-azure-ad-oauth2": "^0.0.4",
+    "pm2": "^5.4.3",
     "socket.io": "^4.8.1",
     "solc": "^0.8.28",
     "uuid": "^11.1.0"

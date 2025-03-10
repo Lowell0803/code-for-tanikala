@@ -148,7 +148,7 @@ passport.use(
     {
       clientID: process.env.MICROSOFT_CLIENT_ID,
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/microsoft/callback",
+      callbackURL: "https://tanikala-bulsu.com/auth/microsoft/callback" || "http://localhost:3000/auth/microsoft/callback",
       tenant: process.env.MICROSOFT_TENANT_ID,
       resource: "https://graph.microsoft.com",
       scope: ["openid", "email", "profile", "User.Read"],
@@ -1467,7 +1467,7 @@ const startServer = async () => {
         res.status(500).send("An error occurred while submitting votes.");
       }
     });
-
+    2;
     // GET route: Checks vote status and renders appropriate view
     app.get("/vote-status", async (req, res) => {
       try {
@@ -3805,6 +3805,30 @@ const startServer = async () => {
       res.render("contact", { electionConfig });
     });
 
+    app.post("/submit-contact", async (req, res) => {
+      try {
+        const { name, email, message } = req.body;
+
+        if (!name || !email || !message) {
+          return res.status(400).json({ message: "All fields are required." });
+        }
+
+        const messagesCollection = db.collection("messages");
+
+        await messagesCollection.insertOne({
+          name,
+          email,
+          message,
+          submittedAt: new Date(),
+        });
+
+        res.status(200).json({ message: "Your message has been received!" });
+      } catch (error) {
+        console.error("Error saving contact form:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    });
+
     app.get("/index-results-are-out-period", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});
@@ -3892,3 +3916,7 @@ const startServer = async () => {
 };
 
 startServer();
+
+setInterval(() => {
+  console.log(process.memoryUsage());
+}, 60000); // logs memory usage every minute
