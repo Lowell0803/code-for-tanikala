@@ -30,21 +30,29 @@ const agenda = new Agenda({
 agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }, async (job) => {
   const { voteId, candidateIds, hashedEmail, socketId } = job.attrs.data;
   try {
-    // Start a MongoDB session for the transaction (ensure your MongoDB deployment supports transactions)
-    const session = db.client.startSession();
+    // Retry mechanism for atomic nonce retrieval
     let nonce;
-    try {
-      await session.withTransaction(async () => {
-        const nonceDoc = await db.collection("nonces").findOneAndUpdate({ _id: "nonce" }, { $inc: { value: 1 } }, { returnDocument: "after", upsert: true, session });
-        // Extract the nonce value from the document
-        nonce = nonceDoc.value.value;
-        console.log("Distributed nonce acquired:", nonce);
-      });
-    } finally {
-      await session.endSession();
+    let success = false;
+    for (let attempts = 0; attempts < 3 && !success; attempts++) {
+      const session = db.client.startSession();
+      try {
+        await session.withTransaction(async () => {
+          const nonceDoc = await db.collection("nonces").findOneAndUpdate({ _id: "nonce" }, { $inc: { value: 1 } }, { returnDocument: "after", upsert: true, session });
+          nonce = nonceDoc.value.value; // Assuming structure: { _id: "nonce", value: <nonce> }
+          console.log("Attempt", attempts, "acquired nonce:", nonce);
+        });
+        success = true;
+      } catch (err) {
+        console.error("Nonce transaction failed on attempt", attempts, err);
+      } finally {
+        await session.endSession();
+      }
+    }
+    if (!success) {
+      throw new Error("Failed to acquire nonce after multiple attempts");
     }
 
-    // Now send the blockchain transaction using the unique nonce.
+    // Now send the transaction using the unique nonce.
     const tx = await contract.voteForCandidates(candidateIds, { nonce });
     await tx.wait();
 
