@@ -166,3 +166,90 @@ input:-webkit-autofill:active {
 .text {
   font-size: 1.2rem;
 }
+
+@media (max-width: 1000px) {
+  /* Stack the two main sections vertically */
+  .first-text {
+    padding: 0;
+  }
+  .first-text p {
+    font-size: 1rem;
+  }
+
+  .main-second {
+    flex-direction: column;
+    align-items: center;
+    padding-top: 2%;
+    min-width: 100%;
+  }
+
+  /* Make both left and right sections full width with adjusted margins and padding */
+  .second-left,
+  .second-right {
+    margin: 1% 0;
+    padding: 2%;
+  }
+
+  /* Let the left section height adjust automatically */
+  .second-left {
+    /* height: auto; */
+    margin: 1rem 0;
+  }
+  #contact-form {
+    height: 60dvh;
+  }
+
+  /* Adjust the message box to span more of the available width */
+  .message {
+    width: 90%;
+    margin: 1rem auto;
+  }
+
+  .second-left {
+    height: 60rem;
+  }
+
+  /* Make form inputs wider and reduce side padding */
+  form input {
+    width: 90%;
+    padding-left: 1rem;
+  }
+
+  #message {
+    height: 30%;
+  }
+
+  /* Stack form buttons vertically and reduce gap */
+  .form-button {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Scale down the button padding and font size */
+  .button {
+    padding: 2% 3%;
+    font-size: 0.9rem;
+    margin: 0.5rem auto;
+  }
+
+  /* Adjust icon and text sizes for better mobile readability */
+  .icon {
+    font-size: 1.2em;
+  }
+
+  .text {
+    font-size: 1rem;
+  }
+
+  .second-right {
+    margin-top: 10rem;
+  }
+
+  .no-mobile {
+    display: none;
+  }
+
+  .form-button {
+    flex-direction: row;
+  }
+}
