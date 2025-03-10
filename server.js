@@ -148,7 +148,7 @@ passport.use(
     {
       clientID: process.env.MICROSOFT_CLIENT_ID,
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/microsoft/callback",
+      callbackURL: "https://tanikala-bulsu.com/auth/microsoft/callback" || "http://localhost:3000/auth/microsoft/callback",
       tenant: process.env.MICROSOFT_TENANT_ID,
       resource: "https://graph.microsoft.com",
       scope: ["openid", "email", "profile", "User.Read"],
@@ -1467,7 +1467,7 @@ const startServer = async () => {
         res.status(500).send("An error occurred while submitting votes.");
       }
     });
-
+    2;
     // GET route: Checks vote status and renders appropriate view
     app.get("/vote-status", async (req, res) => {
       try {
@@ -3892,3 +3892,7 @@ const startServer = async () => {
 };
 
 startServer();
+
+setInterval(() => {
+  console.log(process.memoryUsage());
+}, 60000); // logs memory usage every minute
