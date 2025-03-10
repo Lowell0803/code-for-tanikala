@@ -4,6 +4,8 @@ const connectToDatabase = require("./db");
 require("dotenv").config();
 const session = require("express-session");
 
+const axios = require("axios");
+
 function fromBytes32(hexStr) {
   try {
     return ethers.decodeBytes32String(hexStr);
@@ -302,6 +304,32 @@ const startServer = async () => {
     //                                      VOTER LOGIN / SIGNUP
     // ==================================================================================================
 
+    // app.get("/register", async (req, res) => {
+    //   const electionConfigCollection = db.collection("election_config");
+    //   let electionConfig = await electionConfigCollection.findOne({});
+
+    //   const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //   electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+    //   if (!req.user) {
+    //     return res.redirect("/auth/microsoft");
+    //   }
+
+    //   try {
+    //     const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
+    //     if (voter) {
+    //       // Voter already registered; redirect to homepage with notification flag.
+    //       return res.redirect("/?registered=true");
+    //     } else {
+    //       // Voter not registered; render the registration form.
+    //       res.render("voter/register", { electionConfig, user: req.user, voter: null, status: req.query.status || null });
+    //     }
+    //   } catch (error) {
+    //     console.error("Error checking registration status:", error);
+    //     res.status(500).send("Internal Server Error");
+    //   }
+    // });
+
     app.get("/register", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});
@@ -309,31 +337,10 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      if (!req.user) {
-        return res.redirect("/auth/microsoft");
+      // If it's not the Registration Period, redirect to "/" with an error message.
+      if (electionConfig.currentPeriod.name !== "Registration Period") {
+        return res.redirect("/?error=" + encodeURIComponent("Registration period is not active"));
       }
-
-      try {
-        const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
-        if (voter) {
-          // Voter already registered; redirect to homepage with notification flag.
-          return res.redirect("/?registered=true");
-        } else {
-          // Voter not registered; render the registration form.
-          res.render("voter/register", { electionConfig, user: req.user, voter: null, status: req.query.status || null });
-        }
-      } catch (error) {
-        console.error("Error checking registration status:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    app.get("/register", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
-
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
       if (!req.user) {
         return res.redirect("/auth/microsoft");
@@ -385,7 +392,7 @@ const startServer = async () => {
         console.log("Login attempt for email:", email);
 
         // Find admin by email
-        const admin = await db.collection("admin_accounts").findOne({ username });
+        const admin = await db.collection("admin_accounts").findOne({ email });
 
         if (!admin) {
           console.log("Admin not found for email:", email);
@@ -826,6 +833,26 @@ const startServer = async () => {
       }
     });
 
+    async function getCryptoPrices() {
+      try {
+        const response = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=ethereum,polygon-ecosystem-token&vs_currencies=php,usd");
+        console.log("API Response:", response.data);
+
+        const ethData = response.data.ethereum || { php: 0, usd: 0 };
+        const polData = response.data["polygon-ecosystem-token"] || { php: 0, usd: 0 };
+
+        return {
+          ethPricePhp: ethData.php || 0,
+          ethPriceUsd: ethData.usd || 0,
+          polPricePhp: polData.php || 0,
+          polPriceUsd: polData.usd || 0,
+        };
+      } catch (error) {
+        console.error("Error fetching crypto prices:", error.message);
+        return null;
+      }
+    }
+
     app.post("/submit-candidates", async (req, res) => {
       try {
         let aggregatedCandidates = [];
@@ -957,35 +984,91 @@ const startServer = async () => {
 
         await logActivity("system_activity_logs", "Candidates Submitted", "Admin", req);
 
-        // ---------------------------
-        // Store blockchain transaction details
-        // ---------------------------
-        // Create a blockchain information object. Adjust the fields as needed.
+        console.log("Transaction Receipt:", receipt);
+
+        // Fetch Crypto Prices
+        const priceData = await getCryptoPrices();
+        if (!priceData) {
+          console.log("Failed to fetch crypto prices. Skipping PHP conversion.");
+        }
+
+        // Ensure ETH and POL prices exist
+        const ethPricePhp = priceData?.ethPricePhp || 0;
+        const ethPriceUsd = priceData?.ethPriceUsd || 0;
+        let polPricePhp = priceData?.polPricePhp || 0;
+        const polPriceUsd = priceData?.polPriceUsd || 0;
+
+        // Convert POL → PHP manually if missing
+        if (!polPricePhp && polPriceUsd && ethPricePhp && ethPriceUsd) {
+          polPricePhp = (polPriceUsd / ethPriceUsd) * ethPricePhp;
+        }
+
+        // Gas Calculation (Fix BigInt issue)
+        const gasUsed = Number(receipt.gasUsed);
+        const gasPrice = Number(receipt.gasPrice);
+        const amountSpentEth = (gasUsed * gasPrice) / 1e18;
+        const amountSpentPhp = ethPricePhp ? amountSpentEth * ethPricePhp : "N/A";
+        const amountSpentUsd = ethPriceUsd ? amountSpentEth * ethPriceUsd : "N/A";
+
+        // Blockchain Info
         const blockchainInfo = {
-          blockchainLink: `https://etherscan.io/tx/${receipt.transactionHash}`, // Change the URL based on your blockchain/explorer
+          blockchainLink: `https://amoy.polygonscan.com/address/${receipt.hash}`,
           dateSent: new Date(),
-          // Calculate the total fee spent (gasUsed * effectiveGasPrice) if available.
-          // Note: The calculation below assumes you are using a BigNumber library (like ethers.js).
-          amountSpent: receipt.gasUsed.mul(receipt.effectiveGasPrice).toString(), // Total fee in Wei
-          gasUsed: receipt.gasUsed.toString(),
-          tokenUsed: "ETH", // Adjust if using another token type
-          transactionHash: receipt.transactionHash,
-          // You can add additional fields here if needed.
+          amountSpentWei: (gasUsed * gasPrice).toString(),
+          amountSpentEth,
+          amountSpentPhp,
+          amountSpentUsd,
+          gasUsed: gasUsed.toString(),
+          tokenUsed: "ETH",
+          transactionHash: receipt.hash,
+          polPricePhp,
+          polPriceUsd,
         };
 
-        // Store the blockchain info in a new MongoDB collection called "blockchainInfo"
-        const bcResult = await db.collection("blockchainInfo").updateOne({}, { $set: blockchainInfo }, { upsert: true });
+        // Save Blockchain Info in Database
+        await db.collection("blockchainInfo").updateOne({}, { $set: blockchainInfo }, { upsert: true });
 
-        // Send response including both candidate submission and blockchain info results
+        // Response
         res.status(200).json({
-          message: "Candidates aggregated and submitted to blockchain successfully",
+          message: "Candidates submitted to blockchain successfully",
           count: aggregatedCandidates.length,
-          dbResult: result,
           blockchainTx: receipt,
-          blockchainInfo: bcResult,
+          blockchainInfo,
         });
       } catch (error) {
         console.error("Error aggregating candidates:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Public wallet address to track
+    const publicAddress = "0xdD70759C1166a90c30C5115Db0188D31B5D331da";
+
+    app.get("/wallet-balance", async (req, res) => {
+      try {
+        const balanceWei = await provider.getBalance(publicAddress);
+        const balancePOL = parseFloat(ethers.formatUnits(balanceWei, 18));
+
+        const prices = await getCryptoPrices();
+        if (!prices) {
+          return res.status(500).json({ error: "Crypto price data unavailable" });
+        }
+
+        // If POL price data is missing, avoid NaN errors
+        const balanceUSD = balancePOL * (prices.polPriceUsd || 0);
+        const balancePHP = balancePOL * (prices.polPricePhp || 0);
+        const balanceETH = balanceUSD / (prices.ethPriceUsd || 1); // Avoid division by 0
+
+        res.status(200).json({
+          address: publicAddress,
+          balancePOL,
+          balanceUSD,
+          balancePHP,
+          balanceETH,
+          updatedAt: new Date(),
+        });
+      } catch (error) {
+        console.error("Error fetching wallet balance:", error.message);
         res.status(500).json({ error: error.message });
       }
     });
@@ -1320,6 +1403,30 @@ const startServer = async () => {
 
     const sgMail = require("@sendgrid/mail");
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+    /* FOR DESIGNING ONLY */
+    app.get("/verify-otp", ensureAuthenticated, async (req, res) => {
+      try {
+        const otp = req.query.otp;
+
+        // Automatically accept "999999" for testing
+        if (otp === "999999") {
+          req.session.otpVerified = true;
+          return res.redirect("/vote");
+        }
+
+        // Verify the OTP against the one stored in session and ensure it's not expired
+        if (!req.session.otp || otp !== req.session.otp || Date.now() > req.session.otpExpires) {
+          return res.render("voter/verify-otp", { email: req.user.email, error: "Invalid or expired OTP." });
+        }
+
+        req.session.otpVerified = true;
+        return res.redirect("/vote");
+      } catch (error) {
+        console.error("Error verifying OTP:", error);
+        return res.render("voter/verify-otp", { email: req.user.email, error: "An error occurred. Please try again." });
+      }
+    });
 
     app.post("/verify-otp", ensureAuthenticated, async (req, res) => {
       try {
@@ -2659,11 +2766,79 @@ const startServer = async () => {
       }
     });
 
+    function recalculatePeriodUsing(testDate, electionConfig) {
+      // Helper to extract a Date from a field that might be a Date string or an object with a "$date" property.
+      const getDate = (dateField) => {
+        if (dateField && typeof dateField === "object" && dateField.$date) {
+          return new Date(dateField.$date);
+        }
+        return new Date(dateField);
+      };
+
+      // Ensure all required dates exist
+      if (!electionConfig.registrationStart || !electionConfig.registrationEnd || !electionConfig.votingStart || !electionConfig.votingEnd) {
+        return { name: "Election Not Active", duration: "Configuration Incomplete", waitingFor: null };
+      }
+
+      // Convert stored dates to Date objects
+      const regStart = getDate(electionConfig.registrationStart);
+      const regEnd = getDate(electionConfig.registrationEnd);
+      const voteStart = getDate(electionConfig.votingStart);
+      const voteEnd = getDate(electionConfig.votingEnd);
+
+      if (testDate < regStart) {
+        return {
+          name: "Waiting for Registration Period",
+          duration: `${testDate.toLocaleString()} to ${regStart.toLocaleString()}`,
+          waitingFor: "Registration",
+        };
+      } else if (testDate >= regStart && testDate <= regEnd) {
+        return {
+          name: "Registration Period",
+          duration: `${regStart.toLocaleString()} to ${regEnd.toLocaleString()}`,
+        };
+      } else if (testDate > regEnd && testDate < voteStart) {
+        return {
+          name: "Waiting for Voting Period",
+          duration: `${regEnd.toLocaleString()} to ${voteStart.toLocaleString()}`,
+          waitingFor: "Voting",
+        };
+      } else if (testDate >= voteStart && testDate <= voteEnd) {
+        return {
+          name: "Voting Period",
+          duration: `${voteStart.toLocaleString()} to ${voteEnd.toLocaleString()}`,
+        };
+      } else if (testDate > voteEnd) {
+        if (electionConfig.electionStatus === "Results Are Out") {
+          return {
+            name: "Results Are Out Period",
+            duration: `${voteEnd.toLocaleString()} to (manual)`,
+          };
+        } else {
+          return {
+            name: "Results Double Checking Period",
+            duration: `${voteEnd.toLocaleString()} to (manual trigger)`,
+          };
+        }
+      }
+      return { name: "Election Not Active", duration: "N/A" };
+    }
+
     // POST /set-test-date (update fake current date and current phase)
     app.post("/set-test-date", async (req, res) => {
       try {
-        const { fakeCurrentDate, period } = req.body;
-        await db.collection("election_config").updateOne({}, { $set: { fakeCurrentDate, currentPeriod: period, updatedAt: new Date() } }, { upsert: true });
+        const { fakeCurrentDate } = req.body;
+        const testDate = new Date(fakeCurrentDate);
+
+        // Retrieve the current election configuration from the DB
+        const electionConfig = await db.collection("election_config").findOne({ _id: "election_config" });
+
+        // Recalculate the period based on the new fake current date
+        const period = recalculatePeriodUsing(testDate, electionConfig);
+
+        // Update the document with the new fakeCurrentDate and recalculated period
+        const result = await db.collection("election_config").updateOne({ _id: "election_config" }, { $set: { fakeCurrentDate, currentPeriod: period, updatedAt: new Date() } }, { upsert: true });
+
         res.json({ success: true, fakeCurrentDate, period });
       } catch (error) {
         console.error("Error setting fake current date:", error);
@@ -2789,14 +2964,53 @@ const startServer = async () => {
     });
 
     app.get("/blockchain-management", ensureAdminAuthenticated, async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
+      try {
+        // Fetch election configuration
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        // ----- Get Wallet Info -----
+        const balanceWei = await provider.getBalance(publicAddress);
+        const balancePOL = parseFloat(ethers.formatUnits(balanceWei, 18));
 
-      res.render("admin/blockchain-management", { electionConfig, loggedInAdmin: req.session.admin });
+        // Fetch prices (using polygon-ecosystem-token as the POL coin)
+        const prices = await getCryptoPrices();
+        // Calculate wallet equivalents in USD and PHP
+        const balanceUSD = balancePOL * (prices?.polPriceUsd || 0);
+        const balancePHP = balancePOL * (prices?.polPricePhp || 0);
+
+        const walletInfo = {
+          address: publicAddress,
+          balancePOL,
+          balanceUSD,
+          balancePHP,
+          updatedAt: new Date(),
+        };
+
+        // ----- Get Blockchain Transaction Info -----
+        // Assumes there's only one latest document in the blockchainInfo collection
+        const blockchainInfo = (await db.collection("blockchainInfo").findOne({})) || null;
+
+        // ----- Get Candidate Submission Status -----
+        const systemStatus = await db.collection("system_status").findOne({ _id: "candidate_submission" });
+        const candidateSubmission = systemStatus ? systemStatus.submitted : false;
+
+        // Render the EJS page with all data
+        res.render("admin/blockchain-management", {
+          electionConfig,
+          loggedInAdmin: req.session.admin,
+          walletInfo,
+          blockchainInfo,
+          candidateSubmission,
+        });
+      } catch (error) {
+        console.error("Error in blockchain management route:", error);
+        res.status(500).json({ error: error.message });
+      }
     });
+
     app.get("/blockchain-activity-log", ensureAdminAuthenticated, async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});

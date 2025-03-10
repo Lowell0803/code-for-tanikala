@@ -35,3 +35,79 @@
 .yellow {
   color: #e1ae5b;
 }
+
+.content-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .no-mobile {
+    display: none;
+  }
+
+  .content-mobile {
+    margin-top: 2rem;
+    display: flex;
+    column-gap: 3rem;
+  }
+
+  .content-mobile img {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  .content-mobile p {
+    display: none;
+  }
+  .header-nav-content {
+    padding-left: 2rem; /* Reduced padding for smaller screens */
+  }
+
+  .logo {
+    height: 5rem; /* Smaller logo height for mobile */
+  }
+
+  .main-first {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .main-second {
+    width: 90%; /* Expand the main container to fill more width */
+    margin: 0 auto; /* Center the container */
+    text-align: left; /* Optional: adjust text alignment for readability */
+  }
+
+  .main-second p {
+    font-size: 1rem;
+  }
+
+  .proceed {
+    background-color: #6e1311;
+    color: white;
+    width: 50%; /* Increase button width for easier tapping */
+    padding: 2%; /* Slightly increased padding */
+  }
+
+  .button {
+    background-color: #6e1311;
+    border-radius: 0.5rem;
+    /* width: auto; */
+    padding: 3% 4%;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    line-height: normal;
+    height: auto;
+    cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px, rgba(0, 0, 0, 0.06) 0px 2px 4px;
+  }
+
+  .center {
+    text-align: center; /* Retain centering if needed */
+  }
+
+  .yellow {
+    color: #e1ae5b; /* Color remains the same */
+  }
+}

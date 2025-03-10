@@ -53,3 +53,7 @@
   opacity: 60%;
   text-align: center;
 }
+
+.main strong {
+  color: black;
+}

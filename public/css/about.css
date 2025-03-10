@@ -217,3 +217,194 @@ h5 {
 .role {
   font-size: 1.3rem;
 }
+
+.content-mobile {
+  display: none;
+}
+
+@media (max-width: 1000px) {
+  /* Adjust main buttons container to stack vertically */
+  .main-container {
+    padding: 0;
+  }
+
+  .no-mobile {
+    display: none;
+  }
+
+  .main-buttons {
+    flex-direction: row;
+    flex-basis: auto;
+    padding-top: 2%;
+    row-gap: 1rem;
+  }
+
+  .text-container h6 {
+    font-size: 0.8rem;
+  }
+
+  /* Make individual buttons span full width */
+  .buttons {
+    flex-basis: 100%;
+    margin-bottom: 1em;
+    text-align: center;
+  }
+
+  .buttons h2 {
+    font-size: 1.2em;
+  }
+
+  .buttons a {
+    font-size: 1em;
+  }
+
+  /* Scale down the mini-logo container and logo */
+  .mini-logo-container {
+    min-height: 15dvh;
+  }
+
+  .mini-logo {
+    width: 4em;
+  }
+
+  /* Adjust button widths */
+  #button-tanikala,
+  #button-committee {
+    width: 5em;
+  }
+
+  /* Stack picture holders vertically and adjust spacing */
+  .container-picture-holder {
+    flex-direction: column;
+    align-items: center;
+    flex-basis: 100%;
+  }
+
+  /* .picture-holder {
+    flex-basis: 80%;
+    padding: 1em;
+    margin-bottom: 1em;
+  }
+
+  .picture-holder img {
+    width: 8rem;
+    height: 8rem;
+  } */
+
+  /* Ensure text elements and layout align well on smaller screens */
+  .title-row,
+  .text-left {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  h4 {
+    font-size: 1.2rem;
+  }
+
+  .role {
+    font-size: 1.1rem;
+  }
+
+  .about-text > #bulsu {
+    font-size: 1.5rem;
+  }
+
+  .about-text > p {
+    font-size: 0.8rem;
+  }
+
+  .first-text {
+    padding: 0;
+  }
+
+  .container-picture-holder {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: start;
+    padding: 0;
+    text-align: center;
+  }
+
+  .picture-holder {
+    flex-basis: 50%;
+    margin: 0;
+  }
+
+  .picture-holder * {
+    padding: 0;
+    margin: 0;
+  }
+
+  .picture-holder img {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .picture-holder h4 {
+    font-size: 0.8rem;
+    height: 20%;
+  }
+
+  .picture-holder hr {
+    width: 60%;
+  }
+
+  /* haba name ni cheska, pagpantay ng hr */
+  .pham {
+    width: 100%;
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .pham hr {
+    width: 60%;
+  }
+
+  .picture-holder p {
+    font-size: 0.6rem;
+  }
+
+  .content-mobile {
+    display: flex;
+    column-gap: 3rem;
+  }
+
+  .content-mobile img {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  .content-mobile p {
+    display: none;
+  }
+
+  .main-first .about {
+    font-size: 2rem;
+  }
+
+  .get-to-know {
+    font-size: 1rem !important;
+  }
+
+  ol li {
+    font-size: 0.8rem;
+  }
+
+  ul li {
+    font-size: 0.8rem;
+  }
+
+  h3 {
+    font-size: 1.4rem;
+    align-self: center;
+    justify-self: center;
+    text-align: center;
+  }
+
+  #developer {
+    font-size: 1.6rem;
+  }
+}

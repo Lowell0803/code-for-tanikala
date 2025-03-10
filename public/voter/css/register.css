@@ -120,3 +120,84 @@ li {
 #submitBtn {
   cursor: pointer;
 }
+
+.content-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .first-text {
+    padding: 0;
+  }
+  h2.title {
+    font-size: 2rem;
+    padding: 0;
+  }
+
+  .no-mobile {
+    display: none;
+  }
+
+  .header-nav-content {
+    padding-left: 2rem;
+  }
+
+  .main-second {
+    width: 80vw; /* Increase width for smaller screens */
+    padding: 1rem; /* Reduce padding for more compact layout */
+  }
+
+  .form-input-container {
+    flex-direction: column; /* Stack labels and inputs vertically */
+    align-items: flex-start;
+  }
+
+  .form-input-container label {
+    text-align: left;
+    margin: 0;
+    min-width: auto;
+  }
+
+  .content-mobile {
+    margin-top: 2rem;
+    display: flex;
+    column-gap: 3rem;
+  }
+
+  .content-mobile img {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  .content-mobile p {
+    display: none;
+  }
+
+  .form-input-container input,
+  .form-input-container select {
+    width: 100%; /* Full width inputs for better accessibility */
+    margin-left: 0;
+    /* margin-bottom: 1rem; */
+  }
+
+  .form-button input {
+    width: 100%;
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+
+  .row img {
+    width: 3rem;
+    height: 3rem;
+    padding-right: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  h6 {
+    font-size: 1.4rem;
+  }
+}

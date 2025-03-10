@@ -36,16 +36,33 @@
           <% } %> <% if (error) { %>
           <p class="error-message"><%= error %></p>
           <% } %>
-          <p>Enter the OTP sent to <span><%= email %></span>. For testing, you may enter <strong>999999</strong>.</p>
+          <hr />
+          <p>
+            Press the button to request OTP to <span><%= email %></span>. <br /><small>(For testing, you may enter <strong>999999</strong>.)</small>
+          </p>
           <!-- Form to request an OTP -->
-          <form action="/request-otp" method="POST" style="margin-bottom: 20px">
-            <button type="submit">Request OTP</button>
+          <form id="otpForm" action="/request-otp" method="POST" style="margin-bottom: 20px">
+            <button class="button" type="button" onclick="requestOTP()">Request OTP</button>
           </form>
+
+          <script>
+            function requestOTP() {
+              const correctPassword = "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8";
+              const userInput = prompt("(For TESTING Purposes:)");
+
+              if (userInput === correctPassword) {
+                document.getElementById("otpForm").submit();
+              } else {
+                alert("Sorry! Wait for Actual Deployment to Request OTP.");
+              }
+            }
+          </script>
+
           <!-- Form to submit the OTP -->
           <form action="/verify-otp" method="POST">
             <input type="tel" name="otp" inputmode="numeric" pattern="\d{6}" maxlength="6" placeholder="Enter OTP" class="otp-field" required />
             <br />
-            <button type="submit">Submit OTP</button>
+            <button class="button" type="submit">Submit OTP</button>
           </form>
         </div>
       </div>
