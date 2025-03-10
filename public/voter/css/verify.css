@@ -101,7 +101,7 @@ table {
   table-layout: fixed;
 }
 table tr {
-  background-color: #fff;
+  background-color: #faf2db;
   color: black;
   border: 1px solid #000;
   padding: 0.35em;
@@ -186,7 +186,7 @@ hr {
 .voting-receipt {
   color: #f5ab29;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   padding-right: 2rem;
   padding-top: 1rem;
 }
@@ -233,4 +233,10 @@ hr {
 
 table {
   font-size: 0.75rem;
+  background-color: #f2ddb4;
+}
+
+.election-title {
+  font-weight: bold;
+  color: #a60212;
 }
