@@ -208,9 +208,13 @@ hr {
   width: 100%;
   height: 8%;
   color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .receipt-footer p {
+  font-size: 0.6rem;
 }
 
 .column p {
@@ -220,4 +224,13 @@ hr {
 .left {
   text-align: left;
   padding: 1rem;
+}
+
+hr {
+  border: none;
+  border-top: 2px dashed #232222; /* Adjust color and width as needed */
+}
+
+table {
+  font-size: 0.75rem;
 }
