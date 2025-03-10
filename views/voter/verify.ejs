@@ -140,27 +140,22 @@
                   <% } %>
                 </tbody>
               </table>
-              <hr />
-              <br />
               
-              <hr />
+              
+              
+             
              
               <br />
               <hr />
-              <div class="d-flex flex-col">
-                <span>Votes Submitted To Blockchain</span>
-                <span>
-                  Transaction Hash:
-                  <span class="hash-break" id="txHashDisplay"><%= txHash %></span>
-                </span>
-                <span>Thank You.</span>
-              </div>
+             <div class="left">
+                <p>Voting Date and Time: <%= new Date().toLocaleString() %></p>
+                <p>Transaction Hash: <%= txHash %></p>
+                <p>Status: Vote successfully recorded on blockchain</p> 
               <br />
-              <div class="d-flex">
-                <span>Date:</span>
-                <span><%= new Date().toLocaleString() %></span>
+               <hr />
+        
               </div>
-                <div class="receipt-footer"></div>
+                <div class="receipt-footer"><p>Thank you for using TANIKALA. With our blockchain technology, your vote stays secure, anonymous, and is counted accurately.</p></div>
             </div>
            
           </div>
