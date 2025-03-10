@@ -68,6 +68,16 @@
       </div>
     </div>
 
+    <script>
+      function toggleButton() {
+        const checkbox = document.getElementById("agreement");
+        const proceedBtn = document.getElementById("proceedBtn");
+
+        // Enable the button only if the checkbox is checked
+        proceedBtn.disabled = !checkbox.checked;
+      }
+    </script>
+
     <footer class="footer">
       <div class="footer-left">
         <img src="img/calendar.png" class="footer-img" />

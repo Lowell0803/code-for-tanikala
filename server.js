@@ -304,6 +304,32 @@ const startServer = async () => {
     //                                      VOTER LOGIN / SIGNUP
     // ==================================================================================================
 
+    // app.get("/register", async (req, res) => {
+    //   const electionConfigCollection = db.collection("election_config");
+    //   let electionConfig = await electionConfigCollection.findOne({});
+
+    //   const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //   electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+    //   if (!req.user) {
+    //     return res.redirect("/auth/microsoft");
+    //   }
+
+    //   try {
+    //     const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
+    //     if (voter) {
+    //       // Voter already registered; redirect to homepage with notification flag.
+    //       return res.redirect("/?registered=true");
+    //     } else {
+    //       // Voter not registered; render the registration form.
+    //       res.render("voter/register", { electionConfig, user: req.user, voter: null, status: req.query.status || null });
+    //     }
+    //   } catch (error) {
+    //     console.error("Error checking registration status:", error);
+    //     res.status(500).send("Internal Server Error");
+    //   }
+    // });
+
     app.get("/register", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});
@@ -311,31 +337,10 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      if (!req.user) {
-        return res.redirect("/auth/microsoft");
+      // If it's not the Registration Period, redirect to "/" with an error message.
+      if (electionConfig.currentPeriod.name !== "Registration Period") {
+        return res.redirect("/?error=" + encodeURIComponent("Registration period is not active"));
       }
-
-      try {
-        const voter = await db.collection("registered_voters").findOne({ email: req.user.email });
-        if (voter) {
-          // Voter already registered; redirect to homepage with notification flag.
-          return res.redirect("/?registered=true");
-        } else {
-          // Voter not registered; render the registration form.
-          res.render("voter/register", { electionConfig, user: req.user, voter: null, status: req.query.status || null });
-        }
-      } catch (error) {
-        console.error("Error checking registration status:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    app.get("/register", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
-
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
       if (!req.user) {
         return res.redirect("/auth/microsoft");
@@ -2761,11 +2766,79 @@ const startServer = async () => {
       }
     });
 
+    function recalculatePeriodUsing(testDate, electionConfig) {
+      // Helper to extract a Date from a field that might be a Date string or an object with a "$date" property.
+      const getDate = (dateField) => {
+        if (dateField && typeof dateField === "object" && dateField.$date) {
+          return new Date(dateField.$date);
+        }
+        return new Date(dateField);
+      };
+
+      // Ensure all required dates exist
+      if (!electionConfig.registrationStart || !electionConfig.registrationEnd || !electionConfig.votingStart || !electionConfig.votingEnd) {
+        return { name: "Election Not Active", duration: "Configuration Incomplete", waitingFor: null };
+      }
+
+      // Convert stored dates to Date objects
+      const regStart = getDate(electionConfig.registrationStart);
+      const regEnd = getDate(electionConfig.registrationEnd);
+      const voteStart = getDate(electionConfig.votingStart);
+      const voteEnd = getDate(electionConfig.votingEnd);
+
+      if (testDate < regStart) {
+        return {
+          name: "Waiting for Registration Period",
+          duration: `${testDate.toLocaleString()} to ${regStart.toLocaleString()}`,
+          waitingFor: "Registration",
+        };
+      } else if (testDate >= regStart && testDate <= regEnd) {
+        return {
+          name: "Registration Period",
+          duration: `${regStart.toLocaleString()} to ${regEnd.toLocaleString()}`,
+        };
+      } else if (testDate > regEnd && testDate < voteStart) {
+        return {
+          name: "Waiting for Voting Period",
+          duration: `${regEnd.toLocaleString()} to ${voteStart.toLocaleString()}`,
+          waitingFor: "Voting",
+        };
+      } else if (testDate >= voteStart && testDate <= voteEnd) {
+        return {
+          name: "Voting Period",
+          duration: `${voteStart.toLocaleString()} to ${voteEnd.toLocaleString()}`,
+        };
+      } else if (testDate > voteEnd) {
+        if (electionConfig.electionStatus === "Results Are Out") {
+          return {
+            name: "Results Are Out Period",
+            duration: `${voteEnd.toLocaleString()} to (manual)`,
+          };
+        } else {
+          return {
+            name: "Results Double Checking Period",
+            duration: `${voteEnd.toLocaleString()} to (manual trigger)`,
+          };
+        }
+      }
+      return { name: "Election Not Active", duration: "N/A" };
+    }
+
     // POST /set-test-date (update fake current date and current phase)
     app.post("/set-test-date", async (req, res) => {
       try {
-        const { fakeCurrentDate, period } = req.body;
-        await db.collection("election_config").updateOne({}, { $set: { fakeCurrentDate, currentPeriod: period, updatedAt: new Date() } }, { upsert: true });
+        const { fakeCurrentDate } = req.body;
+        const testDate = new Date(fakeCurrentDate);
+
+        // Retrieve the current election configuration from the DB
+        const electionConfig = await db.collection("election_config").findOne({ _id: "election_config" });
+
+        // Recalculate the period based on the new fake current date
+        const period = recalculatePeriodUsing(testDate, electionConfig);
+
+        // Update the document with the new fakeCurrentDate and recalculated period
+        const result = await db.collection("election_config").updateOne({ _id: "election_config" }, { $set: { fakeCurrentDate, currentPeriod: period, updatedAt: new Date() } }, { upsert: true });
+
         res.json({ success: true, fakeCurrentDate, period });
       } catch (error) {
         console.error("Error setting fake current date:", error);

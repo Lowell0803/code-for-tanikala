@@ -320,7 +320,8 @@
           <!-- Test Date Picker for simulating the current date -->
           <div class="test-date">
             <label for="testDatePicker">Test Current Date:</label>
-            <input type="datetime-local" id="testDatePicker" onchange="updateCurrentPeriod()" />
+            <input type="datetime-local" id="testDatePicker" onchange="updateCurrentPeriod()" value="<%= electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).toISOString().slice(0,16) : '' %>" />
+
             <small>(Select a datetime to simulate the current date and update the phase)</small>
           </div>
         </div>
@@ -419,6 +420,7 @@
         const testDateInput = document.getElementById("testDatePicker").value;
         const testDate = testDateInput ? new Date(testDateInput) : new Date();
         const period = calculateCurrentPeriod();
+        console.log(period);
         fetch("/set-test-date", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
