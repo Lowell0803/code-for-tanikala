@@ -30,22 +30,25 @@ const agenda = new Agenda({
 agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }, async (job) => {
   const { voteId, candidateIds, hashedEmail, socketId } = job.attrs.data;
   try {
-    // Atomically fetch and increment the nonce from the "nonces" collection.
-    const nonceDoc = await db.collection("nonces").findOneAndUpdate({ _id: "nonce" }, { $inc: { value: 1 } }, { returnDocument: "after", upsert: true });
-    const nonce = nonceDoc.value.value; // Assuming the document shape is { _id: "nonce", value: <currentNonce> }
-
-    async function printNonce() {
-      const nonce = await wallet.getNonce();
-      console.log("Current nonce:", nonce);
+    // Start a MongoDB session for the transaction (ensure your MongoDB deployment supports transactions)
+    const session = db.client.startSession();
+    let nonce;
+    try {
+      await session.withTransaction(async () => {
+        const nonceDoc = await db.collection("nonces").findOneAndUpdate({ _id: "nonce" }, { $inc: { value: 1 } }, { returnDocument: "after", upsert: true, session });
+        // Extract the nonce value from the document
+        nonce = nonceDoc.value.value;
+        console.log("Distributed nonce acquired:", nonce);
+      });
+    } finally {
+      await session.endSession();
     }
 
-    printNonce();
-
-    // Now send the transaction using the unique nonce.
+    // Now send the blockchain transaction using the unique nonce.
     const tx = await contract.voteForCandidates(candidateIds, { nonce });
     await tx.wait();
 
-    // Update waiting vote record as completed
+    // Update waiting vote record as completed.
     const waitingCollection = db.collection("waiting_votes");
     await waitingCollection.updateOne(
       { voteId },
@@ -58,11 +61,11 @@ agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }
       }
     );
 
-    // Update candidate_hashes collection
+    // Update candidate_hashes collection.
     const candidateHashesCollection = db.collection("candidate_hashes");
     await Promise.all(candidateIds.map((candidateId) => candidateHashesCollection.updateOne({ candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true })));
 
-    // Notify client via Socket.IO, if socketId is provided
+    // Notify client via Socket.IO, if socketId is provided.
     if (socketId) {
       io.to(voteId).emit("voteConfirmed", { txHash: tx.hash });
     }
@@ -231,6 +234,23 @@ const startServer = async () => {
 
     const currentNonce = await wallet.getNonce();
     await db.collection("nonces").updateOne({ _id: "nonce" }, { $set: { value: currentNonce } }, { upsert: true });
+
+    async function testTransaction() {
+      const session = db.client.startSession();
+      try {
+        await session.withTransaction(async () => {
+          // Try updating a test document in a test collection
+          await db.collection("testCollection").updateOne({ _id: "testDoc" }, { $set: { test: "transaction" } }, { upsert: true, session });
+        });
+        console.log("Transaction committed successfully.");
+      } catch (error) {
+        console.error("Transaction failed:", error);
+      } finally {
+        await session.endSession();
+      }
+    }
+
+    testTransaction();
 
     /**
      * Logs an activity to a specified MongoDB collection.
