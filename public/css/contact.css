@@ -167,6 +167,9 @@ input:-webkit-autofill:active {
   font-size: 1.2rem;
 }
 
+.main-first {
+}
+
 @media (max-width: 1000px) {
   /* Stack the two main sections vertically */
   .first-text {

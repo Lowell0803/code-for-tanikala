@@ -177,6 +177,7 @@ img {
   background: linear-gradient(#e1ae5b, #f5ab29);
   font-weight: bold;
   font-family: "Montserrat", Arial;
+  color: black;
 }
 
 .button-rounded-yellow:hover {
@@ -397,7 +398,7 @@ ol {
 
 .profile {
   padding-right: 2rem;
-  border: 1px solid black;
+  /* border: 1px solid black; */
 }
 
 p {

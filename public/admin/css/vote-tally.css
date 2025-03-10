@@ -16,6 +16,10 @@
     border: 1px solid black;
   } */
 
+* {
+  box-sizing: border-box;
+}
+
 .main img {
   width: 5rem;
   height: 5rem;
@@ -114,4 +118,9 @@
 
 .total-votes {
   text-align: right;
+}
+
+.right {
+  text-align: right;
+  padding-right: 2rem;
 }

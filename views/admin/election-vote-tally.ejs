@@ -259,6 +259,8 @@
                 </div>
               </div>
               <% } %>
+              <br />
+              <h3 class="right"><span>150</span> total votes cast</h3>
             </div>
 
             <script>
@@ -285,7 +287,7 @@
                   <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 </div>
                 <div class="candidate-info">
-                  <h3><%= candidate.name %></h3>
+                  <h2><%= candidate.name %></h2>
                   <p>Party: <%= candidate.party %></p>
                   <div class="row">
                     <div class="progress-bar">
@@ -298,7 +300,7 @@
               <% }); %> <% if (abstainCandidateVice) { const percentage = totalVotesVice > 0 ? ((abstainCandidateVice.voteCount / totalVotesVice) * 100).toFixed(2) : 0; %>
               <div class="candidate">
                 <div class="img-container">
-                  <h3><%= abstainCandidateVice.name %></h3>
+                  <h2><%= abstainCandidateVice.name %></h2>
                 </div>
                 <div class="candidate-info">
                   <div class="row">
@@ -310,6 +312,8 @@
                 </div>
               </div>
               <% } %>
+              <br />
+              <h3 class="right"><span>150</span> total votes cast</h3>
             </div>
 
             <script>
@@ -336,7 +340,7 @@
                   <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 </div>
                 <div class="candidate-info">
-                  <h3><%= candidate.name %></h3>
+                  <h2><%= candidate.name %></h2>
                   <p>Party: <%= candidate.party %></p>
                   <div class="row">
                     <div class="progress-bar">
@@ -344,14 +348,11 @@
                     </div>
                     <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                   </div>
-                  <br />
-                  <br />
-                  <div class="total-votes">
-                    <p>150 votes out of 1500 total votes</p>
-                  </div>
                 </div>
               </div>
               <% }); %>
+              <br />
+              <h3 class="right"><span>150</span> total votes cast</h3>
             </div>
 
             <script>
@@ -431,6 +432,8 @@
                   </div>
                 </div>
                 <% } %>
+                <br />
+                <h3 class="right"><span>150</span> total votes cast</h3>
               </div>
 
               <% const viceGovernorCandidates = candidates.filter(candidate => candidate.position === 'vice governor' && candidate.college && candidate.name !== 'Abstain'); const abstainCandidateViceGovernor = candidates.find(candidate => candidate.position === 'vice governor' && candidate.college
@@ -448,7 +451,7 @@
                       <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                     </div>
                     <div class="candidate-info">
-                      <h3><%= candidate.name %></h3>
+                      <h2><%= candidate.name %></h2>
                       <p>Party: <%= candidate.party %></p>
                       <div class="row">
                         <div class="progress-bar">
@@ -463,7 +466,7 @@
                 <div class="candidate lsc-candidate" data-college="<%= abstainCandidateViceGovernor.college %>">
                   <div class="candidate">
                     <div class="img-container">
-                      <h3><%= abstainCandidateViceGovernor.name %></h3>
+                      <h2><%= abstainCandidateViceGovernor.name %></h2>
                     </div>
                     <div class="candidate-info">
                       <div class="row">
@@ -476,6 +479,8 @@
                   </div>
                 </div>
                 <% } %>
+                <br />
+                <h3 class="right"><span>150</span> total votes cast</h3>
               </div>
 
               <!-- Board Member Container -->
@@ -503,7 +508,7 @@
                       <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                     </div>
                     <div class="candidate-info">
-                      <h3><%= candidate.name %></h3>
+                      <h2><%= candidate.name %></h2>
                       <p>Party: <%= candidate.party %></p>
                       <div class="row">
                         <div class="progress-bar">
@@ -518,7 +523,7 @@
                 <div class="candidate lsc-candidate" data-college="<%= candidate.college %>" data-program="<%= candidate.program %>">
                   <div class="candidate">
                     <div class="img-container">
-                      <h3><%= candidate.name %></h3>
+                      <h2><%= candidate.name %></h2>
                     </div>
                     <div class="candidate-info">
                       <div class="row">
@@ -531,6 +536,8 @@
                   </div>
                 </div>
                 <% }); } %> <% }); %>
+                <br />
+                <h3 class="right"><span>150</span> total votes cast</h3>
               </div>
 
               <script>
