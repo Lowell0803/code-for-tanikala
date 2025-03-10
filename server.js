@@ -27,55 +27,62 @@ const agenda = new Agenda({
 });
 
 // Define the vote submission job with concurrency set to 1.
-agenda.define(
-  "process vote submission",
-  { concurrency: 1, lockLifetime: 60000 }, // lockLifetime in ms, adjust as needed
-  async (job) => {
-    const { voteId, candidateIds, hashedEmail, socketId } = job.attrs.data;
-    try {
-      // Replace this with your actual blockchain call
-      const tx = await contract.voteForCandidates(candidateIds);
-      await tx.wait();
+agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }, async (job) => {
+  const { voteId, candidateIds, hashedEmail, socketId } = job.attrs.data;
+  try {
+    // Atomically fetch and increment the nonce from the "nonces" collection.
+    const nonceDoc = await db.collection("nonces").findOneAndUpdate({ _id: "nonce" }, { $inc: { value: 1 } }, { returnDocument: "after", upsert: true });
+    const nonce = nonceDoc.value.value; // Assuming the document shape is { _id: "nonce", value: <currentNonce> }
 
-      // Update waiting vote record as completed
-      const waitingCollection = db.collection("waiting_votes");
-      await waitingCollection.updateOne(
-        { voteId },
-        {
-          $set: {
-            status: "completed",
-            txHash: tx.hash,
-            completedAt: new Date(),
-          },
-        }
-      );
+    async function printNonce() {
+      const nonce = await wallet.getNonce();
+      console.log("Current nonce:", nonce);
+    }
 
-      // Update candidate_hashes collection
-      const candidateHashesCollection = db.collection("candidate_hashes");
-      await Promise.all(candidateIds.map((candidateId) => candidateHashesCollection.updateOne({ candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true })));
+    printNonce();
 
-      // Notify client via Socket.IO, if socketId is provided
-      if (socketId) {
-        io.to(voteId).emit("voteConfirmed", { txHash: tx.hash });
+    // Now send the transaction using the unique nonce.
+    const tx = await contract.voteForCandidates(candidateIds, { nonce });
+    await tx.wait();
+
+    // Update waiting vote record as completed
+    const waitingCollection = db.collection("waiting_votes");
+    await waitingCollection.updateOne(
+      { voteId },
+      {
+        $set: {
+          status: "completed",
+          txHash: tx.hash,
+          completedAt: new Date(),
+        },
       }
-    } catch (error) {
-      console.error("Error processing vote submission:", error);
-      await db.collection("waiting_votes").updateOne(
-        { voteId },
-        {
-          $set: {
-            status: "error",
-            error: error.message,
-            completedAt: new Date(),
-          },
-        }
-      );
-      if (socketId) {
-        io.to(voteId).emit("voteError", { error: error.message });
+    );
+
+    // Update candidate_hashes collection
+    const candidateHashesCollection = db.collection("candidate_hashes");
+    await Promise.all(candidateIds.map((candidateId) => candidateHashesCollection.updateOne({ candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true })));
+
+    // Notify client via Socket.IO, if socketId is provided
+    if (socketId) {
+      io.to(voteId).emit("voteConfirmed", { txHash: tx.hash });
+    }
+  } catch (error) {
+    console.error("Error processing vote submission:", error);
+    await db.collection("waiting_votes").updateOne(
+      { voteId },
+      {
+        $set: {
+          status: "error",
+          error: error.message,
+          completedAt: new Date(),
+        },
       }
+    );
+    if (socketId) {
+      io.to(voteId).emit("voteError", { error: error.message });
     }
   }
-);
+});
 
 // Start Agenda when it's ready
 agenda.on("ready", () => {
@@ -221,6 +228,9 @@ const { MongoClient, ExplainVerbosity } = require("mongodb");
 const startServer = async () => {
   try {
     db = await connectToDatabase();
+
+    const currentNonce = await wallet.getNonce();
+    await db.collection("nonces").updateOne({ _id: "nonce" }, { $set: { value: currentNonce } }, { upsert: true });
 
     /**
      * Logs an activity to a specified MongoDB collection.
