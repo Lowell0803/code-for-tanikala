@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "@hokify/agenda": "^6.3.0",
     "@sendgrid/mail": "^8.1.4",
+    "agenda": "^5.0.0",
     "async-mutex": "^0.5.0",
     "axios": "^1.8.2",
     "bcrypt": "^5.1.1",

@@ -60,4 +60,14 @@ contract AdminCandidates {
         }
         return (candidateList, votes);
     }
+
+    function resetCandidates() external {
+    for (uint256 i = 0; i < candidateList.length; i++) {
+        bytes32 candidateId = candidateList[i];
+        isRegistered[candidateId] = false;
+        candidateVotes[candidateId] = 0;
+    }
+    delete candidateList;
+}
+
 }
