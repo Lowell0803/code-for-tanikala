@@ -430,6 +430,16 @@ button:hover {
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
 }
 
+button {
+  padding: 0.6rem;
+  margin: 1rem;
+  border-radius: 1rem;
+  border: none;
+  color: white;
+  font-weight: bold;
+  background-color: var(--color-mediumYellow);
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   body {

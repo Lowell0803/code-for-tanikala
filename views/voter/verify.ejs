@@ -35,7 +35,7 @@
             <div class="dropdown-menu">
               <p>
                 Logged in as <br />
-                <strong> </strong><%= email %> </strong> 
+                <strong><%= email %> </strong>
               </p>
               <hr class="dropdown-line" />
               <a href="/voter/logout">Log Out</a>
@@ -48,14 +48,10 @@
 
     <!-- Content Section -->
     <div class="content">
-      <br />
       <div class="main-first">
         <img src="/img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
         <div class="first-text">
-          <h2 class="title">
-            BulSU Student Government Elections<br />
-            S.Y. 2025 - 2026
-          </h2>
+          <h2 class="title">BulSU Student Government Elections</h2>
         </div>
         <img src="/img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
       </div>
@@ -69,111 +65,94 @@
           <div class="footer">maybe</div>
       </div> -->
 
-
       <!-- Receipt Container -->
       <div id="receiptContainer" class="content-main receipt-container">
         <div class="verify">
           <div class="row">
             <div class="column box-shadow">
               <div class="receipt-header">
-            
                 <img src="/img/logo_tanikala.png" />
-                <div class="voting-receipt"> VOTING RECEIPT</div>
-            
+                <div class="voting-receipt">VOTING RECEIPT</div>
               </div>
               <div class="receipt-subheader"></div>
-              
-              
+
               <br />
               <hr />
-              
-              <div class="left">
 
-                 <p>Voter ID: <%= voterHash %></p> 
-                 <p>College: <%= voterCollege %></p>
-                 <p>Program: <%= voterProgram %></p>
-                 
-                 </div>
-             
-             
+              <div class="left">
+                <p><strong>Voter ID:</strong> <%= voterHash %></p>
+                <p><strong>College:</strong> <%= voterCollege %></p>
+                <p><strong>Program:</strong> <%= voterProgram %></p>
+              </div>
+
               <hr />
               <br />
               <div class="election-title">BulSU Student Goverment Elections 2025-2026</div>
-              <br />
+
               <!-- Candidate Selections Table -->
-              <table>
-                <thead>
-                  <tr>
-                    <th scope="col left">Position</th>
-                    <th scope="col right" colspan="2">Candidate(s)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% if (candidates && candidates.president) { %>
-                  <tr>
-                    <td data-label="Position">President</td>
-                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.president)) { %> <%= candidates.president.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.president.name %> <% } %></td>
-                  </tr>
-                  <% } %> <% if (candidates && candidates.vicePresident) { %>
-                  <tr>
-                    <td data-label="Position">Vice President</td>
-                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.vicePresident)) { %> <%= candidates.vicePresident.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.vicePresident.name %> <% } %></td>
-                  </tr>
-                  <% } %> <% if (candidates && candidates.senator) { %>
-                  <tr>
-                    <td data-label="Position">Senator(s)</td>
-                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.senator)) { %> <%= candidates.senator.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.senator.name %> <% } %></td>
-                  </tr>
-                  <% } %> <% if (candidates && candidates.governor) { %>
-                  <tr>
-                    <td data-label="Position">Governor</td>
-                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.governor)) { %> <%= candidates.governor.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.governor.name %> <% } %></td>
-                  </tr>
-                  <% } %> <% if (candidates && candidates.viceGovernor) { %>
-                  <tr>
-                    <td data-label="Position">Vice Governor</td>
-                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.viceGovernor)) { %> <%= candidates.viceGovernor.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.viceGovernor.name %> <% } %></td>
-                  </tr>
-                  <% } %> <% if (candidates && candidates.boardMember) { %>
-                  <tr>
-                    <td data-label="Position">Board Member</td>
-                    <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.boardMember)) { %> <%= candidates.boardMember.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.boardMember.name %> <% } %></td>
-                  </tr>
-                  <% } %>
-                </tbody>
-              </table>
-              
-              
-              
-             
-             
+              <div class="table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col left">Position</th>
+                      <th scope="col right" colspan="2">Candidate(s)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (candidates && candidates.president) { %>
+                    <tr>
+                      <td data-label="Position">President</td>
+                      <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.president)) { %> <%= candidates.president.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.president.name %> <% } %></td>
+                    </tr>
+                    <% } %> <% if (candidates && candidates.vicePresident) { %>
+                    <tr>
+                      <td data-label="Position">Vice President</td>
+                      <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.vicePresident)) { %> <%= candidates.vicePresident.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.vicePresident.name %> <% } %></td>
+                    </tr>
+                    <% } %> <% if (candidates && candidates.senator) { %>
+                    <tr>
+                      <td data-label="Position">Senator(s)</td>
+                      <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.senator)) { %> <%= candidates.senator.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.senator.name %> <% } %></td>
+                    </tr>
+                    <% } %> <% if (candidates && candidates.governor) { %>
+                    <tr>
+                      <td data-label="Position">Governor</td>
+                      <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.governor)) { %> <%= candidates.governor.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.governor.name %> <% } %></td>
+                    </tr>
+                    <% } %> <% if (candidates && candidates.viceGovernor) { %>
+                    <tr>
+                      <td data-label="Position">Vice Governor</td>
+                      <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.viceGovernor)) { %> <%= candidates.viceGovernor.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.viceGovernor.name %> <% } %></td>
+                    </tr>
+                    <% } %> <% if (candidates && candidates.boardMember) { %>
+                    <tr>
+                      <td data-label="Position">Board Member</td>
+                      <td data-label="Candidate" colspan="2"><% if (Array.isArray(candidates.boardMember)) { %> <%= candidates.boardMember.map(c => c.name).join(', ') %> <% } else { %> <%= candidates.boardMember.name %> <% } %></td>
+                    </tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+
               <br />
               <hr />
-             <div class="left">
-                <p>Voting Date and Time: <%= new Date().toLocaleString() %></p>
-                <p>Transaction Hash: <%= txHash %></p>
-                <p>Status: Vote successfully recorded on blockchain</p> 
-             
-               
-        
+              <div class="left">
+                <p><strong>Voting Date and Time:</strong> <%= new Date().toLocaleString() %></p>
+                <p><strong>Transaction Hash:</strong> <%= txHash %></p>
+                <p><strong>Status:</strong> Vote successfully recorded on blockchain.</p>
               </div>
               <hr />
               <br />
-                <div class="receipt-footer"><p>Thank you for using TANIKALA. With our blockchain technology, your vote stays secure, anonymous, and is counted accurately.</p></div>
+              <div class="receipt-footer"><p>Thank you for using TANIKALA. With our blockchain technology, your vote stays secure, anonymous, and is counted accurately.</p></div>
             </div>
-           
           </div>
-          
         </div>
-       
-    
+      </div>
 
-      <!-- Export Receipt as Image -->
       <div style="text-align: center; margin: 20px">
         <button id="exportBtn" style="border-radius: 6px; padding: 10px 20px; font-size: 16px" class="button-save">Export Receipt as Image</button>
       </div>
     </div>
-</div>
     <footer class="footer">
       <div class="footer-left">
         <img src="/img/calendar.png" class="footer-img" />
@@ -228,7 +207,7 @@
             .toPng(document.querySelector(".receipt-container"))
             .then(function (dataUrl) {
               var link = document.createElement("a");
-              link.download = "receipt.png";
+              link.download = "BulSU Student Government Elections - Voting Receipt.png";
               link.href = dataUrl;
               link.click();
             })

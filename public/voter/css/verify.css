@@ -48,7 +48,7 @@
 }
 
 .receipt-header img {
-  width: 35%;
+  width: 40%;
   height: auto;
 }
 .flex-col {
@@ -206,7 +206,7 @@ hr {
   background-color: #a60212;
   text-align: center;
   width: 100%;
-  height: 8%;
+  height: 9%;
   color: white;
   display: flex;
   justify-content: center;
@@ -214,11 +214,11 @@ hr {
 }
 
 .receipt-footer p {
-  font-size: 0.6rem;
+  font-size: 0.1rem;
 }
 
 .column p {
-  font-size: 0.75rem !important;
+  font-size: 0.75rem;
 }
 
 .left {
@@ -239,4 +239,13 @@ table {
 .election-title {
   font-weight: bold;
   color: #a60212;
+}
+
+.table {
+  padding: 1rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
 }
