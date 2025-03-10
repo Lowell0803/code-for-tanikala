@@ -31,7 +31,7 @@
 .column {
   border-radius: 1em;
   color: black;
-  background-color: #23a85f;
+  background-color: #faf2db;
   border: 2px solid black;
   width: 40%;
   padding: 2rem 3rem;
@@ -116,4 +116,58 @@ table td {
 /*table end*/
 hr {
   border-top: 1px solid #000;
+}
+
+.ballot-header {
+  color: white;
+  padding: 1% 0;
+  margin: 2% 0;
+}
+
+.ballot-position {
+  background-color: #1e66c4;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.invoice-header {
+  background-color: #1f2d3d; /* Dark color for contrast */
+  color: #fff;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.invoice-header .logo {
+  height: 50px; /* Adjust to your logo size */
+}
+.invoice-header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+/* Content area */
+.invoice-body {
+  padding: 20px;
+  background-color: #fff; /* White or very light background for readability */
+  margin: 0 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional subtle shadow */
+}
+
+/* Bottom bar with dark background for any footer details/signatures */
+.invoice-footer {
+  background-color: #1f2d3d; /* Same dark color as header */
+  color: #fff;
+  padding: 10px 20px;
+  text-align: center;
+}
+.invoice-footer p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.receipt-header {
+  background-color: #1e66c4;
+  height: 20%;
+  width: 100%;
 }

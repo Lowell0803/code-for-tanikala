@@ -6,9 +6,8 @@
     <title>Voting System</title>
     <link rel="stylesheet" type="text/css" href="css/index.css" />
     <link rel="stylesheet" type="text/css" href="voter/css/index-voter.css" />
-    <link rel="stylesheet" type="text/css" href="voter/css/vote.css" />
     <link rel="stylesheet" type="text/css" href="voter/css/review.css" />
-
+    <link rel="stylesheet" type="text/css" href="voter/css/vote.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
@@ -74,31 +73,29 @@
           <h3 class="ballot-header ballot-summary">VOTE SUMMARY</h3>
           <br />
           <h3 class="ballot-header ballot-council">BulSU Supreme Student Council</h3>
-
-          <div class="ssc-row">
-              <!-- Review Vote Card Markup -->
-              <div class="review-vote-card">
-                <!-- Display the position at the top -->
-                <h1><%= president.position %></h1>
-
-                <div class="ballot-choices">
-                  <input class="ballot-choice candidate-radio" data-group="president" id="president-selected" type="radio" name="president" value="<%= JSON.stringify(president) %>" checked disabled />
-                  <label class="ballot-tile label-president" for="president-selected">
-                    <!-- Party Name -->
-                    <h4 class="party"><%= president.party %></h4>
-                    <!-- Candidate Image -->
-                    <img class="img-president" src="<%= president.image %>" alt="<%= president.name %>" />
-                    <!-- Candidate Name -->
-                    <h4 class="name"><%= president.name %></h4>
-                    <hr>
-                    <!-- Additional Candidate Info -->
-                    <p class="info"><%= president.moreInfo %></p>
-                  </label>
+          <br />
+          <ul>
+            <li>
+              <% president %>
+              <div class="card">
+                <div class="smallIcon">
+                  <div class="Icon">
+                    <div class="position">
+                      <h2><%= president.name %></h2>
+                    </div>
+                    <img src="<%= president.image %>" alt="<%= president.name %>" />
+                  </div>
+                  <div class="Name"></div>
+                  <div class="Roles">
+                    <h2><%= president.position %></h2>
+                  </div>
+                  <div class="Description">
+                    <p><%= president.moreInfo %></p>
+                  </div>
                 </div>
               </div>
-            
-            
-</div>
+            </li>
+            <br />
             <li>
               <div class="card">
                 <div class="smallIcon">
