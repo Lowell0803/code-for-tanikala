@@ -9,6 +9,12 @@
   --color-selected-bg: #b2eea0;
 }
 
+#links {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+}
+
 /* .ballot-choices div {
   border: 2px solid black;
 } */
@@ -309,10 +315,32 @@
 /* Mobile Responsive */
 
 @media (max-width: 1000px) {
+  .header {
+    height: 15vh;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 1rem;
+  }
+
+  .header-logo {
+    width: 10rem;
+    height: 10rem;
+  }
+
   .header-nav {
     width: 30vw;
     padding: 0;
   }
+  #links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .settings {
+    margin-right: 10%;
+  }
+
   .header-nav-content li {
     font-size: 0.75rem;
     padding: 0 !important;
@@ -331,25 +359,62 @@
 
   /* Stack ballot choices vertically and adjust spacing */
   .ballot-choices {
-    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 1rem;
   }
 
   /* Adjust label container width for better stacking */
   .label-container {
-    flex-basis: 90%;
+    min-width: 40%;
+    flex-basis: 40%;
   }
 
   /* Reduce padding and font sizes for ballot tiles */
   .ballot-tile {
-    margin: 0px 2rem;
-    padding: 1rem;
-    font-size: 0.9rem;
+    margin: 0;
+    padding: 0.25rem;
+  }
+
+  .ballot-tile:before {
+    content: "";
+    position: absolute;
+    display: block;
+    width: 0.4rem;
+    height: 0.4rem;
+    border: 2px solid #b5bfd9;
+    background-color: #fff;
+    border-radius: 50%;
+    top: 0.5rem;
+    left: 0.5rem;
+    opacity: 0;
+    transform: scale(0);
+    transition: 0.25s ease;
+  }
+
+  .ballot-tile .party,
+  #ballot-senator .party {
+    font-size: 0.8rem;
+  }
+
+  .ballot-tile .name,
+  #ballot-senator .name {
+    font-size: 0.8rem;
+  }
+
+  .ballot-tile .info,
+  #ballot-senator .info {
+    font-size: 0.6rem;
+    min-height: 10rem;
+    overflow-y: auto;
   }
 
   /* Scale down images within ballot choices */
-  .ballot-choices img {
+  .ballot-choices img,
+  #ballot-senator .img-senator {
+    margin-top: 0.4rem;
     width: 4rem;
     height: 4rem;
   }
@@ -379,6 +444,10 @@
   }
   .no-mobile {
     display: none;
+  }
+
+  .first-text .title {
+    font-size: 2rem !important;
   }
 }
 
