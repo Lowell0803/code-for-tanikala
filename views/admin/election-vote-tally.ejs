@@ -512,53 +512,57 @@
                   <h1 class="position-lsc">Board Member</h1>
                 </div>
                 <hr />
+
                 <% Object.keys(boardMembersByProgram).forEach(program => { let programTotalVotes = boardMembersByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); if (abstainByProgram[program]) { programTotalVotes += abstainByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); } %>
-                <br />
-                <h2 class="program-header">
-                  <ul>
-                    <%= program %>
-                  </ul>
-                </h2>
-                <br />
-                <% boardMembersByProgram[program].forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = programTotalVotes > 0 ? ((voteCount / programTotalVotes) * 100).toFixed(2) : 0; %>
-                <div class="candidate lsc-candidate" data-college="<%= candidate.college %>" data-program="<%= candidate.program %>">
-                  <div class="candidate">
-                    <div class="img-container">
-                      <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
-                    </div>
-                    <div class="candidate-info">
-                      <h2><%= candidate.name %></h2>
-                      <p><%= candidate.party %></p>
-                      <div class="row">
-                        <div class="progress-bar">
-                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= voteCount %> votes</div>
+                <!-- Wrap each program in its own container and add an id using the candidate's college -->
+                <div class="program-group" id="college-<%= boardMembersByProgram[program][0].college %>">
+                  <h2 class="program-header">
+                    <ul>
+                      <%= program %>
+                    </ul>
+                  </h2>
+                  <br />
+
+                  <% boardMembersByProgram[program].forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = programTotalVotes > 0 ? ((voteCount / programTotalVotes) * 100).toFixed(2) : 0; %>
+                  <div class="candidate lsc-candidate" data-college="<%= candidate.college %>" data-program="<%= candidate.program %>">
+                    <div class="candidate">
+                      <div class="img-container">
+                        <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
+                      </div>
+                      <div class="candidate-info">
+                        <h2><%= candidate.name %></h2>
+                        <p><%= candidate.party %></p>
+                        <div class="row">
+                          <div class="progress-bar">
+                            <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= voteCount %> votes</div>
+                          </div>
+                          <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                         </div>
-                        <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                       </div>
                     </div>
                   </div>
-                </div>
-                <% }); %> <% if (abstainByProgram[program]) { abstainByProgram[program].forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = programTotalVotes > 0 ? ((voteCount / programTotalVotes) * 100).toFixed(2) : 0; %>
-                <div class="candidate lsc-candidate" data-college="<%= candidate.college %>" data-program="<%= candidate.program %>">
-                  <div class="candidate">
-                    <div class="img-container">
-                      <h2><%= candidate.name %></h2>
-                    </div>
-                    <div class="candidate-info">
-                      <div class="row">
-                        <div class="progress-bar">
-                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= voteCount %> votes</div>
+                  <% }); %> <% if (abstainByProgram[program]) { abstainByProgram[program].forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = programTotalVotes > 0 ? ((voteCount / programTotalVotes) * 100).toFixed(2) : 0; %>
+                  <div class="candidate lsc-candidate" data-college="<%= candidate.college %>" data-program="<%= candidate.program %>">
+                    <div class="candidate">
+                      <div class="img-container">
+                        <h2><%= candidate.name %></h2>
+                      </div>
+                      <div class="candidate-info">
+                        <div class="row">
+                          <div class="progress-bar">
+                            <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= voteCount %> votes</div>
+                          </div>
+                          <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                         </div>
-                        <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                       </div>
                     </div>
                   </div>
+                  <% }); } %>
+
+                  <h3 class="right">
+                    <span><u><%= programTotalVotes %></u></span> total votes cast
+                  </h3>
                 </div>
-                <% }); } %>
-                <!-- Total votes cast for this program -->
-                <h3 class="right">
-                  <span><u><%= programTotalVotes %></u></span> total votes cast
-                </h3>
                 <% }); %>
               </div>
 
@@ -566,64 +570,41 @@
                 document.addEventListener("DOMContentLoaded", function () {
                   const selector = document.getElementById("college-selector");
 
-                  function filterBoardMembers() {
+                  function filterLSCCandidates() {
                     const selectedCollege = selector.value;
-                    const container = document.getElementById("container-lsc-board-member");
-                    const candidateCards = container.querySelectorAll(".lsc-candidate");
+                    // First, filter candidate cards as before (optional if you want individual control)
+                    const candidateCards = document.querySelectorAll(".lsc-candidate");
                     candidateCards.forEach((card) => {
                       const candidateCollege = card.getAttribute("data-college");
-                      card.style.display = !selectedCollege || candidateCollege === selectedCollege ? "block" : "none";
-                    });
-                    const headers = container.querySelectorAll(".program-header");
-                    headers.forEach((header) => {
-                      let next = header.nextElementSibling;
-                      let visibleCount = 0;
-                      while (next && !next.classList.contains("program-header")) {
-                        if (next.classList.contains("lsc-candidate") && next.style.display !== "none") visibleCount++;
-                        next = next.nextElementSibling;
+                      if (!selectedCollege || candidateCollege === selectedCollege) {
+                        card.style.display = "block";
+                      } else {
+                        card.style.display = "none";
                       }
-                      header.style.display = visibleCount === 0 ? "none" : "block";
+                    });
+
+                    // Now filter entire program groups by id
+                    const programGroups = document.querySelectorAll(".program-group");
+                    programGroups.forEach((group) => {
+                      if (group.id === "college-" + selectedCollege) {
+                        group.style.display = "block";
+                      } else {
+                        group.style.display = "none";
+                      }
                     });
                   }
 
-                  selector.addEventListener("change", filterBoardMembers);
-                  filterBoardMembers();
+                  // Trigger filtering when the selection changes
+                  selector.addEventListener("change", filterLSCCandidates);
+
+                  // Run filter initially
+                  filterLSCCandidates();
                 });
               </script>
             </div>
           </div>
         </div>
       </main>
-
-      <script>
-        // Wait for the DOM to be fully loaded
-        document.addEventListener("DOMContentLoaded", function () {
-          const selector = document.getElementById("college-selector");
-
-          // Function to filter LSC candidates based on selected college
-          function filterLSCCandidates() {
-            const selectedCollege = selector.value;
-            // Get all candidate cards in the LSC section
-            const candidateCards = document.querySelectorAll(".lsc-candidate");
-
-            candidateCards.forEach((card) => {
-              const candidateCollege = card.getAttribute("data-college");
-              // If no college is selected, show all candidates; otherwise, only show matching candidates
-              if (!selectedCollege || candidateCollege === selectedCollege) {
-                card.style.display = "block";
-              } else {
-                card.style.display = "none";
-              }
-            });
-          }
-
-          // Attach the change event listener to the select element
-          selector.addEventListener("change", filterLSCCandidates);
-
-          // Optionally, run the filter function on page load
-          filterLSCCandidates();
-        });
-      </script>
     </div>
 
     <footer class="footer">
