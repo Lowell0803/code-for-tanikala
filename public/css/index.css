@@ -419,13 +419,15 @@ button {
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px, rgba(0, 0, 0, 0.06) 0px 2px 4px;
 }
 
-button:hover {
+button:hover,
+button:active {
   background-color: var(--color-lightRed);
   color: #ffeba7;
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
 }
 
-.button:hover {
+.button:hover,
+.button:active {
   background-color: var(--color-lightRed);
   color: #ffeba7;
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);

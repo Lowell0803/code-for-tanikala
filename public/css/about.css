@@ -50,6 +50,10 @@
   /* border: 1px solid black; */
 }
 
+.pham {
+  width: 100%;
+}
+
 .buttons h2 {
   font-size: 1.4em;
 }

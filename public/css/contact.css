@@ -57,7 +57,7 @@
   margin-left: 4%;
   margin-bottom: 5%;
 
-  height: 75vh;
+  min-height: 75vh;
 }
 
 .message {
@@ -167,7 +167,13 @@ input:-webkit-autofill:active {
   font-size: 1.2rem;
 }
 
-.main-first {
+.button {
+  transition: none;
+}
+
+input[type="submit"]:active,
+input[type="button"]:active {
+  transform: none; /* No shrink effect */
 }
 
 @media (max-width: 1000px) {
