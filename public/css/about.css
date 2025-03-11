@@ -310,8 +310,11 @@ h5 {
     font-size: 1.1rem;
   }
 
-  .about-text > #bulsu {
+  .about-text > #bulsu,
+  #tanikala,
+  #developer {
     font-size: 1.5rem;
+    text-align: center;
   }
 
   .about-text > p {
@@ -410,5 +413,18 @@ h5 {
 
   #developer {
     font-size: 1.6rem;
+  }
+
+  .content-main-left,
+  .content-main-right {
+    display: none;
+  }
+
+  .get-to-now p {
+    line-height: 0.1rem;
+  }
+
+  #bulsu {
+    text-align: center;
   }
 }

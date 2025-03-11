@@ -177,7 +177,7 @@ img {
   background: linear-gradient(#e1ae5b, #f5ab29);
   font-weight: bold;
   font-family: "Montserrat", Arial;
-  color: black;
+  color: #550c0a;
 }
 
 .button-rounded-yellow:hover {
@@ -443,6 +443,14 @@ button {
   background-color: var(--color-mediumYellow);
 }
 
+#get-ready-to-register {
+  color: var(--color-lightYellow);
+}
+
+#prepare-to-cast-your-votes {
+  color: var(--color-lightYellow);
+}
+
 /* Mobile responsiveness */
 @media (max-width: 1000px) {
   body {
@@ -575,6 +583,27 @@ button {
   .header-nav-content a,
   .header-nav-content li {
     font-size: 0.9rem;
+  }
+
+  .header-bottom-line {
+    border-bottom: 0.2rem solid var(--color-darkYellow);
+  }
+
+  .footer {
+    justify-content: space-around;
+  }
+
+  #vote-now,
+  #be-heard {
+    display: flex;
+  }
+
+  .button-rounded-yellow {
+    /* margin-top: 2rem; */
+    padding: 0.7rem; /* Reduce padding */
+    font-size: 0.9rem; /* Reduce font size */
+    border-radius: 1.5em; /* Slightly smaller border-radius */
+    height: 0.8rem;
   }
 }
 

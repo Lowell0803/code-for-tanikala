@@ -261,4 +261,9 @@ input[type="button"]:active {
   .form-button {
     flex-direction: row;
   }
+
+  .content-main-left,
+  .content-main-right {
+    display: none;
+  }
 }
