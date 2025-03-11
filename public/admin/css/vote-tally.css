@@ -7,7 +7,7 @@
   --background-light-green: #c9ddb1;
 
   --width-main-left: 50%;
-  --width-main-right: calc(100% - var(--width-main-left));
+  --width-main-right: var(--width-main-left);
 }
 
 /* .main,
@@ -90,15 +90,7 @@
   /* border: 1px solid black; */
 }
 
-.candidate {
-  /* border: 1px solid black; */
-  display: flex;
-  /* justify-content: center; */
-  /* align-items: center; */
-  padding: 0.5rem;
-}
-
-.candidate-info {
+/* .candidate-info {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -106,15 +98,14 @@
   padding-left: 2rem;
 
   /* border: 1px solid black; */
-}
 
 .container-position {
   padding: 0;
 }
-.img-container img {
+/* .img-container img {
   height: 6.5rem;
   width: 6.5rem;
-}
+} */
 
 .total-votes {
   text-align: right;
