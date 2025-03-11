@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/voter-id-form.css" />
 
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
@@ -93,7 +94,6 @@
           <a href="/logout">Log Out</a>
         </div>
       </div>
-
     </header>
 
     <div class="content">
@@ -204,14 +204,41 @@
         </ul>
       </div>
       <main class="main">
-         <div class="title-container">
+        <div class="title-container">
           <div class="r">
-          <i class="fa fa-info-circle"></i>
+            <i class="fa fa-info-circle"></i>
             <h1 class="title">Help Page</h1>
           </div>
         </div>
         <hr class="title-line" />
         <div class="first-main">
+          <!-- sample voter ids form -->
+          <div class="hashes-container">
+            <h2 class="hashes-title">List of Transaction Hashes for "John Doe"</h2>
+            <div class="top-bar">
+              <strong
+                ><p class="total-votes">Total Votes: <span id="totalVotes"></span></p
+              ></strong>
+              <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search..." />
+                <button id="searchBtn">
+                  <i class="fa fa-search"></i>
+                  <!-- or any icon library -->
+                </button>
+              </div>
+            </div>
+
+            <div class="hashes-grid" id="hashesGrid">
+              <!-- The 3-column listing of transaction hashes goes here -->
+            </div>
+
+            <div class="pagination">
+              <button id="prevBtn">&lt;</button>
+              <span id="pageInfo">Page 1 of 1</span>
+              <button id="nextBtn">&gt;</button>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
 
@@ -268,5 +295,6 @@
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
+    <script src="admin/js/voter-id-form.js"></script>
   </body>
 </html>

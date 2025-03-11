@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="admin/css/vote-tally.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/candidates.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/index-election.css" />
 
     <link rel="stylesheet" type="text/css" href="admin/dependencies/progress-bar.css" />
 
@@ -232,14 +233,15 @@
               </div>
               <hr />
               <br />
+
               <% if (groupedResults.president && Array.isArray(groupedResults.president)) { groupedResults.president.forEach(function(candidate) { %>
               <div class="candidate">
                 <div class="img-container">
                   <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 </div>
                 <div class="candidate-info">
-                  <h3><%= candidate.name %></h3>
-                  <p>Party: <%= candidate.party %></p>
+                  <h2><%= candidate.name %></h2>
+                  <p><%= candidate.party %></p>
                   <div class="row">
                     <div class="progress-bar">
                       <div class="progress" style="width: <%= candidate.percentage %>%"><%= candidate.voteCount %> votes</div>
@@ -247,12 +249,10 @@
 
                     <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= candidate.percentage %>%</p>
                   </div>
-                  <br />
-                  <br />
-                  <div class="total-votes">
-                    <p>150 votes out of 1500 total votes</p>
-                  </div>
                 </div>
+              </div>
+              <div class="total-votes">
+                <h3><span class="green">150</span> votes out of <span class="green">1500</span> total votes</h3>
               </div>
               <% }); } else { %>
               <p>No candidates for President</p>
@@ -266,26 +266,25 @@
               </div>
               <hr />
               <br />
+
               <% if (groupedResults["vice president"] && Array.isArray(groupedResults["vice president"])) { groupedResults["vice president"].forEach(function(candidate) { %>
               <div class="candidate">
                 <div class="img-container">
                   <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 </div>
                 <div class="candidate-info">
-                  <h3><%= candidate.name %></h3>
-                  <p>Party: <%= candidate.party %></p>
+                  <h2><%= candidate.name %></h2>
+                  <p><%= candidate.party %></p>
                   <div class="row">
                     <div class="progress-bar">
                       <div class="progress" style="width: <%= candidate.percentage %>%"><%= candidate.voteCount %> votes</div>
                     </div>
                     <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= candidate.percentage %>%</p>
                   </div>
-                  <br />
-                  <br />
-                  <div class="total-votes">
-                    <p>150 votes out of 1500 total votes</p>
-                  </div>
                 </div>
+              </div>
+              <div class="total-votes">
+                <h3><span class="green">150</span> votes out of <span class="green">1500</span> total votes</h3>
               </div>
               <% }); } else { %>
               <p>No candidates for Vice President</p>
@@ -299,26 +298,25 @@
               </div>
               <hr />
               <br />
+
               <% if (groupedResults.senator && Array.isArray(groupedResults.senator)) { groupedResults.senator.forEach(function(candidate) { %>
               <div class="candidate">
                 <div class="img-container">
                   <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 </div>
                 <div class="candidate-info">
-                  <h3><%= candidate.name %></h3>
-                  <p>Party: <%= candidate.party %></p>
+                  <h2><%= candidate.name %></h2>
+                  <p><%= candidate.party %></p>
                   <div class="row">
                     <div class="progress-bar">
                       <div class="progress" style="width: <%= candidate.percentage %>%"><%= candidate.voteCount %> votes</div>
                     </div>
                     <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= candidate.percentage %>%</p>
                   </div>
-                  <br />
-                  <br />
-                  <div class="total-votes">
-                    <p>150 votes out of 1500 total votes</p>
-                  </div>
                 </div>
+              </div>
+              <div class="total-votes">
+                <h3><span class="green">150</span> votes out of <span class="green">1500</span> total votes</h3>
               </div>
               <% }); } else { %>
               <p>No candidates for Senator</p>
@@ -356,27 +354,25 @@
                   <h1 class="position-lsc">Governor</h1>
                 </div>
                 <hr />
-                <br />
+
                 <% if (groupedResults.governor && typeof groupedResults.governor === 'object') { %> <% Object.keys(groupedResults.governor).forEach(function(college) { %> <% groupedResults.governor[college].forEach(function(candidate) { %>
                 <div class="candidate lsc-candidate" data-college="<%= college %>">
                   <div class="img-container">
                     <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                   </div>
                   <div class="candidate-info">
-                    <h3><%= candidate.name %></h3>
-                    <p>Party: <%= candidate.party %></p>
+                    <h2><%= candidate.name %></h2>
+                    <p><%= candidate.party %></p>
                     <div class="row">
                       <div class="progress-bar">
                         <div class="progress" style="width: <%= candidate.percentage %>%"><%= candidate.voteCount %> votes</div>
                       </div>
                       <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= candidate.percentage %>%</p>
                     </div>
-                    <br />
-                    <br />
-                    <div class="total-votes">
-                      <p>150 votes out of 1500 total votes</p>
-                    </div>
                   </div>
+                </div>
+                <div class="total-votes">
+                  <h3><span class="green">150</span> votes out of <span class="green">1500</span> total votes</h3>
                 </div>
                 <% }); %> <% }); %> <% } else { %>
                 <p>No candidates for Governor</p>
@@ -389,27 +385,25 @@
                   <h1 class="position-lsc">Vice Governor</h1>
                 </div>
                 <hr />
-                <br />
+
                 <% if (groupedResults["vice governor"] && typeof groupedResults["vice governor"] === 'object') { %> <% Object.keys(groupedResults["vice governor"]).forEach(function(college) { %> <% groupedResults["vice governor"][college].forEach(function(candidate) { %>
                 <div class="candidate lsc-candidate" data-college="<%= college %>">
                   <div class="img-container">
                     <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                   </div>
                   <div class="candidate-info">
-                    <h3><%= candidate.name %></h3>
-                    <p>Party: <%= candidate.party %></p>
+                    <h2><%= candidate.name %></h2>
+                    <p><%= candidate.party %></p>
                     <div class="row">
                       <div class="progress-bar">
                         <div class="progress" style="width: <%= candidate.percentage %>%"><%= candidate.voteCount %> votes</div>
                       </div>
                       <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= candidate.percentage %>%</p>
                     </div>
-                    <br />
-                    <br />
-                    <div class="total-votes">
-                      <p>150 votes out of 1500 total votes</p>
-                    </div>
                   </div>
+                </div>
+                <div class="total-votes">
+                  <h3><span class="green">150</span> votes out of <span class="green">1500</span> total votes</h3>
                 </div>
                 <% }); %> <% }); %> <% } else { %>
                 <p>No candidates for Vice Governor</p>
@@ -424,7 +418,7 @@
                   <h1 class="position-lsc">Board Member</h1>
                 </div>
                 <hr />
-                <br />
+
                 <% if (groupedResults["board member"] && typeof groupedResults["board member"] === 'object') { %> <% Object.keys(groupedResults["board member"]).forEach(function(college) { %>
                 <div class="board-member-group" data-college="<%= college.toLowerCase() %>">
                   <% var programs = groupedResults["board member"][college]; %> <% Object.keys(programs).forEach(function(program) { %>
@@ -437,19 +431,17 @@
                       </div>
                       <div class="candidate-info">
                         <h4><%= candidate.name %></h4>
-                        <p>Party: <%= candidate.party %></p>
+                        <p><%= candidate.party %></p>
                         <div class="row">
                           <div class="progress-bar">
                             <div class="progress" style="width: <%= candidate.percentage %>%"><%= candidate.voteCount %> votes</div>
                           </div>
                           <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= candidate.percentage %>%</p>
                         </div>
-                        <br />
-                        <br />
-                        <div class="total-votes">
-                          <p>150 votes out of 1500 total votes</p>
-                        </div>
                       </div>
+                    </div>
+                    <div class="total-votes">
+                      <h3><span class="green">150</span> votes out of <span class="green">1500</span> total votes</h3>
                     </div>
                     <% }); %>
                   </div>
@@ -474,7 +466,7 @@
                     const groupCollege = group.getAttribute("data-college");
                     // Show group only if it matches the selected college; hide otherwise.
                     if (groupCollege === selectedCollege) {
-                      group.style.display = "block";
+                      group.style.display = "flex";
                     } else {
                       group.style.display = "none";
                     }
@@ -486,7 +478,7 @@
                     const candidateCollege = card.getAttribute("data-college").toLowerCase();
                     // Here, if the candidate belongs to the selected college, show it; otherwise hide it.
                     if (!selectedCollege || candidateCollege === selectedCollege) {
-                      card.style.display = "block";
+                      card.style.display = "FLEX";
                     } else {
                       card.style.display = "none";
                     }
