@@ -148,8 +148,19 @@
       // datePeriodElem.textContent = new Date(votingStart).toLocaleDateString() + " - " + new Date(votingEnd).toLocaleDateString();
 
       // Update the date range display with the desired format (Month Day, Year).
+      // const datePeriodElem = document.querySelector(".date-period");
+      // const options = { year: "numeric", month: "long", day: "numeric" };
+      // datePeriodElem.textContent = new Date(votingStart).toLocaleDateString("en-US", options) + " - " + new Date(votingEnd).toLocaleDateString("en-US", options);
+
       const datePeriodElem = document.querySelector(".date-period");
-      const options = { year: "numeric", month: "long", day: "numeric" };
+      const options = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      };
       datePeriodElem.textContent = new Date(votingStart).toLocaleDateString("en-US", options) + " - " + new Date(votingEnd).toLocaleDateString("en-US", options);
 
       // Grab elements by id.
