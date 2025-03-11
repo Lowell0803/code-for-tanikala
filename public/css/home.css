@@ -255,7 +255,7 @@
   .time {
     margin: 0;
     padding: 0;
-    font-size: 1rem;
+    font-size: 1.5rem;
     width: 4rem;
     height: 2rem;
     display: flex;
@@ -333,13 +333,39 @@
   .period span {
     font-size: 1.6rem;
   }
+
+  .period {
+    font-size: 1.5rem;
+  }
+
+  #vote-now,
+  #be-heard {
+    display: none;
+  }
+
+  .content-main-left {
+    padding: 0;
+  }
+
+  .content-main-left,
+  .content-main-right {
+    padding-top: 3rem;
+    padding-bottom: 0;
+  }
+
+  .content-main-left {
+    justify-content: flex-end;
+    align-items: flex-end;
+  }
+
+  .content-main-right {
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
 }
 
-.H3 {
+.h3 {
   font-size: 1.5rem;
-}
-H3 {
-  /* border: 1px solid black; */
 }
 
 #register-button {
