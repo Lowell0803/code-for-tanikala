@@ -309,6 +309,20 @@
 /* Mobile Responsive */
 
 @media (max-width: 1000px) {
+  .header-nav {
+    width: 30vw;
+    padding: 0;
+  }
+  .header-nav-content li {
+    font-size: 0.75rem;
+    padding: 0 !important;
+  }
+
+  .header-nav-content ul {
+    padding: 0 !important;
+    column-gap: 0;
+  }
+
   /* Make the ballot container wider and center it */
   .ballot {
     width: 90vw !important;

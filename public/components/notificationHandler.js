@@ -29,3 +29,8 @@ if (urlParams.has("error")) {
   notify(errorMessage, "error", 3000);
   history.replaceState({}, document.title, window.location.pathname);
 }
+
+if (urlParams.get("devAlert") === "votingAgain") {
+  notify("You are a developer. You can vote again for testing purposes.", "info", 5000);
+  history.replaceState({}, document.title, window.location.pathname);
+}

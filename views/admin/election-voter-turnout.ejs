@@ -290,7 +290,7 @@
             dark: false, // change to true if you want a dark theme
             items: [
               { name: "Voted", value: college.numberOfVoted, color: "#5fb643" },
-              { name: "Not Yet Voted", value: college.registeredVoters - college.numberOfVoted, color: "#FC440F" }
+              { name: "Not Yet Voted", value: college.voters - college.numberOfVoted, color: "#FC440F" }
             ]
           };
 
@@ -313,9 +313,11 @@
         const colleges = <%- JSON.stringify(electionConfig.listOfElections) %>;
 
         // Sum up total registered voters and total voted across all colleges
+        let totalStudents = 0;
         let totalRegistered = 0;
         let totalVoted = 0;
         colleges.forEach(college => {
+          totalStudents += college.voters;
           totalRegistered += college.registeredVoters;
           totalVoted += college.numberOfVoted;
         });
@@ -326,7 +328,7 @@
         const data = {
           labels: ['Voted', 'Not Yet Voted'],
           datasets: [{
-            data: [totalVoted, notVoted],
+            data: [totalVoted, totalStudents - totalVoted],
             backgroundColor: ['#5fb643', '#FC440F'],
             borderWidth: 1,
           }]

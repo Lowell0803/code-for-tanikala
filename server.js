@@ -29,7 +29,7 @@ const agenda = new Agenda({
 
 // Define the vote submission job with concurrency set to 1.
 agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }, async (job) => {
-  const { voteId, candidateIds, hashedEmail, socketId } = job.attrs.data;
+  const { voteId, candidateIds, hashedEmail, email, socketId } = job.attrs.data;
   try {
     // Start a MongoDB session for the transaction (ensure your MongoDB deployment supports transactions)
     const session = client.startSession();
@@ -38,16 +38,14 @@ agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }
     try {
       await session.withTransaction(async () => {
         const nonceDoc = await db.collection("nonces").findOneAndUpdate({ _id: "nonce" }, { $inc: { value: 1 } }, { returnDocument: "after", upsert: true, session });
-        // Extract the nonce value from the document
         nonce = nonceDoc.value.value;
         console.log("Distributed nonce acquired:", nonce);
-        console.log("Full nonceDoc:", nonceDoc);
       });
     } finally {
       await session.endSession();
     }
 
-    // Now send the blockchain transaction using the unique nonce.
+    // Send the blockchain transaction using the unique nonce.
     const tx = await contract.voteForCandidates(candidateIds, { nonce });
     await tx.wait();
 
@@ -67,6 +65,12 @@ agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }
     // Update candidate_hashes collection.
     const candidateHashesCollection = db.collection("candidate_hashes");
     await Promise.all(candidateIds.map((candidateId) => candidateHashesCollection.updateOne({ candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true })));
+
+    // Update the registered_voters collection to change status from "Registered" to "Voted".
+    if (email) {
+      await db.collection("registered_voters").updateOne({ email: email }, { $set: { status: "Voted" } });
+    }
+    console.log("Email: ", email);
 
     // Notify client via Socket.IO, if socketId is provided.
     if (socketId) {
@@ -143,12 +147,14 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+const callbackURL = process.env.IS_DEV_MODE === "true" ? "http://localhost:3000/auth/microsoft/callback" : "https://tanikala-bulsu.com/auth/microsoft/callback";
+
 passport.use(
   new AzureOAuth2Strategy(
     {
       clientID: process.env.MICROSOFT_CLIENT_ID,
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-      callbackURL: "https://tanikala-bulsu.com/auth/microsoft/callback" || "http://localhost:3000/auth/microsoft/callback",
+      callbackURL, // Use our dynamic callback URL
       tenant: process.env.MICROSOFT_TENANT_ID,
       resource: "https://graph.microsoft.com",
       scope: ["openid", "email", "profile", "User.Read"],
@@ -156,13 +162,11 @@ passport.use(
     async (accessToken, refreshToken, params, profile, done) => {
       try {
         // Decode the JWT token from Microsoft
-        const decodedToken = JSON.parse(Buffer.from(params.id_token.split(".")[1], "base64"));
+        const decodedToken = JSON.parse(Buffer.from(params.id_token.split(".")[1], "base64").toString("utf8"));
 
         // Extract basic details
         const userEmail = decodedToken.email || decodedToken.preferred_username || decodedToken.upn;
         const userName = decodedToken.name;
-
-        // console.log("Decoded Token:", decodedToken); // Logs all available token details
 
         // Call Microsoft Graph API for additional user details
         const response = await fetch("https://graph.microsoft.com/v1.0/me", {
@@ -170,7 +174,6 @@ passport.use(
         });
 
         const userProfile = await response.json();
-        // console.log("Microsoft Graph User Profile:", userProfile);
 
         const user = {
           name: userProfile.displayName || userName,
@@ -179,8 +182,6 @@ passport.use(
           department: userProfile.department || "N/A",
           school: userProfile.officeLocation || "N/A",
         };
-
-        // console.log("Final User Object:", user);
 
         done(null, user);
       } catch (error) {
@@ -1404,6 +1405,9 @@ const startServer = async () => {
           socketId, // optional: if passing socket id from client
         } = req.body;
 
+        // const email = req.user.email;
+        console.log("Email from submit votes: ", email);
+
         // Parse candidate data if sent as JSON strings
         const parsedCandidates = {
           president: typeof president === "string" ? JSON.parse(president) : president,
@@ -1426,7 +1430,6 @@ const startServer = async () => {
           throw new Error("One or more candidate unique IDs are undefined");
         }
 
-        const crypto = require("crypto");
         // Hash the email using SHA-256
         const hashedEmail = crypto.createHash("sha256").update(email).digest("hex");
 
@@ -1461,16 +1464,22 @@ const startServer = async () => {
 
         // Schedule the vote submission job with Agenda.
         // This job will be processed one at a time because of our concurrency setting.
-        agenda.now("process vote submission", { voteId, candidateIds, hashedEmail, socketId });
+        agenda.now("process vote submission", { voteId, candidateIds, hashedEmail, email, socketId });
       } catch (error) {
         console.error("Error submitting votes to blockchain:", error);
         res.status(500).send("An error occurred while submitting votes.");
       }
     });
-    2;
+    // 2;
     // GET route: Checks vote status and renders appropriate view
     app.get("/vote-status", async (req, res) => {
       try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
         const voteId = req.query.voteId;
         if (!voteId) {
           return res.status(400).send("Invalid voteId");
@@ -1504,7 +1513,7 @@ const startServer = async () => {
             voterProgram: voteRecord.voterProgram || "Unknown Program",
             voterHash: voteRecord.hashedEmail,
             voteId: voteRecord.voteId,
-            electionConfig: {},
+            electionConfig,
             txHash: voteRecord.txHash, // pass the actual txHash
             waiting: false,
             queueNumber: voteRecord.queueNumber,
@@ -1619,7 +1628,21 @@ const startServer = async () => {
           return res.redirect("/register?error=not_registered");
         }
 
-        // If OTP is not verified, show the verification page with the OTP input, request OTP button, and submit OTP button.
+        // Hardcode the developer emails (special cases)
+        const developerEmails = ["2021100414@ms.bulsu.edu.ph", "2020105248@ms.bulsu.edu.ph", "2021108083@ms.bulsu.edu.ph", "2021102154@ms.bulsu.edu.ph", "2021100291@ms.bulsu.edu.ph"];
+
+        // Check for already voted status only if the dev alert flag isn't present
+        if (!req.query.devAlert && registeredVoter.status === "Voted") {
+          if (!developerEmails.includes(req.user.email)) {
+            return res.redirect("/?error=already%20voted");
+          } else {
+            // For developer accounts, redirect them to /vote with a query param
+            // This will only happen on the first request when devAlert is not set.
+            return res.redirect("/vote?devAlert=votingAgain");
+          }
+        }
+
+        // If OTP is not verified, show the verification page with the OTP input
         if (!req.session.otpVerified) {
           return res.render("voter/verify-otp", { email: req.user.email });
         }
@@ -1771,6 +1794,24 @@ const startServer = async () => {
             moreInfo: "Fighting for workers' rights and fair wages.",
             uniqueId: "0xa1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef",
           },
+          {
+            _id: "senator_6",
+            party: "KASAMA - BulSU",
+            position: "senator",
+            name: "Patricia V. Garcia",
+            image: "img/candidates/placeholder-1.jpg",
+            moreInfo: "A philanthropist at heart, with a mission to support underprivileged communities and promote leadership.",
+            uniqueId: "0xd72ba5adf3148a908b86811edf0e9d659caf088ec1a5d19f1468b4675bd4ab09",
+          },
+          {
+            _id: "senator_6",
+            party: "KASAMA - BulSU",
+            position: "senator",
+            name: "Patricia V. Garcia",
+            image: "img/candidates/placeholder-1.jpg",
+            moreInfo: "A philanthropist at heart, with a mission to support underprivileged communities and promote leadership.",
+            uniqueId: "0xd72ba5adf3148a908b86811edf0e9d659caf088ec1a5d19f1468b4675bd4ab09",
+          },
         ],
         governor: {
           _id: "governor_2",
@@ -1819,99 +1860,114 @@ const startServer = async () => {
     });
 
     app.get("/verify", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
+      try {
+        // Retrieve election configuration from the database
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        // Use a fake current date if provided; otherwise, use the real current date
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      // Temporary candidate data
-      const tempData = {
-        president: {
-          _id: "president_1",
-          party: "PEOPLE'S PARTY",
-          position: "president",
-          name: "John Doe",
-          image: "img/candidates/placeholder-1.jpg",
-          moreInfo: "A dedicated leader with years of experience in governance.",
-          uniqueId: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-        },
-        vicePresident: {
-          _id: "vp_1",
-          party: "UNITY PARTY",
-          position: "vicePresident",
-          name: "Jane Smith",
-          image: "img/candidates/placeholder-2.jpg",
-          moreInfo: "Advocate for sustainable development and equality.",
-          uniqueId: "0x9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef",
-        },
-        senator: [
-          {
-            _id: "senator_6",
-            party: "KASAMA - BulSU",
-            position: "senator",
-            name: "Patricia V. Garcia",
+        // Temporary candidate data
+        const tempData = {
+          president: {
+            _id: "president_1",
+            party: "PEOPLE'S PARTY",
+            position: "president",
+            name: "John Doe",
             image: "img/candidates/placeholder-1.jpg",
-            moreInfo: "A philanthropist at heart, with a mission to support underprivileged communities and promote leadership.",
-            uniqueId: "0xd72ba5adf3148a908b86811edf0e9d659caf088ec1a5d19f1468b4675bd4ab09",
+            moreInfo: "A dedicated leader with years of experience in governance.",
+            uniqueId: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
           },
-          {
-            _id: "senator_3",
-            party: "PROGRESSIVE MOVEMENT",
-            position: "senator",
-            name: "Robert Brown",
-            image: "img/candidates/placeholder-3.jpg",
-            moreInfo: "Fighting for workers' rights and fair wages.",
-            uniqueId: "0xa1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef",
+          vicePresident: {
+            _id: "vp_1",
+            party: "UNITY PARTY",
+            position: "vicePresident",
+            name: "Jane Smith",
+            image: "img/candidates/placeholder-2.jpg",
+            moreInfo: "Advocate for sustainable development and equality.",
+            uniqueId: "0x9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef",
           },
-        ],
-        governor: {
-          _id: "governor_2",
-          party: "UNITY PARTY",
-          position: "governor",
-          name: "Michael Green",
-          image: "img/candidates/placeholder-4.jpg",
-          moreInfo: "Focused on infrastructure and community development.",
-          uniqueId: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-        },
-        viceGovernor: {
-          _id: "viceGovernor_1",
-          party: "PEOPLE'S PARTY",
-          position: "viceGovernor",
-          name: "Sarah White",
-          image: "img/candidates/placeholder-5.jpg",
-          moreInfo: "Committed to education reforms and youth empowerment.",
-          uniqueId: "0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-        },
-        boardMember: {
-          _id: "board_1",
-          party: "INDEPENDENT",
-          position: "boardMember",
-          name: "David Black",
-          image: "img/candidates/placeholder-6.jpg",
-          moreInfo: "Experienced policymaker with a focus on social welfare.",
-          uniqueId: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-        },
-        voterCollege: "Engineering",
-        voterProgram: "Computer Science",
-        voterHash: "temporaryhashedemail1234567890abcdef",
-        txHash: "0x123abc456def789ghi", // Sample blockchain transaction hash
-      };
+          senator: [
+            {
+              _id: "senator_6",
+              party: "KASAMA - BulSU",
+              position: "senator",
+              name: "Patricia V. Garcia",
+              image: "img/candidates/placeholder-1.jpg",
+              moreInfo: "A philanthropist at heart, with a mission to support underprivileged communities and promote leadership.",
+              uniqueId: "0xd72ba5adf3148a908b86811edf0e9d659caf088ec1a5d19f1468b4675bd4ab09",
+            },
+            {
+              _id: "senator_3",
+              party: "PROGRESSIVE MOVEMENT",
+              position: "senator",
+              name: "Robert Brown",
+              image: "img/candidates/placeholder-3.jpg",
+              moreInfo: "Fighting for workers' rights and fair wages.",
+              uniqueId: "0xa1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef",
+            },
+          ],
+          governor: {
+            _id: "governor_2",
+            party: "UNITY PARTY",
+            position: "governor",
+            name: "Michael Green",
+            image: "img/candidates/placeholder-4.jpg",
+            moreInfo: "Focused on infrastructure and community development.",
+            uniqueId: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+          },
+          viceGovernor: {
+            _id: "viceGovernor_1",
+            party: "PEOPLE'S PARTY",
+            position: "viceGovernor",
+            name: "Sarah White",
+            image: "img/candidates/placeholder-5.jpg",
+            moreInfo: "Committed to education reforms and youth empowerment.",
+            uniqueId: "0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          },
+          boardMember: {
+            _id: "board_1",
+            party: "INDEPENDENT",
+            position: "boardMember",
+            name: "David Black",
+            image: "img/candidates/placeholder-6.jpg",
+            moreInfo: "Experienced policymaker with a focus on social welfare.",
+            uniqueId: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+          },
+          voterCollege: "Engineering",
+          voterProgram: "Computer Science",
+          voterHash: "temporaryhashedemail1234567890abcdef",
+          txHash: "0x123abc456def789ghi", // Sample blockchain transaction hash
+          email: "test@gmail.com",
+        };
 
-      res.render("voter/verify", {
-        president: tempData.president,
-        vicePresident: tempData.vicePresident,
-        senator: tempData.senator,
-        governor: tempData.governor,
-        viceGovernor: tempData.viceGovernor,
-        boardMember: tempData.boardMember,
-        voterCollege: tempData.voterCollege,
-        voterProgram: tempData.voterProgram,
-        voterHash: tempData.voterHash,
-        txHash: tempData.txHash,
-        electionConfig,
-        // email,
-      });
+        // Group candidate data into one object to match the ejs template
+        const candidates = {
+          president: tempData.president,
+          vicePresident: tempData.vicePresident,
+          senator: tempData.senator,
+          governor: tempData.governor,
+          viceGovernor: tempData.viceGovernor,
+          boardMember: tempData.boardMember,
+        };
+
+        // Render the verify page with the grouped candidate data and other voter details
+        res.render("voter/verify", {
+          candidates,
+          voterCollege: tempData.voterCollege,
+          voterProgram: tempData.voterProgram,
+          voterHash: tempData.voterHash,
+          txHash: tempData.txHash,
+          electionConfig,
+          email: tempData.email,
+          voteId: "empty",
+        });
+      } catch (error) {
+        console.error("Error rendering verify page:", error);
+        res.status(500).send("Internal Server Error");
+      }
     });
 
     app.post("/review", async (req, res) => {
@@ -3167,6 +3223,76 @@ const startServer = async () => {
       }
     });
 
+    // app.get("/voter-turnout", ensureAdminAuthenticated, async (req, res) => {
+    //   try {
+    //     const electionConfigCollection = db.collection("election_config");
+    //     let electionConfig = await electionConfigCollection.findOne({});
+
+    //     // Calculate overall totals from the registered_voters collection
+    //     const votersCollection = db.collection("registered_voters");
+    //     const totalRegistered = await votersCollection.countDocuments({});
+    //     const totalVoted = await votersCollection.countDocuments({ status: "Voted" });
+    //     const totalNotVoted = await votersCollection.countDocuments({ status: "Registered" });
+
+    //     // Log the overall turnout counts to the console
+    //     console.log("Voter Turnout:");
+    //     console.log("Total Registered:", totalRegistered);
+    //     console.log("Total Voted:", totalVoted);
+    //     console.log("Total Not Voted:", totalNotVoted);
+
+    //     // Add these overall totals to electionConfig and update the document
+    //     electionConfig.totalRegistered = totalRegistered;
+    //     electionConfig.totalVoted = totalVoted;
+    //     electionConfig.totalNotVoted = totalNotVoted;
+
+    //     await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { totalRegistered, totalVoted, totalNotVoted } });
+
+    //     // Aggregate counts per college from the registered_voters collection.
+    //     // Each group’s _id will be the college string (e.g., "College of Architecture and Fine Arts (CAFA)")
+    //     // and we sum the total number of documents and count how many voted.
+    //     const collegeAggregation = await votersCollection
+    //       .aggregate([
+    //         {
+    //           $group: {
+    //             _id: "$college",
+    //             registered: { $sum: 1 },
+    //             voted: { $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] } },
+    //           },
+    //         },
+    //       ])
+    //       .toArray();
+
+    //     // Update each college in electionConfig.listOfElections.
+    //     // We match based on the acronym. The registered_voters documents store college as something like
+    //     // "College of Architecture and Fine Arts (CAFA)"; we extract the acronym using regex.
+    //     electionConfig.listOfElections.forEach((collegeObj) => {
+    //       // Find the aggregation result whose _id contains the same acronym as collegeObj.acronym
+    //       const group = collegeAggregation.find((g) => {
+    //         const match = g._id.match(/\(([^)]+)\)/);
+    //         return match && match[1] === collegeObj.acronym;
+    //       });
+    //       if (group) {
+    //         collegeObj.registeredVoters = group.registered;
+    //         collegeObj.numberOfVoted = group.voted;
+    //         // Update "students" as well; here we set it equal to the total registered in that college.
+    //         // Adjust this logic if "students" should be a fixed capacity.
+    //         collegeObj.students = group.registered;
+    //       }
+    //     });
+
+    //     // Optionally update the election_config document with the updated listOfElections array
+    //     await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { listOfElections: electionConfig.listOfElections } });
+
+    //     const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //     electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+    //     res.render("admin/election-voter-turnout", { electionConfig, loggedInAdmin: req.session.admin });
+    //   } catch (error) {
+    //     console.error("Error fetching voter turnout:", error);
+    //     res.status(500).send("Server error while fetching voter turnout");
+    //   }
+    // });
+
     app.get("/voter-turnout", ensureAdminAuthenticated, async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
@@ -3178,28 +3304,35 @@ const startServer = async () => {
         const totalVoted = await votersCollection.countDocuments({ status: "Voted" });
         const totalNotVoted = await votersCollection.countDocuments({ status: "Registered" });
 
-        // Log the overall turnout counts to the console
         console.log("Voter Turnout:");
         console.log("Total Registered:", totalRegistered);
         console.log("Total Voted:", totalVoted);
         console.log("Total Not Voted:", totalNotVoted);
 
-        // Add these overall totals to electionConfig and update the document
+        // Update overall totals in electionConfig (if desired)
         electionConfig.totalRegistered = totalRegistered;
         electionConfig.totalVoted = totalVoted;
         electionConfig.totalNotVoted = totalNotVoted;
-
         await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { totalRegistered, totalVoted, totalNotVoted } });
 
-        // Aggregate counts per college from the registered_voters collection.
-        // Each group’s _id will be the college string (e.g., "College of Architecture and Fine Arts (CAFA)")
-        // and we sum the total number of documents and count how many voted.
-        const collegeAggregation = await votersCollection
+        // Aggregate total registered count per college (regardless of vote status)
+        const collegeTotalAggregation = await votersCollection
           .aggregate([
             {
               $group: {
                 _id: "$college",
-                registered: { $sum: 1 },
+                total: { $sum: 1 },
+              },
+            },
+          ])
+          .toArray();
+
+        // Aggregate voted counts per college (only count "Voted")
+        const collegeVotedAggregation = await votersCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$college",
                 voted: { $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] } },
               },
             },
@@ -3207,30 +3340,39 @@ const startServer = async () => {
           .toArray();
 
         // Update each college in electionConfig.listOfElections.
-        // We match based on the acronym. The registered_voters documents store college as something like
-        // "College of Architecture and Fine Arts (CAFA)"; we extract the acronym using regex.
+        // The "registeredVoters" field should be set based on the total entries from the registered_voters collection.
+        // The "numberOfVoted" field is updated with the voted count.
+        // The "voters" property is not modified.
         electionConfig.listOfElections.forEach((collegeObj) => {
-          // Find the aggregation result whose _id contains the same acronym as collegeObj.acronym
-          const group = collegeAggregation.find((g) => {
+          // Find the total count using the college's acronym.
+          const totalGroup = collegeTotalAggregation.find((g) => {
             const match = g._id.match(/\(([^)]+)\)/);
             return match && match[1] === collegeObj.acronym;
           });
-          if (group) {
-            collegeObj.registeredVoters = group.registered;
-            collegeObj.numberOfVoted = group.voted;
-            // Update "students" as well; here we set it equal to the total registered in that college.
-            // Adjust this logic if "students" should be a fixed capacity.
-            collegeObj.students = group.registered;
+          if (totalGroup) {
+            collegeObj.registeredVoters = totalGroup.total;
+          }
+
+          // Find the voted count for this college.
+          const votedGroup = collegeVotedAggregation.find((g) => {
+            const match = g._id.match(/\(([^)]+)\)/);
+            return match && match[1] === collegeObj.acronym;
+          });
+          if (votedGroup) {
+            collegeObj.numberOfVoted = votedGroup.voted;
           }
         });
 
-        // Optionally update the election_config document with the updated listOfElections array
+        // Optionally update the election_config document with the updated listOfElections array.
         await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { listOfElections: electionConfig.listOfElections } });
 
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-        res.render("admin/election-voter-turnout", { electionConfig, loggedInAdmin: req.session.admin });
+        res.render("admin/election-voter-turnout", {
+          electionConfig,
+          loggedInAdmin: req.session.admin,
+        });
       } catch (error) {
         console.error("Error fetching voter turnout:", error);
         res.status(500).send("Server error while fetching voter turnout");
@@ -3917,6 +4059,6 @@ const startServer = async () => {
 
 startServer();
 
-setInterval(() => {
-  console.log(process.memoryUsage());
-}, 60000); // logs memory usage every minute
+// setInterval(() => {
+//   console.log(process.memoryUsage());
+// }, 60000); // logs memory usage every minutd
