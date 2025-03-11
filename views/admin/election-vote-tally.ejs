@@ -405,15 +405,15 @@
             </div>
             <br />
             <div id="lsc-container">
-              <% const governorCandidates = candidates.filter(candidate => candidate.position === 'governor' && candidate.college && candidate.name !== 'Abstain'); const abstainCandidateGovernor = candidates.find(candidate => candidate.position === 'governor' && candidate.college && candidate.name === 'Abstain'); governorCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); const governorTotalVotes = governorCandidates.reduce((acc, candidate) => acc + Number(candidate.voteCount),
-              0); %>
+              <% const governorCandidates = candidates.filter(candidate => candidate.position === 'governor' && candidate.college && candidate.name !== 'Abstain'); const abstainCandidateGovernor = candidates.find(candidate => candidate.position === 'governor' && candidate.college && candidate.name === 'Abstain'); governorCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); const governorTotalVotes = governorCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount)
+              || 0), 0); %>
               <div class="container-lsc" id="container-lsc-governor">
                 <div class="container-position">
                   <h1 class="position-lsc">Governor</h1>
                 </div>
                 <hr />
                 <br />
-                <% governorCandidates.forEach(candidate => { const percentage = governorTotalVotes > 0 ? ((candidate.voteCount / governorTotalVotes) * 100).toFixed(2) : 0; %>
+                <% let calculatedTotalVotesGovernor = 0; %> <% governorCandidates.forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; calculatedTotalVotesGovernor += voteCount; const percentage = governorTotalVotes > 0 ? ((voteCount / governorTotalVotes) * 100).toFixed(2) : 0; %>
                 <div class="candidate lsc-candidate" data-college="<%= candidate.college %>">
                   <div class="candidate">
                     <div class="img-container">
@@ -424,14 +424,14 @@
                       <p><%= candidate.party %></p>
                       <div class="row">
                         <div class="progress-bar">
-                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= candidate.voteCount %> votes</div>
+                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= voteCount %> votes</div>
                         </div>
                         <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                       </div>
                     </div>
                   </div>
                 </div>
-                <% }); %> <% if (abstainCandidateGovernor) { const percentage = governorTotalVotes > 0 ? ((abstainCandidateGovernor.voteCount / governorTotalVotes) * 100).toFixed(2) : 0; %>
+                <% }); %> <% if (abstainCandidateGovernor) { const voteCount = Number(abstainCandidateGovernor.voteCount) || 0; calculatedTotalVotesGovernor += voteCount; const percentage = governorTotalVotes > 0 ? ((voteCount / governorTotalVotes) * 100).toFixed(2) : 0; %>
                 <div class="candidate lsc-candidate" data-college="<%= abstainCandidateGovernor.college %>">
                   <div class="candidate">
                     <div class="img-container">
@@ -440,7 +440,7 @@
                     <div class="candidate-info">
                       <div class="row">
                         <div class="progress-bar">
-                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= abstainCandidateGovernor.voteCount %> votes</div>
+                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= voteCount %> votes</div>
                         </div>
                         <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                       </div>
@@ -448,21 +448,20 @@
                   </div>
                 </div>
                 <% } %>
-
                 <h3 class="right">
-                  <span><u>150</u></span> total votes cast
+                  <span><u><%= calculatedTotalVotesGovernor %></u></span> total votes cast
                 </h3>
               </div>
 
               <% const viceGovernorCandidates = candidates.filter(candidate => candidate.position === 'vice governor' && candidate.college && candidate.name !== 'Abstain'); const abstainCandidateViceGovernor = candidates.find(candidate => candidate.position === 'vice governor' && candidate.college && candidate.name === 'Abstain'); viceGovernorCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); const totalVotesViceGovernor = viceGovernorCandidates.reduce((acc, candidate) => acc
-              + Number(candidate.voteCount), 0); %>
+              + (Number(candidate.voteCount) || 0), 0); %>
               <div class="container-lsc" id="container-lsc-vice-governor">
                 <div class="container-position">
                   <h1 class="position-lsc">Vice Governor</h1>
                 </div>
                 <hr />
                 <br />
-                <% viceGovernorCandidates.forEach(candidate => { const percentage = totalVotesViceGovernor > 0 ? ((candidate.voteCount / totalVotesViceGovernor) * 100).toFixed(2) : 0; %>
+                <% let calculatedTotalVotesViceGovernor = 0; %> <% viceGovernorCandidates.forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; calculatedTotalVotesViceGovernor += voteCount; const percentage = totalVotesViceGovernor > 0 ? ((voteCount / totalVotesViceGovernor) * 100).toFixed(2) : 0; %>
                 <div class="candidate lsc-candidate" data-college="<%= candidate.college %>">
                   <div class="candidate">
                     <div class="img-container">
@@ -473,14 +472,14 @@
                       <p><%= candidate.party %></p>
                       <div class="row">
                         <div class="progress-bar">
-                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= candidate.voteCount %> votes</div>
+                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= voteCount %> votes</div>
                         </div>
                         <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                       </div>
                     </div>
                   </div>
                 </div>
-                <% }); %> <% if (abstainCandidateViceGovernor) { const percentage = totalVotesViceGovernor > 0 ? ((abstainCandidateViceGovernor.voteCount / totalVotesViceGovernor) * 100).toFixed(2) : 0; %>
+                <% }); %> <% if (abstainCandidateViceGovernor) { const voteCount = Number(abstainCandidateViceGovernor.voteCount) || 0; calculatedTotalVotesViceGovernor += voteCount; const percentage = totalVotesViceGovernor > 0 ? ((voteCount / totalVotesViceGovernor) * 100).toFixed(2) : 0; %>
                 <div class="candidate lsc-candidate" data-college="<%= abstainCandidateViceGovernor.college %>">
                   <div class="candidate">
                     <div class="img-container">
@@ -489,7 +488,7 @@
                     <div class="candidate-info">
                       <div class="row">
                         <div class="progress-bar">
-                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= abstainCandidateViceGovernor.voteCount %> votes</div>
+                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= voteCount %> votes</div>
                         </div>
                         <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                       </div>
@@ -499,20 +498,21 @@
                 <% } %>
 
                 <h3 class="right">
-                  <span><u>150</u></span> total votes cast
+                  <span><u><%= calculatedTotalVotesViceGovernor %></u></span> total votes cast
                 </h3>
               </div>
 
               <!-- Board Member Container -->
-              <% const boardMembersAll = candidates.filter(candidate => candidate.position === 'board member' && candidate.college && candidate.program); const boardMembersNonAbstain = boardMembersAll.filter(candidate => candidate.name !== 'Abstain'); const boardMembersAbstain = boardMembersAll.filter(candidate => candidate.name === 'Abstain'); const totalVotesBoardMember = boardMembersNonAbstain.reduce((acc, candidate) => acc + Number(candidate.voteCount), 0); let boardMembersByProgram = {};
-              boardMembersNonAbstain.forEach(candidate => { if (!boardMembersByProgram[candidate.program]) { boardMembersByProgram[candidate.program] = []; } boardMembersByProgram[candidate.program].push(candidate); }); Object.keys(boardMembersByProgram).forEach(program => { boardMembersByProgram[program].sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); }); let abstainByProgram = {}; boardMembersAbstain.forEach(candidate => { if (!abstainByProgram[candidate.program]) {
+              <% const boardMembersAll = candidates.filter(candidate => candidate.position === 'board member' && candidate.college && candidate.program); const boardMembersNonAbstain = boardMembersAll.filter(candidate => candidate.name !== 'Abstain'); const boardMembersAbstain = boardMembersAll.filter(candidate => candidate.name === 'Abstain'); const totalVotesBoardMember = boardMembersNonAbstain.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let boardMembersByProgram =
+              {}; boardMembersNonAbstain.forEach(candidate => { if (!boardMembersByProgram[candidate.program]) { boardMembersByProgram[candidate.program] = []; } boardMembersByProgram[candidate.program].push(candidate); }); Object.keys(boardMembersByProgram).forEach(program => { boardMembersByProgram[program].sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); }); let abstainByProgram = {}; boardMembersAbstain.forEach(candidate => { if (!abstainByProgram[candidate.program]) {
               abstainByProgram[candidate.program] = []; } abstainByProgram[candidate.program].push(candidate); }); %>
+
               <div class="container-lsc" id="container-lsc-board-member">
                 <div class="container-position">
                   <h1 class="position-lsc">Board Member</h1>
                 </div>
                 <hr />
-                <% Object.keys(boardMembersByProgram).forEach(program => { %>
+                <% Object.keys(boardMembersByProgram).forEach(program => { let programTotalVotes = boardMembersByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); if (abstainByProgram[program]) { programTotalVotes += abstainByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); } %>
                 <br />
                 <h2 class="program-header">
                   <ul>
@@ -520,7 +520,7 @@
                   </ul>
                 </h2>
                 <br />
-                <% boardMembersByProgram[program].forEach(candidate => { const percentage = totalVotesBoardMember > 0 ? ((candidate.voteCount / totalVotesBoardMember) * 100).toFixed(2) : 0; %>
+                <% boardMembersByProgram[program].forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = programTotalVotes > 0 ? ((voteCount / programTotalVotes) * 100).toFixed(2) : 0; %>
                 <div class="candidate lsc-candidate" data-college="<%= candidate.college %>" data-program="<%= candidate.program %>">
                   <div class="candidate">
                     <div class="img-container">
@@ -531,14 +531,14 @@
                       <p><%= candidate.party %></p>
                       <div class="row">
                         <div class="progress-bar">
-                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= candidate.voteCount %> votes</div>
+                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= voteCount %> votes</div>
                         </div>
                         <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                       </div>
                     </div>
                   </div>
                 </div>
-                <% }); %> <% if (abstainByProgram[program]) { abstainByProgram[program].forEach(candidate => { const percentage = totalVotesBoardMember > 0 ? ((candidate.voteCount / totalVotesBoardMember) * 100).toFixed(2) : 0; %>
+                <% }); %> <% if (abstainByProgram[program]) { abstainByProgram[program].forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = programTotalVotes > 0 ? ((voteCount / programTotalVotes) * 100).toFixed(2) : 0; %>
                 <div class="candidate lsc-candidate" data-college="<%= candidate.college %>" data-program="<%= candidate.program %>">
                   <div class="candidate">
                     <div class="img-container">
@@ -547,18 +547,19 @@
                     <div class="candidate-info">
                       <div class="row">
                         <div class="progress-bar">
-                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= candidate.voteCount %> votes</div>
+                          <div class="progress" data-target="<%= percentage %>%" style="width: 0"><%= voteCount %> votes</div>
                         </div>
                         <p>&nbsp;&nbsp;&nbsp;&nbsp;<%= percentage %>%</p>
                       </div>
                     </div>
                   </div>
                 </div>
-                <% }); } %> <% }); %>
-
+                <% }); } %>
+                <!-- Total votes cast for this program -->
                 <h3 class="right">
-                  <span><u>150</u></span> total votes cast
+                  <span><u><%= programTotalVotes %></u></span> total votes cast
                 </h3>
+                <% }); %>
               </div>
 
               <script>
