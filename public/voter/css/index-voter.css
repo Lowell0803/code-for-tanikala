@@ -71,6 +71,7 @@ body {
   display: flex;
   flex-direction: column;
   font-size: 1rem;
+  max-width: 100vw !important;
   min-height: 100vh;
   height: 100vh; /* sus */
   font-family: "Poppins", "Century Gothic";
@@ -259,4 +260,77 @@ button {
 
 .header-nav-content {
   gap: 2rem;
+}
+
+@media (max-width: 1000px) {
+  .header {
+    height: 15vh;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 1rem;
+  }
+
+  .header-logo {
+    width: 10rem;
+    height: 10rem;
+  }
+
+  .header-nav {
+    width: 30vw;
+    padding: 0;
+  }
+  #links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .settings {
+    margin-right: 10%;
+  }
+
+  .header-nav-content li {
+    font-size: 0.75rem;
+    padding: 0 !important;
+  }
+
+  .header-nav-content ul {
+    padding: 0 !important;
+    column-gap: 0;
+  }
+  /* Make the dropdown bigger and more tappable */
+  .dropdown {
+    border-left: 0.8rem solid transparent;
+    border-right: 0.8rem solid transparent;
+    border-top: 0.85rem solid #e1ae5b;
+    margin-top: 0.8rem;
+  }
+
+  /* Adjust the dropdown menu for mobile */
+  .dropdown-menu {
+    width: 50%; /* Full width for mobile */
+    max-width: 20rem; /* Limit maximum width */
+    position: absolute;
+    margin-left: -9rem;
+    margin-top: 2rem;
+  }
+
+  /* Increase padding for better tap experience */
+  .dropdown-menu a,
+  .dropdown-menu p {
+    padding: 0 0.2rem;
+    font-size: 0.6rem;
+  }
+
+  /* Ensure the dropdown appears properly when active */
+  .dropdown.active .dropdown-menu {
+    display: block;
+  }
+
+  /* Adjust navigation spacing */
+  .header-nav-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
 }
