@@ -176,6 +176,10 @@ input[type="button"]:active {
   transform: none; /* No shrink effect */
 }
 
+i {
+  text-align: center;
+}
+
 @media (max-width: 1000px) {
   /* Stack the two main sections vertically */
   .first-text {
@@ -195,14 +199,14 @@ input[type="button"]:active {
   /* Make both left and right sections full width with adjusted margins and padding */
   .second-left,
   .second-right {
-    margin: 1% 0;
+    /* margin: 1% 0; */
     padding: 2%;
   }
 
   /* Let the left section height adjust automatically */
   .second-left {
     /* height: auto; */
-    margin: 1rem 0;
+    /* margin: 1rem 0; */
   }
   #contact-form {
     height: 60dvh;
@@ -212,10 +216,7 @@ input[type="button"]:active {
   .message {
     width: 90%;
     margin: 1rem auto;
-  }
-
-  .second-left {
-    height: 60rem;
+    padding: 0.8rem;
   }
 
   /* Make form inputs wider and reduce side padding */
@@ -265,5 +266,45 @@ input[type="button"]:active {
   .content-main-left,
   .content-main-right {
     display: none;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
+
+  .second-right {
+    margin: 1rem;
+    margin-bottom: 0;
+    padding: 0;
+  }
+
+  .main-second p {
+    font-size: 0.8rem;
+  }
+
+  .main-second {
+    padding: 0;
+  }
+
+  .second-left {
+    min-width: 20rem;
+
+    min-height: 21rem;
+  }
+
+  .button {
+    font-size: 0.8rem;
+  }
+
+  .form-button {
+    gap: 0;
+  }
+
+  #contact-form {
+    justify-content: center;
+    align-items: center;
+  }
+  .contact-field {
+    gap: 1rem;
   }
 }
