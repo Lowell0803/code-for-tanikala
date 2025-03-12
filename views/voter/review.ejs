@@ -32,11 +32,11 @@
       </div>
       <nav class="header-nav">
         <ul class="header-nav-content">
-          <li>Vote</li>
-          <p>|</p>
-          <li id="active-link">Review</li>
-          <p>|</p>
-          <li>Verify</li>
+          <div id="links">
+            <li>Vote</li>
+            <li id="active-link">Review</li>
+            <li>Verify</li>
+          </div>
           <div class="settings">
             <i class="fa-solid fa-user"></i>
 
@@ -58,15 +58,24 @@
 
     <div class="content">
       <div class="main-first">
-        <img src="img/logo_bulsu.png" class="main-first-logo" alt="BulSU Logo" />
+        <img src="img/logo_bulsu.png" class="main-first-logo no-mobile" alt="BulSU Logo" />
         <div class="first-text">
           <h2 class="title"><%= electionConfig.electionName %></h2>
         </div>
-        <img src="img/logo_bulsu_ucse.png" class="main-first-logo" alt="BulSU UCSE Logo" />
+        <!-- <div class="content-mobile logos">
+          <div class="content-main-left">
+            <img src="img/logo_bulsu.png" alt="BulSU Logo" class="logo-opacity" />
+          </div>
+
+          <div class="content-main-right">
+            <img src="img/logo_bulsu_ucse.png" alt="BulSU UCSE Logo" class="logo-opacity" />
+          </div>
+        </div> -->
+        <img src="img/logo_bulsu_ucse.png" class="main-first-logo no-mobile" alt="BulSU UCSE Logo" />
       </div>
 
       <div class="content-main">
-        <p><i>Please REVIEW your votes before SUBMITTING BALLOT to the Blockchain.</i></p>
+        <p class="please-review"><i>Please REVIEW your votes before SUBMITTING BALLOT to the Blockchain.</i></p>
         <br />
         <div class="review">
           <br />
@@ -77,7 +86,7 @@
 
           <h4 class="ballot-header ballot-group">President / Vice President</h4>
 
-          <div class="container-ssc">
+          <div class="container container-ssc">
             <div class="candidate-card">
               <div class="container-image">
                 <img class="candidate-image" src="<%= president.image %>" alt="<%= president.name %>" />
@@ -112,7 +121,7 @@
 
           <h4 class="ballot-header ballot-group">Senator(s)</h4>
 
-          <div class="container-senators">
+          <div class="container container-senators">
             <% if (Array.isArray(senator)) { %> <% senator.forEach(function(senatorCandidate) { %>
             <div class="candidate-card">
               <div class="container-image">
@@ -150,7 +159,7 @@
 
           <h4 class="ballot-header ballot-group">Governor / Vice Governor / Board Member</h4>
 
-          <div class="container-lsc">
+          <div class="container container-lsc">
             <div class="candidate-card">
               <div class="container-image">
                 <img class="candidate-image" src="<%= governor.image %>" alt="<%= governor.name %>" />

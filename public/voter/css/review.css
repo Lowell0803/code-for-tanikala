@@ -142,7 +142,7 @@
   margin-top: 1rem;
   /* color: rgba(107, 114, 128, 1); */
   text-align: center;
-  font-size: 0.8rem !important;
+  font-size: 0.8rem;
 }
 
 /* end card */
@@ -168,28 +168,17 @@
 }
 
 @media (max-width: 1000px) {
-  .ballot {
-    width: 90vw;
+  .please-review {
+    font-size: 1rem !important;
   }
 
-  .review {
-    width: 75vw;
-  }
-
-  .candidate-card {
-    width: 40%;
-    height: auto;
-  }
-
-  .button-container {
-    column-gap: 0.5em;
-  }
-}
-
-@media (max-width: 500px) {
   .ballot {
     width: 95vw;
     border-radius: 1em;
+  }
+
+  .ballot-header {
+    font-size: 1.2rem;
   }
 
   .review {
@@ -197,29 +186,39 @@
     min-height: 60dvh;
   }
 
-  .candidate-card {
-    width: 90%;
-    height: auto;
-    padding: 1rem;
+  .container .candidate-card {
+    width: 40%;
+    min-height: 40%;
+    height: 20rem;
+    padding: 0.5rem;
   }
 
-  .candidate-image {
-    height: 5rem;
-    width: 5rem;
+  .container .candidate-party {
+    margin-top: 1.5rem;
+    font-size: 0.75rem !important;
   }
 
-  .candidate-name {
-    font-size: 1.2rem;
+  .container .candidate-image {
+    height: 2.5rem;
+    width: 2.5rem;
   }
 
-  .candidate-info {
+  .container .candidate-name {
     font-size: 0.75rem;
+    height: 1.5rem;
+  }
+
+  .candidate-card .candidate-info {
+    font-size: 0.5rem !important;
+  }
+  .container .candidate-position {
+    font-size: 0.8rem;
   }
 
   .button-container {
     flex-direction: column;
-    row-gap: 1em;
     align-items: center;
+    row-gap: 0.5em;
   }
 }
 
