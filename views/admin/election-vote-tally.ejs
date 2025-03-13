@@ -457,7 +457,7 @@
                     </div>
                   </div>
                 </div>
-                <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>" data-name="<%= candidate.name %>">View List of Voter IDs</a>
+
                 <% }); %> <% if (abstainCandidateGovernor) { const voteCount = Number(abstainCandidateGovernor.voteCount) || 0; const percentage = governorTotalVotes > 0 ? ((voteCount / governorTotalVotes) * 100).toFixed(2) : 0; const colleges = ["CAFA", "CAL", "CBEA", "CCJE", "CHTM", "CICT", "CIT", "CN", "COE", "COED", "CS", "CSER", "CSSP"]; colleges.forEach(college => { %>
                 <div class="candidate lsc-candidate abstain" data-college="<%= college %>">
                   <div class="candidate">
@@ -474,7 +474,7 @@
                     </div>
                   </div>
                 </div>
-                <a href="#" class="votes" data-uniqueid="<%= abstainCandidateGovernor.uniqueId %>" data-name="<%= abstainCandidateGovernor.name %>">View List of Voter IDs</a>
+
                 <% }); } %>
                 <h3 class="right" id="governor-total">
                   <span><u><%= calculatedTotalVotesGovernor %></u></span> total votes cast
