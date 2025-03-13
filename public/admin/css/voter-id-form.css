@@ -4,14 +4,6 @@
   box-sizing: border-box;
 }
 
-/* Body styling (background, font) */
-body {
-  background-color: #5b1f1f; /* Example dark red background */
-  font-family: Arial, sans-serif;
-  color: #333;
-  padding: 1.25rem; /* 20px -> 1.25rem */
-}
-
 /* Main container with light background and rounded corners */
 .hashes-container {
   background-color: #f7f7f7;
