@@ -283,8 +283,7 @@
                   </div>
                 </div>
               </div>
-              <%= candidate.uniqueId %>
-              <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>">View List of Voter IDs</a>
+              <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>" data-name="<%= candidate.name %>">View List of Voter IDs</a>
 
               <% }); %> <% if (abstainCandidate) { const voteCount = Number(abstainCandidate.voteCount) || 0; calculatedTotalVotes += voteCount; const percentage = totalVotes > 0 ? ((voteCount / totalVotes) * 100).toFixed(2) : 0; %>
               <div class="candidate abstain">
@@ -300,7 +299,7 @@
                   </div>
                 </div>
               </div>
-              <a href="#" class="votes" data-uniqueid="<%= abstainCandidate.uniqueId %>">View List of Voter IDs</a>
+              <a href="#" class="votes" data-uniqueid="<%= abstainCandidate.uniqueId %>" data-name="<%= abstainCandidate.name %>">View List of Voter IDs</a>
               <% } %>
               <h3 class="right">
                 <span><u><%= calculatedTotalVotes %></u></span> total votes cast
@@ -339,6 +338,7 @@
                   </div>
                 </div>
               </div>
+              <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>" data-name="<%= candidate.name %>">View List of Voter IDs</a>
               <% }); %> <% if (abstainCandidateVice) { const voteCount = Number(abstainCandidateVice.voteCount) || 0; calculatedTotalVotesVice += voteCount; const percentage = totalVotesVice > 0 ? ((voteCount / totalVotesVice) * 100).toFixed(2) : 0; %>
               <div class="candidate">
                 <div class="img-container">
@@ -353,6 +353,7 @@
                   </div>
                 </div>
               </div>
+              <a href="#" class="votes" data-uniqueid="<%= abstainCandidateVice.uniqueId %>" data-name="<%= abstainCandidateVice.name %>">View List of Voter IDs</a>
               <% } %>
               <h3 class="right">
                 <span><u><%= calculatedTotalVotesVice %></u></span> total votes cast
@@ -391,6 +392,7 @@
                   </div>
                 </div>
               </div>
+              <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>" data-name="<%= candidate.name %>">View List of Voter IDs</a>
               <% }); %>
               <br />
               <h3 class="right">
@@ -455,6 +457,7 @@
                     </div>
                   </div>
                 </div>
+                <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>" data-name="<%= candidate.name %>">View List of Voter IDs</a>
                 <% }); %> <% if (abstainCandidateGovernor) { const voteCount = Number(abstainCandidateGovernor.voteCount) || 0; const percentage = governorTotalVotes > 0 ? ((voteCount / governorTotalVotes) * 100).toFixed(2) : 0; const colleges = ["CAFA", "CAL", "CBEA", "CCJE", "CHTM", "CICT", "CIT", "CN", "COE", "COED", "CS", "CSER", "CSSP"]; colleges.forEach(college => { %>
                 <div class="candidate lsc-candidate abstain" data-college="<%= college %>">
                   <div class="candidate">
@@ -471,6 +474,7 @@
                     </div>
                   </div>
                 </div>
+                <a href="#" class="votes" data-uniqueid="<%= abstainCandidateGovernor.uniqueId %>" data-name="<%= abstainCandidateGovernor.name %>">View List of Voter IDs</a>
                 <% }); } %>
                 <h3 class="right" id="governor-total">
                   <span><u><%= calculatedTotalVotesGovernor %></u></span> total votes cast
@@ -502,6 +506,7 @@
                     </div>
                   </div>
                 </div>
+                <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>" data-name="<%= candidate.name %>">View List of Voter IDs</a>
                 <% }); %> <% if (abstainCandidateViceGovernor) { const voteCount = Number(abstainCandidateViceGovernor.voteCount) || 0; const percentage = totalVotesViceGovernor > 0 ? ((voteCount / totalVotesViceGovernor) * 100).toFixed(2) : 0; const colleges = ["CAFA", "CAL", "CBEA", "CCJE", "CHTM", "CICT", "CIT", "CN", "COE", "COED", "CS", "CSER", "CSSP"]; colleges.forEach(college => { %>
                 <div class="candidate lsc-candidate abstain" data-college="<%= college %>">
                   <div class="candidate">
@@ -518,6 +523,7 @@
                     </div>
                   </div>
                 </div>
+                <a href="#" class="votes" data-uniqueid="<%= abstainCandidateViceGovernor.uniqueId %>" data-name="<%= abstainCandidateViceGovernor.name %>">View List of Voter IDs</a>
                 <% }); } %>
                 <h3 class="right" id="vice-governor-total">
                   <span><u><%= calculatedTotalVotesViceGovernor %></u></span> total votes cast
@@ -557,6 +563,7 @@
                       </div>
                     </div>
                   </div>
+                  <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>" data-name="<%= candidate.name %>">View List of Voter IDs</a>
                   <% }); %> <% if (abstainByProgram[program]) { abstainByProgram[program].forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = programTotalVotes > 0 ? ((voteCount / programTotalVotes) * 100).toFixed(2) : 0; %>
                   <div class="candidate lsc-candidate" data-college="<%= candidate.college %>" data-program="<%= candidate.program %>">
                     <div class="candidate">
@@ -573,6 +580,7 @@
                       </div>
                     </div>
                   </div>
+                  <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>" data-name="<%= candidate.name %>">View List of Voter IDs</a>
                   <% }); } %>
                   <h3 class="right">
                     <span><u><%= programTotalVotes %></u></span> total votes cast
