@@ -3418,8 +3418,64 @@ const startServer = async () => {
       }
     });
 
+    app.get("/api/voter-ids/:uniqueId", async (req, res) => {
+      try {
+        const db = await connectToDatabase();
+        const candidateHashesCollection = db.collection("candidate_hashes");
+
+        const candidate = await candidateHashesCollection.findOne({ candidateId: req.params.uniqueId });
+
+        if (!candidate) {
+          return res.status(404).json({ error: "Candidate not found" });
+        }
+
+        res.json({ emails: candidate.emails || [] }); // Return the emails (or voter IDs)
+      } catch (error) {
+        console.error("Error fetching voter IDs:", error);
+        res.status(500).json({ error: "Failed to fetch voter IDs" });
+      }
+    });
+
     // New API endpoint to list all candidate details (IDs and vote counts) from the blockchain
     app.get("/vote-tally", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        // Call the getCandidateDetails function from the contract
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+        // Fetch candidates from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine Blockchain Data with Candidate Info
+        const candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+            uniqueId: candidate ? candidate.uniqueId : "",
+          };
+        });
+
+        res.render("admin/election-vote-tally", { candidates, electionConfig, loggedInAdmin: req.session.admin });
+      } catch (error) {
+        console.error("Error fetching candidate details:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    app.get("/results", ensureAdminAuthenticated, async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
         let electionConfig = await electionConfigCollection.findOne({});
@@ -3449,7 +3505,7 @@ const startServer = async () => {
           };
         });
 
-        res.render("admin/election-vote-tally", { candidates, electionConfig, loggedInAdmin: req.session.admin });
+        res.render("admin/election-temp", { candidates, electionConfig, loggedInAdmin: req.session.admin });
       } catch (error) {
         console.error("Error fetching candidate details:", error);
         res.status(500).json({ error: error.message });
@@ -3580,7 +3636,7 @@ const startServer = async () => {
     //   }
     // });
 
-    app.get("/results", ensureAdminAuthenticated, async (req, res) => {
+    app.get("/temp", ensureAdminAuthenticated, async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
         let electionConfig = await electionConfigCollection.findOne({});

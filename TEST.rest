@@ -34,3 +34,7 @@ POST http://localhost:3000/api/aggregateCandidates
 Content-Type: application/json
 
 {}
+
+### Test: Fetch voter ID with uniqueId 5011
+GET http://localhost:3000/api/voter-ids/0x7a92ab4c8fa85f9e916416b38edd143171d3a63a6f3cad4d9ba2ba6b0af1922f
+Accept: application/json
