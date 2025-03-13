@@ -126,6 +126,11 @@ li {
 }
 
 @media (max-width: 768px) {
+  .content-main-left,
+  .content-main-right {
+    display: none;
+  }
+
   .first-text {
     padding: 0;
   }
@@ -199,5 +204,9 @@ li {
 
   h6 {
     font-size: 1.4rem;
+  }
+
+  button {
+    width: 7rem;
   }
 }

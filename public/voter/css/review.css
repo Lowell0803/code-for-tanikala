@@ -78,9 +78,19 @@
   width: 28%;
   border-radius: 0.5rem;
   box-shadow: 0 20px 30px -20px rgba(5, 5, 5, 0.24);
-  height: 26rem;
+  height: 34rem;
   font-size: 1rem;
   margin: 2%;
+}
+
+.candidate-info {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 35%;
+  margin-top: 1rem;
+  /* color: rgba(107, 114, 128, 1); */
+  text-align: center;
+  font-size: 0.9rem !important;
 }
 
 .candidate-card hr {
@@ -135,16 +145,6 @@
   font-weight: 700;
 }
 
-.candidate-info {
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: 22%;
-  margin-top: 1rem;
-  /* color: rgba(107, 114, 128, 1); */
-  text-align: center;
-  font-size: 0.8rem;
-}
-
 /* end card */
 
 /* Grid container styles for the candidate groups */
@@ -189,8 +189,8 @@
   .container .candidate-card {
     width: 40%;
     min-height: 40%;
-    height: 20rem;
-    padding: 0.5rem;
+    height: 23rem;
+    /* padding: 0.2rem; */
   }
 
   .container .candidate-party {
@@ -209,7 +209,12 @@
   }
 
   .candidate-card .candidate-info {
-    font-size: 0.5rem !important;
+    font-size: 0.6rem !important;
+    height: 30%;
+  }
+
+  .candidate-card {
+    height: 50rem;
   }
   .container .candidate-position {
     font-size: 0.8rem;

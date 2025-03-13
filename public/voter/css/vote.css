@@ -63,7 +63,8 @@
   width: 5em;
   height: 5em; /* Match width for a perfect circle */
   border-radius: 50%;
-  object-fit: cover; /* Ensures the image fills the circle without distortion */
+  object-fit: cover;
+  /* Ensures the image fills the circle without distortion */
 }
 
 .ballot-choices input[type="radio"] {

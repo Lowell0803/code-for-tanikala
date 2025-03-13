@@ -28,6 +28,21 @@
   border-radius: 0.5em;
 }
 
+/* Hover effect when enabled */
+.proceed.button:hover:not(:disabled) {
+  background-color: #369f2c;
+}
+
+/* Disabled state */
+.proceed.button:disabled,
+.proceed.button[disabled] {
+  background-color: #ccc; /* gray background */
+  color: #666; /* gray text */
+  cursor: not-allowed; /* show "blocked" cursor */
+  pointer-events: none; /* prevent any interaction */
+  opacity: 0.7; /* slightly translucent */
+}
+
 .center {
   text-align: center;
 }
@@ -41,6 +56,30 @@
 }
 
 @media (max-width: 768px) {
+  .content-main-left,
+  .content-main-right {
+    display: none;
+  }
+
+  .header-nav {
+    width: 50vw;
+  }
+
+  .header-nav .header-nav-content {
+    width: 50vw;
+  }
+
+  /* .header-nav-content ul,
+  .header-nav-content li {
+    width: 100%;
+  } */
+
+  .header-nav-content ul,
+  .header-nav-content li {
+    width: 100%;
+    padding-right: 10%;
+  }
+
   .no-mobile {
     display: none;
   }
@@ -109,5 +148,28 @@
 
   .yellow {
     color: #e1ae5b; /* Color remains the same */
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .main-second p {
+    font-size: 0.8rem;
+    text-align: justify;
+  }
+
+  label {
+    font-size: 0.8rem;
+  }
+
+  .button {
+    width: 7rem;
+  }
+
+  .main-first {
+    height: 20vh;
+    padding: 0;
+    margin: 0;
   }
 }
