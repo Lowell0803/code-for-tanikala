@@ -554,7 +554,15 @@
       colDiv.className = "hash-column";
 
       // Build lines for each item in this column, highlighting if needed
-      const linesHtml = columnItems.map((item) => highlightText(item, searchQuery)).join("");
+      const linesHtml = columnItems
+        .map((item, idx) => {
+          const globalIndex = startIndex + columnStart + idx + 1;
+          const highlighted = highlightText(item, searchQuery);
+          // Remove the wrapping <div> from highlightText so we can wrap our own
+          const innerText = highlighted.replace(/^<div>/, "").replace(/<\/div>$/, "");
+          return `<div><span>${globalIndex}. </span><span>${innerText}</span></div>`;
+        })
+        .join("");
       colDiv.innerHTML = linesHtml;
 
       hashesGrid.appendChild(colDiv);
