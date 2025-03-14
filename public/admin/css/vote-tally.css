@@ -117,3 +117,39 @@
   padding-top: 2rem;
   padding-bottom: 1rem;
 }
+
+.main {
+  position: relative; /* Positioning context for the modal */
+}
+
+/* Modal styling applied directly to .hashes-container */
+.hashes-container.modal {
+  display: none; /* Hidden by default */
+  position: absolute; /* Positioned relative to .main */
+  z-index: 1000;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%; /* Adjust as needed */
+  background-color: #fefefe; /* Modal background */
+  padding: 20px;
+  border: 1px solid #888;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Style the close button */
+.close-modal {
+  color: #aaa;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+  color: #000;
+  text-decoration: none;
+}

@@ -3484,6 +3484,45 @@ const startServer = async () => {
       }
     });
 
+    app.get("/rvs-votes-per-candidate", async (req, res) => {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Get candidate details from the contract
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+        // Fetch candidates from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine Blockchain Data with Candidate Info
+        const candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+            uniqueId: candidate ? candidate.uniqueId : "",
+          };
+        });
+
+        // Render your ejs2 view and pass all the data from ejs1
+        res.render("homepages/rvs-votes-per-candidate", { candidates, electionConfig });
+      } catch (error) {
+        console.error("Error fetching candidate details:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
     app.get("/results", ensureAdminAuthenticated, async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
@@ -4064,43 +4103,6 @@ const startServer = async () => {
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
       res.render("homepages/rvs-voter-turnout", { electionConfig });
-    });
-
-    app.get("/rvs-votes-per-candidate", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
-
-      // const candidateHashesCollection = db.collection("candidateHashes");
-      // let candidateHashes = await electionConfigCollection.findOne({});
-      const candidateHashes = await db.collection("candidate_hashes").find({}).toArray();
-
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-      // Call the getCandidateDetails function from the contract
-      const [candidateIds, voteCounts] = await contract.getCandidateDetails();
-
-      // Fetch candidates from MongoDB
-      const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
-      const allCandidates = aggregatedData.candidates;
-
-      // Combine Blockchain Data with Candidate Info
-      const candidates = candidateIds.map((id, index) => {
-        const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
-
-        return {
-          candidateId: id.toString(),
-          name: candidate ? candidate.name : "Unknown Candidate",
-          party: candidate ? candidate.party : "Unknown Party",
-          position: candidate ? candidate.position : "Unknown Position",
-          image: candidate ? candidate.image : "No Image",
-          college: candidate ? candidate.college : "",
-          program: candidate ? candidate.program : "",
-          voteCount: voteCounts[index].toString(),
-        };
-      });
-
-      res.render("homepages/rvs-votes-per-candidate", { candidates, electionConfig, candidateHashes });
     });
 
     app.get("/rvs-election-results", async (req, res) => {
