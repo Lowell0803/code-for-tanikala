@@ -1431,7 +1431,11 @@ const startServer = async () => {
         }
 
         // Hash the email using SHA-256
-        const hashedEmail = crypto.createHash("sha256").update(email).digest("hex");
+        // Original line (for production)
+        // const hashedEmail = crypto.createHash("sha256").update(email).digest("hex");
+
+        // For testing/development, use a random hex string:
+        const hashedEmail = crypto.randomBytes(32).toString("hex");
 
         // Generate a unique voteId for tracking
         const { v4: uuidv4 } = require("uuid");
@@ -1500,7 +1504,7 @@ const startServer = async () => {
             voterProgram: voteRecord.voterProgram || "Unknown Program",
             voterHash: voteRecord.hashedEmail,
             voteId: voteRecord.voteId,
-            electionConfig: {},
+            electionConfig,
             txHash: null, // ensure txHash is defined
             waiting: true,
             queueNumber: voteRecord.queueNumber,

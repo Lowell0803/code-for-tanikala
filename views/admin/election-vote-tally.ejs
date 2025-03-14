@@ -592,7 +592,7 @@
                         </div>
                       </div>
                     </div>
-                    <a href="#" class="votes" data-uniqueid="<%= abstainCandidateVice.uniqueId %>" data-name="<%= abstainCandidateVice.name %>">View List of Voter IDs</a>
+                    <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>" data-name="<%= candidate.name %>">View List of Voter IDs</a>
                   </div>
 
                   <% }); } %>
@@ -673,6 +673,7 @@
         button.addEventListener("click", async function (event) {
           event.preventDefault();
           const uniqueId = this.dataset.uniqueid;
+          const candidateName = this.dataset.name;
           console.log("Unique ID clicked:", uniqueId); // Debug log
           if (!uniqueId) {
             console.error("Unique ID not found for candidate");
@@ -683,14 +684,21 @@
             console.log("API response status:", response.status); // Debug log
             const data = await response.json();
             console.log("Data fetched:", data); // Debug log
+
+            // Set the title to include candidate name
+            document.querySelector(".hashes-title").textContent = `List of Voter IDs for ${candidateName}`;
+
+            // If candidate is not found, display an empty list in the modal
             if (data.error) {
-              alert(data.error);
+              allHashes.length = 0;
+              render(); // Re-render the hashes grid (will be empty)
+              document.querySelector("#totalVotes").textContent = allHashes.length;
               return;
             }
-            // Update allHashes with real voter IDs
+
+            // Update allHashes with real voter IDs and re-render the modal
             allHashes.length = 0;
             allHashes.push(...data.emails);
-            document.querySelector(".hashes-title").textContent = `List of Voter IDs for Candidate`;
             render(); // Re-render the hashes grid
             document.querySelector("#totalVotes").textContent = allHashes.length;
           } catch (error) {
