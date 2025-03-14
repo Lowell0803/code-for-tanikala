@@ -26,6 +26,11 @@ if (urlParams.get("error") === "not_registered") {
   history.replaceState({}, document.title, window.location.pathname);
 }
 
+if (urlParams.get("error") === "already_voted") {
+  notify("You have already voted for this election.", "error", 5000);
+  history.replaceState({}, document.title, window.location.pathname);
+}
+
 // if (urlParams.has("error")) {
 //   let errorMessage = "An unknown error occurred. Please try again.";
 //   const errorType = urlParams.get("error");

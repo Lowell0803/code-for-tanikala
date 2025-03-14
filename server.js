@@ -1385,7 +1385,7 @@ const startServer = async () => {
         // Automatically accept "999999" for testing
         if (otp === "999999") {
           req.session.otpVerified = true;
-          return res.redirect("/vote?otp_verified=true");
+          return res.redirect("/vote?logged_in=true");
         }
 
         // Verify the OTP against the one stored in session and ensure it's not expired
@@ -1397,7 +1397,7 @@ const startServer = async () => {
         }
 
         req.session.otpVerified = true;
-        return res.redirect("/vote?otp_verified=true");
+        return res.redirect("/vote?logged_in=true");
       } catch (error) {
         console.error("Error verifying OTP:", error);
         return res.render("voter/verify-otp", {
@@ -1456,12 +1456,13 @@ const startServer = async () => {
         }
 
         // Hardcode the developer emails (special cases)
-        const developerEmails = ["2021100414@ms.bulsu.edu.ph", "2020105248@ms.bulsu.edu.ph", "2021108083@ms.bulsu.edu.ph", "2021102154@ms.bulsu.edu.ph", "2021100291@ms.bulsu.edu.ph"];
+        const developerEmails = ["2021100414@ms.bulsu.edu.ph", "2020105248@ms.bulsu.edu.ph", "2021102154@ms.bulsu.edu.ph", "2021100291@ms.bulsu.edu.ph"];
+        //"2021108083@ms.bulsu.edu.ph"
 
         // Check for already voted status only if the dev alert flag isn't present
         if (!req.query.devAlert && registeredVoter.status === "Voted") {
           if (!developerEmails.includes(req.user.email)) {
-            return res.redirect("/?error=already%20voted");
+            return res.redirect("/?error=already_voted");
           } else {
             // For developer accounts, redirect them to /vote with a query param
             // This will only happen on the first request when devAlert is not set.
