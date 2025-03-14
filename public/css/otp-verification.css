@@ -1,8 +1,9 @@
 .card {
   display: flex;
   flex-direction: column;
-  width: 40vw;
-  padding: 2.5rem;
+  width: 30vw;
+  padding: 2rem;
+  padding-bottom: 0;
   justify-content: center;
   align-items: center;
   text-align: center;
@@ -22,6 +23,10 @@ i {
 .blue {
   color: var(--color-darkBlue);
   font-size: 2rem;
+}
+
+button {
+  background-color: #e1ae5b;
 }
 
 .otp-field {
@@ -48,7 +53,7 @@ input:focus {
 }
 
 button:hover {
-  background-color: var(--color-lightBlue);
+  background-color: #f5ab29;
   font-weight: bold;
   color: white;
 }
@@ -78,7 +83,7 @@ hr {
 }
 
 .content-main {
-  margin-bottom: 4rem;
+  /* margin-bottom: 4rem; */
 }
 
 /* .beside {
@@ -94,11 +99,11 @@ hr {
 }
 
 .otp {
-  background-color: rgb(119, 188, 119);
+  background-color: var(--color-lightBlue);
 }
 
 .otp:hover {
-  background-color: green;
+  background-color: blue;
 }
 
 .card p {
@@ -109,10 +114,7 @@ hr {
   .card {
     width: 90vw; /* Increase card width for smaller screens */
     padding: 1.5rem; /* Reduce padding */
-  }
-
-  i {
-    font-size: 3rem; /* Scale down the icon size */
+    padding-bottom: 0;
   }
 
   .otp-field {
