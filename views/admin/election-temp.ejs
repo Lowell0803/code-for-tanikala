@@ -295,19 +295,21 @@
               });
             </script>
 
-            <% const senatorCandidates = candidates.filter(candidate => candidate.position === 'senator' && candidate.name !== 'Abstain'); senatorCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); const maxVote = senatorCandidates.reduce((max, candidate) => Math.max(max, Number(candidate.voteCount) || 0), 0); const totalVotesSenator = senatorCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); %>
+            <% const senatorCandidates = candidates.filter(candidate => candidate.position === 'senator' && candidate.name !== 'Abstain'); senatorCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); const maxVote = senatorCandidates.reduce((max, candidate) => Math.max(max, Number(candidate.voteCount) || 0), 0); const totalVotesSenator = senatorCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let winnersSenator = []; if (senatorCandidates.length
+            <= 7) { winnersSenator = senatorCandidates; } else { const threshold = Number(senatorCandidates[6].voteCount) || 0; winnersSenator = senatorCandidates.filter(candidate => (Number(candidate.voteCount) || 0) >= threshold); } let calculatedTotalVotesSenator = winnersSenator.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let rank = 0, lastVote = null, count = 0; %>
             <div class="container-ssc" id="container-senator">
               <div class="container-position">
                 <h1 class="position-ssc">Senators</h1>
               </div>
               <hr />
               <br />
-              <% let calculatedTotalVotesSenator = 0; %> <% senatorCandidates.forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; calculatedTotalVotesSenator += voteCount; const percentage = maxVote > 0 ? ((voteCount / maxVote) * 100).toFixed(2) : 0; %>
+              <% winnersSenator.forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; count++; if (lastVote === null || voteCount < lastVote) { rank = count; } lastVote = voteCount; const percentage = calculatedTotalVotesSenator > 0 ? ((voteCount / calculatedTotalVotesSenator) * 100).toFixed(2) : 0; %>
               <div class="candidate">
                 <div class="img-container">
                   <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                 </div>
                 <div class="candidate-info">
+                  <p>Top <%= rank %></p>
                   <h2><%= candidate.name %></h2>
                   <p><%= candidate.party %></p>
                   <div class="row">
@@ -318,11 +320,9 @@
                   </div>
                 </div>
               </div>
+              <h3 class="right"><span class="green"><%= voteCount %></span> votes out of <span class="green"><%= calculatedTotalVotesSenator %></span> total votes</h3>
               <% }); %>
               <br />
-              <h3 class="right">
-                <span><u><%= calculatedTotalVotesSenator %></u></span> total votes cast
-              </h3>
             </div>
             <script>
               window.addEventListener("load", function () {

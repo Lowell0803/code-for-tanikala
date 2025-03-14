@@ -91,8 +91,13 @@
           <div class="container container-ssc">
             <div class="candidate-card">
               <div class="container-image">
+                <% if (president.name === "Abstain") { %>
+                <img class="candidate-image" src="img/profile-abstain.png" alt="<%= president.name %>" />
+                <% } else { %>
                 <img class="candidate-image" src="<%= president.image %>" alt="<%= president.name %>" />
+                <% } %>
               </div>
+
               <div class="card-header">
                 <p class="candidate-name"><%= president.name %></p>
                 <p class="candidate-party"><i><%= president.party %></i></p>
@@ -106,7 +111,11 @@
             </div>
             <div class="candidate-card">
               <div class="container-image">
+                <% if (vicePresident.name === "Abstain") { %>
+                <img class="candidate-image" src="img/profile-abstain.png" alt="<%= vicePresident.name %>" />
+                <% } else { %>
                 <img class="candidate-image" src="<%= vicePresident.image %>" alt="<%= vicePresident.name %>" />
+                <% } %>
               </div>
               <div class="card-header">
                 <p class="candidate-name"><%= vicePresident.name %></p>
@@ -164,8 +173,13 @@
           <div class="container container-lsc">
             <div class="candidate-card">
               <div class="container-image">
+                <% if (governor.name === "Abstain") { %>
+                <img class="candidate-image" src="img/profile-abstain.png" alt="<%= governor.name %>" />
+                <% } else { %>
                 <img class="candidate-image" src="<%= governor.image %>" alt="<%= governor.name %>" />
+                <% } %>
               </div>
+
               <div class="card-header">
                 <p class="candidate-name"><%= governor.name %></p>
                 <p class="candidate-party"><i><%= governor.party %></i></p>
@@ -179,7 +193,11 @@
             </div>
             <div class="candidate-card">
               <div class="container-image">
+                <% if (viceGovernor.name === "Abstain") { %>
+                <img class="candidate-image" src="img/profile-abstain.png" alt="<%= viceGovernor.name %>" />
+                <% } else { %>
                 <img class="candidate-image" src="<%= viceGovernor.image %>" alt="<%= viceGovernor.name %>" />
+                <% } %>
               </div>
               <div class="card-header">
                 <p class="candidate-name"><%= viceGovernor.name %></p>
@@ -194,7 +212,11 @@
             </div>
             <div class="candidate-card">
               <div class="container-image">
+                <% if (boardMember.name === "Abstain") { %>
+                <img class="candidate-image" src="img/profile-abstain.png" alt="<%= boardMember.name %>" />
+                <% } else { %>
                 <img class="candidate-image" src="<%= boardMember.image %>" alt="<%= boardMember.name %>" />
+                <% } %>
               </div>
               <div class="card-header">
                 <p class="candidate-name"><%= boardMember.name %></p>
