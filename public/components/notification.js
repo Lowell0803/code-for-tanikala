@@ -11,7 +11,9 @@ function createNotification(message, type = "success", duration = 4000) {
   notification.classList.add("notification", type);
   notification.innerHTML = `
         <div class="notification-icon">
-            <i class="fa ${type === "success" ? "fa-check-circle" : "fa-exclamation-triangle"}"></i>
+            <i class="fa ${
+              type === "success" ? "fa-check-circle" : (type = "email" ? "fa-envelope" : type === "login" ? "fa-sign-in" : type === "error" ? "fa-exclamation-triangle" : type === "logout" ? "fa-sign-out" : type === "register" ? "fa-user-plus" : type === "info" ? "fa-info-circle" : "")
+            }"></i>
         </div>
         <div class="notification-message">${message}</div>
         <button class="notification-close">&times;</button>

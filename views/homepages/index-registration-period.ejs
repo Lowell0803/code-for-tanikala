@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+
     <link rel="stylesheet" href="components/notification.css" />
     <script type="module" src="components/notification.js"></script>
   </head>
@@ -112,16 +114,7 @@
       </div>
     </footer>
     <script src="js/index.js"></script>
-
-    <script type="module">
-      import { createNotification } from "/components/notification.js";
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get("registered") === "true") {
-        createNotification("You are registered.", "info", 3000);
-        // Remove the query parameter so it doesn't display again on refresh.
-        history.replaceState({}, document.title, window.location.pathname);
-      }
-    </script>
+    <script type="module" src="components/notificationHandler.js"></script>
 
     <script>
       // Use registration dates from server configuration.
