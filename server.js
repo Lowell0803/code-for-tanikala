@@ -3388,6 +3388,76 @@ const startServer = async () => {
       }
     });
 
+    app.get("/rvs-voter-turnout", async (req, res) => {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const votersCollection = db.collection("registered_voters");
+        const totalRegistered = await votersCollection.countDocuments({});
+        const totalVoted = await votersCollection.countDocuments({ status: "Voted" });
+        const totalNotVoted = await votersCollection.countDocuments({ status: "Registered" });
+
+        // Update electionConfig with overall totals
+        electionConfig.totalRegistered = totalRegistered;
+        electionConfig.totalVoted = totalVoted;
+        electionConfig.totalNotVoted = totalNotVoted;
+        await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { totalRegistered, totalVoted, totalNotVoted } });
+
+        // Aggregate totals per college
+        const collegeTotalAggregation = await votersCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$college",
+                total: { $sum: 1 },
+              },
+            },
+          ])
+          .toArray();
+
+        const collegeVotedAggregation = await votersCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$college",
+                voted: { $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] } },
+              },
+            },
+          ])
+          .toArray();
+
+        // Update each college in electionConfig.listOfElections with aggregated totals
+        electionConfig.listOfElections.forEach((collegeObj) => {
+          const totalGroup = collegeTotalAggregation.find((g) => {
+            const match = g._id.match(/\(([^)]+)\)/);
+            return match && match[1] === collegeObj.acronym;
+          });
+          if (totalGroup) {
+            collegeObj.registeredVoters = totalGroup.total;
+          }
+
+          const votedGroup = collegeVotedAggregation.find((g) => {
+            const match = g._id.match(/\(([^)]+)\)/);
+            return match && match[1] === collegeObj.acronym;
+          });
+          if (votedGroup) {
+            collegeObj.numberOfVoted = votedGroup.voted;
+          }
+        });
+
+        await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { listOfElections: electionConfig.listOfElections } });
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        res.render("homepages/rvs-voter-turnout", { electionConfig });
+      } catch (error) {
+        console.error("Error fetching voter turnout:", error);
+        res.status(500).send("Server error while fetching voter turnout");
+      }
+    });
+
     app.get("/get-candidates-results", async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
@@ -3560,6 +3630,43 @@ const startServer = async () => {
       }
     });
 
+    app.get("/rvs-election-results", async (req, res) => {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Call the getCandidateDetails function from the contract
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+        // Fetch candidates from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine Blockchain Data with Candidate Info
+        const candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+          };
+        });
+
+        res.render("homepages/rvs-election-results", { candidates, electionConfig });
+      } catch (error) {
+        console.error("Error fetching candidate details:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
     // app.get("/results", ensureAdminAuthenticated, async (req, res) => {
     //   try {
     //     const electionConfigCollection = db.collection("election_config");
@@ -3684,165 +3791,165 @@ const startServer = async () => {
     //   }
     // });
 
-    app.get("/temp", ensureAdminAuthenticated, async (req, res) => {
-      try {
-        const electionConfigCollection = db.collection("election_config");
-        let electionConfig = await electionConfigCollection.findOne({});
+    // app.get("/temp", ensureAdminAuthenticated, async (req, res) => {
+    //   try {
+    //     const electionConfigCollection = db.collection("election_config");
+    //     let electionConfig = await electionConfigCollection.findOne({});
 
-        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+    //     const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //     electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-        // Call the getCandidateDetails function from the contract
-        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+    //     // Call the getCandidateDetails function from the contract
+    //     const [candidateIds, voteCounts] = await contract.getCandidateDetails();
 
-        // Fetch candidates from MongoDB
-        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
-        const allCandidates = aggregatedData.candidates;
+    //     // Fetch candidates from MongoDB
+    //     const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+    //     const allCandidates = aggregatedData.candidates;
 
-        // Combine Blockchain Data with Candidate Info
-        // Combine Blockchain Data with Candidate Info
-        const candidates = candidateIds
-          .map((id, index) => {
-            const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
-            return {
-              candidateId: id.toString(),
-              name: candidate ? candidate.name : "Unknown Candidate",
-              party: candidate ? candidate.party : "Unknown Party",
-              position: candidate ? candidate.position.toLowerCase() : "unknown position",
-              college: candidate ? candidate.college : "Unknown College", // Add college field
-              program: candidate ? candidate.program : "Unknown Program", // Add program field
-              image: candidate ? candidate.image : "No Image",
-              voteCount: voteCounts[index].toString() || 0,
-            };
-          })
-          .filter((candidate) => candidate.name !== "Abstain"); // Exclude Abstain candidates
+    //     // Combine Blockchain Data with Candidate Info
+    //     // Combine Blockchain Data with Candidate Info
+    //     const candidates = candidateIds
+    //       .map((id, index) => {
+    //         const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+    //         return {
+    //           candidateId: id.toString(),
+    //           name: candidate ? candidate.name : "Unknown Candidate",
+    //           party: candidate ? candidate.party : "Unknown Party",
+    //           position: candidate ? candidate.position.toLowerCase() : "unknown position",
+    //           college: candidate ? candidate.college : "Unknown College", // Add college field
+    //           program: candidate ? candidate.program : "Unknown Program", // Add program field
+    //           image: candidate ? candidate.image : "No Image",
+    //           voteCount: voteCounts[index].toString() || 0,
+    //         };
+    //       })
+    //       .filter((candidate) => candidate.name !== "Abstain"); // Exclude Abstain candidates
 
-        // Helper function for non-senator groups: get candidate(s) with highest voteCount
-        function getTopCandidates(candidatesArray) {
-          if (!candidatesArray.length) return [];
-          const maxVote = Math.max(...candidatesArray.map((c) => parseInt(c.voteCount, 10)));
-          return candidatesArray.filter((c) => parseInt(c.voteCount, 10) === maxVote);
-        }
+    //     // Helper function for non-senator groups: get candidate(s) with highest voteCount
+    //     function getTopCandidates(candidatesArray) {
+    //       if (!candidatesArray.length) return [];
+    //       const maxVote = Math.max(...candidatesArray.map((c) => parseInt(c.voteCount, 10)));
+    //       return candidatesArray.filter((c) => parseInt(c.voteCount, 10) === maxVote);
+    //     }
 
-        // Helper function for senators: get top 7 candidates (including ties at 7th position)
-        function getTopSenators(candidatesArray) {
-          if (!candidatesArray.length) return [];
-          const sorted = candidatesArray.slice().sort((a, b) => parseInt(b.voteCount, 10) - parseInt(a.voteCount, 10));
-          if (sorted.length <= 7) return sorted;
-          const cutoff = parseInt(sorted[6].voteCount, 10);
-          return sorted.filter((candidate) => parseInt(candidate.voteCount, 10) >= cutoff);
-        }
+    //     // Helper function for senators: get top 7 candidates (including ties at 7th position)
+    //     function getTopSenators(candidatesArray) {
+    //       if (!candidatesArray.length) return [];
+    //       const sorted = candidatesArray.slice().sort((a, b) => parseInt(b.voteCount, 10) - parseInt(a.voteCount, 10));
+    //       if (sorted.length <= 7) return sorted;
+    //       const cutoff = parseInt(sorted[6].voteCount, 10);
+    //       return sorted.filter((candidate) => parseInt(candidate.voteCount, 10) >= cutoff);
+    //     }
 
-        // 1. Group candidates by position
-        const groupedByPosition = candidates.reduce((acc, candidate) => {
-          const pos = candidate.position; // already lowercased
-          if (!acc[pos]) {
-            acc[pos] = [];
-          }
-          acc[pos].push(candidate);
-          return acc;
-        }, {});
+    //     // 1. Group candidates by position
+    //     const groupedByPosition = candidates.reduce((acc, candidate) => {
+    //       const pos = candidate.position; // already lowercased
+    //       if (!acc[pos]) {
+    //         acc[pos] = [];
+    //       }
+    //       acc[pos].push(candidate);
+    //       return acc;
+    //     }, {});
 
-        // 2. For positions that require grouping by college, group accordingly.
-        // Positions: governor, vice governor, board member
-        const positionsGroupedByCollege = ["governor", "vice governor", "board member"];
-        positionsGroupedByCollege.forEach((pos) => {
-          if (groupedByPosition[pos]) {
-            // Group by college
-            const byCollege = groupedByPosition[pos].reduce((acc, candidate) => {
-              const college = candidate.college || "Unknown College";
-              if (!acc[college]) {
-                acc[college] = [];
-              }
-              acc[college].push(candidate);
-              return acc;
-            }, {});
-            // For board members, further group by program within each college
-            if (pos === "board member") {
-              Object.keys(byCollege).forEach((college) => {
-                byCollege[college] = byCollege[college].reduce((acc, candidate) => {
-                  const program = candidate.program || "Unknown Program";
-                  if (!acc[program]) {
-                    acc[program] = [];
-                  }
-                  acc[program].push(candidate);
-                  return acc;
-                }, {});
-              });
-            }
-            groupedByPosition[pos] = byCollege;
-          }
-        });
+    //     // 2. For positions that require grouping by college, group accordingly.
+    //     // Positions: governor, vice governor, board member
+    //     const positionsGroupedByCollege = ["governor", "vice governor", "board member"];
+    //     positionsGroupedByCollege.forEach((pos) => {
+    //       if (groupedByPosition[pos]) {
+    //         // Group by college
+    //         const byCollege = groupedByPosition[pos].reduce((acc, candidate) => {
+    //           const college = candidate.college || "Unknown College";
+    //           if (!acc[college]) {
+    //             acc[college] = [];
+    //           }
+    //           acc[college].push(candidate);
+    //           return acc;
+    //         }, {});
+    //         // For board members, further group by program within each college
+    //         if (pos === "board member") {
+    //           Object.keys(byCollege).forEach((college) => {
+    //             byCollege[college] = byCollege[college].reduce((acc, candidate) => {
+    //               const program = candidate.program || "Unknown Program";
+    //               if (!acc[program]) {
+    //                 acc[program] = [];
+    //               }
+    //               acc[program].push(candidate);
+    //               return acc;
+    //             }, {});
+    //           });
+    //         }
+    //         groupedByPosition[pos] = byCollege;
+    //       }
+    //     });
 
-        // 3. Recursively traverse the grouped structure and select the top candidate(s)
-        function processGroupings(grouping, positionKey = null) {
-          if (Array.isArray(grouping)) {
-            if (positionKey === "senator") {
-              return getTopSenators(grouping);
-            } else {
-              return getTopCandidates(grouping);
-            }
-          } else if (typeof grouping === "object" && grouping !== null) {
-            const result = {};
-            Object.keys(grouping).forEach((key) => {
-              result[key] = processGroupings(grouping[key], positionKey);
-            });
-            return result;
-          }
-          return grouping;
-        }
+    //     // 3. Recursively traverse the grouped structure and select the top candidate(s)
+    //     function processGroupings(grouping, positionKey = null) {
+    //       if (Array.isArray(grouping)) {
+    //         if (positionKey === "senator") {
+    //           return getTopSenators(grouping);
+    //         } else {
+    //           return getTopCandidates(grouping);
+    //         }
+    //       } else if (typeof grouping === "object" && grouping !== null) {
+    //         const result = {};
+    //         Object.keys(grouping).forEach((key) => {
+    //           result[key] = processGroupings(grouping[key], positionKey);
+    //         });
+    //         return result;
+    //       }
+    //       return grouping;
+    //     }
 
-        const finalResults = {};
-        Object.keys(groupedByPosition).forEach((position) => {
-          finalResults[position] = processGroupings(groupedByPosition[position], position);
-        });
+    //     const finalResults = {};
+    //     Object.keys(groupedByPosition).forEach((position) => {
+    //       finalResults[position] = processGroupings(groupedByPosition[position], position);
+    //     });
 
-        // 4. Add percentage info to each winner.
-        // For non-grouped positions (where finalResults[position] is an array)
-        Object.keys(finalResults).forEach((position) => {
-          if (Array.isArray(finalResults[position])) {
-            // total vote count for this position
-            const totalVotes = groupedByPosition[position].reduce((acc, candidate) => acc + parseInt(candidate.voteCount, 10), 0);
-            finalResults[position] = finalResults[position].map((candidate) => {
-              candidate.percentage = totalVotes > 0 ? ((parseInt(candidate.voteCount, 10) / totalVotes) * 100).toFixed(2) : "0.00";
-              return candidate;
-            });
-          } else if (typeof finalResults[position] === "object" && finalResults[position] !== null) {
-            // For positions grouped by college (or further by program), traverse recursively
-            function addPercentage(grouping, originalGroup) {
-              if (Array.isArray(grouping)) {
-                // originalGroup here is the array of all candidates in this subgroup
-                const totalVotes = originalGroup.reduce((acc, candidate) => acc + parseInt(candidate.voteCount, 10), 0);
-                return grouping.map((candidate) => {
-                  candidate.percentage = totalVotes > 0 ? ((parseInt(candidate.voteCount, 10) / totalVotes) * 100).toFixed(2) : "0.00";
-                  return candidate;
-                });
-              } else if (typeof grouping === "object" && grouping !== null) {
-                const result = {};
-                Object.keys(grouping).forEach((key) => {
-                  // For each subgroup, find its corresponding full list from originalGroup
-                  const originalSubgroup = originalGroup[key];
-                  result[key] = addPercentage(grouping[key], originalSubgroup);
-                });
-                return result;
-              }
-              return grouping;
-            }
-            finalResults[position] = addPercentage(finalResults[position], groupedByPosition[position]);
-          }
-        });
+    //     // 4. Add percentage info to each winner.
+    //     // For non-grouped positions (where finalResults[position] is an array)
+    //     Object.keys(finalResults).forEach((position) => {
+    //       if (Array.isArray(finalResults[position])) {
+    //         // total vote count for this position
+    //         const totalVotes = groupedByPosition[position].reduce((acc, candidate) => acc + parseInt(candidate.voteCount, 10), 0);
+    //         finalResults[position] = finalResults[position].map((candidate) => {
+    //           candidate.percentage = totalVotes > 0 ? ((parseInt(candidate.voteCount, 10) / totalVotes) * 100).toFixed(2) : "0.00";
+    //           return candidate;
+    //         });
+    //       } else if (typeof finalResults[position] === "object" && finalResults[position] !== null) {
+    //         // For positions grouped by college (or further by program), traverse recursively
+    //         function addPercentage(grouping, originalGroup) {
+    //           if (Array.isArray(grouping)) {
+    //             // originalGroup here is the array of all candidates in this subgroup
+    //             const totalVotes = originalGroup.reduce((acc, candidate) => acc + parseInt(candidate.voteCount, 10), 0);
+    //             return grouping.map((candidate) => {
+    //               candidate.percentage = totalVotes > 0 ? ((parseInt(candidate.voteCount, 10) / totalVotes) * 100).toFixed(2) : "0.00";
+    //               return candidate;
+    //             });
+    //           } else if (typeof grouping === "object" && grouping !== null) {
+    //             const result = {};
+    //             Object.keys(grouping).forEach((key) => {
+    //               // For each subgroup, find its corresponding full list from originalGroup
+    //               const originalSubgroup = originalGroup[key];
+    //               result[key] = addPercentage(grouping[key], originalSubgroup);
+    //             });
+    //             return result;
+    //           }
+    //           return grouping;
+    //         }
+    //         finalResults[position] = addPercentage(finalResults[position], groupedByPosition[position]);
+    //       }
+    //     });
 
-        // Render the view with the final grouped results, which now include percentage info.
-        res.render("admin/election-results", {
-          groupedResults: finalResults,
-          electionConfig,
-          loggedInAdmin: req.session.admin,
-        });
-      } catch (error) {
-        console.error("Error fetching candidate details:", error);
-        res.status(500).json({ error: error.message });
-      }
-    });
+    //     // Render the view with the final grouped results, which now include percentage info.
+    //     res.render("admin/election-results", {
+    //       groupedResults: finalResults,
+    //       electionConfig,
+    //       loggedInAdmin: req.session.admin,
+    //     });
+    //   } catch (error) {
+    //     console.error("Error fetching candidate details:", error);
+    //     res.status(500).json({ error: error.message });
+    //   }
+    // });
 
     app.get("/reset", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
@@ -4095,25 +4202,15 @@ const startServer = async () => {
       res.render("homepages/rvs-about", { electionConfig });
     });
 
-    app.get("/rvs-voter-turnout", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
+    // app.get("/rvs-election-results", async (req, res) => {
+    //   const electionConfigCollection = db.collection("election_config");
+    //   let electionConfig = await electionConfigCollection.findOne({});
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+    //   const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //   electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("homepages/rvs-voter-turnout", { electionConfig });
-    });
-
-    app.get("/rvs-election-results", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
-
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-      res.render("homepages/rvs-election-results", { electionConfig });
-    });
+    //   res.render("homepages/rvs-election-results", { electionConfig });
+    // });
 
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
