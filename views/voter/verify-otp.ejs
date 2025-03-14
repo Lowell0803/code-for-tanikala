@@ -37,9 +37,8 @@
           <p class="error-message"><%= error %></p>
           <% } %>
           <hr />
-          <p>
-            Press the button to request OTP to <span><%= email %></span>. <br /><small>(For testing, you may enter <strong>999999</strong>.)</small>
-          </p>
+          <p>Press the button to request OTP to <span><%= email %></span>.</p>
+          <!-- <br /><small>(For testing, you may enter <strong>999999</strong>.)</small> -->
           <!-- Form to request an OTP -->
           <form id="otpForm" action="/request-otp" method="POST" style="margin-bottom: 20px">
             <button class="button" type="button" onclick="requestOTP()">Request OTP</button>
@@ -47,13 +46,18 @@
 
           <script>
             function requestOTP() {
-              const correctPassword = "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8";
-              const userInput = prompt("(For TESTING Purposes:)");
+              let IS_DEV_MODE = false;
+              if (IS_DEV_MODE) {
+                const correctPassword = "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8";
+                const userInput = prompt("(For TESTING Purposes:)");
 
-              if (userInput === correctPassword) {
-                document.getElementById("otpForm").submit();
+                if (userInput === correctPasswor || userInput == "lowell.03") {
+                  document.getElementById("otpForm").submit();
+                } else {
+                  alert("Sorry! Wait for Actual Deployment to Request OTP.");
+                }
               } else {
-                alert("Sorry! Wait for Actual Deployment to Request OTP.");
+                document.getElementById("otpForm").submit();
               }
             }
           </script>
