@@ -19,6 +19,7 @@
     <link rel="stylesheet" type="text/css" href="css/rvs.css" />
 
     <!-- Admin dependency CSS -->
+
     <link rel="stylesheet" type="text/css" href="admin/dependencies/progress-bar.css" />
 
     <!-- External fonts and icons -->
@@ -137,8 +138,12 @@
             <br />
             To ensure that your vote has not been recorded for a candidate you did not vote for, simply search again—your voter ID should not appear under that candidate.
           </p>
-
-          <%- include('../admin/shared-vote-tally') %>
+          <br />
+          <br />
+          <h2 class="rvs-title">Votes per Candidate</h2>
+          <br />
+          <br />
+          <div class="rvs-container"><%- include('../admin/shared-vote-tally') %></div>
         </div>
       </div>
     </div>
@@ -154,11 +159,11 @@
         <p>2025 - Fourmula 1</p>
       </div>
 
-      <div class="footer-right">
+      <!-- <div class="footer-right">
         <img src="img/info.png" class="footer-img" id="info-img" />
         <p>Need help? Click&nbsp;</p>
         <a href="help_page">here.</a>
-      </div>
+      </div> -->
     </footer>
 
     <script>

@@ -104,7 +104,7 @@ h2 {
   display: flex;
   flex-direction: column;
   width: 90vw;
-  padding: 0 5rem;
+  padding: 0 3rem;
 
   /* border: 3px solid black; */
 }
@@ -146,4 +146,52 @@ h2 {
 
 .h3 {
   font-family: poppins;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: 100vh; /* sus */
+  background: radial-gradient(circle, var(--color-mediumRed), var(--color-darkRed));
+  font-family: "Poppins", "Century Gothic";
+  color: white;
+  font-size: 1rem;
+}
+
+.rvs-container {
+  background-color: #fff3c8;
+  border-radius: 3rem;
+  box-shadow: rgba(255, 212, 212, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
+}
+
+.rvs-container h1,
+.rvs-container h2,
+.rvs-container h3,
+.rvs-container h4,
+.rvs-container h5,
+.rvs-container h6,
+.rvs-container p {
+  font-size: revert;
+}
+
+.rvs-container h1 {
+}
+
+.rvs-container h2 {
+  color: black;
+}
+
+.rvs-title {
+  text-align: center;
+  color: var(--color-darkYellow);
+}
+
+.first-main {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.rvs-container .progress-bar {
+  height: 1.7rem;
 }

@@ -3,7 +3,7 @@
   --background-lighter-yellow: #faf2db;
 
   --height-main-header: 10vh;
-  --width-main-left: 40%;
+  --width-main-left: 50%;
   --width-main-right: calc(100% - var(--width-main-left));
 }
 
@@ -46,18 +46,18 @@
   padding: 2%;
 }
 
-.main-left {
-  width: var(--width-main-left);
-}
-
 .main-right {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: var(--width-main-right);
 }
 
 #chart-turnout {
   height: 100%;
   width: 30vw;
+}
+
+.left-container,
+.right-container {
+  width: 50%;
 }
