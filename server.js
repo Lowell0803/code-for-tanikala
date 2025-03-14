@@ -3553,7 +3553,7 @@ const startServer = async () => {
           };
         });
 
-        res.render("admin/election-temp", { candidates, electionConfig, loggedInAdmin: req.session.admin });
+        res.render("admin/election-results", { candidates, electionConfig, loggedInAdmin: req.session.admin });
       } catch (error) {
         console.error("Error fetching candidate details:", error);
         res.status(500).json({ error: error.message });
