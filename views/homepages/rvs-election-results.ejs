@@ -120,7 +120,7 @@
           minute: "2-digit",
           hour12: true,
         };
-        return date.toLocaleString("en-US", options).replace(",", " -").toUpperCase();
+        return date.toLocaleString("en-US", options).toUpperCase();
       }
 
       function updateDateTime() {

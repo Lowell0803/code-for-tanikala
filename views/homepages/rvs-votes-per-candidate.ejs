@@ -133,8 +133,7 @@
 
         <div class="main-container">
           <p>
-            This page allows you to view detailed vote counts for each candidate in your selected election. Click "View List of Voter IDs" to see the voter IDs associated with the votes recorded for each candidate. To verify that your vote has been added to a specific candidate, search for your
-            voter ID (which can be found on your voting receipt) in the list. If your voter ID appears, it confirms that your vote has been successfully recorded for that candidate. <br />
+            This page allows you to view detailed vote counts for each candidate in your selected election. Click "View List of Voter IDs" to see the voter IDs associated with the votes recorded for each candidate. To verify that your vote has been added to a specific candidate, search for your voter ID (which can be found on your voting receipt) in the list. If your voter ID appears, it confirms that your vote has been successfully recorded for that candidate. <br />
             <br />
             To ensure that your vote has not been recorded for a candidate you did not vote for, simply search again—your voter ID should not appear under that candidate.
           </p>
@@ -177,7 +176,7 @@
           minute: "2-digit",
           hour12: true,
         };
-        return date.toLocaleString("en-US", options).replace(",", " -").toUpperCase();
+        return date.toLocaleString("en-US", options).toUpperCase();
       }
 
       function updateDateTime() {
