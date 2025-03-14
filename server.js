@@ -1311,7 +1311,7 @@ const startServer = async () => {
             voterHash: voteRecord.hashedEmail,
             voteId: voteRecord.voteId,
             electionConfig,
-            txHash: null, // ensure txHash is defined
+            txHash: voteRecord.txHash || "Reload this page if this is not visible", // ensure txHash is defined
             waiting: true,
             queueNumber: voteRecord.queueNumber,
             candidates,
