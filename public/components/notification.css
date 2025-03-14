@@ -6,7 +6,7 @@
   right: 1vw;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 1rem;
   z-index: 1000;
 }
 
@@ -16,24 +16,33 @@
   background-color: #fff;
   border-left: 5px solid #47d764;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  padding: 10px 15px;
+  padding: 0.5rem 0.6rem;
   border-radius: 5px;
   min-width: 250px;
   animation: slideIn 0.5s ease forwards;
 }
 
 .notification.error {
-  border-left-color: #ff4d4d;
+  border-left-color: #a60212;
+}
+.notification.register {
+  border-left-color: #245414;
+}
+.notification.logout {
+  border-left-color: #004aad;
+}
+.notification.info {
+  border-left-color: #323847;
 }
 
 .notification-icon i {
-  font-size: 20px;
+  font-size: 1.5rem;
   margin-right: 10px;
 }
 
 .notification-message {
   flex-grow: 1;
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 .notification-close {

@@ -355,7 +355,7 @@ const startServer = async () => {
 
         await db.collection("registered_voters").insertOne(newVoter);
 
-        res.redirect("/register");
+        res.redirect("/?new_reg=true");
       } catch (error) {
         console.error("Error registering voter:", error);
         res.status(500).send("Internal Server Error");
@@ -505,7 +505,7 @@ const startServer = async () => {
           console.error("Error logging out:", err);
           return res.status(500).send("Error logging out");
         }
-        res.redirect("/?loggedOut=true");
+        res.redirect("/?logged_out=true");
       });
     });
 
@@ -923,209 +923,6 @@ const startServer = async () => {
     function generateRandomKey(bytes = 32) {
       return "0x" + crypto.randomBytes(bytes).toString("hex");
     }
-
-    // app.post("/submit-candidates", async (req, res) => {
-    //   try {
-    //     let aggregatedCandidates = [];
-
-    //     // Query the SSC candidates collection ("candidates")
-    //     const sscData = await db.collection("candidates").find({}).toArray();
-    //     sscData.forEach((group) => {
-    //       if (Array.isArray(group.candidates)) {
-    //         group.candidates.forEach((candidate) => {
-    //           // Assign a random unique identifier (32-byte hex string)
-    //           candidate.uniqueId = generateRandomKey();
-    //           aggregatedCandidates.push(candidate);
-    //         });
-    //       }
-    //     });
-
-    //     // Query the LSC candidates collection ("candidates_lsc")
-    //     const lscData = await db.collection("candidates_lsc").find({}).toArray();
-    //     lscData.forEach((collegeGroup) => {
-    //       if (Array.isArray(collegeGroup.positions)) {
-    //         collegeGroup.positions.forEach((position) => {
-    //           // Positions with a direct candidates array (e.g., Governor, Vice Governor)
-    //           if (Array.isArray(position.candidates)) {
-    //             position.candidates.forEach((candidate) => {
-    //               candidate.uniqueId = generateRandomKey();
-    //               candidate.college = candidate.college || collegeGroup.collegeAcronym || collegeGroup.collegeName;
-    //               aggregatedCandidates.push(candidate);
-    //             });
-    //           }
-    //           // Positions with nested programs (e.g., Board Members)
-    //           if (Array.isArray(position.programs)) {
-    //             position.programs.forEach((programGroup) => {
-    //               if (Array.isArray(programGroup.candidates)) {
-    //                 programGroup.candidates.forEach((candidate) => {
-    //                   candidate.uniqueId = generateRandomKey();
-    //                   candidate.college = candidate.college || collegeGroup.collegeAcronym || collegeGroup.collegeName;
-    //                   candidate.program = candidate.program || programGroup.program;
-    //                   aggregatedCandidates.push(candidate);
-    //                 });
-    //               }
-    //             });
-    //           }
-    //         });
-    //       }
-    //     });
-
-    //     // Create maps/sets to track which abstain candidates we need to add.
-    //     // For general positions (not governor, vice governor, or board member), one abstain candidate per position.
-    //     const generalPositions = new Set();
-    //     // For governor and vice governor, we add one per distinct (position + college) combination.
-    //     const govPositionsMap = {};
-    //     // For board member, add one per distinct (position + program) combination.
-    //     const boardPositionsMap = {};
-
-    //     aggregatedCandidates.forEach((candidate) => {
-    //       const posLower = candidate.position.toLowerCase();
-    //       if (posLower === "governor" || posLower === "vice governor") {
-    //         if (candidate.college) {
-    //           const key = posLower + "_" + candidate.college.toLowerCase();
-    //           govPositionsMap[key] = { position: candidate.position, college: candidate.college };
-    //         }
-    //         // Build the board member map using both college and program.
-    //       } else if (posLower === "board member") {
-    //         if (candidate.program && candidate.college) {
-    //           // Use both college and program as key
-    //           const key = posLower + "_" + candidate.college.toLowerCase() + "_" + candidate.program.toLowerCase();
-    //           boardPositionsMap[key] = { position: candidate.position, college: candidate.college, program: candidate.program };
-    //         }
-    //       } else {
-    //         generalPositions.add(candidate.position); // Preserve original case
-    //       }
-    //     });
-
-    //     // Add abstain candidate for each general position
-    //     generalPositions.forEach((position) => {
-    //       const abstainCandidate = {
-    //         _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase(),
-    //         party: "",
-    //         name: "Abstain",
-    //         image: "",
-    //         moreInfo: "Abstain",
-    //         position: position,
-    //         uniqueId: generateRandomKey(),
-    //       };
-    //       aggregatedCandidates.push(abstainCandidate);
-    //     });
-
-    //     // Add abstain candidate for each governor/vice governor (per college)
-    //     Object.values(govPositionsMap).forEach(({ position, college }) => {
-    //       const abstainCandidate = {
-    //         _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase() + "_" + college.replace(/\s+/g, "_").toLowerCase(),
-    //         party: "",
-    //         name: "Abstain",
-    //         image: "",
-    //         moreInfo: "Abstain",
-    //         position: position,
-    //         college: college,
-    //         uniqueId: generateRandomKey(),
-    //       };
-    //       aggregatedCandidates.push(abstainCandidate);
-    //     });
-
-    //     // Add abstain candidate for each board member (per program)
-    //     // Add abstain candidate for each board member (per college and program)
-    //     Object.values(boardPositionsMap).forEach(({ position, college, program }) => {
-    //       const abstainCandidate = {
-    //         _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase() + "_" + college.replace(/\s+/g, "_").toLowerCase() + "_" + program.replace(/\s+/g, "_").toLowerCase(),
-    //         party: "",
-    //         name: "Abstain",
-    //         image: "",
-    //         moreInfo: "Abstain",
-    //         position: position,
-    //         college: college, // now included
-    //         program: program,
-    //         uniqueId: generateRandomKey(),
-    //       };
-    //       aggregatedCandidates.push(abstainCandidate);
-    //     });
-
-    //     // Extract only the unique IDs (which are now valid 32-byte hex strings)
-    //     // Extract only the unique IDs (which are now valid 32-byte hex strings)
-    //     const candidateIds = aggregatedCandidates.map((candidate) => candidate.uniqueId);
-
-    //     // Reset candidate list on the blockchain before submitting new candidates.
-    //     // const resetTx = await contract.resetCandidates();
-    //     // await resetTx.wait();
-
-    //     // Batch processing: 30 candidates max per call.
-    //     const batchSize = 10;
-    //     let receipt;
-    //     for (let i = 0; i < candidateIds.length; i += batchSize) {
-    //       const batch = candidateIds.slice(i, i + batchSize);
-    //       const tx = await contract.registerCandidates(batch, {
-    //         gasLimit: 1000000, // adjust as needed
-    //         maxFeePerGas: ethers.parseUnits("2000", "gwei"),
-    //         maxPriorityFeePerGas: ethers.parseUnits("10", "gwei"),
-    //       });
-    //       receipt = await tx.wait();
-    //       console.log(`Batch ${Math.floor(i / batchSize) + 1} submitted: ${receipt.hash}`);
-    //     }
-
-    //     // Optionally, update your database with the aggregated candidate data
-    //     const result = await db.collection("aggregatedCandidates").updateOne({}, { $set: { candidates: aggregatedCandidates } }, { upsert: true });
-
-    //     await logActivity("system_activity_logs", "Candidates Submitted", "Admin", req);
-
-    //     console.log("Transaction Receipt:", receipt);
-
-    //     // Fetch Crypto Prices
-    //     const priceData = await getCryptoPrices();
-    //     if (!priceData) {
-    //       console.log("Failed to fetch crypto prices. Skipping PHP conversion.");
-    //     }
-
-    //     // Ensure ETH and POL prices exist
-    //     const ethPricePhp = priceData?.ethPricePhp || 0;
-    //     const ethPriceUsd = priceData?.ethPriceUsd || 0;
-    //     let polPricePhp = priceData?.polPricePhp || 0;
-    //     const polPriceUsd = priceData?.polPriceUsd || 0;
-
-    //     // Convert POL → PHP manually if missing
-    //     if (!polPricePhp && polPriceUsd && ethPricePhp && ethPriceUsd) {
-    //       polPricePhp = (polPriceUsd / ethPriceUsd) * ethPricePhp;
-    //     }
-
-    //     // Gas Calculation (Fix BigInt issue)
-    //     const gasUsed = Number(receipt.gasUsed);
-    //     const gasPrice = Number(receipt.gasPrice);
-    //     const amountSpentEth = (gasUsed * gasPrice) / 1e18;
-    //     const amountSpentPhp = ethPricePhp ? amountSpentEth * ethPricePhp : "N/A";
-    //     const amountSpentUsd = ethPriceUsd ? amountSpentEth * ethPriceUsd : "N/A";
-
-    //     // Blockchain Info
-    //     const blockchainInfo = {
-    //       blockchainLink: `https://amoy.polygonscan.com/address/${receipt.hash}`,
-    //       dateSent: new Date(),
-    //       amountSpentWei: (gasUsed * gasPrice).toString(),
-    //       amountSpentEth,
-    //       amountSpentPhp,
-    //       amountSpentUsd,
-    //       gasUsed: gasUsed.toString(),
-    //       tokenUsed: "ETH",
-    //       transactionHash: receipt.hash,
-    //       polPricePhp,
-    //       polPriceUsd,
-    //     };
-
-    //     // Save Blockchain Info in Database
-    //     await db.collection("blockchainInfo").updateOne({}, { $set: blockchainInfo }, { upsert: true });
-
-    //     // Response
-    //     res.status(200).json({
-    //       message: "Candidates submitted to blockchain successfully",
-    //       count: aggregatedCandidates.length,
-    //       blockchainTx: receipt,
-    //       blockchainInfo,
-    //     });
-    //   } catch (error) {
-    //     console.error("Error aggregating candidates:", error);
-    //     res.status(500).json({ error: error.message });
-    //   }
-    // });
 
     // Public wallet address to track
 
@@ -1545,13 +1342,11 @@ const startServer = async () => {
 
     const sgMail = require("@sendgrid/mail");
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
     /* FOR DESIGNING ONLY */
     app.get("/verify-otp", ensureAuthenticated, async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
         let electionConfig = await electionConfigCollection.findOne({});
-
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
         const otp = req.query.otp;
@@ -1559,19 +1354,27 @@ const startServer = async () => {
         // Automatically accept "999999" for testing
         if (otp === "999999") {
           req.session.otpVerified = true;
-          return res.redirect("/vote");
+          return res.redirect("/vote?otp_verified=true");
         }
 
         // Verify the OTP against the one stored in session and ensure it's not expired
         if (!req.session.otp || otp !== req.session.otp || Date.now() > req.session.otpExpires) {
-          return res.render("voter/verify-otp", { email: req.user.email, error: "Invalid or expired OTP.", electionConfig });
+          return res.render("voter/verify-otp", {
+            email: req.user.email,
+            error: "Invalid or expired OTP.",
+            electionConfig,
+          });
         }
 
         req.session.otpVerified = true;
-        return res.redirect("/vote");
+        return res.redirect("/vote?otp_verified=true");
       } catch (error) {
         console.error("Error verifying OTP:", error);
-        return res.render("voter/verify-otp", { email: req.user.email, error: "An error occurred. Please try again.", electionConfig });
+        return res.render("voter/verify-otp", {
+          email: req.user.email,
+          error: "An error occurred. Please try again.",
+          electionConfig,
+        });
       }
     });
 
@@ -1582,24 +1385,35 @@ const startServer = async () => {
         // Automatically accept "999999" for testing
         if (otp === "999999") {
           req.session.otpVerified = true;
-          return res.redirect("/vote");
+          return res.redirect("/vote?otp_verified=true");
         }
 
         // Verify the OTP against the one stored in session and ensure it's not expired
         if (!req.session.otp || otp !== req.session.otp || Date.now() > req.session.otpExpires) {
-          return res.render("voter/verify-otp", { email: req.user.email, error: "Invalid or expired OTP." });
+          return res.render("voter/verify-otp", {
+            email: req.user.email,
+            error: "Invalid or expired OTP.",
+          });
         }
 
         req.session.otpVerified = true;
-        return res.redirect("/vote");
+        return res.redirect("/vote?otp_verified=true");
       } catch (error) {
         console.error("Error verifying OTP:", error);
-        return res.render("voter/verify-otp", { email: req.user.email, error: "An error occurred. Please try again." });
+        return res.render("voter/verify-otp", {
+          email: req.user.email,
+          error: "An error occurred. Please try again.",
+        });
       }
     });
 
     app.post("/request-otp", ensureAuthenticated, async (req, res) => {
       try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
         // Generate a new 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         req.session.otp = otp;
@@ -1616,11 +1430,15 @@ const startServer = async () => {
 
         console.log(`OTP sent to ${req.user.email} - OTP: ${otp}`);
 
-        // Render the same verification view with a success message.
-        return res.render("voter/verify-otp", { email: req.user.email, message: "OTP sent. Please check your email." });
+        // Redirect to /verify-otp with a URL param indicating OTP was sent
+        return res.redirect("/verify-otp?otp_sent=true");
       } catch (error) {
         console.error("Error sending OTP:", error);
-        return res.render("voter/verify-otp", { email: req.user.email, error: "Failed to send OTP. Please try again." });
+        return res.render("voter/verify-otp", {
+          email: req.user.email,
+          error: "Failed to send OTP. Please try again.",
+          electionConfig,
+        });
       }
     });
 
@@ -1634,7 +1452,7 @@ const startServer = async () => {
         // Check if the voter is registered
         const registeredVoter = await db.collection("registered_voters").findOne({ email: req.user.email });
         if (!registeredVoter) {
-          return res.redirect("/register?error=not_registered");
+          return res.redirect("/?error=not_registered");
         }
 
         // Hardcode the developer emails (special cases)
@@ -1653,7 +1471,7 @@ const startServer = async () => {
 
         // If OTP is not verified, show the verification page with the OTP input
         if (!req.session.otpVerified) {
-          return res.render("voter/verify-otp", { email: req.user.email });
+          return res.render("voter/verify-otp", { email: req.user.email, electionConfig });
         }
 
         // OTP has been verified—proceed to extract candidate info
@@ -1672,6 +1490,11 @@ const startServer = async () => {
         const governorCandidates = candidates.filter((candidate) => candidate.position.toLowerCase() === "governor" && candidate.college && candidate.college.toLowerCase() === college.toLowerCase());
         const viceGovernorCandidates = candidates.filter((candidate) => candidate.position.toLowerCase() === "vice governor" && candidate.college && candidate.college.toLowerCase() === college.toLowerCase());
         const boardCandidates = candidates.filter((candidate) => candidate.position.toLowerCase() === "board member" && candidate.college && candidate.college.toLowerCase() === college.toLowerCase() && candidate.program && candidate.program.toLowerCase() === program.toLowerCase());
+
+        if (!req.query.logged_in) {
+          const separator = req.originalUrl.includes("?") ? "&" : "?";
+          return res.redirect(req.originalUrl + separator + "logged_in=true");
+        }
 
         res.render("voter/vote", {
           presidentCandidates,
@@ -3667,290 +3490,6 @@ const startServer = async () => {
       }
     });
 
-    // app.get("/results", ensureAdminAuthenticated, async (req, res) => {
-    //   try {
-    //     const electionConfigCollection = db.collection("election_config");
-    //     let electionConfig = await electionConfigCollection.findOne({});
-
-    //     const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-    //     electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-    //     // Call the getCandidateDetails function from the contract
-    //     const [candidateIds, voteCounts] = await contract.getCandidateDetails();
-
-    //     // Fetch candidates from MongoDB
-    //     const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
-    //     const allCandidates = aggregatedData.candidates;
-
-    //     // Combine Blockchain Data with Candidate Info
-    //     const candidates = candidateIds.map((id, index) => {
-    //       const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
-    //       return {
-    //         candidateId: id.toString(),
-    //         name: candidate ? candidate.name : "Unknown Candidate",
-    //         party: candidate ? candidate.party : "Unknown Party",
-    //         // Standardize the position to lowercase for consistency
-    //         position: candidate ? candidate.position.toLowerCase() : "unknown position",
-    //         image: candidate ? candidate.image : "No Image",
-    //         college: candidate ? candidate.college : "",
-    //         program: candidate ? candidate.program : "",
-    //         voteCount: voteCounts[index].toString(),
-    //       };
-    //     });
-
-    //     // Helper function for non-senator groups: get candidate(s) with highest voteCount
-    //     function getTopCandidates(candidatesArray) {
-    //       if (!candidatesArray.length) return [];
-    //       const maxVote = Math.max(...candidatesArray.map((c) => parseInt(c.voteCount, 10)));
-    //       return candidatesArray.filter((c) => parseInt(c.voteCount, 10) === maxVote);
-    //     }
-
-    //     // Helper function for senators: get top 7 candidates (including ties at 7th position)
-    //     function getTopSenators(candidatesArray) {
-    //       if (!candidatesArray.length) return [];
-    //       // Sort descending by voteCount
-    //       const sorted = candidatesArray.slice().sort((a, b) => parseInt(b.voteCount, 10) - parseInt(a.voteCount, 10));
-    //       if (sorted.length <= 7) return sorted;
-    //       const cutoff = parseInt(sorted[6].voteCount, 10);
-    //       return sorted.filter((candidate) => parseInt(candidate.voteCount, 10) >= cutoff);
-    //     }
-
-    //     // 1. Group candidates by position
-    //     const groupedByPosition = candidates.reduce((acc, candidate) => {
-    //       const pos = candidate.position; // already lowercased
-    //       if (!acc[pos]) {
-    //         acc[pos] = [];
-    //       }
-    //       acc[pos].push(candidate);
-    //       return acc;
-    //     }, {});
-
-    //     // 2. For positions that require grouping by college, group accordingly.
-    //     // Positions: Governor, Vice Governor, Board Member
-    //     const positionsGroupedByCollege = ["governor", "vice governor", "board member"];
-    //     positionsGroupedByCollege.forEach((pos) => {
-    //       if (groupedByPosition[pos]) {
-    //         // Group by college
-    //         const byCollege = groupedByPosition[pos].reduce((acc, candidate) => {
-    //           const college = candidate.college || "Unknown College";
-    //           if (!acc[college]) {
-    //             acc[college] = [];
-    //           }
-    //           acc[college].push(candidate);
-    //           return acc;
-    //         }, {});
-    //         // For board members, further group by program within each college
-    //         if (pos === "board member") {
-    //           Object.keys(byCollege).forEach((college) => {
-    //             byCollege[college] = byCollege[college].reduce((acc, candidate) => {
-    //               const program = candidate.program || "Unknown Program";
-    //               if (!acc[program]) {
-    //                 acc[program] = [];
-    //               }
-    //               acc[program].push(candidate);
-    //               return acc;
-    //             }, {});
-    //           });
-    //         }
-    //         groupedByPosition[pos] = byCollege;
-    //       }
-    //     });
-
-    //     // 3. Recursively traverse the grouped structure and select the top candidate(s)
-    //     function processGroupings(grouping, positionKey = null) {
-    //       if (Array.isArray(grouping)) {
-    //         if (positionKey === "senator") {
-    //           return getTopSenators(grouping);
-    //         } else {
-    //           return getTopCandidates(grouping);
-    //         }
-    //       } else if (typeof grouping === "object" && grouping !== null) {
-    //         const result = {};
-    //         Object.keys(grouping).forEach((key) => {
-    //           result[key] = processGroupings(grouping[key], positionKey);
-    //         });
-    //         return result;
-    //       }
-    //       return grouping;
-    //     }
-
-    //     const finalResults = {};
-    //     Object.keys(groupedByPosition).forEach((position) => {
-    //       finalResults[position] = processGroupings(groupedByPosition[position], position);
-    //     });
-
-    //     // Render the view with the final grouped results.
-    //     res.render("admin/election-results", {
-    //       groupedResults: finalResults,
-    //       electionConfig,
-    //       loggedInAdmin: req.session.admin,
-    //     });
-    //   } catch (error) {
-    //     console.error("Error fetching candidate details:", error);
-    //     res.status(500).json({ error: error.message });
-    //   }
-    // });
-
-    // app.get("/temp", ensureAdminAuthenticated, async (req, res) => {
-    //   try {
-    //     const electionConfigCollection = db.collection("election_config");
-    //     let electionConfig = await electionConfigCollection.findOne({});
-
-    //     const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-    //     electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-    //     // Call the getCandidateDetails function from the contract
-    //     const [candidateIds, voteCounts] = await contract.getCandidateDetails();
-
-    //     // Fetch candidates from MongoDB
-    //     const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
-    //     const allCandidates = aggregatedData.candidates;
-
-    //     // Combine Blockchain Data with Candidate Info
-    //     // Combine Blockchain Data with Candidate Info
-    //     const candidates = candidateIds
-    //       .map((id, index) => {
-    //         const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
-    //         return {
-    //           candidateId: id.toString(),
-    //           name: candidate ? candidate.name : "Unknown Candidate",
-    //           party: candidate ? candidate.party : "Unknown Party",
-    //           position: candidate ? candidate.position.toLowerCase() : "unknown position",
-    //           college: candidate ? candidate.college : "Unknown College", // Add college field
-    //           program: candidate ? candidate.program : "Unknown Program", // Add program field
-    //           image: candidate ? candidate.image : "No Image",
-    //           voteCount: voteCounts[index].toString() || 0,
-    //         };
-    //       })
-    //       .filter((candidate) => candidate.name !== "Abstain"); // Exclude Abstain candidates
-
-    //     // Helper function for non-senator groups: get candidate(s) with highest voteCount
-    //     function getTopCandidates(candidatesArray) {
-    //       if (!candidatesArray.length) return [];
-    //       const maxVote = Math.max(...candidatesArray.map((c) => parseInt(c.voteCount, 10)));
-    //       return candidatesArray.filter((c) => parseInt(c.voteCount, 10) === maxVote);
-    //     }
-
-    //     // Helper function for senators: get top 7 candidates (including ties at 7th position)
-    //     function getTopSenators(candidatesArray) {
-    //       if (!candidatesArray.length) return [];
-    //       const sorted = candidatesArray.slice().sort((a, b) => parseInt(b.voteCount, 10) - parseInt(a.voteCount, 10));
-    //       if (sorted.length <= 7) return sorted;
-    //       const cutoff = parseInt(sorted[6].voteCount, 10);
-    //       return sorted.filter((candidate) => parseInt(candidate.voteCount, 10) >= cutoff);
-    //     }
-
-    //     // 1. Group candidates by position
-    //     const groupedByPosition = candidates.reduce((acc, candidate) => {
-    //       const pos = candidate.position; // already lowercased
-    //       if (!acc[pos]) {
-    //         acc[pos] = [];
-    //       }
-    //       acc[pos].push(candidate);
-    //       return acc;
-    //     }, {});
-
-    //     // 2. For positions that require grouping by college, group accordingly.
-    //     // Positions: governor, vice governor, board member
-    //     const positionsGroupedByCollege = ["governor", "vice governor", "board member"];
-    //     positionsGroupedByCollege.forEach((pos) => {
-    //       if (groupedByPosition[pos]) {
-    //         // Group by college
-    //         const byCollege = groupedByPosition[pos].reduce((acc, candidate) => {
-    //           const college = candidate.college || "Unknown College";
-    //           if (!acc[college]) {
-    //             acc[college] = [];
-    //           }
-    //           acc[college].push(candidate);
-    //           return acc;
-    //         }, {});
-    //         // For board members, further group by program within each college
-    //         if (pos === "board member") {
-    //           Object.keys(byCollege).forEach((college) => {
-    //             byCollege[college] = byCollege[college].reduce((acc, candidate) => {
-    //               const program = candidate.program || "Unknown Program";
-    //               if (!acc[program]) {
-    //                 acc[program] = [];
-    //               }
-    //               acc[program].push(candidate);
-    //               return acc;
-    //             }, {});
-    //           });
-    //         }
-    //         groupedByPosition[pos] = byCollege;
-    //       }
-    //     });
-
-    //     // 3. Recursively traverse the grouped structure and select the top candidate(s)
-    //     function processGroupings(grouping, positionKey = null) {
-    //       if (Array.isArray(grouping)) {
-    //         if (positionKey === "senator") {
-    //           return getTopSenators(grouping);
-    //         } else {
-    //           return getTopCandidates(grouping);
-    //         }
-    //       } else if (typeof grouping === "object" && grouping !== null) {
-    //         const result = {};
-    //         Object.keys(grouping).forEach((key) => {
-    //           result[key] = processGroupings(grouping[key], positionKey);
-    //         });
-    //         return result;
-    //       }
-    //       return grouping;
-    //     }
-
-    //     const finalResults = {};
-    //     Object.keys(groupedByPosition).forEach((position) => {
-    //       finalResults[position] = processGroupings(groupedByPosition[position], position);
-    //     });
-
-    //     // 4. Add percentage info to each winner.
-    //     // For non-grouped positions (where finalResults[position] is an array)
-    //     Object.keys(finalResults).forEach((position) => {
-    //       if (Array.isArray(finalResults[position])) {
-    //         // total vote count for this position
-    //         const totalVotes = groupedByPosition[position].reduce((acc, candidate) => acc + parseInt(candidate.voteCount, 10), 0);
-    //         finalResults[position] = finalResults[position].map((candidate) => {
-    //           candidate.percentage = totalVotes > 0 ? ((parseInt(candidate.voteCount, 10) / totalVotes) * 100).toFixed(2) : "0.00";
-    //           return candidate;
-    //         });
-    //       } else if (typeof finalResults[position] === "object" && finalResults[position] !== null) {
-    //         // For positions grouped by college (or further by program), traverse recursively
-    //         function addPercentage(grouping, originalGroup) {
-    //           if (Array.isArray(grouping)) {
-    //             // originalGroup here is the array of all candidates in this subgroup
-    //             const totalVotes = originalGroup.reduce((acc, candidate) => acc + parseInt(candidate.voteCount, 10), 0);
-    //             return grouping.map((candidate) => {
-    //               candidate.percentage = totalVotes > 0 ? ((parseInt(candidate.voteCount, 10) / totalVotes) * 100).toFixed(2) : "0.00";
-    //               return candidate;
-    //             });
-    //           } else if (typeof grouping === "object" && grouping !== null) {
-    //             const result = {};
-    //             Object.keys(grouping).forEach((key) => {
-    //               // For each subgroup, find its corresponding full list from originalGroup
-    //               const originalSubgroup = originalGroup[key];
-    //               result[key] = addPercentage(grouping[key], originalSubgroup);
-    //             });
-    //             return result;
-    //           }
-    //           return grouping;
-    //         }
-    //         finalResults[position] = addPercentage(finalResults[position], groupedByPosition[position]);
-    //       }
-    //     });
-
-    //     // Render the view with the final grouped results, which now include percentage info.
-    //     res.render("admin/election-results", {
-    //       groupedResults: finalResults,
-    //       electionConfig,
-    //       loggedInAdmin: req.session.admin,
-    //     });
-    //   } catch (error) {
-    //     console.error("Error fetching candidate details:", error);
-    //     res.status(500).json({ error: error.message });
-    //   }
-    // });
-
     app.get("/reset", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");
       let electionConfig = await electionConfigCollection.findOne({});
@@ -4201,16 +3740,6 @@ const startServer = async () => {
 
       res.render("homepages/rvs-about", { electionConfig });
     });
-
-    // app.get("/rvs-election-results", async (req, res) => {
-    //   const electionConfigCollection = db.collection("election_config");
-    //   let electionConfig = await electionConfigCollection.findOne({});
-
-    //   const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-    //   electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-    //   res.render("homepages/rvs-election-results", { electionConfig });
-    // });
 
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
