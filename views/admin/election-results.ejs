@@ -419,6 +419,7 @@
                 <% if (groupedResults["board member"] && typeof groupedResults["board member"] === 'object') { %> <% Object.keys(groupedResults["board member"]).forEach(function(college) { %>
                 <div class="board-member-group" data-college="<%= college.toLowerCase() %>">
                   <% var programs = groupedResults["board member"][college]; %> <% Object.keys(programs).forEach(function(program) { %>
+
                   <div class="program-group">
                     <h3><%= program %></h3>
                     <% programs[program].forEach(function(candidate) { %>
@@ -442,6 +443,8 @@
                     </div>
                     <% }); %>
                   </div>
+
+                  <br />
                   <% }); %>
                 </div>
                 <% }); %> <% } else { %>

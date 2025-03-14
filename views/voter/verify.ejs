@@ -5,28 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Voting Receipt</title>
     <link rel="stylesheet" type="text/css" href="/css/index.css" />
-    <link rel="stylesheet" type="text/css" href="/voter/css/index-voter.css" />
+    <link rel="stylesheet" type="text/css" href="voter/css/index-voter.css" />
     <link rel="stylesheet" type="text/css" href="/voter/css/verify.css" />
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <style>
+    <!-- <style>
       /* Ensure long hashes break properly */
       .hash-break {
         word-break: break-all;
       }
-    </style>
+    </style> -->
   </head>
   <body>
     <!-- Header (unchanged) -->
     <header class="header">
       <div class="header-logo">
-        <img src="/img/logo_tanikala.png" alt="Tanikala Voting System" />
+        <img src="img/logo_tanikala.png" alt="Tanikala Voting System" />
       </div>
       <nav class="header-nav">
         <ul class="header-nav-content">
           <div id="links">
             <li>Vote</li>
+            <p class="line">|</p>
             <li>Review</li>
+            <p class="line">|</p>
             <li id="active-link">Verify</li>
           </div>
           <div class="settings">
@@ -44,6 +47,7 @@
           </div>
         </ul>
       </nav>
+
       <div class="header-bottom-line"></div>
     </header>
 

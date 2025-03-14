@@ -55,8 +55,9 @@
         margin: 10% auto;
         padding: 20px;
         border: 1px solid #888;
-        width: 80%;
-        max-width: 700px;
+        width: 90%;
+        height: 70%;
+        /* max-width: 700px; */
         border-radius: 5px;
       }
 
@@ -69,7 +70,9 @@
       }
 
       .voteHashList {
-        font-size: 10 px;
+        font-size: 8 px;
+        width: 100%;
+        height: 100%;
       }
     </style>
 
@@ -143,7 +146,7 @@
                     </div>
                     <p><%= percentage %>%</p>
                     <!-- Clickable text with candidate.uniqueId stored in a data attribute -->
-                    <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show Vote Hashes</a>
+                    <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show List of Voter IDs</a>
                   </div>
                   <% }); %>
                 </div>
@@ -172,7 +175,7 @@
                     </div>
                     <p><%= percentage %>%</p>
                     <!-- Clickable text with candidate.uniqueId stored in a data attribute -->
-                    <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show Vote Hashes</a>
+                    <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show List of Voter IDs</a>
                   </div>
                   <% }); %>
                 </div>
@@ -200,7 +203,7 @@
                     </div>
                     <p><%= percentage %>%</p>
                     <!-- Clickable text with candidate.uniqueId stored in a data attribute -->
-                    <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show Vote Hashes</a>
+                    <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show List of Voter IDs</a>
                   </div>
                   <% }); %>
                 </div>
@@ -250,7 +253,7 @@
                       <p>Party: <%= candidate.party %></p>
                       <p>Votes: <%= candidate.voteCount %></p>
                       <!-- Clickable text with candidate.uniqueId stored in a data attribute -->
-                      <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show Vote Hashes</a>
+                      <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show List of Voter IDs</a>
                     </div>
                     <% }); %>
                   </div>
@@ -264,14 +267,15 @@
                       <p>Party: <%= candidate.party %></p>
                       <p>Votes: <%= candidate.voteCount %></p>
                       <!-- Clickable text with candidate.uniqueId stored in a data attribute -->
-                      <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show Vote Hashes</a>
+                      <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show List of Voter IDs</a>
                     </div>
                     <% }); %>
                   </div>
                   <!-- Board Member Container -->
                   <div class="container-lsc" id="container-lsc-board-member">
                     <h1>Board Member</h1>
-                    <% let boardMembersByProgram = {}; candidates .filter(candidate => candidate.position === 'board member' && candidate.college && candidate.program) .forEach(candidate => { if (!boardMembersByProgram[candidate.program]) { boardMembersByProgram[candidate.program] = []; } boardMembersByProgram[candidate.program].push(candidate); }); %> <% Object.keys(boardMembersByProgram).forEach(program => { %>
+                    <% let boardMembersByProgram = {}; candidates .filter(candidate => candidate.position === 'board member' && candidate.college && candidate.program) .forEach(candidate => { if (!boardMembersByProgram[candidate.program]) { boardMembersByProgram[candidate.program] = []; }
+                    boardMembersByProgram[candidate.program].push(candidate); }); %> <% Object.keys(boardMembersByProgram).forEach(program => { %>
                     <h3 class="program-header"><%= program %></h3>
                     <% boardMembersByProgram[program].forEach(candidate => { %>
                     <div class="candidate lsc-candidate" data-college="<%= candidate.college %>" data-program="<%= candidate.program %>">
@@ -280,7 +284,7 @@
                       <p>Party: <%= candidate.party %></p>
                       <p>Votes: <%= candidate.voteCount %></p>
                       <!-- Clickable text with candidate.uniqueId stored in a data attribute -->
-                      <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show Vote Hashes</a>
+                      <a href="#" class="show-vote-hashes" data-candidate-id="<%= candidate.candidateId %>">Show List of Voter IDs</a>
                     </div>
                     <% }); %> <% }); %>
                   </div>
@@ -328,7 +332,7 @@
         <span class="close">&times;</span>
         <h3>Vote Hashes</h3>
         <!-- Search bar -->
-        <input type="text" id="voteHashSearch" placeholder="Search hashes..." style="width: 100%; margin-bottom: 10px; padding: 5px" />
+        <input type="text" id="voteHashSearch" placeholder="Search voter id..." style="width: 100%; margin-bottom: 10px; padding: 5px" />
         <div id="voteHashList" style="max-height: 300px; overflow-y: auto"></div>
       </div>
     </div>

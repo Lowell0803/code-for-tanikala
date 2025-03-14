@@ -114,4 +114,6 @@
 .right {
   text-align: right;
   padding-right: 2rem;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
 }

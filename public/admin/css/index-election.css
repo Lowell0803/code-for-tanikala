@@ -145,10 +145,18 @@
 }
 
 .votes-abstain {
-  margin-top: 2rem;
-  padding-left: 0.5rem;
+  margin-top: -9rem;
+  padding-left: 9rem;
 }
 
 .abstain {
-  padding-bottom: -1rem;
+  padding-bottom: -5rem;
 }
+
+#container-lsc-board-member ul {
+  margin-top: 2rem;
+}
+
+/* .votes-abstain {
+  padding-top: -5rem;
+} */

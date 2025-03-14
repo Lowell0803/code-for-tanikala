@@ -121,9 +121,13 @@ img {
   width: 100%;
 }
 
+/* #links {
+  flex-direction: row !important;
+} */
+
 .header-nav {
   display: flex;
-  flex-basis: var(--width-header-nav);
+  flex-basis: var(--width-header-nav) !important;
   justify-content: flex-end;
   align-items: center;
 }
