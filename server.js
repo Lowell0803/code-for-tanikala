@@ -1058,6 +1058,15 @@ const startServer = async () => {
         // Optionally, update your database with the aggregated candidate data
         const result = await db.collection("aggregatedCandidates").updateOne({}, { $set: { candidates: aggregatedCandidates } }, { upsert: true });
 
+        // Reset the candidate_hashes collection and insert new documents.
+        // Each document includes the candidateId and an empty emails array.
+        await db.collection("candidate_hashes").deleteMany({});
+        const candidateHashesDocs = aggregatedCandidates.map((candidate) => ({
+          candidateId: candidate.uniqueId,
+          emails: [], // initial emails array is empty
+        }));
+        await db.collection("candidate_hashes").insertMany(candidateHashesDocs);
+
         await logActivity("system_activity_logs", "Candidates Submitted", "Admin", req);
 
         console.log("Transaction Receipt:", receipt);
