@@ -174,8 +174,8 @@
               <li><a class="link_name" href="/voter-info"><%= electionConfig.electionName || "No Election Ongoing" %></a></li>
               <li><a href="/voter-info">Voter Info</a></li>
               <li><a href="/voter-turnout">Voter Turnout</a></li>
-              <li><a href="/vote-tally" id="active-sub">Vote Tally</a></li>
-              <li><a href="/results">Results</a></li>
+              <li><a href="/vote-tally">Vote Tally</a></li>
+              <li><a href="/results" id="active-sub">Results</a></li>
               <li><a href="/reset">Reset Election</a></li>
             </ul>
           </li>
@@ -220,8 +220,10 @@
         <div class="first-main">
           <div class="main-left">
             <h1 class="ssc">Supreme Student Council</h1>
-            <% const presidentCandidates = candidates.filter(candidate => candidate.position === 'president' && candidate.name !== 'Abstain'); const abstainCandidate = candidates.find(candidate => candidate.position === 'president' && candidate.name === 'Abstain'); presidentCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); let totalVotes = presidentCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); const abstainVotes = abstainCandidate ?
-            (Number(abstainCandidate.voteCount) || 0) : 0; let maxVoteCount = 0; presidentCandidates.forEach(candidate => { const votes = Number(candidate.voteCount) || 0; if (votes > maxVoteCount) { maxVoteCount = votes; } }); if (abstainCandidate && abstainVotes <= maxVoteCount) { totalVotes += abstainVotes; } const winners = presidentCandidates.filter(candidate => Number(candidate.voteCount) === maxVoteCount); %>
+            <% const presidentCandidates = candidates.filter(candidate => candidate.position === 'president' && candidate.name !== 'Abstain'); const abstainCandidate = candidates.find(candidate => candidate.position === 'president' && candidate.name === 'Abstain'); presidentCandidates.sort((a, b) =>
+            Number(b.voteCount) - Number(a.voteCount)); let totalVotes = presidentCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); const abstainVotes = abstainCandidate ? (Number(abstainCandidate.voteCount) || 0) : 0; let maxVoteCount = 0;
+            presidentCandidates.forEach(candidate => { const votes = Number(candidate.voteCount) || 0; if (votes > maxVoteCount) { maxVoteCount = votes; } }); if (abstainCandidate && abstainVotes <= maxVoteCount) { totalVotes += abstainVotes; } const winners = presidentCandidates.filter(candidate =>
+            Number(candidate.voteCount) === maxVoteCount); %>
             <div class="container-ssc" id="container-president">
               <div class="container-position">
                 <h1 class="position-ssc">President</h1>
@@ -257,9 +259,10 @@
               });
             </script>
 
-            <% const viceCandidatesNoAbstain = candidates.filter(candidate => candidate.position === 'vice president' && candidate.name !== 'Abstain'); const abstainCandidateVice = candidates.find(candidate => candidate.position === 'vice president' && candidate.name === 'Abstain'); viceCandidatesNoAbstain.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); let totalVotesVice = viceCandidatesNoAbstain.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); const
-            abstainVotesVice = abstainCandidateVice ? (Number(abstainCandidateVice.voteCount) || 0) : 0; let maxVoteCountVice = 0; viceCandidatesNoAbstain.forEach(candidate => { const votes = Number(candidate.voteCount) || 0; if (votes > maxVoteCountVice) { maxVoteCountVice = votes; } }); if (abstainCandidateVice && abstainVotesVice <= maxVoteCountVice) { totalVotesVice += abstainVotesVice; } const winnersVice = viceCandidatesNoAbstain.filter(candidate => Number(candidate.voteCount) ===
-            maxVoteCountVice); %>
+            <% const viceCandidatesNoAbstain = candidates.filter(candidate => candidate.position === 'vice president' && candidate.name !== 'Abstain'); const abstainCandidateVice = candidates.find(candidate => candidate.position === 'vice president' && candidate.name === 'Abstain');
+            viceCandidatesNoAbstain.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); let totalVotesVice = viceCandidatesNoAbstain.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); const abstainVotesVice = abstainCandidateVice ? (Number(abstainCandidateVice.voteCount)
+            || 0) : 0; let maxVoteCountVice = 0; viceCandidatesNoAbstain.forEach(candidate => { const votes = Number(candidate.voteCount) || 0; if (votes > maxVoteCountVice) { maxVoteCountVice = votes; } }); if (abstainCandidateVice && abstainVotesVice <= maxVoteCountVice) { totalVotesVice +=
+            abstainVotesVice; } const winnersVice = viceCandidatesNoAbstain.filter(candidate => Number(candidate.voteCount) === maxVoteCountVice); %>
             <div class="container-ssc" id="container-vice-president">
               <div class="container-position">
                 <h1 class="position-ssc">Vice President</h1>
@@ -295,15 +298,18 @@
               });
             </script>
 
-            <% const senatorCandidates = candidates.filter(candidate => candidate.position === 'senator' && candidate.name !== 'Abstain'); senatorCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); const maxVote = senatorCandidates.reduce((max, candidate) => Math.max(max, Number(candidate.voteCount) || 0), 0); const totalVotesSenator = senatorCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let winnersSenator = []; if (senatorCandidates.length
-            <= 7) { winnersSenator = senatorCandidates; } else { const threshold = Number(senatorCandidates[6].voteCount) || 0; winnersSenator = senatorCandidates.filter(candidate => (Number(candidate.voteCount) || 0) >= threshold); } let calculatedTotalVotesSenator = winnersSenator.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let rank = 0, lastVote = null, count = 0; %>
+            <% const senatorCandidates = candidates.filter(candidate => candidate.position === 'senator' && candidate.name !== 'Abstain'); senatorCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); const maxVote = senatorCandidates.reduce((max, candidate) => Math.max(max,
+            Number(candidate.voteCount) || 0), 0); const totalVotesSenator = senatorCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let winnersSenator = []; if (senatorCandidates.length <= 7) { winnersSenator = senatorCandidates; } else { const threshold =
+            Number(senatorCandidates[6].voteCount) || 0; winnersSenator = senatorCandidates.filter(candidate => (Number(candidate.voteCount) || 0) >= threshold); } let calculatedTotalVotesSenator = winnersSenator.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let rank = 0,
+            lastVote = null, count = 0; %>
             <div class="container-ssc" id="container-senator">
               <div class="container-position">
                 <h1 class="position-ssc">Senators</h1>
               </div>
               <hr />
               <br />
-              <% winnersSenator.forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; count++; if (lastVote === null || voteCount < lastVote) { rank = count; } lastVote = voteCount; const percentage = calculatedTotalVotesSenator > 0 ? ((voteCount / calculatedTotalVotesSenator) * 100).toFixed(2) : 0; %>
+              <% winnersSenator.forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; count++; if (lastVote === null || voteCount < lastVote) { rank = count; } lastVote = voteCount; const percentage = calculatedTotalVotesSenator > 0 ? ((voteCount / calculatedTotalVotesSenator) *
+              100).toFixed(2) : 0; %>
               <div class="candidate">
                 <div class="img-container">
                   <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
@@ -356,16 +362,18 @@
             </div>
             <br />
             <div id="lsc-container">
-              <% const governorCandidatesNoAbstain = candidates.filter(candidate => candidate.position === 'governor' && candidate.college && candidate.name !== 'Abstain'); const abstainCandidateGovernor = candidates.find(candidate => candidate.position === 'governor' && candidate.college && candidate.name === 'Abstain'); const colleges = ["CAFA", "CAL", "CBEA", "CCJE", "CHTM", "CICT", "CIT", "CN", "COE", "COED", "CS", "CSER", "CSSP"]; %>
+              <% const governorCandidatesNoAbstain = candidates.filter(candidate => candidate.position === 'governor' && candidate.college && candidate.name !== 'Abstain'); const abstainCandidateGovernor = candidates.find(candidate => candidate.position === 'governor' && candidate.college &&
+              candidate.name === 'Abstain'); const colleges = ["CAFA", "CAL", "CBEA", "CCJE", "CHTM", "CICT", "CIT", "CN", "COE", "COED", "CS", "CSER", "CSSP"]; %>
               <div class="container-lsc" id="container-lsc-governor">
                 <div class="container-position">
                   <h1 class="position-lsc">Governor</h1>
                 </div>
                 <hr />
                 <br />
-                <% colleges.forEach(college => { let collegeCandidates = governorCandidatesNoAbstain.filter(candidate => candidate.college === college); if (collegeCandidates.length) { collegeCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); let collegeTotalVotes = collegeCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let abstainVotes = 0; if (abstainCandidateGovernor && abstainCandidateGovernor.college === college) { abstainVotes =
-                Number(abstainCandidateGovernor.voteCount) || 0; if (collegeCandidates[0] && abstainVotes <= Number(collegeCandidates[0].voteCount)) { collegeTotalVotes += abstainVotes; } } let maxVoteCount = 0; collegeCandidates.forEach(candidate => { const votes = Number(candidate.voteCount) || 0; if (votes > maxVoteCount) { maxVoteCount = votes; } }); const winners = collegeCandidates.filter(candidate => Number(candidate.voteCount) === maxVoteCount); winners.forEach(candidate => { const
-                voteCount = Number(candidate.voteCount) || 0; const percentage = collegeTotalVotes > 0 ? ((voteCount / collegeTotalVotes) * 100).toFixed(2) : 0; %>
+                <% colleges.forEach(college => { let collegeCandidates = governorCandidatesNoAbstain.filter(candidate => candidate.college === college); if (collegeCandidates.length) { collegeCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); let collegeTotalVotes =
+                collegeCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let abstainVotes = 0; if (abstainCandidateGovernor && abstainCandidateGovernor.college === college) { abstainVotes = Number(abstainCandidateGovernor.voteCount) || 0; if (collegeCandidates[0] &&
+                abstainVotes <= Number(collegeCandidates[0].voteCount)) { collegeTotalVotes += abstainVotes; } } let maxVoteCount = 0; collegeCandidates.forEach(candidate => { const votes = Number(candidate.voteCount) || 0; if (votes > maxVoteCount) { maxVoteCount = votes; } }); const winners =
+                collegeCandidates.filter(candidate => Number(candidate.voteCount) === maxVoteCount); winners.forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = collegeTotalVotes > 0 ? ((voteCount / collegeTotalVotes) * 100).toFixed(2) : 0; %>
                 <div class="candidate lsc-candidate" data-college="<%= college %>">
                   <div class="candidate">
                     <div class="img-container">
@@ -398,16 +406,19 @@
                 });
               </script>
 
-              <% const viceGovernorCandidatesNoAbstain = candidates.filter(candidate => candidate.position === 'vice governor' && candidate.college && candidate.name !== 'Abstain'); const abstainCandidateViceGovernor = candidates.find(candidate => candidate.position === 'vice governor' && candidate.college && candidate.name === 'Abstain'); %>
+              <% const viceGovernorCandidatesNoAbstain = candidates.filter(candidate => candidate.position === 'vice governor' && candidate.college && candidate.name !== 'Abstain'); const abstainCandidateViceGovernor = candidates.find(candidate => candidate.position === 'vice governor' &&
+              candidate.college && candidate.name === 'Abstain'); %>
               <div class="container-lsc" id="container-lsc-vice-governor">
                 <div class="container-position">
                   <h1 class="position-lsc">Vice Governor</h1>
                 </div>
                 <hr />
                 <br />
-                <% colleges.forEach(college => { let collegeCandidates = viceGovernorCandidatesNoAbstain.filter(candidate => candidate.college === college); if (collegeCandidates.length) { collegeCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); let collegeTotalVotes = collegeCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let abstainVotes = 0; if (abstainCandidateViceGovernor && abstainCandidateViceGovernor.college === college) {
-                abstainVotes = Number(abstainCandidateViceGovernor.voteCount) || 0; if (collegeCandidates[0] && abstainVotes <= Number(collegeCandidates[0].voteCount)) { collegeTotalVotes += abstainVotes; } } let maxVoteCount = 0; collegeCandidates.forEach(candidate => { const votes = Number(candidate.voteCount) || 0; if (votes > maxVoteCount) { maxVoteCount = votes; } }); const winners = collegeCandidates.filter(candidate => Number(candidate.voteCount) === maxVoteCount);
-                winners.forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = collegeTotalVotes > 0 ? ((voteCount / collegeTotalVotes) * 100).toFixed(2) : 0; %>
+                <% colleges.forEach(college => { let collegeCandidates = viceGovernorCandidatesNoAbstain.filter(candidate => candidate.college === college); if (collegeCandidates.length) { collegeCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); let collegeTotalVotes =
+                collegeCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let abstainVotes = 0; if (abstainCandidateViceGovernor && abstainCandidateViceGovernor.college === college) { abstainVotes = Number(abstainCandidateViceGovernor.voteCount) || 0; if
+                (collegeCandidates[0] && abstainVotes <= Number(collegeCandidates[0].voteCount)) { collegeTotalVotes += abstainVotes; } } let maxVoteCount = 0; collegeCandidates.forEach(candidate => { const votes = Number(candidate.voteCount) || 0; if (votes > maxVoteCount) { maxVoteCount = votes; }
+                }); const winners = collegeCandidates.filter(candidate => Number(candidate.voteCount) === maxVoteCount); winners.forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = collegeTotalVotes > 0 ? ((voteCount / collegeTotalVotes) * 100).toFixed(2) :
+                0; %>
                 <div class="candidate lsc-candidate" data-college="<%= college %>">
                   <div class="candidate">
                     <div class="img-container">
@@ -439,15 +450,19 @@
                 });
               </script>
 
-              <% const boardMembersAll = candidates.filter(candidate => candidate.position === 'board member' && candidate.college && candidate.program); const boardMembersNonAbstain = boardMembersAll.filter(candidate => candidate.name !== 'Abstain'); const boardMembersAbstain = boardMembersAll.filter(candidate => candidate.name === 'Abstain'); let allCandidatesByProgram = {}; boardMembersNonAbstain.forEach(candidate => { if (!allCandidatesByProgram[candidate.program]) {
-              allCandidatesByProgram[candidate.program] = []; } allCandidatesByProgram[candidate.program].push(candidate); }); let boardMembersByProgram = {}; boardMembersNonAbstain.forEach(candidate => { if (!boardMembersByProgram[candidate.program]) { boardMembersByProgram[candidate.program] = []; } boardMembersByProgram[candidate.program].push(candidate); }); Object.keys(boardMembersByProgram).forEach(program => { boardMembersByProgram[program].sort((a, b) => Number(b.voteCount) -
-              Number(a.voteCount)); const highestVoteCount = boardMembersByProgram[program][0]?.voteCount || 0; boardMembersByProgram[program] = boardMembersByProgram[program].filter(candidate => candidate.voteCount == highestVoteCount); }); let abstainByProgram = {}; boardMembersAbstain.forEach(candidate => { if (!abstainByProgram[candidate.program]) { abstainByProgram[candidate.program] = []; } abstainByProgram[candidate.program].push(candidate); }); %>
+              <% const boardMembersAll = candidates.filter(candidate => candidate.position === 'board member' && candidate.college && candidate.program); const boardMembersNonAbstain = boardMembersAll.filter(candidate => candidate.name !== 'Abstain'); const boardMembersAbstain =
+              boardMembersAll.filter(candidate => candidate.name === 'Abstain'); let allCandidatesByProgram = {}; boardMembersNonAbstain.forEach(candidate => { if (!allCandidatesByProgram[candidate.program]) { allCandidatesByProgram[candidate.program] = []; }
+              allCandidatesByProgram[candidate.program].push(candidate); }); let boardMembersByProgram = {}; boardMembersNonAbstain.forEach(candidate => { if (!boardMembersByProgram[candidate.program]) { boardMembersByProgram[candidate.program] = []; }
+              boardMembersByProgram[candidate.program].push(candidate); }); Object.keys(boardMembersByProgram).forEach(program => { boardMembersByProgram[program].sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); const highestVoteCount = boardMembersByProgram[program][0]?.voteCount || 0;
+              boardMembersByProgram[program] = boardMembersByProgram[program].filter(candidate => candidate.voteCount == highestVoteCount); }); let abstainByProgram = {}; boardMembersAbstain.forEach(candidate => { if (!abstainByProgram[candidate.program]) { abstainByProgram[candidate.program] = [];
+              } abstainByProgram[candidate.program].push(candidate); }); %>
               <div class="container-lsc" id="container-lsc-board-member">
                 <div class="container-position">
                   <h1 class="position-lsc">Board Member</h1>
                 </div>
                 <hr />
-                <% Object.keys(boardMembersByProgram).forEach(program => { let programTotalVotes = allCandidatesByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); if (abstainByProgram[program]) { programTotalVotes += abstainByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); } %>
+                <% Object.keys(boardMembersByProgram).forEach(program => { let programTotalVotes = allCandidatesByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); if (abstainByProgram[program]) { programTotalVotes += abstainByProgram[program].reduce((acc,
+                candidate) => acc + (Number(candidate.voteCount) || 0), 0); } %>
                 <div class="program-group" id="college-<%= boardMembersByProgram[program][0].college %>">
                   <h2 class="program-header">
                     <ul>
