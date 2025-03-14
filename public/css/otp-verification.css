@@ -15,12 +15,13 @@
 }
 
 i {
-  font-size: 5rem;
+  font-size: 3rem;
   color: var(--color-darkBlue);
 }
 
 .blue {
   color: var(--color-darkBlue);
+  font-size: 2rem;
 }
 
 .otp-field {
@@ -74,6 +75,34 @@ button:hover {
 
 hr {
   width: 100%;
+}
+
+.content-main {
+  margin-bottom: 4rem;
+}
+
+/* .beside {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+} */
+
+.gray {
+  color: rgb(88, 81, 81);
+}
+
+.otp {
+  background-color: rgb(119, 188, 119);
+}
+
+.otp:hover {
+  background-color: green;
+}
+
+.card p {
+  font-size: 1rem;
 }
 
 @media (max-width: 768px) {

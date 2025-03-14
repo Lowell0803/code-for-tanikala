@@ -1545,6 +1545,11 @@ const startServer = async () => {
     /* FOR DESIGNING ONLY */
     app.get("/verify-otp", ensureAuthenticated, async (req, res) => {
       try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
         const otp = req.query.otp;
 
         // Automatically accept "999999" for testing
@@ -1555,14 +1560,14 @@ const startServer = async () => {
 
         // Verify the OTP against the one stored in session and ensure it's not expired
         if (!req.session.otp || otp !== req.session.otp || Date.now() > req.session.otpExpires) {
-          return res.render("voter/verify-otp", { email: req.user.email, error: "Invalid or expired OTP." });
+          return res.render("voter/verify-otp", { email: req.user.email, error: "Invalid or expired OTP.", electionConfig });
         }
 
         req.session.otpVerified = true;
         return res.redirect("/vote");
       } catch (error) {
         console.error("Error verifying OTP:", error);
-        return res.render("voter/verify-otp", { email: req.user.email, error: "An error occurred. Please try again." });
+        return res.render("voter/verify-otp", { email: req.user.email, error: "An error occurred. Please try again.", electionConfig });
       }
     });
 

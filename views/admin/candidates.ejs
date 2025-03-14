@@ -7,13 +7,14 @@
     <title>BulSU Voting System</title>
 
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
-    <link rel="stylesheet" type="text/css" href="admin/css/election-management.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
-
-    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-lsc.css" />
-    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-scc.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/candidates.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/index-election.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="admin/css/election-management.css" /> -->
+
+    <!-- <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-lsc.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally-scc.css" /> -->
 
     <!-- Boxicons CDN Link -->
 
@@ -77,7 +78,7 @@
                 // Vice Governor Section
                 viceGovernorContainer.innerHTML = `
         <div class="container-position">
-          <h2 class="position-lsc">Vice Governor</h2>
+          <h1 class="position-lsc">Vice Governor</h1>
           <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add Candidate</button>
         </div>
         <hr />
@@ -89,7 +90,8 @@
                 // Board Members Section
                 boardMemberContainer.innerHTML = `
         <div class="container-position">
-          <h2 class="position-lsc">Board Members</h2>
+          <h1 class="position-lsc">Board Members</h1>
+           <button class="button button-add" onclick="addCandidate('boardMembers')">Add Candidate</button>
         </div>
         <hr />
         <div>
@@ -123,12 +125,19 @@
 
             function createBoardMemberCard(candidate, collegeAcronym) {
               return `
+              <p>Program: ${candidate.program}</p>
       <div class="candidate">
+        <div class="candidate-content">
+          <div class="img-container">
         <img src="${candidate.image}" alt="${candidate.name}">
-        <h3>${candidate.name}</h3>
+        </div>
+<div>
+        <h2>${candidate.name}</h2>
         <p>Party: ${candidate.party}</p>
-        <p>Program: ${candidate.program}</p>
-        <p>${candidate.moreInfo}</p>
+        </div>
+        </div>
+        
+       
         <button class="button button-edit"
           onclick="editCandidateLSC('${candidate._id}', '${candidate.position}', '${candidate.party}', '${candidate.name}', '${candidate.moreInfo}', '${candidate.image}', '${collegeAcronym}', '${candidate.program}')">
           Edit
@@ -381,6 +390,7 @@
               <div class="main-right-header">
                 <h1 class="lsc">Local Student Council</h1>
                 <br />
+
                 <select class="select" id="collegeSelect">
                   <option value="CAFA">College of Architecture and Fine Arts (CAFA)</option>
                   <option value="CAL">College of Arts and Letters (CAL)</option>
@@ -396,7 +406,7 @@
                   <option value="CSER">College of Sports, Exercise and Recreation (CSER)</option>
                   <option value="CSSP">College of Social Sciences and Philosophy (CSSP)</option>
                 </select>
-
+                <br />
                 <!-- <input type="text" id="collegeInput" /> -->
               </div>
               <div>
@@ -469,7 +479,7 @@
                 </div>
 
                 <!-- <div class="container container-lsc" id="container-lsc-board-member">
-                  <h2>Board Member</h2>
+                  <h1>Board Member</h1>
 
                   <% let cafa = candidates_lsc.find(college => college.collegeAcronym === "CAFA"); if (cafa && cafa.positions["Board Member"]) { let boardMembers = cafa.positions["Board Member"]; %> <% Object.keys(boardMembers).forEach(program => { %>
                   <h3><%= program %></h3>
@@ -480,7 +490,7 @@
                     <li>
                       <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
                       <strong><%= candidate.name %></strong> - <%= candidate.party %>
-                      <p><%= candidate.moreInfo %></p>
+                      
                       <button
                         class="button button-edit"
                         onclick="editCandidateLSC(
@@ -502,17 +512,20 @@
                 </div> -->
 
                 <!-- Board Member Container -->
-                <% const boardMembersAll = candidates.filter(candidate => candidate.position === 'board member' && candidate.college && candidate.program); const boardMembersNonAbstain = boardMembersAll.filter(candidate => candidate.name !== 'Abstain'); const boardMembersAbstain = boardMembersAll.filter(candidate => candidate.name === 'Abstain'); const totalVotesBoardMember = boardMembersNonAbstain.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let boardMembersByProgram
-                = {}; boardMembersNonAbstain.forEach(candidate => { if (!boardMembersByProgram[candidate.program]) { boardMembersByProgram[candidate.program] = []; } boardMembersByProgram[candidate.program].push(candidate); }); Object.keys(boardMembersByProgram).forEach(program => { boardMembersByProgram[program].sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); }); let abstainByProgram = {}; boardMembersAbstain.forEach(candidate => { if (!abstainByProgram[candidate.program]) {
-                abstainByProgram[candidate.program] = []; } abstainByProgram[candidate.program].push(candidate); }); %>
+                <% const boardMembersAll = candidates.filter(candidate => candidate.position === 'board member' && candidate.college && candidate.program); const boardMembersNonAbstain = boardMembersAll.filter(candidate => candidate.name !== 'Abstain'); const boardMembersAbstain =
+                boardMembersAll.filter(candidate => candidate.name === 'Abstain'); const totalVotesBoardMember = boardMembersNonAbstain.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let boardMembersByProgram = {}; boardMembersNonAbstain.forEach(candidate => { if
+                (!boardMembersByProgram[candidate.program]) { boardMembersByProgram[candidate.program] = []; } boardMembersByProgram[candidate.program].push(candidate); }); Object.keys(boardMembersByProgram).forEach(program => { boardMembersByProgram[program].sort((a, b) => Number(b.voteCount) -
+                Number(a.voteCount)); }); let abstainByProgram = {}; boardMembersAbstain.forEach(candidate => { if (!abstainByProgram[candidate.program]) { abstainByProgram[candidate.program] = []; } abstainByProgram[candidate.program].push(candidate); }); %>
 
                 <div class="container-lsc" id="container-lsc-board-member">
                   <div class="container-position">
-                    <h1 class="position-lsc">Board Member</h1>
+                    <h1 class="position-lsc">Board Members</h1>
+                    <button class="button button-add" onclick="addCandidate('President')">Add Candidate</button>
                   </div>
                   <hr />
 
-                  <% Object.keys(boardMembersByProgram).forEach(program => { let programTotalVotes = boardMembersByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); if (abstainByProgram[program]) { programTotalVotes += abstainByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); } %>
+                  <% Object.keys(boardMembersByProgram).forEach(program => { let programTotalVotes = boardMembersByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); if (abstainByProgram[program]) { programTotalVotes += abstainByProgram[program].reduce((acc,
+                  candidate) => acc + (Number(candidate.voteCount) || 0), 0); } %>
                   <!-- Wrap each program in its own container, adding an id based on college -->
                   <div class="program-group" id="college-<%= boardMembersByProgram[program][0].college %>">
                     <h2 class="program-header">
@@ -1188,13 +1201,13 @@
             }
 
             // Governor Section
-            governorContainer.innerHTML = `<h1>Governor</h1>
+            governorContainer.innerHTML = `<h1 class="position-lsc">Governor</h1>
           <button class="button button-add" onclick="addCandidateLSC('Governor')">Add Candidate</button>
           <div>${data.governor.length ? data.governor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}</div>
         <hr />`;
 
             // Vice Governor Section
-            viceGovernorContainer.innerHTML = `<h2>Vice Governor</h2>
+            viceGovernorContainer.innerHTML = `<h1 class="position-lsc">Vice Governor</h1>
           <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add Candidate</button>
           <div>${data.viceGovernor.length ? data.viceGovernor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}</div>`;
 
@@ -1210,11 +1223,11 @@
               });
 
               // Build the HTML for each program group
-              let boardMembersHTML = "<h2>Board Members</h2>";
+              let boardMembersHTML = "<h1 class="position-lsc">Board Members</h1>";
               for (let program in boardMembersByProgram) {
                 boardMembersHTML += `
               <div class="program-group" id="college-${collegeAcronym}-${program}">
-                <h3>${program}</h3>
+                <h2>${program}</h2>
                 <button class="button button-add" onclick="addCandidateLSC('Board Member', '${program}')">Add Candidate</button>
                 <div>
                   ${boardMembersByProgram[program].map((candidate) => createBoardMemberCard(candidate, collegeAcronym)).join("")}
@@ -1224,7 +1237,7 @@
               }
               boardMemberContainer.innerHTML = boardMembersHTML;
             } else {
-              boardMemberContainer.innerHTML = "<h2>Board Members</h2><p>No board members found.</p>";
+              boardMemberContainer.innerHTML = "<h1 class="position-lsc">Board Members</h1><p>No board members found.</p>";
             }
           } catch (error) {
             console.error("Error fetching LSC candidates:", error);
