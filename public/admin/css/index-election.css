@@ -11,7 +11,7 @@
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 2%;
+  gap: 2% !important;
 }
 
 .ssc {
@@ -23,7 +23,8 @@
 }
 
 #CollegeSelect,
-#college-selector {
+#college-selector,
+.select {
   background-color: #fff3c8;
   color: #bb7e15;
   font-family: "Montserrat", "Century Gothic";

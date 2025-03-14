@@ -2,6 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* border: 1px solid black; */
 }
 
 /* Main container with light background and rounded corners */
@@ -9,9 +10,11 @@
   background-color: #f7f7f7;
   border-radius: 2rem; /* 8px -> 0.5rem */
   padding: 2rem; /* 20px -> 1.25rem */
-  max-width: 62.5rem; /* 1000px -> 62.5rem */
+  max-width: 80vw; /* 1000px -> 62.5rem */
   margin: 0 auto;
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Title styling */
@@ -63,7 +66,7 @@
 /* Grid of transaction hashes */
 .hashes-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columns */
+  grid-template-columns: repeat(2, 1fr); /* 3 columns */
   gap: 0.625rem; /* 10px -> 0.625rem */
   margin-bottom: 1.25rem; /* 20px -> 1.25rem */
 }
@@ -91,6 +94,7 @@
   align-items: center;
   gap: 0.625rem; /* 10px -> 0.625rem */
   font-size: 1rem;
+  margin-top: auto !important;
 }
 .pagination button {
   background-color: #ccc;
@@ -105,4 +109,31 @@
 #pageInfo {
   min-width: 6.25rem; /* 100px -> 6.25rem */
   text-align: center;
+}
+
+.modal {
+  height: 80vh;
+  width: 90vw;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal p {
+  font-size: 0.8rem;
+}
+
+.hash-column {
+  font-size: 0.8rem;
+}
+
+.id {
+  display: flex;
+  flex-direction: row;
+}
+
+.grid-wrapper {
+  flex: 1; /* Expands to fill the available space */
+  overflow-y: auto; /* Scroll if content exceeds the space */
+  margin-bottom: 1.25rem;
 }
