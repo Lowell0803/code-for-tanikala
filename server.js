@@ -2703,6 +2703,8 @@ const startServer = async () => {
       res.render("admin/dashboard", { electionConfig, loggedInAdmin: req.session.admin });
     });
 
+    const moment = require("moment-timezone");
+
     // GET /configuration
     app.get("/configuration", ensureAdminAuthenticated, async (req, res) => {
       let electionConfig = await db.collection("election_config").findOne({});
