@@ -300,5 +300,11 @@
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
     <script src="admin/js/dropdown.js"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      // Connect to Socket.IO, passing the logged-in admin's email
+      const socket = io("/", { query: { email: "<%= loggedInAdmin.email %>" } });
+    </script>
   </body>
 </html>

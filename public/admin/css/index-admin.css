@@ -735,3 +735,12 @@ tr:nth-child(even) {
 .box-shadow {
   box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 20px, rgba(0, 0, 0, 0.15) 0px 3px 8px;
 }
+
+.status-indicator.active {
+  color: green;
+  font-weight: bold;
+}
+.status-indicator.inactive {
+  color: gray;
+  font-weight: normal;
+}
