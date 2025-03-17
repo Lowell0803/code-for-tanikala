@@ -742,7 +742,7 @@ input {
 }
 
 .warning {
-  color: #a60212;
-
+  color: #f5ab29;
+  font-size: 5rem;
   padding-right: 0.5rem;
 }
