@@ -222,24 +222,24 @@
                 <th>Timestamp</th>
                 <th>Transaction Hash</th>
                 <th>Action</th>
-                <th>Details</th>
+                <th>Actor</th>
+                <th>Cost (in PHP)</th>
+                <th>Cost (in POL)</th>
               </tr>
             </thead>
             <tbody>
-              <!-- logic -->
+              <% logs.forEach(function(log) { %>
               <tr>
-                <td>2025-02-20 10:30 AM</td>
-                <td>0xA1wjwdininfenifei</td>
-                <td>Smart Contract Deployed</td>
-                <td>Election contract deployed.</td>
+                <td><%= new Date(log.timestamp).toLocaleString() %></td>
+                <td>
+                  <a href="https://amoy.polygonscan.com/tx/<%= log.transactionHash %>" target="_blank"> <%= log.transactionHash %> </a>
+                </td>
+                <td><%= log.action %></td>
+                <td><%= log.actor %></td>
+                <td><%= log.costPhp %></td>
+                <td><%= log.costPol %></td>
               </tr>
-              <!-- logic -->
-              <tr>
-                <td>2025-02-20 10:30 AM</td>
-                <td>0xA1wjwdininfenifei</td>
-                <td>Smart Contract Deployed</td>
-                <td>Election contract deployed.</td>
-              </tr>
+              <% }); %>
             </tbody>
           </table>
         </div>

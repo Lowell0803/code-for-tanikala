@@ -21,6 +21,54 @@ const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 const contractABI = require("./artifacts/contracts/AdminCandidates.sol/AdminCandidates.json").abi;
 const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractABI, wallet);
 
+async function recordBlockchainActivity(collectionName, action, actor, req, txReceipt, cryptoPrices) {
+  let db = await connectToDatabase();
+  // Calculate cost details if cryptoPrices and txReceipt are provided
+  let costPhp = "N/A";
+  let costPol = "N/A";
+  if (txReceipt && cryptoPrices) {
+    const gasUsed = Number(txReceipt.gasUsed);
+    const gasPrice = Number(txReceipt.gasPrice);
+    // Calculate the gas cost in POL tokens
+    const amountSpentPol = (gasUsed * gasPrice) / 1e18;
+    // Cost in PHP by converting POL cost to PHP using the POL price
+    costPhp = cryptoPrices.polPricePhp ? (amountSpentPol * cryptoPrices.polPricePhp).toFixed(2) : "N/A";
+    // Actual cost in POL tokens
+    costPol = amountSpentPol.toFixed(4);
+  }
+
+  const logEntry = {
+    timestamp: new Date(),
+    transactionHash: txReceipt ? txReceipt.hash : "N/A",
+    action,
+    costPhp,
+    costPol,
+    actor,
+    ip: req.ip,
+  };
+  await db.collection(collectionName).insertOne(logEntry);
+}
+
+async function getCryptoPrices() {
+  try {
+    const response = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=ethereum,polygon-ecosystem-token&vs_currencies=php,usd");
+    console.log("API Response:", response.data);
+
+    const ethData = response.data.ethereum || { php: 0, usd: 0 };
+    const polData = response.data["polygon-ecosystem-token"] || { php: 0, usd: 0 };
+
+    return {
+      ethPricePhp: ethData.php || 0,
+      ethPriceUsd: ethData.usd || 0,
+      polPricePhp: polData.php || 0,
+      polPriceUsd: polData.usd || 0,
+    };
+  } catch (error) {
+    console.error("Error fetching crypto prices:", error.message);
+    return null;
+  }
+}
+
 const Agenda = require("agenda");
 
 const agenda = new Agenda({
@@ -47,7 +95,7 @@ agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }
 
     // Send the blockchain transaction using the unique nonce.
     const tx = await contract.voteForCandidates(candidateIds, { nonce });
-    await tx.wait();
+    const receipt = await tx.wait();
 
     // Update waiting vote record as completed.
     const waitingCollection = db.collection("waiting_votes");
@@ -76,6 +124,18 @@ agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }
     if (socketId) {
       io.to(voteId).emit("voteConfirmed", { txHash: tx.hash });
     }
+
+    // Fetch crypto prices for cost calculation
+    const cryptoPrices = await getCryptoPrices();
+    if (!cryptoPrices) {
+      console.log("Failed to fetch crypto prices for vote submission logging.");
+    }
+
+    // Create a fake request object for logging purposes (since no req is available in the job)
+    const fakeReq = { ip: "N/A" };
+
+    // Log blockchain activity for vote submission
+    await recordBlockchainActivity("blockchain_activity_logs", "Vote Submitted", "Voter", fakeReq, receipt, cryptoPrices);
   } catch (error) {
     console.error("Error processing vote submission:", error);
     await db.collection("waiting_votes").updateOne(
@@ -1067,15 +1127,19 @@ const startServer = async () => {
         }));
         await db.collection("candidate_hashes").insertMany(candidateHashesDocs);
 
-        await logActivity("system_activity_logs", "Candidates Submitted", "Admin", req);
+        // await logActivity("system_activity_logs", "Candidates Submitted", "Admin", req);
 
-        console.log("Transaction Receipt:", receipt);
-
-        // Fetch Crypto Prices
+        // Fetch crypto prices for cost calculation
         const priceData = await getCryptoPrices();
         if (!priceData) {
-          console.log("Failed to fetch crypto prices. Skipping PHP conversion.");
+          console.log("Failed to fetch crypto prices. Skipping cost calculation.");
         }
+
+        // (Optional) Log blockchain activity with cost details using the inline function
+        // Make sure recordBlockchainActivity is defined inline in this file.
+        await recordBlockchainActivity("system_activity_logs", "Candidates Submitted", "Admin", req, receipt, priceData);
+
+        console.log("Transaction Receipt:", receipt);
 
         // Ensure ETH and POL prices exist
         const ethPricePhp = priceData?.ethPricePhp || 0;
@@ -3059,15 +3123,29 @@ const startServer = async () => {
         res.status(500).json({ error: error.message });
       }
     });
+    // Inline function to record blockchain activity with cost details
 
     app.get("/blockchain-activity-log", ensureAdminAuthenticated, async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
+      try {
+        // Retrieve logs sorted by most recent first
+        const logs = await db.collection("blockchain_activity_logs").find({}).sort({ timestamp: -1 }).toArray();
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        // Retrieve election configuration (if needed)
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/blockchain-activity-log", { electionConfig, loggedInAdmin: req.session.admin });
+        // Render the blockchain activity log page
+        res.render("admin/blockchain-activity-log", {
+          electionConfig,
+          logs,
+          loggedInAdmin: req.session.admin,
+        });
+      } catch (error) {
+        console.error("Error fetching blockchain logs:", error);
+        res.status(500).send("Error fetching blockchain logs.");
+      }
     });
 
     app.get("/voter-info", ensureAdminAuthenticated, async (req, res) => {
