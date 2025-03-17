@@ -31,6 +31,8 @@
     </style>
   </head>
   <body>
+    <% function toPHFormat(dateString) { if (!dateString) return ''; return moment.tz(dateString, "Asia/Manila").format("YYYY-MM-DDTHH:mm"); } function formatDisplayDate(dateString) { if (!dateString) return ''; return moment.tz(dateString, "Asia/Manila").format("MM/DD/YYYY, hh:mm A"); } %>
+
     <header class="header" id="header">
       <div class="header-logo">
         <img src="../img/logo_tanikala.png" alt="Tanikala Logo" />
@@ -259,19 +261,19 @@
               </div>
               <div>
                 <label for="registrationStart">Registration Start Date:</label>
-                <input class="input" type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig.registrationStart ? new Date(electionConfig.registrationStart).toISOString().slice(0,16) : '' %>" required />
+                <input class="input" type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig.registrationStart ? toPHFormat(electionConfig.registrationStart) : '' %>" required />
               </div>
               <div>
                 <label for="registrationEnd">Registration End Date:</label>
-                <input class="input" type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig.registrationEnd ? new Date(electionConfig.registrationEnd).toISOString().slice(0,16) : '' %>" required />
+                <input class="input" type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig.registrationEnd ? toPHFormat(electionConfig.registrationEnd) : '' %>" required />
               </div>
               <div>
                 <label for="votingStart">Voting Start Date:</label>
-                <input class="input" type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig.votingStart ? new Date(electionConfig.votingStart).toISOString().slice(0,16) : '' %>" required />
+                <input class="input" type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig.votingStart ? toPHFormat(electionConfig.votingStart) : '' %>" required />
               </div>
               <div>
                 <label for="votingEnd">Voting End Date:</label>
-                <input class="input" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig.votingEnd ? new Date(electionConfig.votingEnd).toISOString().slice(0,16) : '' %>" required />
+                <input class="input" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig.votingEnd ? toPHFormat(electionConfig.votingEnd) : '' %>" required />
               </div>
               <div>
                 <label for="partylists">Partylists (comma separated):</label>
@@ -317,13 +319,26 @@
             </div>
           </section>
 
-          <!-- Test Date Picker for simulating the current date -->
           <div class="test-date">
             <label for="testDatePicker">Test Current Date:</label>
-            <input type="datetime-local" id="testDatePicker" onchange="updateCurrentPeriod()" value="<%= electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).toISOString().slice(0,16) : '' %>" />
-
+            <!-- Pre-populate the input using toPHFormat -->
+            <input type="datetime-local" id="testDatePicker" onchange="updateCurrentPeriod()" value="<%= electionConfig.fakeCurrentDate ? toPHFormat(electionConfig.fakeCurrentDate) : '' %>" />
+            <button type="button" id="resetTestDateBtn" onclick="resetTestDate()">Reset to Current Date</button>
             <small>(Select a datetime to simulate the current date and update the phase)</small>
+            <p id="currentFakeDateDisplay">Current Fake Date: <%= electionConfig.fakeCurrentDate ? formatDisplayDate(electionConfig.fakeCurrentDate) : 'Not set' %></p>
           </div>
+
+          <script>
+            function resetTestDate() {
+              const now = new Date();
+              // Use toPHFormat to format the current date for the datetime-local input.
+              const formattedNow = toPHFormat(now.toISOString());
+              document.getElementById("testDatePicker").value = formattedNow;
+              // Update the display using formatDisplayDate (which now shows both date and time).
+              document.getElementById("currentFakeDateDisplay").innerText = "Current Fake Date: " + formatDisplayDate(now.toISOString());
+              updateCurrentPeriod();
+            }
+          </script>
         </div>
       </main>
     </div>
