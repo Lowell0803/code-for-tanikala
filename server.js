@@ -2806,6 +2806,19 @@ const startServer = async () => {
       }
     });
 
+    app.post("/update-fake-date", async (req, res) => {
+      try {
+        const { fakeCurrentDate } = req.body;
+        console.log("Update fake date called:", fakeCurrentDate);
+        const newDate = moment.tz(fakeCurrentDate, "Asia/Manila").toDate();
+        await db.collection("election_config").updateOne({}, { $set: { fakeCurrentDate: newDate } });
+        res.redirect("/configuration");
+      } catch (err) {
+        console.error("Error updating fake current date", err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
     // POST endpoint to reset the election (sets it to inactive)
     app.post("/reset-election", async (req, res) => {
       try {

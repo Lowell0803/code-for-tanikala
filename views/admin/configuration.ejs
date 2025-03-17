@@ -31,27 +31,78 @@
     </style>
   </head>
   <body>
-    <% function toPHFormat(dateString) { if (!dateString) return ''; return moment.tz(dateString, "Asia/Manila").format("YYYY-MM-DDTHH:mm"); } function formatDisplayDate(dateString) { if (!dateString) return ''; return moment.tz(dateString, "Asia/Manila").format("MM/DD/YYYY, hh:mm A"); } %>
-
     <header class="header" id="header">
       <div class="header-logo">
         <img src="../img/logo_tanikala.png" alt="Tanikala Logo" />
       </div>
+      <%
+        // Helper functions
+        function toPHFormat(dateString) { 
+          if (!dateString) return ''; 
+          return moment.tz(dateString, "Asia/Manila").format("YYYY-MM-DDTHH:mm"); 
+        }
+        function formatDisplayDate(dateString) { 
+          if (!dateString) return ''; 
+          return moment.tz(dateString, "Asia/Manila").format("MM/DD/YYYY, hh:mm A"); 
+        }
+
+        // Get configuration values with fallbacks
+        const electionName = (electionConfig && electionConfig.electionName) ? electionConfig.electionName : "Tanikala Voting System";
+        const electionStatus = (electionConfig && electionConfig.electionStatus) ? electionConfig.electionStatus : "";
+        const specialStatus = (electionConfig && electionConfig.specialStatus) ? electionConfig.specialStatus : "None";
+
+        // Convert stored dates to moment objects in Asia/Manila timezone
+        const fakeCurrent = electionConfig && electionConfig.fakeCurrentDate ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila") : moment.tz(new Date(), "Asia/Manila");
+        const regStart = electionConfig && electionConfig.registrationStart ? moment.tz(electionConfig.registrationStart, "Asia/Manila") : null;
+        const regEnd = electionConfig && electionConfig.registrationEnd ? moment.tz(electionConfig.registrationEnd, "Asia/Manila") : null;
+        const voteStart = electionConfig && electionConfig.votingStart ? moment.tz(electionConfig.votingStart, "Asia/Manila") : null;
+        const voteEnd = electionConfig && electionConfig.votingEnd ? moment.tz(electionConfig.votingEnd, "Asia/Manila") : null;
+
+        // Initialize header status and time message
+        let headerStatus = electionStatus;
+        let timeMessage = "";
+
+        if(electionStatus === "ELECTION ACTIVE") {
+          // If specialStatus is set (other than "None"), show it and skip further period logic.
+          if(specialStatus !== "None") {
+            headerStatus += " | " + specialStatus;
+          } else {
+            // Determine the period based on fakeCurrent relative to registration and voting dates.
+            if(regStart && fakeCurrent.isBefore(regStart)) {
+              headerStatus += " | Waiting for Registration Period";
+              const diffMs = regStart.diff(fakeCurrent);
+              const duration = moment.duration(diffMs);
+              timeMessage = "Time until registration: " + Math.floor(duration.asHours()) + " hours, " + duration.minutes() + " minutes";
+            } else if(regStart && regEnd && fakeCurrent.isBetween(regStart, regEnd, null, '[)')) {
+              headerStatus += " | Registration Period";
+              timeMessage = "<strong>Start Date:</strong> " + formatDisplayDate(regStart) + "<br><strong>End Date:</strong> " + formatDisplayDate(regEnd);
+            } else if(regEnd && voteStart && fakeCurrent.isBetween(regEnd, voteStart, null, '[)')) {
+              headerStatus += " | Waiting for Voting Period";
+              const diffMs = voteStart.diff(fakeCurrent);
+              const duration = moment.duration(diffMs);
+              timeMessage = "Time until voting: " + Math.floor(duration.asHours()) + " hours, " + duration.minutes() + " minutes";
+            } else if(voteStart && voteEnd && fakeCurrent.isBetween(voteStart, voteEnd, null, '[)')) {
+              headerStatus += " | Voting Period";
+              timeMessage = "<strong>Start Date:</strong> " + formatDisplayDate(voteStart) + "<br><strong>End Date:</strong> " + formatDisplayDate(voteEnd);
+            } else if(voteEnd && fakeCurrent.isAfter(voteEnd)) {
+              headerStatus += " | Results Double Checking Period";
+              timeMessage = "Waiting for results";
+            }
+          }
+        }
+      %>
+
       <div class="header-content">
         <h2>
-          <span>electionName | Tanikala Voting System</span>
+          <span><%= electionName %></span>
         </h2>
-
         <strong>
-          Election Status:
-          <span id="currentPeriodDisplay" class="election-status"> electionStatus </span>
-          |
-          <em id="currentPeriodName" class="right-text"> </em>
+          Election Status: <%= headerStatus %>
         </strong>
-
-        <p><strong>Start Date:</strong></p>
-        <p><strong>End Date:</strong></p>
+        <p><%= timeMessage %></p>
       </div>
+
+
       <div class="header-user">
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
         <div class="profile">
@@ -253,6 +304,51 @@
             </form>
           </section>
 
+          <!-- FAKE DATE -->
+          <!-- FAKE DATE (using form submission to reload the page) -->
+<div class="developer-only" style="border: 1px solid red; padding: 10px; margin-top: 20px">
+  <h3>Developer Tools</h3>
+  <p>
+    Current Date:
+    <span id="currentDate"> <%= formatDisplayDate(new Date()) %> </span>
+  </p>
+  <p>
+    Fake Current Date:
+    <span id="fakeCurrentDateDisplay">
+      <%= electionConfig && electionConfig.fakeCurrentDate 
+          ? formatDisplayDate(electionConfig.fakeCurrentDate)
+          : formatDisplayDate(new Date()) %>
+    </span>
+  </p>
+  <!-- Form that submits when the date changes -->
+  <form id="updateFakeDateForm" action="/update-fake-date" method="POST">
+    <label for="fakeDatePicker">Fake Date Picker:</label>
+    <input
+      type="datetime-local"
+      id="fakeDatePicker"
+      name="fakeCurrentDate"
+      value="<%= electionConfig && electionConfig.fakeCurrentDate 
+                ? toPHFormat(electionConfig.fakeCurrentDate)
+                : toPHFormat(new Date()) %>"
+      onchange="this.form.submit()"
+    />
+  </form>
+  <!-- Reset form: sets fake date to current date and reloads -->
+  <form id="resetFakeDateForm" action="/update-fake-date" method="POST" style="margin-top: 10px">
+    <input
+      type="hidden"
+      name="fakeCurrentDate"
+      value="<%= toPHFormat(new Date()) %>"
+    />
+    <button type="submit">Reset Fake Date to Current Date</button>
+  </form>
+</div>
+
+
+          <!-- Include Moment libraries on the client if needed -->
+
+          <!-- END OF FAKE DATE -->
+
           <script>
             function resetTestDate() {
               const now = new Date();
@@ -388,10 +484,6 @@
     </script>
 
     <script type="module">
-      import { createNotification } from "/components/notification.js";
-
-      createNotification("Election configuration saved successfully!", "success", 2000);
-
       // Check if the URL contains ?saved in the query string
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has("saved")) {
