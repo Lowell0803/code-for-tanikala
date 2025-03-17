@@ -31,92 +31,103 @@
     </style>
   </head>
   <body>
-    <header class="header" id="header">
-      <div class="header-logo">
-        <img src="../img/logo_tanikala.png" alt="Tanikala Logo" />
-      </div>
-      <%
-        // Helper functions
-        function toPHFormat(dateString) { 
-          if (!dateString) return ''; 
-          return moment.tz(dateString, "Asia/Manila").format("YYYY-MM-DDTHH:mm"); 
+    <%
+    // Helper functions
+    function toPHFormat(dateString) { 
+      if (!dateString) return ''; 
+      return moment.tz(dateString, "Asia/Manila").format("YYYY-MM-DDTHH:mm"); 
+    }
+    function formatDisplayDate(dateString) { 
+      if (!dateString) return ''; 
+      return moment.tz(dateString, "Asia/Manila").format("MM/DD/YYYY, hh:mm A"); 
+    }
+  
+    // Get configuration values with fallbacks
+    const electionName = (electionConfig && electionConfig.electionName) ? electionConfig.electionName : "Tanikala Voting System";
+    const electionStatus = (electionConfig && electionConfig.electionStatus) ? electionConfig.electionStatus : "";
+    const specialStatus = (electionConfig && electionConfig.specialStatus) ? electionConfig.specialStatus : "None";
+  
+    // Convert stored dates to moment objects in Asia/Manila timezone
+    const fakeCurrent = electionConfig && electionConfig.fakeCurrentDate ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila") : moment.tz(new Date(), "Asia/Manila");
+    const regStart = electionConfig && electionConfig.registrationStart ? moment.tz(electionConfig.registrationStart, "Asia/Manila") : null;
+    const regEnd = electionConfig && electionConfig.registrationEnd ? moment.tz(electionConfig.registrationEnd, "Asia/Manila") : null;
+    const voteStart = electionConfig && electionConfig.votingStart ? moment.tz(electionConfig.votingStart, "Asia/Manila") : null;
+    const voteEnd = electionConfig && electionConfig.votingEnd ? moment.tz(electionConfig.votingEnd, "Asia/Manila") : null;
+  
+    // Calculate initial header values (for initial render)
+    let headerStatus = electionStatus;
+    let timeMessage = "";
+  
+    if(electionStatus === "ELECTION ACTIVE") {
+      if(specialStatus !== "None") {
+        headerStatus += " | " + specialStatus;
+      } else {
+        if(regStart && fakeCurrent.isBefore(regStart)) {
+          headerStatus += " | Waiting for Registration Period";
+          const diffMs = regStart.diff(fakeCurrent);
+          const duration = moment.duration(diffMs);
+          timeMessage = `Time until registration: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
+        } else if(regStart && regEnd && fakeCurrent.isBetween(regStart, regEnd, null, '[)')) {
+          headerStatus += " | Registration Period";
+          timeMessage = "<strong>Start Date:</strong> " + formatDisplayDate(regStart) + "<br><strong>End Date:</strong> " + formatDisplayDate(regEnd);
+        } else if(regEnd && voteStart && fakeCurrent.isBetween(regEnd, voteStart, null, '[)')) {
+          headerStatus += " | Waiting for Voting Period";
+          const diffMs = voteStart.diff(fakeCurrent);
+          const duration = moment.duration(diffMs);
+          timeMessage = `Time until voting: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
+        } else if(voteStart && voteEnd && fakeCurrent.isBetween(voteStart, voteEnd, null, '[)')) {
+          headerStatus += " | Voting Period";
+          timeMessage = "<strong>Start Date:</strong> " + formatDisplayDate(voteStart) + "<br><strong>End Date:</strong> " + formatDisplayDate(voteEnd);
+        } else if(voteEnd && fakeCurrent.isAfter(voteEnd)) {
+          headerStatus += " | Results Double Checking Period";
+          timeMessage = "Waiting for results";
         }
-        function formatDisplayDate(dateString) { 
-          if (!dateString) return ''; 
-          return moment.tz(dateString, "Asia/Manila").format("MM/DD/YYYY, hh:mm A"); 
-        }
-
-        // Get configuration values with fallbacks
-        const electionName = (electionConfig && electionConfig.electionName) ? electionConfig.electionName : "Tanikala Voting System";
-        const electionStatus = (electionConfig && electionConfig.electionStatus) ? electionConfig.electionStatus : "";
-        const specialStatus = (electionConfig && electionConfig.specialStatus) ? electionConfig.specialStatus : "None";
-
-        // Convert stored dates to moment objects in Asia/Manila timezone
-        const fakeCurrent = electionConfig && electionConfig.fakeCurrentDate ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila") : moment.tz(new Date(), "Asia/Manila");
-        const regStart = electionConfig && electionConfig.registrationStart ? moment.tz(electionConfig.registrationStart, "Asia/Manila") : null;
-        const regEnd = electionConfig && electionConfig.registrationEnd ? moment.tz(electionConfig.registrationEnd, "Asia/Manila") : null;
-        const voteStart = electionConfig && electionConfig.votingStart ? moment.tz(electionConfig.votingStart, "Asia/Manila") : null;
-        const voteEnd = electionConfig && electionConfig.votingEnd ? moment.tz(electionConfig.votingEnd, "Asia/Manila") : null;
-
-        // Initialize header status and time message
-        let headerStatus = electionStatus;
-        let timeMessage = "";
-
-        if(electionStatus === "ELECTION ACTIVE") {
-          // If specialStatus is set (other than "None"), show it and skip further period logic.
-          if(specialStatus !== "None") {
-            headerStatus += " | " + specialStatus;
-          } else {
-            // Determine the period based on fakeCurrent relative to registration and voting dates.
-            if(regStart && fakeCurrent.isBefore(regStart)) {
-              headerStatus += " | Waiting for Registration Period";
-              const diffMs = regStart.diff(fakeCurrent);
-              const duration = moment.duration(diffMs);
-              timeMessage = "Time until registration: " + Math.floor(duration.asHours()) + " hours, " + duration.minutes() + " minutes";
-            } else if(regStart && regEnd && fakeCurrent.isBetween(regStart, regEnd, null, '[)')) {
-              headerStatus += " | Registration Period";
-              timeMessage = "<strong>Start Date:</strong> " + formatDisplayDate(regStart) + "<br><strong>End Date:</strong> " + formatDisplayDate(regEnd);
-            } else if(regEnd && voteStart && fakeCurrent.isBetween(regEnd, voteStart, null, '[)')) {
-              headerStatus += " | Waiting for Voting Period";
-              const diffMs = voteStart.diff(fakeCurrent);
-              const duration = moment.duration(diffMs);
-              timeMessage = "Time until voting: " + Math.floor(duration.asHours()) + " hours, " + duration.minutes() + " minutes";
-            } else if(voteStart && voteEnd && fakeCurrent.isBetween(voteStart, voteEnd, null, '[)')) {
-              headerStatus += " | Voting Period";
-              timeMessage = "<strong>Start Date:</strong> " + formatDisplayDate(voteStart) + "<br><strong>End Date:</strong> " + formatDisplayDate(voteEnd);
-            } else if(voteEnd && fakeCurrent.isAfter(voteEnd)) {
-              headerStatus += " | Results Double Checking Period";
-              timeMessage = "Waiting for results";
-            }
-          }
-        }
-      %>
-
-      <div class="header-content">
-        <h2>
-          <span><%= electionName %></span>
-        </h2>
-        <strong>
-          Election Status: <%= headerStatus %>
-        </strong>
-        <p><%= timeMessage %></p>
+      }
+    }
+  %>
+  
+  <header class="header" id="header">
+    <div class="header-logo">
+      <img src="../img/logo_tanikala.png" alt="Tanikala Logo" />
+    </div>
+    <div class="header-content">
+      <h2>
+        <span><%= electionName %></span>
+      </h2>
+      <strong id="headerStatus">
+        <span style="color: white;">Election Status: </span>
+        <% if(headerStatus.includes('|')) { 
+             const parts = headerStatus.split('|'); %>
+          <span style="color: #369f2c;"><%= parts[0].trim() %></span>
+          <span style="color: white;"> | </span>
+          <span style="color: #e1ae5b;"><i><%= parts[1].trim() %></i></span>
+        <% } else { %>
+          <span style="color: #369f2c;"><%= headerStatus %></span>
+        <% } %>
+      </strong>
+      
+      <p id="timeMessage"><%- timeMessage %></p>
+    </div>
+    <div class="header-user">
+      <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
+      <div class="profile">
+        <div class="admin-name"><%= loggedInAdmin.name %></div>
+        <i> <span class="job"><%= loggedInAdmin.role %></span></i>
       </div>
-
-
-      <div class="header-user">
-        <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-        <div class="profile">
-          <div class="admin-name"><%= loggedInAdmin.name %></div>
-          <i> <span class="job"><%= loggedInAdmin.role %></span></i>
-        </div>
-        <div class="dropdown" onclick="toggleDropdown()"></div>
-        <div class="dropdown-menu">
-          <a href="/edit-account">View Account</a>
-          <hr class="dropdown-line" />
-          <a href="/logout">Log Out</a>
-        </div>
+      <div class="dropdown" onclick="toggleDropdown()"></div>
+      <div class="dropdown-menu">
+        <a href="/edit-account">View Account</a>
+        <hr class="dropdown-line" />
+        <a href="/logout">Log Out</a>
       </div>
-    </header>
+    </div>
+
+  </header>
+  
+  <!-- Pass the election config to the client -->
+  <script>
+    const config = <%- JSON.stringify(electionConfig || {}) %>;
+  </script>
 
     <div class="content">
       <div class="sidebar close">
@@ -237,20 +248,31 @@
           <!-- Display Current Election Configuration -->
 
           <section class="election-info">
-            <p class="election-name">&nbsp;<strong>Election Name:</strong> electionName</p>
-            <hr />
-            <p><i class="bx bx-calendar-check"></i>&nbsp;<strong>Status:</strong> electionStatus</p>
-            <p>
-              <i class="bx bx-edit-alt"></i>
-              <strong>Registration Period:</strong>
-              registrationStart to registrationEnd
-            </p>
-            <p>
-              <i class="bx bx-list-ul"></i>
-              <strong>Voting Period:</strong>
-              votingStart to votingEnd
-            </p>
-          </section>
+  <p class="election-name">
+    &nbsp;<strong>Election Name:</strong>
+    <%= electionConfig && electionConfig.electionName ? electionConfig.electionName : "N/A" %>
+  </p>
+  <hr />
+  <p>
+    <i class="bx bx-calendar-check"></i>&nbsp;<strong>Status:</strong>
+    <%= electionConfig && electionConfig.electionStatus ? electionConfig.electionStatus : "N/A" %>
+  </p>
+  <p>
+    <i class="bx bx-edit-alt"></i>
+    <strong>Registration Period:</strong>
+    <%= electionConfig && electionConfig.registrationStart ? formatDisplayDate(electionConfig.registrationStart) : "N/A" %>
+    to
+    <%= electionConfig && electionConfig.registrationEnd ? formatDisplayDate(electionConfig.registrationEnd) : "N/A" %>
+  </p>
+  <p>
+    <i class="bx bx-list-ul"></i>
+    <strong>Voting Period:</strong>
+    <%= electionConfig && electionConfig.votingStart ? formatDisplayDate(electionConfig.votingStart) : "N/A" %>
+    to
+    <%= electionConfig && electionConfig.votingEnd ? formatDisplayDate(electionConfig.votingEnd) : "N/A" %>
+  </p>
+</section>
+
           <br />
           <!-- Election Creation / Update Form -->
           <section class="create-election">
@@ -346,8 +368,116 @@
 
 
           <!-- Include Moment libraries on the client if needed -->
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.40/moment-timezone-with-data.min.js"></script>
+          
 
           <!-- END OF FAKE DATE -->
+
+          <script>
+  // Convert stored deadlines to moment objects in Asia/Manila timezone.
+  const regStart = config.registrationStart ? moment.tz(config.registrationStart.$date || config.registrationStart, "Asia/Manila") : null;
+  const regEnd = config.registrationEnd ? moment.tz(config.registrationEnd.$date || config.registrationEnd, "Asia/Manila") : null;
+  const voteStart = config.votingStart ? moment.tz(config.votingStart.$date || config.votingStart, "Asia/Manila") : null;
+  const voteEnd = config.votingEnd ? moment.tz(config.votingEnd.$date || config.votingEnd, "Asia/Manila") : null;
+
+  // Always use the fake current date from the config.
+  let fakeCurrent = moment.tz(config.fakeCurrentDate.$date || config.fakeCurrentDate, "Asia/Manila");
+
+  // Determine whether the fake date is set to "real time" by comparing it to now.
+  const now = moment.tz(new Date(), "Asia/Manila");
+  // If the difference is less than 1 second, assume it's real time.
+  const useRealTime = Math.abs(fakeCurrent.diff(now)) < 1000;
+
+  // Throttle function to limit database update frequency.
+  function throttle(func, wait) {
+    let timeout = null;
+    return function(...args) {
+      if (!timeout) {
+        func.apply(this, args);
+        timeout = setTimeout(() => {
+          timeout = null;
+        }, wait);
+      }
+    };
+  }
+
+  // Function to update fakeCurrentDate in the database.
+  function updateDatabaseFakeCurrent(currentTime) {
+    fetch('/update-fake-date', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fakeCurrentDate: currentTime.toISOString() })
+    }).catch(err => console.error('Error updating fakeCurrentDate:', err));
+  }
+
+  // Wrap the update function so that it only runs once every 10 seconds.
+  const throttledUpdateDatabase = throttle(updateDatabaseFakeCurrent, 10000);
+
+  function updateHeader() {
+    // Use real time if fake date was reset; otherwise, use fakeCurrent.
+    const currentTime = useRealTime ? moment.tz(new Date(), "Asia/Manila") : fakeCurrent;
+
+    let headerStatus = config.electionStatus || "";
+    let timeMessage = "";
+
+    if (headerStatus === "ELECTION ACTIVE") {
+      if (config.specialStatus && config.specialStatus !== "None") {
+        headerStatus += ` | ${config.specialStatus}`;
+      } else {
+        if (regStart && currentTime.isBefore(regStart)) {
+          headerStatus += " | Waiting for Registration Period";
+          const diffMs = regStart.diff(currentTime);
+          const duration = moment.duration(diffMs);
+          timeMessage = `Time until registration: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
+        } else if (regStart && regEnd && currentTime.isBetween(regStart, regEnd, null, '[)')) {
+          headerStatus += " | Registration Period";
+          timeMessage = `<strong>Start Date:</strong> ${regStart.format("MM/DD/YYYY, hh:mm:ss A")}<br>
+                         <strong>End Date:</strong> ${regEnd.format("MM/DD/YYYY, hh:mm:ss A")}`;
+        } else if (regEnd && voteStart && currentTime.isBetween(regEnd, voteStart, null, '[)')) {
+          headerStatus += " | Waiting for Voting Period";
+          const diffMs = voteStart.diff(currentTime);
+          const duration = moment.duration(diffMs);
+          timeMessage = `Time until voting: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
+        } else if (voteStart && voteEnd && currentTime.isBetween(voteStart, voteEnd, null, '[)')) {
+          headerStatus += " | Voting Period";
+          timeMessage = `<strong>Start Date:</strong> ${voteStart.format("MM/DD/YYYY, hh:mm:ss A")}<br>
+                         <strong>End Date:</strong> ${voteEnd.format("MM/DD/YYYY, hh:mm:ss A")}`;
+        } else if (voteEnd && currentTime.isAfter(voteEnd)) {
+          headerStatus += " | Results Double Checking Period";
+          timeMessage = `<strong>Waiting for results</strong>`;
+        }
+      }
+    }
+
+    // Split headerStatus by "|" and apply the proper styles.
+    let statusParts = headerStatus.split("|").map(part => part.trim());
+    let formattedStatus = `<span style="color: #369f2c;">${statusParts[0]}</span>`;
+    if (statusParts.length > 1) {
+      formattedStatus += ` <span style="color: white;"> | </span> <span style="color: #e1ae5b;"><i>${statusParts[1]}</i></span>`;
+    }
+
+    document.getElementById("headerStatus").innerHTML = `<span style="color: white;">Election Status: </span>${formattedStatus}`;
+    document.getElementById("timeMessage").innerHTML = timeMessage;
+
+    // Throttled database update call.
+    throttledUpdateDatabase(currentTime);
+  }
+
+  // Update the header every second.
+  setInterval(() => {
+    // If not using real time, increment fakeCurrent by one second.
+    if (!useRealTime) {
+      fakeCurrent.add(1, 'seconds');
+    }
+    updateHeader();
+  }, 1000);
+</script>
+
+
+
+
+          
 
           <script>
             function resetTestDate() {
