@@ -89,27 +89,12 @@ hr {
   color: black;
 }
 
-body {
+.main {
   position: relative;
 }
 
 #form-add,
 #form-add-lsc {
-  display: none;
-  min-height: 60dvh;
-  min-width: 60vw;
-  position: absolute;
-  z-index: 9999;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: var(--background-form);
-  border-radius: 1em;
-  padding: 2%;
-}
-
-#form-edit,
-#form-edit-lsc {
   display: none;
   min-height: 60dvh;
   min-width: 60vw;
@@ -207,4 +192,154 @@ form img {
   font-weight: normal;
   color: #482e03;
   /* border: 1px solid black; */
+}
+
+.button-close {
+  background-color: #c11515;
+}
+
+.x-button {
+  padding: 0;
+  margin: 0;
+  color: #c11515;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.my-text {
+  text-transform: capitalize;
+}
+
+.right {
+  text-align: right;
+  padding: 0;
+  margin: 0;
+  margin-top: -1.5rem !important;
+  margin-right: -1rem !important;
+}
+
+.center {
+  text-align: center;
+  width: 100%;
+  /* border: 1px solid black; */
+}
+
+.image-form {
+}
+
+.form-container {
+  background-color: black;
+  padding: 0;
+  margin: 0;
+  max-width: 60vw;
+  max-height: 70vh;
+}
+
+.form-buttons {
+}
+
+#form-edit-lsc {
+  /* border: 3px solid black; */
+  padding: 0;
+  margin: 0;
+}
+
+.form-container form {
+  padding: 2rem;
+}
+
+.circle-img {
+  width: 8rem; /* match your desired max width */
+  height: 8rem; /* match your desired max height */
+  object-fit: cover; /* ensures the image fills the circle without distortion */
+  border-radius: 50%; /* creates the circular shape */
+  display: block;
+  border: 0.2rem solid rgba(58, 27, 5, 0.677);
+}
+
+.left-content,
+.center-content,
+.right-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* border: 3px solid black; */
+}
+
+.center-content {
+  width: 30%;
+}
+
+.right-content {
+  width: 40%;
+}
+
+.left-content {
+  width: 22%;
+}
+
+.form-details {
+  /* padding: 1rem; */
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 2%;
+}
+
+.field {
+  border-radius: 1rem;
+  background: #f2ddb4;
+  border: 0.15rem solid rgba(58, 27, 5, 0.677);
+}
+
+.fill {
+  width: 15rem;
+  height: 2.5rem;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.info {
+  width: 20rem;
+  height: 10rem;
+  padding: 1rem;
+}
+
+.beside-button-left {
+  margin-right: 0.5rem;
+}
+
+.form-details label {
+  font-weight: 500;
+}
+
+.position-title-container {
+  padding: 0 3rem;
+}
+
+.position-program {
+  color: #bb7e15;
+}
+
+.form-container {
+  display: none;
+  min-height: 60dvh;
+  min-width: 60vw;
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--background-form);
+  border-radius: 1em;
+  padding: 2%;
+}
+
+#form-add-lsc,
+#form-add,
+#form-edit {
+  padding: 0;
+  margin: 0;
 }

@@ -13,6 +13,7 @@
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
   </head>
@@ -82,6 +83,7 @@
         <p><strong>End Date:</strong> <%= endDate %></p>
       </div>
       <div class="header-user">
+        <i class="fa fa-exclamation-triangle warning" aria-hidden="true"></i>
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
         <div class="profile">
           <div class="admin-name"><%= loggedInAdmin.name %></div>
