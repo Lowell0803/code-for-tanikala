@@ -226,11 +226,47 @@
             <input placeholder="Search" type="search" class="input" />
           </div>
           <div class="main-header-options">
-            <img src="../img/setting.png" class="option-filter" />
+            <!-- <img src="../img/setting.png" class="option-filter" /> -->
             <img src="../img/printer.png" class="option-print" />
           </div>
         </div>
+
+        <!-- New Filter Controls -->
+        <div class="filter-controls" style="margin: 10px 0; padding: 5px; border: 1px solid #ccc">
+          <label for="collegeFilter">Filter by College:</label>
+          <select id="collegeFilter">
+            <option value="all">All Colleges</option>
+            <option value="College of Architecture and Fine Arts">College of Architecture and Fine Arts</option>
+            <option value="College of Arts and Letters">College of Arts and Letters</option>
+            <option value="College of Business Education and Accountancy">College of Business Education and Accountancy</option>
+            <option value="College of Criminal Justice Education">College of Criminal Justice Education</option>
+            <option value="College of Hospitality and Tourism Management">College of Hospitality and Tourism Management</option>
+            <option value="College of Industrial Technology">College of Industrial Technology</option>
+            <option value="College of Information and Communications Technology">College of Information and Communications Technology</option>
+            <option value="College of Engineering">College of Engineering</option>
+            <option value="College of Education">College of Education</option>
+            <option value="CN">CN</option>
+            <option value="College of Science">College of Science</option>
+            <option value="College of Sports, Exercise, and Recreation">College of Sports, Exercise, and Recreation</option>
+            <option value="College of Social Sciences and Philosophy">College of Social Sciences and Philosophy</option>
+          </select>
+
+          <label for="programFilter">Filter by Program:</label>
+          <select id="programFilter" disabled>
+            <option value="all">All Programs</option>
+          </select>
+
+          <label for="statusFilter">Filter by Status:</label>
+          <select id="statusFilter">
+            <option value="all">All</option>
+            <option value="Registered">Registered</option>
+            <option value="Voted">Voted</option>
+            <!-- Add additional statuses as needed -->
+          </select>
+        </div>
+
         <br />
+
         <div class="main-content">
           <table id="studentTable">
             <thead>
@@ -267,6 +303,128 @@
         </div>
       </main>
     </div>
+
+    <script>
+      // Set how many rows per page
+      const rowsPerPage = 100;
+      let currentPage = 1;
+
+      // Function to paginate table rows
+      function paginateTable() {
+        // Get all rows that are currently visible after filtering.
+        const filteredRows = Array.from(document.querySelectorAll("#studentTable tbody tr")).filter((row) => row.style.display !== "none");
+
+        const totalRows = filteredRows.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+        // Hide all filtered rows first
+        filteredRows.forEach((row) => (row.style.display = "none"));
+
+        // Calculate start and end indices for the current page.
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+
+        // Show only the rows for the current page.
+        filteredRows.slice(start, end).forEach((row) => (row.style.display = ""));
+
+        // Render pagination controls.
+        renderPaginationControls(totalPages);
+      }
+
+      // Function to render pagination controls
+      function renderPaginationControls(totalPages) {
+        // Remove any existing controls.
+        let paginationContainer = document.getElementById("paginationControls");
+        if (!paginationContainer) {
+          paginationContainer = document.createElement("div");
+          paginationContainer.id = "paginationControls";
+          paginationContainer.style.marginTop = "10px";
+          document.querySelector(".main-content").appendChild(paginationContainer);
+        }
+        paginationContainer.innerHTML = "";
+
+        // Create Previous button.
+        const prevBtn = document.createElement("button");
+        prevBtn.textContent = "Previous";
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener("click", () => {
+          if (currentPage > 1) {
+            currentPage--;
+            paginateTable();
+          }
+        });
+        paginationContainer.appendChild(prevBtn);
+
+        // Create page number buttons (you can limit the number shown if desired).
+        for (let i = 1; i <= totalPages; i++) {
+          const btn = document.createElement("button");
+          btn.textContent = i;
+          btn.style.margin = "0 5px";
+          if (i === currentPage) {
+            btn.style.fontWeight = "bold";
+          }
+          btn.addEventListener("click", () => {
+            currentPage = i;
+            paginateTable();
+          });
+          paginationContainer.appendChild(btn);
+        }
+
+        // Create Next button.
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = "Next";
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener("click", () => {
+          if (currentPage < totalPages) {
+            currentPage++;
+            paginateTable();
+          }
+        });
+        paginationContainer.appendChild(nextBtn);
+      }
+
+      // Update filterTable to call paginateTable at the end.
+      function filterTable() {
+        const searchText = searchInput.value.toLowerCase();
+        const selectedCollege = collegeFilter.value.toLowerCase();
+        const selectedProgram = programFilter.value.toLowerCase();
+        const selectedStatus = statusFilter.value.toLowerCase();
+
+        for (let row of rows) {
+          // Columns: 1: NAME, 2: EMAIL, 5: COLLEGE, 6: PROGRAM, 7: STATUS
+          const name = row.cells[1].textContent.toLowerCase();
+          const email = row.cells[2].textContent.toLowerCase();
+          const college = row.cells[5].textContent.toLowerCase();
+          const program = row.cells[6].textContent.toLowerCase();
+          const status = row.cells[7].textContent.toLowerCase();
+
+          const matchesSearch = name.includes(searchText) || email.includes(searchText);
+          const matchesCollege = selectedCollege === "all" || college.includes(selectedCollege);
+          const matchesProgram = selectedProgram === "all" || program.includes(selectedProgram);
+          const matchesStatus = selectedStatus === "all" || status === selectedStatus;
+
+          // Set display based on filter; temporarily show all that match.
+          row.style.display = matchesSearch && matchesCollege && matchesProgram && matchesStatus ? "" : "none";
+        }
+        // Reset current page and paginate after filtering.
+        currentPage = 1;
+        paginateTable();
+      }
+
+      // Update event listeners to call filterTable (which in turn paginates)
+      searchInput.addEventListener("input", filterTable);
+      collegeFilter.addEventListener("change", function () {
+        updateProgramDropdown();
+        filterTable();
+      });
+      programFilter.addEventListener("change", filterTable);
+      statusFilter.addEventListener("change", filterTable);
+
+      // Run pagination initially in case there is preexisting filter
+      document.addEventListener("DOMContentLoaded", function () {
+        paginateTable();
+      });
+    </script>
 
     <footer class="footer">
       <div class="footer-left">
@@ -342,5 +500,37 @@
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Print button functionality using jsPDF and autoTable.
+        const printButton = document.querySelector(".option-print");
+        printButton.addEventListener("click", function () {
+          console.log("clicked");
+          // Use the jsPDF module from the window
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF("p", "pt");
+
+          // Optionally add a title
+          doc.setFontSize(18);
+          doc.text("Registered Student Voters", 40, 40);
+
+          // Use autoTable plugin; the table element is your table with id "studentTable"
+          doc.autoTable({
+            html: "#studentTable",
+            startY: 60,
+            theme: "grid", // You can change the theme
+            headStyles: { fillColor: [41, 128, 185] },
+            styles: { fontSize: 10 },
+          });
+
+          // Save or open the PDF in a new window.
+          doc.save("voters.pdf");
+        });
+      });
+    </script>
   </body>
 </html>
