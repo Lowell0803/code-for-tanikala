@@ -99,16 +99,20 @@
 
                   let boardMembersHTML = `<div class="container-position">
                     <h1 class="position-lsc">Board Members</h1>
-                    <button class="button button-add" onclick="addCandidateLSC('Board Member')">Add Candidate</button>
+                 
                   </div>
                   <hr />`;
 
                   for (const program in boardMembersByProgram) {
                     boardMembersHTML += `
                       <div class="program-group" id="college-${collegeAcronym}-${program}">
-                        <h2>${program}</h2>
+                        <br />
+                        <h2 class="program-name">${program}</h2>
+                        <div class="usog-right">
                         <button class="button button-add" onclick="addCandidateLSC('Board Member', '${program}')">Add Candidate</button>
+                        </div>
                         <div>
+                         
                           ${boardMembersByProgram[program].map((candidate) => createBoardMemberCard(candidate, collegeAcronym)).join("")}
                         </div>
                       </div>
@@ -727,75 +731,113 @@
     <!-- LSC -->
 
     <div id="form-add-lsc" class="form-container">
-      <div id="form-buttons">
-        <button class="button" id="button-close-add-lsc" onclick="toggleForm('form-add-lsc')">Close</button>
-
-        <h2 id="heading-position-add-lsc">Position</h2>
-
+      <div class="right">
+        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-add-lsc')"></i>
+      </div>
+      <div class="center position-title-container">
+        <h1 class="postion-name-lsc my-text position-lsc" id="heading-position-add-lsc">Position</h1>
+      </div>
+      <div class="form-buttons">
         <form method="POST" action="/add-candidate-lsc">
           <input type="hidden" id="college-acronym-add-lsc" name="collegeAcronym" />
           <input type="hidden" id="program-add-lsc" name="program" />
+          <input type="hidden" id="candidate-id-add-lsc" name="_id" readonly />
+          <input type="hidden" id="position-add-lsc" name="candidatePosition" readonly />
 
-          <label>(for backend):</label>
-          <input type="text" id="candidate-id-add-lsc" name="_id" readonly />
-          <input type="text" id="position-add-lsc" name="candidatePosition" readonly /><br /><br />
-          <img id="image-add" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" /><br /><br />
+          <div>
+            <div class="form-details">
+              <div class="left-content">
+                <img id="image-add-lsc" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
+                <br />
+                <div class="center">
+                  <input type="file" id="image-upload-add-lsc" accept="image/*" />
+                  <input type="hidden" id="image-base64-add-lsc" name="image" />
+                </div>
+              </div>
+              <br />
+              <div class="center-content">
+                <!-- (for backend): -->
+                <!-- <label>(for backend):</label> -->
+               
+                <label for="name">Name:</label>
+                <input type="text" id="name-add-lsc" name="name" maxlength="35" class="field fill" required /><br /><br />
+                <label for="party">Party:</label>
+                <select id="party-add-lsc" name="party" class="field fill">
+                  <option value="KASAMA - BulSU">KASAMA - BulSU</option>
+                  <option value="BulSUONE">BulSUONE</option>
+                </select>
+              </div>
+              <div class="right-content">
+                <label for="more-info">Info:</label>
+                <textarea id="more-info-add-lsc" name="moreInfo" maxlength="150" class="field info"></textarea>
+              </div>
+            </div>
+          </div>
 
-          <!-- Image Upload Input -->
-          <input type="file" id="image-upload-add-lsc" accept="image/*" />
-          <input type="hidden" id="image-base64-add-lsc" name="image" />
-
-          <label for="name">Name:</label>
-          <input type="text" id="name-add-lsc" name="name" maxlength="35" required /><br /><br />
-
-          <label for="party">Party:</label>
-          <select id="party-add-lsc" name="party">
-            <option value="KASAMA - BulSU">KASAMA - BulSU</option>
-            <option value="BulSUONE">BulSUONE</option></select
-          ><br /><br />
-
-          <label for="more-info">Info:</label><br />
-          <textarea id="more-info-add-lsc" name="moreInfo" maxlength="150"></textarea>
-          <br />
-          <input type="submit" class="button button-add" value="Add" />
-        </form>
+          <br /><br />
+          <div class="right">
+            <input type="submit" class="button button-add" value="Add Candidate" />
+          </div>
+       
       </div>
     </div>
 
     <div id="form-edit-lsc" class="form-container">
-      <div id="form-buttons">
-        <button class="button" id="button-close-edit-lsc" onclick="toggleForm('form-edit-lsc')">Close</button>
-        <button class="button" id="button-delete-edit-lsc" onclick="deleteCandidateLSC()">Delete</button>
-
-        <br /><br />
-        test
-        <h2 id="heading-position-edit-lsc">Position</h2>
+      <div class="right">
+        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-edit-lsc')"></i>
+      </div>
+      <div class="center position-title-container">
+        <h1 class="postion-name-lsc my-text position-lsc" id="heading-position-edit-lsc">Position</h1>
+      </div>
+      <div class="form-buttons">
         <form method="POST" action="/update-candidate-lsc">
           <input type="hidden" id="college-acronym-edit-lsc" name="collegeAcronym" />
           <input type="hidden" id="program-edit-lsc" name="program" />
           <!-- Only for Board Members -->
+          <!-- <div class="center"> -->
+          <!-- <div class="border"> -->
+          <!-- <label>Candidate Number: </label> -->
+          <input type="hidden" id="candidate-id-edit-lsc" name="_id" readonly />
+          <!-- <label>Position: </label> -->
+          <input type="hidden" id="position-edit-lsc" name="candidatePosition" readonly />
+          <!-- </div> -->
+          <!-- </div> -->
 
-          <label>(for backend):</label>
-          <input type="text" id="candidate-id-edit-lsc" name="_id" readonly />
-          <input type="text" id="position-edit-lsc" name="candidatePosition" readonly /><br /><br />
-          <img id="image-edit-lsc" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" /><br /><br />
+          <div>
+            <div class="form-details">
+              <div class="left-content">
+                <img id="image-edit-lsc" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
+                <br />
+                <div class="center">
+                  <input type="file" id="image-upload-edit-lsc" accept="image/*" />
+                  <input type="hidden" id="image-base64-edit-lsc" name="image" />
+                  <input type="hidden" id="original-image-edit-lsc" name="originalImage" />
+                </div>
+              </div>
+              <br />
 
-          <!-- Image Upload Input -->
-          <input type="file" id="image-upload-edit-lsc" accept="image/*" />
-          <input type="hidden" id="image-base64-edit-lsc" name="image" />
-          <input type="hidden" id="original-image-edit-lsc" name="originalImage" />
+              <div class="center-content">
+                <label for="name">Name:</label>
+                <input type="text" id="name-edit-lsc" name="name" maxlength="35" class="field fill" /><br /><br />
+                <label for="party">Party:</label>
+                <select id="party-edit-lsc" name="party" class="field fill">
+                  <option value="KASAMA - BulSU">KASAMA</option>
+                  <option value="BulSUONE">BulSU ONE</option>
+                </select>
+              </div>
+              <div class="right-content">
+                <label for="more-info">Info:</label>
+                <textarea id="more-info-edit-lsc" name="moreInfo" maxlength="150" class="field info"></textarea>
+              </div>
+            </div>
+          </div>
 
-          <label for="name">Name:</label>
-          <input type="text" id="name-edit-lsc" name="name" maxlength="35" /><br /><br />
-          <label for="party">Party:</label>
-          <select id="party-edit-lsc" name="party">
-            <option value="KASAMA - BulSU">KASAMA</option>
-            <option value="BulSUONE">BulSU ONE</option></select
-          ><br /><br />
-          <label for="more-info">Info:</label><br />
-          <textarea id="more-info-edit-lsc" name="moreInfo" maxlength="150"></textarea>
           <br />
-          <input type="submit" class="button button-save" value="Save" />
+          <br />
+          <div class="right">
+            <button class="button beside-button-left" id="button-delete-edit-lsc" onclick="deleteCandidateLSC()">Delete</button>
+            <input type="submit" class="button button-save" value="Save" />
+          </div>
         </form>
       </div>
     </div>
@@ -803,65 +845,95 @@
     <!-- SSC -->
 
     <div id="form-add" class="form-container">
-      <div id="form-buttons">
-        <button class="button" id="button-close" onclick="toggleForm('form-add')">Close</button>
-
-        <br /><br />
-        <h2 id="heading-position-add">Position</h2>
+      <div class="right">
+        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-add')"></i>
+      </div>
+      <div class="center position-title-container">
+        <h1 class="postion-name-ssc my-text position-ssc" id="heading-position-add">Position</h1>
+      </div>
+      <div class="form-buttons">
         <form method="POST" action="/add-candidate">
-          <label>(for backend):</label>
-          <input type="text" id="candidate-id-add" name="_id" readonly />
-          <input type="text" id="position-add" name="candidatePosition" readonly /><br /><br />
-          <img id="image-add" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" /><br /><br />
+          <input type="hidden" id="candidate-id-add" name="_id" readonly />
+          <input type="hidden" id="position-add" name="candidatePosition" readonly />
 
-          <!-- Image Upload Input -->
-          <input type="file" id="image-upload-add" accept="image/*" />
-          <input type="hidden" id="image-base64-add" name="image" />
+          <div>
+            <div class="form-details">
+              <div class="left-content">
+                <img id="image-add" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
+                <br />
+                <div class="center">
+                  <input type="file" id="image-upload-add" accept="image/*" />
+                  <input type="hidden" id="image-base64-add" name="image" />
+                </div>
+              </div>
+              <br />
+              <div class="center-content">
+                <label for="name">Name:</label>
+                <input type="text" id="name-add" name="name" maxlength="35" class="field fill" required /><br /><br />
+                <label for="party">Party:</label>
+                <select id="party-add" name="party" class="field fill">
+                  <option value="KASAMA - BulSU">KASAMA - BulSU</option>
+                  <option value="BulSUONE">BulSUONE</option>
+                </select>
+              </div>
+              <div class="right-content">
+                <label for="more-info">Info:</label>
+                <textarea id="more-info-add" name="moreInfo" maxlength="150" class="field info"></textarea>
+              </div>
+            </div>
+          </div>
 
-          <label for="name">Name:</label>
-          <input type="text" id="name-add" name="name" maxlength="35" required /><br /><br />
-          <label for="party">Party:</label>
-          <select id="party-add" name="party">
-            <option value="KASAMA - BulSU">KASAMA - BulSU</option>
-            <option value="BulSUONE">BulSUONE</option></select
-          ><br /><br />
-          <label for="more-info">Info:</label><br />
-          <textarea id="more-info-add" name="moreInfo" maxlength="150"></textarea>
-          <br />
-          <input type="submit" class="button button-add" value="Add" />
+          <br /><br />
+          <div class="right">
+            <input type="submit" class="button button-add" value="Add Candidate" />
+          </div>
         </form>
       </div>
     </div>
-
     <div id="form-edit" class="form-container">
-      <div id="form-buttons">
-        <button class="button" id="button-close" onclick="toggleForm('form-edit')">Close</button>
-        <button class="button" id="button-delete" onclick="deleteCandidate()">Delete</button>
-
-        <br /><br />
-        <h2 id="heading-position-edit">Position</h2>
+      <div class="right">
+        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-edit')"></i>
+      </div>
+      <div class="center position-title-container">
+        <h1 class="my-text position-ssc" id="heading-position-edit">Position</h1>
+      </div>
+      <div class="form-buttons">
         <form method="POST" action="/update-candidate">
-          <label>(for backend):</label>
-          <input type="text" id="candidate-id-edit" name="_id" readonly />
-          <input type="text" id="position-edit" name="candidatePosition" readonly /><br /><br />
-          <img id="image-edit" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" /><br /><br />
-
-          <!-- Image Upload Input -->
-          <input type="file" id="image-upload-edit" accept="image/*" />
-          <input type="hidden" id="image-base64-edit" name="image" />
-          <input type="hidden" id="original-image-edit" name="originalImage" />
-
-          <label for="name">Name:</label>
-          <input type="text" id="name-edit" name="name" maxlength="35" /><br /><br />
-          <label for="party">Party:</label>
-          <select id="party-edit" name="party">
-            <option value="KASAMA - BulSU">KASAMA</option>
-            <option value="BulSUONE">BulSU ONE</option></select
-          ><br /><br />
-          <label for="more-info">Info:</label><br />
-          <textarea id="more-info-edit" name="moreInfo" maxlength="150"></textarea>
+          <input type="hidden" id="candidate-id-edit" name="_id" readonly />
+          <input type="hidden" id="position-edit" name="candidatePosition" readonly />
+          <div>
+            <div class="form-details">
+              <div class="left-content">
+                <img id="image-edit" class="circle-img" src="img/placeholder_admin_profile.png" />
+                <br />
+                <div class="center">
+                  <input type="file" id="image-upload-edit" accept="image/*" />
+                  <input type="hidden" id="image-base64-edit" name="image" />
+                  <input type="hidden" id="original-image-edit" name="originalImage" />
+                </div>
+              </div>
+              <br />
+              <div class="center-content">
+                <label for="name">Name:</label>
+                <input type="text" id="name-edit" name="name" maxlength="35" class="field fill" /><br /><br />
+                <label for="party">Party:</label>
+                <select id="party-edit" name="party" class="field fill">
+                  <option value="KASAMA - BulSU">KASAMA</option>
+                  <option value="BulSUONE">BulSU ONE</option>
+                </select>
+              </div>
+              <div class="right-content">
+                <label for="more-info">Info:</label><br />
+                <textarea id="more-info-edit" name="moreInfo" maxlength="150" class="field info"></textarea>
+              </div>
+            </div>
+          </div>
           <br />
-          <input type="submit" class="button button-save" value="Save" />
+          <br />
+          <div class="right">
+            <button class="button beside-button-left" id="button-delete" onclick="deleteCandidate()">Delete</button>
+            <input type="submit" class="button button-save" value="Save" />
+          </div>
         </form>
       </div>
     </div>

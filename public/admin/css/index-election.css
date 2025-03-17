@@ -113,11 +113,18 @@
   color: #148b09;
 }
 
-#container-lsc-board-member ul {
+#container-lsc-board-member ul,
+.program-name {
   color: #bb7e15;
   padding-left: 1rem;
   font-size: 1.5rem;
   text-decoration: underline;
+}
+
+.usog-right {
+  text-align: right;
+  padding-right: 1rem;
+  padding-top: 2rem;
 }
 
 .candidate,
@@ -164,4 +171,8 @@
 
 .election-title {
   color: #f5ab29;
+}
+
+.position-program {
+  color: ;
 }
