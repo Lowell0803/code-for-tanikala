@@ -31,7 +31,7 @@
         <strong>
           Election Status:
           <span id="currentPeriodDisplay" class="election-status" data-status="<%= electionConfig.currentPeriod.name %>"> <%= electionConfig.currentPeriod.name %> </span>
-          |
+          <span id="separator"> | </span>
           <em id="currentPeriodName" class="right-text"> <%= electionConfig.currentPeriod.name %> </em>
         </strong>
 
@@ -39,16 +39,27 @@
           document.addEventListener("DOMContentLoaded", function () {
             const periodDisplay = document.getElementById("currentPeriodDisplay");
             const periodName = document.getElementById("currentPeriodName");
+            const separator = document.getElementById("separator");
 
-            if (!periodDisplay || !periodName) return;
+            if (!periodDisplay || !periodName || !separator) return;
 
-            // Get the election name from EJS
+            // Get the election phase from EJS
+            let electionPhase = "<%= electionConfig.phase %>"; // e.g., "Election Inactive"
+            // Get the current period name (from data-status)
             let electionName = periodDisplay.getAttribute("data-status") || "";
-            console.log(electionName);
+            console.log("Election Phase:", electionPhase);
+            console.log("Election Name:", electionName);
+
             let placeholderText = "";
             let leftColor = "#f4ab2a"; // Default color for active periods
 
-            if (electionName === "Election Not Active") {
+            // If the election is inactive, do not show the separator
+            if (electionPhase === "Election Inactive") {
+              placeholderText = "ELECTION INACTIVE";
+              leftColor = "#888"; // Neutral color for inactive state
+              separator.style.display = "none"; // Hide the pipe
+              periodName.textContent = ""; // Clear the right text
+            } else if (electionName === "Election Not Active") {
               placeholderText = "ELECTION NOT ACTIVE | No Configuration";
               leftColor = "#004aad";
             } else if (electionName === "Results Are Out Period" || electionName === "Results Double Checking Period") {
@@ -56,23 +67,22 @@
               leftColor = "#e50e24";
             } else if (electionName === "Temporarily Closed") {
               placeholderText = "TEMPORARILY CLOSED";
-              leftColor = "a60212";
+              leftColor = "#a60212";
             } else {
               placeholderText = "ELECTION ACTIVE | " + electionName;
-              leftColor = "#5fb643  ";
+              leftColor = "#5fb643";
             }
 
-            if (electionName != "Temporarily Closed") {
+            // Split the placeholder if it includes a separator (for active elections)
+            if (placeholderText.includes(" | ")) {
               let parts = placeholderText.split(" | ");
-              let leftText = parts[0];
-              let rightText = parts.length > 1 ? parts[1] : "";
-
-              // Update the UI
-              periodDisplay.textContent = leftText;
+              periodDisplay.textContent = parts[0];
               periodDisplay.style.color = leftColor;
-              periodName.textContent = rightText;
+              periodName.textContent = parts[1];
+              separator.style.display = "inline"; // Ensure separator is visible
             } else {
-              preiodDisplay.style.color = leftColor;
+              periodDisplay.textContent = placeholderText;
+              periodDisplay.style.color = leftColor;
             }
           });
         </script>
@@ -344,13 +354,18 @@
 
             <div class="right-side">
               <div class="beside">
+                <% let totalRegisteredVoters = 0; let totalVoted = 0; let totalVoters = 0; if (electionConfig.listOfElections && electionConfig.listOfElections.length) { electionConfig.listOfElections.forEach(college => { totalRegisteredVoters += college.registeredVoters; totalVoted += college.numberOfVoted; totalVoters += college.voters; }); } let turnoutPercentage = totalVoters > 0 ? (totalVoted / totalVoters * 100) : 0; %>
+
                 <div class="form" id="registered-students">
                   <h4 class="center">Number of Registered Voters</h4>
+                  <p class="center"><%= totalRegisteredVoters %></p>
                 </div>
                 <div class="form" id="voter-turnout">
                   <h4 class="center">Voter Turnout</h4>
+                  <p class="center"><%= turnoutPercentage.toFixed(2) %>%</p>
                 </div>
               </div>
+
               <div class="form" id="blockchain-management">
                 <h3 class="center">Blockchain Management</h3>
                 <br />
