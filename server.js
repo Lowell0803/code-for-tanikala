@@ -263,9 +263,6 @@ passport.deserializeUser((obj, done) => {
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// -----------------------
-// SOCKET.IO SETUP
-// -----------------------
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -274,7 +271,15 @@ const io = new Server(server);
 io.on("connection", (socket) => {
   console.log("Client connected: " + socket.id);
 
-  // Client should join a room for their vote using voteId
+  // Get the admin email from the handshake query (make sure the client sends it)
+  const adminEmail = socket.handshake.query.email;
+  if (adminEmail) {
+    // Mark the admin as online
+    db.collection("admin_accounts")
+      .updateOne({ email: adminEmail }, { $set: { online: true } })
+      .catch((err) => console.error("Error marking admin online:", err));
+  }
+
   socket.on("joinVoteRoom", (data) => {
     const { voteId } = data;
     if (voteId) {
@@ -285,6 +290,12 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("Client disconnected: " + socket.id);
+    if (adminEmail) {
+      // Mark the admin as offline
+      db.collection("admin_accounts")
+        .updateOne({ email: adminEmail }, { $set: { online: false } })
+        .catch((err) => console.error("Error marking admin offline:", err));
+    }
   });
 });
 

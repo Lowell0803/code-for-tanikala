@@ -746,3 +746,12 @@ input {
   font-size: 5rem;
   padding-right: 0.5rem;
 }
+
+.status-indicator.active {
+  color: green;
+  font-weight: bold;
+}
+.status-indicator.inactive {
+  color: gray;
+  font-weight: normal;
+}

@@ -214,9 +214,9 @@
         </div>
         <hr class="title-line" />
         <div class="first-main">
-          <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
+          <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
           <div class="space">
-            <form id="add-admin-form" action="/admin-accounts/add" method="POST">
+            <form id="add-admin-form" action="/admin-accounts/add" method="POST" enctype="multipart/form-data">
               <label>Name:</label>
               <input type="text" name="name" required />
 
@@ -228,8 +228,28 @@
                 <option value="Creatives Team Member">Creatives Team</option>
                 <option value="Developer">Developers</option>
               </select>
+
+              <label>Email:</label>
+              <input type="email" name="email" required />
+
+              <label>Password:</label>
+              <input type="password" name="password" required />
+
+              <label>Status:</label>
+              <select name="status" required>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+
+              <label>Profile Image:</label>
+              <input type="file" name="imgUpload" accept="image/*" onchange="convertImageToBase64(event)" required />
+              <!-- Image preview element preloaded with the placeholder -->
+              <img id="img-preview" src="img/placeholder_admin_profile.png" alt="Image Preview" style="max-width: 100px; display: block" />
+              <!-- Hidden input to hold the Base64 image data, defaulting to the placeholder -->
+              <input type="hidden" name="img" id="imgBase64" value="img/placeholder_admin_profile.png" />
+
+              <button type="submit" class="button button-brown">Add Admin</button>
             </form>
-            <button type="submit" class="button button-brown">Add Admin</button>
           </div>
           <% } %>
 
@@ -262,7 +282,13 @@
                     <span class="password-mask">********</span>
                     <button type="button" onclick="togglePassword(this)" data-password="<%= admin.password %>"><i class="fa-solid fa-magnifying-glass"></i>show</button>
                   </td>
-                  <td><%= admin.status %></td>
+                  <td>
+                    <% if (admin.online) { %>
+                    <span class="status-indicator active">Active</span>
+                    <% } else { %>
+                    <span class="status-indicator inactive">Inactive</span>
+                    <% } %>
+                  </td>
                   <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
                   <td>
                     <div class="actions">
@@ -352,6 +378,10 @@
 
         reader.onload = function () {
           document.getElementById("imgBase64").value = reader.result;
+          // Update the preview image and show it
+          const preview = document.getElementById("img-preview");
+          preview.src = reader.result;
+          preview.style.display = "block";
         };
 
         if (file) {
@@ -373,5 +403,11 @@
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      // Connect to Socket.IO, passing the logged-in admin's email
+      const socket = io("/", { query: { email: "<%= loggedInAdmin.email %>" } });
+    </script>
   </body>
 </html>
