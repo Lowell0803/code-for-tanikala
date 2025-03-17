@@ -2995,7 +2995,7 @@ const startServer = async () => {
 
     app.get("/blockchain-management", ensureAdminAuthenticated, async (req, res) => {
       try {
-        // Fetch election configuration
+        // Fetch election configuration.
         const electionConfigCollection = db.collection("election_config");
         let electionConfig = await electionConfigCollection.findOne({});
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
@@ -3005,9 +3005,9 @@ const startServer = async () => {
         const balanceWei = await provider.getBalance(publicAddress);
         const balancePOL = parseFloat(ethers.formatUnits(balanceWei, 18));
 
-        // Fetch prices (using polygon-ecosystem-token as the POL coin)
+        // Fetch prices using polygon-ecosystem-token.
         const prices = await getCryptoPrices();
-        // Calculate wallet equivalents in USD and PHP
+        // Calculate wallet equivalents in USD and PHP.
         const balanceUSD = balancePOL * (prices?.polPriceUsd || 0);
         const balancePHP = balancePOL * (prices?.polPricePhp || 0);
 
@@ -3020,14 +3020,33 @@ const startServer = async () => {
         };
 
         // ----- Get Blockchain Transaction Info -----
-        // Assumes there's only one latest document in the blockchainInfo collection
-        const blockchainInfo = (await db.collection("blockchainInfo").findOne({})) || null;
+        // Get the latest blockchainInfo document.
+        const blockchainInfoRaw = (await db.collection("blockchainInfo").findOne({})) || null;
+
+        // Recalculate the amount spent based on the POL value:
+        let amountSpentPOL = 0;
+        if (blockchainInfoRaw && blockchainInfoRaw.amountSpentWei) {
+          amountSpentPOL = parseFloat(ethers.formatUnits(blockchainInfoRaw.amountSpentWei, 18));
+        }
+        // Calculate Amount Spent (PHP and USD) using polygon prices.
+        const amountSpentPHPCalculated = amountSpentPOL * (prices?.polPricePhp || 0);
+        const amountSpentUSDCalculated = amountSpentPOL * (prices?.polPriceUsd || 0);
+
+        // Build a new blockchainInfo object with recalculated values.
+        const blockchainInfo = blockchainInfoRaw
+          ? {
+              ...blockchainInfoRaw,
+              amountSpentPhp: amountSpentPHPCalculated,
+              amountSpentUsd: amountSpentUSDCalculated,
+              amountSpentEth: amountSpentPOL, // This value is in POL units.
+            }
+          : null;
 
         // ----- Get Candidate Submission Status -----
         const systemStatus = await db.collection("system_status").findOne({ _id: "candidate_submission" });
         const candidateSubmission = systemStatus ? systemStatus.submitted : false;
 
-        // Render the EJS page with all data
+        // Render the EJS page with all data.
         res.render("admin/blockchain-management", {
           electionConfig,
           loggedInAdmin: req.session.admin,
