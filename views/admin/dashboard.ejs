@@ -83,7 +83,16 @@
         <p><strong>End Date:</strong> <%= endDate %></p>
       </div>
       <div class="header-user">
-        <i class="fa fa-exclamation-triangle warning" aria-hidden="true"></i>
+        <div class="warning-container">
+          <i class="fa fa-exclamation-triangle warning" aria-hidden="true"></i>
+          <div class="warning-dropdown">
+            <div class="triangle"></div>
+            <div class="dropdown-content">
+              <p>The voting period will start in the next 24 hours (April 4, 2025 - 8:00 am), but you haven’t submitted candidates to the blockchain yet. Submit them now.</p>
+              <!-- <p>The voting period has been automatically moved from April 4, 2025 - 8:00 am to April 5, 2025 - 8:00 am because you haven’t submitted candidates to the blockchain yet. Submit them now.</p> -->
+            </div>
+          </div>
+        </div>
         <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
         <div class="profile">
           <div class="admin-name"><%= loggedInAdmin.name %></div>

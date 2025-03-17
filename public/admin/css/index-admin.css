@@ -324,6 +324,7 @@ h6 {
   margin-top: 11.5%;
   margin-right: -3%;
   padding: 0.5rem;
+  z-index: 11;
 }
 
 /* Style for the links inside the dropdown */
@@ -741,12 +742,6 @@ input {
   cursor: pointer !important;
 }
 
-.warning {
-  color: #f5ab29;
-  font-size: 5rem;
-  padding-right: 0.5rem;
-}
-
 .status-indicator.active {
   color: green;
   font-weight: bold;
@@ -754,4 +749,52 @@ input {
 .status-indicator.inactive {
   color: gray;
   font-weight: normal;
+}
+
+.warning-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* The dropdown is always visible */
+.warning-dropdown {
+  display: block;
+  position: absolute;
+  top: 110%; /* Adjust this value to set the dropdown distance below the icon */
+  left: 35%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.warning {
+  color: #f5ab29;
+  font-size: 5rem;
+  padding-right: 0.5rem;
+}
+
+/* Triangle styling */
+.triangle {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #e1ae5b; /* Background color matching the dropdown */
+  margin: 0 auto;
+}
+
+/* Dropdown content styling */
+.dropdown-content {
+  background-color: #e1ae5b;
+  padding: 0.5rem;
+  border: 1px solid #a60212;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 20rem;
+  font-size: 0.7rem;
+  z-index: 10;
+  color: #a60212;
+}
+
+.dropdown-content p {
+  font-weight: 600;
 }
