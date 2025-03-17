@@ -2712,7 +2712,7 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
       const simulatedDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).toISOString() : null;
-      res.render("admin/configuration", { electionConfig, simulatedDate, loggedInAdmin: req.session.admin });
+      res.render("admin/configuration", { electionConfig, simulatedDate, loggedInAdmin: req.session.admin, moment });
     });
 
     app.post("/configuration", async (req, res) => {
@@ -2768,12 +2768,13 @@ const startServer = async () => {
         }
 
         // Build the update object by merging new values with existing ones if not provided.
+        // Dates are parsed in the 'Asia/Manila' timezone.
         const update = {
           electionName: electionName || currentConfig.electionName,
-          registrationStart: registrationStart ? new Date(registrationStart) : currentConfig.registrationStart,
-          registrationEnd: registrationEnd ? new Date(registrationEnd) : currentConfig.registrationEnd,
-          votingStart: votingStart ? new Date(votingStart) : currentConfig.votingStart,
-          votingEnd: votingEnd ? new Date(votingEnd) : currentConfig.votingEnd,
+          registrationStart: registrationStart ? moment.tz(registrationStart, "Asia/Manila").toDate() : currentConfig.registrationStart,
+          registrationEnd: registrationEnd ? moment.tz(registrationEnd, "Asia/Manila").toDate() : currentConfig.registrationEnd,
+          votingStart: votingStart ? moment.tz(votingStart, "Asia/Manila").toDate() : currentConfig.votingStart,
+          votingEnd: votingEnd ? moment.tz(votingEnd, "Asia/Manila").toDate() : currentConfig.votingEnd,
           partylists: partylistsArray,
           listOfElections: mergedList,
           totalStudents: totalStudents,
