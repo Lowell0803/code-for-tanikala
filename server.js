@@ -2905,6 +2905,21 @@ const startServer = async () => {
       }
     });
 
+    app.post("/toggle-date-mode", async (req, res) => {
+      try {
+        // If the checkbox is checked, req.body.useFakeDate will be "true".
+        // If unchecked, the value may be undefined, so we default to false.
+        const useFakeDate = req.body.useFakeDate === "true" ? true : false;
+        console.log("Toggle date mode called:", useFakeDate);
+
+        await db.collection("election_config").updateOne({}, { $set: { useFakeDate: useFakeDate } });
+        res.redirect("/configuration");
+      } catch (err) {
+        console.error("Error updating date mode", err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
     // POST endpoint to reset the election (sets it to inactive)
     app.post("/reset-election", async (req, res) => {
       try {

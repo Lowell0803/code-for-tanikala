@@ -1,37 +1,40 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>TANIKALA | Configuration</title>
-    <link rel="stylesheet" href="admin/css/index-admin.css" />
-    <link rel="stylesheet" href="admin/css/configuration.css" />
-    <link rel="stylesheet" href="admin/css/sidebar.css" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TANIKALA | Configuration</title>
+  <link rel="stylesheet" href="admin/css/index-admin.css" />
+  <link rel="stylesheet" href="admin/css/configuration.css" />
+  <link rel="stylesheet" href="admin/css/sidebar.css" />
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/boxicons/css/boxicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
-    <link rel="stylesheet" href="components/notification.css" />
-    <script type="module" src="components/notification.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/boxicons/css/boxicons.min.css" rel="stylesheet" />
 
-    <style>
-      .period-info {
-        margin: 10px 0;
-        padding: 10px;
-        border: 1px solid #ccc;
-        background: #f9f9f9;
-      }
-      .period-info h3 {
-        margin: 0 0 5px;
-      }
-    </style>
-  </head>
-  <body>
-    <%
+  <link rel="stylesheet" href="components/notification.css" />
+  <script type="module" src="components/notification.js"></script>
+
+  <style>
+    .period-info {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+    }
+
+    .period-info h3 {
+      margin: 0 0 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <%
     // Helper functions
     function toPHFormat(dateString) { 
       if (!dateString) return ''; 
@@ -47,8 +50,11 @@
     const electionStatus = (electionConfig && electionConfig.electionStatus) ? electionConfig.electionStatus : "";
     const specialStatus = (electionConfig && electionConfig.specialStatus) ? electionConfig.specialStatus : "None";
   
-    // Convert stored dates to moment objects in Asia/Manila timezone
-    const fakeCurrent = electionConfig && electionConfig.fakeCurrentDate ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila") : moment.tz(new Date(), "Asia/Manila");
+    // Use fake date if useFakeDate boolean is true; otherwise use current date.
+    const fakeCurrent = (electionConfig && electionConfig.useFakeDate && electionConfig.fakeCurrentDate)
+      ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila")
+      : moment.tz(new Date(), "Asia/Manila");
+
     const regStart = electionConfig && electionConfig.registrationStart ? moment.tz(electionConfig.registrationStart, "Asia/Manila") : null;
     const regEnd = electionConfig && electionConfig.registrationEnd ? moment.tz(electionConfig.registrationEnd, "Asia/Manila") : null;
     const voteStart = electionConfig && electionConfig.votingStart ? moment.tz(electionConfig.votingStart, "Asia/Manila") : null;
@@ -85,7 +91,7 @@
       }
     }
   %>
-  
+
   <header class="header" id="header">
     <div class="header-logo">
       <img src="../img/logo_tanikala.png" alt="Tanikala Logo" />
@@ -98,14 +104,14 @@
         <span style="color: white;">Election Status: </span>
         <% if(headerStatus.includes('|')) { 
              const parts = headerStatus.split('|'); %>
-          <span style="color: #369f2c;"><%= parts[0].trim() %></span>
-          <span style="color: white;"> | </span>
-          <span style="color: #e1ae5b;"><i><%= parts[1].trim() %></i></span>
+        <span style="color: #369f2c;"><%= parts[0].trim() %></span>
+        <span style="color: white;"> | </span>
+        <span style="color: #e1ae5b;"><i><%= parts[1].trim() %></i></span>
         <% } else { %>
-          <span style="color: #369f2c;"><%= headerStatus %></span>
+        <span style="color: #369f2c;"><%= headerStatus %></span>
         <% } %>
       </strong>
-      
+
       <p id="timeMessage"><%- timeMessage %></p>
     </div>
     <div class="header-user">
@@ -123,512 +129,479 @@
     </div>
 
   </header>
-  
+
   <!-- Pass the election config to the client -->
   <script>
     const config = <%- JSON.stringify(electionConfig || {}) %>;
   </script>
 
-    <div class="content">
-      <div class="sidebar close">
-        <div class="profile-details">
-          <img src="<%= loggedInAdmin.img %>" />
-          <span class="profile-name"><%= loggedInAdmin.name %></span>
-          <span class="job"><%= loggedInAdmin.role %></span>
-        </div>
-
-        <ul class="nav-links">
-          <hr />
-          <li>
-            <a href="#">
-              <i class="bx bx-menu"></i>
-              <span class="link_name">Menu</span>
-            </a>
-          </li>
-          <hr />
-          <li>
-            <a href="/dashboard">
-              <i class="bx bxs-dashboard"></i>
-              <span class="link_name">Dashboard</span>
-            </a>
-            <ul class="sub-menu blank">
-              <li><a class="link_name" href="/dashboard">Dashboard</a></li>
-            </ul>
-          </li>
-
-          <li id="active-tab">
-            <a href="/configuration">
-              <i class="fa fa-cogs"></i>
-              <span class="link_name">Configuration</span>
-            </a>
-            <ul class="sub-menu blank">
-              <li><a class="link_name" href="/configuration">Configuration</a></li>
-            </ul>
-          </li>
-          <li>
-            <a href="/candidates">
-              <i class="fa fa-users"></i>
-              <span class="link_name">Candidates</span>
-            </a>
-            <ul class="sub-menu blank">
-              <li><a class="link_name" href="/candidates">Candidates</a></li>
-            </ul>
-          </li>
-
-          <li>
-            <div class="icon-link">
-              <a href="/blockchain-management">
-                <i class="fa fa-link"></i>
-                <span class="link_name">Blockchain</span>
-              </a>
-              <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-              <li><a class="link_name" href="/blockchain-management">Blockchain</a></li>
-              <li><a href="/blockchain-management">Blockchain Management</a></li>
-              <li><a href="/blockchain-activity-log">Activity Log</a></li>
-            </ul>
-          </li>
-
-          <li>
-            <div class="icon-link">
-              <a href="/voter-info">
-                <i class="fa fa-bar-chart"></i>
-                <span class="link_name">Election</span>
-              </a>
-              <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-              <li><a class="link_name" href="/voter-info"> electionName || "No Election Ongoing"</a></li>
-              <li><a href="/voter-info">Voter Info</a></li>
-              <li><a href="/voter-turnout">Voter Turnout</a></li>
-              <li><a href="/vote-tally">Vote Tally</a></li>
-              <li><a href="/results">Results</a></li>
-              <li><a href="/reset">Reset Election</a></li>
-            </ul>
-          </li>
-
-          <li>
-            <a href="/archives">
-              <i class="bx bx-archive"></i>
-              <span class="link_name">Election Archives</span>
-            </a>
-            <ul class="sub-menu blank">
-              <li><a class="link_name" href="/archives">Election Archives</a></li>
-            </ul>
-          </li>
-
-          <li>
-            <div class="icon-link">
-              <a href="/edit-account">
-                <i class="fa fa-tasks"></i>
-                <span class="link_name">System</span>
-              </a>
-              <i class="bx bxs-chevron-down arrow"></i>
-            </div>
-            <ul class="sub-menu">
-              <li><a class="link_name" href="/edit-account">System</a></li>
-              <li><a href="/edit-account">Edit Account</a></li>
-              <li><a href="/manage-admins">Manage Admins</a></li>
-              <li><a href="/help-page">Help Page</a></li>
-              <li><a href="/system-activity-log">System Activity Log</a></li>
-            </ul>
-          </li>
-        </ul>
+  <div class="content">
+    <div class="sidebar close">
+      <div class="profile-details">
+        <img src="<%= loggedInAdmin.img %>" />
+        <span class="profile-name"><%= loggedInAdmin.name %></span>
+        <span class="job"><%= loggedInAdmin.role %></span>
       </div>
-      <main class="main">
-        <div class="title-container">
-          <div class="r">
+
+      <ul class="nav-links">
+        <hr />
+        <li>
+          <a href="#">
+            <i class="bx bx-menu"></i>
+            <span class="link_name">Menu</span>
+          </a>
+        </li>
+        <hr />
+        <li>
+          <a href="/dashboard">
+            <i class="bx bxs-dashboard"></i>
+            <span class="link_name">Dashboard</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="/dashboard">Dashboard</a></li>
+          </ul>
+        </li>
+
+        <li id="active-tab">
+          <a href="/configuration">
             <i class="fa fa-cogs"></i>
-            <h1 class="title">Configuration</h1>
+            <span class="link_name">Configuration</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="/configuration">Configuration</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="/candidates">
+            <i class="fa fa-users"></i>
+            <span class="link_name">Candidates</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="/candidates">Candidates</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <div class="icon-link">
+            <a href="/blockchain-management">
+              <i class="fa fa-link"></i>
+              <span class="link_name">Blockchain</span>
+            </a>
+            <i class="bx bxs-chevron-down arrow"></i>
           </div>
+          <ul class="sub-menu">
+            <li><a class="link_name" href="/blockchain-management">Blockchain</a></li>
+            <li><a href="/blockchain-management">Blockchain Management</a></li>
+            <li><a href="/blockchain-activity-log">Activity Log</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <div class="icon-link">
+            <a href="/voter-info">
+              <i class="fa fa-bar-chart"></i>
+              <span class="link_name">Election</span>
+            </a>
+            <i class="bx bxs-chevron-down arrow"></i>
+          </div>
+          <ul class="sub-menu">
+            <li><a class="link_name" href="/voter-info"> electionName || "No Election Ongoing"</a></li>
+            <li><a href="/voter-info">Voter Info</a></li>
+            <li><a href="/voter-turnout">Voter Turnout</a></li>
+            <li><a href="/vote-tally">Vote Tally</a></li>
+            <li><a href="/results">Results</a></li>
+            <li><a href="/reset">Reset Election</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="/archives">
+            <i class="bx bx-archive"></i>
+            <span class="link_name">Election Archives</span>
+          </a>
+          <ul class="sub-menu blank">
+            <li><a class="link_name" href="/archives">Election Archives</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <div class="icon-link">
+            <a href="/edit-account">
+              <i class="fa fa-tasks"></i>
+              <span class="link_name">System</span>
+            </a>
+            <i class="bx bxs-chevron-down arrow"></i>
+          </div>
+          <ul class="sub-menu">
+            <li><a class="link_name" href="/edit-account">System</a></li>
+            <li><a href="/edit-account">Edit Account</a></li>
+            <li><a href="/manage-admins">Manage Admins</a></li>
+            <li><a href="/help-page">Help Page</a></li>
+            <li><a href="/system-activity-log">System Activity Log</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <main class="main">
+      <div class="title-container">
+        <div class="r">
+          <i class="fa fa-cogs"></i>
+          <h1 class="title">Configuration</h1>
         </div>
-        <hr class="title-line" />
-        <div class="first-main">
-          <!-- Display Current Election Configuration -->
+      </div>
+      <hr class="title-line" />
+      <div class="first-main">
+        <!-- Display Current Election Configuration -->
 
-          <section class="election-info">
-  <p class="election-name">
-    &nbsp;<strong>Election Name:</strong>
-    <%= electionConfig && electionConfig.electionName ? electionConfig.electionName : "N/A" %>
-  </p>
-  <hr />
-  <p>
-    <i class="bx bx-calendar-check"></i>&nbsp;<strong>Status:</strong>
-    <%= electionConfig && electionConfig.electionStatus ? electionConfig.electionStatus : "N/A" %>
-  </p>
-  <p>
-    <i class="bx bx-edit-alt"></i>
-    <strong>Registration Period:</strong>
-    <%= electionConfig && electionConfig.registrationStart ? formatDisplayDate(electionConfig.registrationStart) : "N/A" %>
-    to
-    <%= electionConfig && electionConfig.registrationEnd ? formatDisplayDate(electionConfig.registrationEnd) : "N/A" %>
-  </p>
-  <p>
-    <i class="bx bx-list-ul"></i>
-    <strong>Voting Period:</strong>
-    <%= electionConfig && electionConfig.votingStart ? formatDisplayDate(electionConfig.votingStart) : "N/A" %>
-    to
-    <%= electionConfig && electionConfig.votingEnd ? formatDisplayDate(electionConfig.votingEnd) : "N/A" %>
-  </p>
-</section>
+        <section class="election-info">
+          <p class="election-name">
+            &nbsp;<strong>Election Name:</strong>
+            <%= electionConfig && electionConfig.electionName ? electionConfig.electionName : "N/A" %>
+          </p>
+          <hr />
+          <p>
+            <i class="bx bx-calendar-check"></i>&nbsp;<strong>Status:</strong>
+            <%= electionConfig && electionConfig.electionStatus ? electionConfig.electionStatus : "N/A" %>
+          </p>
+          <p>
+            <i class="bx bx-edit-alt"></i>
+            <strong>Registration Period:</strong>
+            <%= electionConfig && electionConfig.registrationStart ? formatDisplayDate(electionConfig.registrationStart) : "N/A" %>
+            to
+            <%= electionConfig && electionConfig.registrationEnd ? formatDisplayDate(electionConfig.registrationEnd) : "N/A" %>
+          </p>
+          <p>
+            <i class="bx bx-list-ul"></i>
+            <strong>Voting Period:</strong>
+            <%= electionConfig && electionConfig.votingStart ? formatDisplayDate(electionConfig.votingStart) : "N/A" %>
+            to
+            <%= electionConfig && electionConfig.votingEnd ? formatDisplayDate(electionConfig.votingEnd) : "N/A" %>
+          </p>
+        </section>
 
-          <br />
-          <!-- Election Creation / Update Form -->
-          <section class="create-election">
-            <h2>Create / Update Election</h2>
-            <hr />
-            <form action="/configuration" method="POST">
-              <div>
-                <label for="electionName">Election Name:</label>
-                <input class="input" type="text" id="electionName" name="electionName" value="<%= electionConfig ? electionConfig.electionName : '' %>" required />
-              </div>
-              <div>
-                <label for="registrationStart">Registration Start Date:</label>
-                <input class="input" type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig ? toPHFormat(electionConfig.registrationStart) : '' %>" required />
-              </div>
-              <div>
-                <label for="registrationEnd">Registration End Date:</label>
-                <input class="input" type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig ? toPHFormat(electionConfig.registrationEnd) : '' %>" required />
-              </div>
-              <div>
-                <label for="votingStart">Voting Start Date:</label>
-                <input class="input" type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig ? toPHFormat(electionConfig.votingStart) : '' %>" required />
-              </div>
-              <div>
-                <label for="votingEnd">Voting End Date:</label>
-                <input class="input" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig ? toPHFormat(electionConfig.votingEnd) : '' %>" required />
-              </div>
-              <div>
-                <label for="partylists">Party List (comma separated):</label>
-                <!-- Join the partylists array back to a comma separated string -->
-                <input class="input" type="text" id="partylists" name="partylists" value="<%= electionConfig && electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
-              </div>
-              <fieldset>
-                <legend><strong>Number of Students Per College</strong></legend>
-                <% if(electionConfig && electionConfig.colleges) { %> <% electionConfig.colleges.forEach((college) => { %>
-                <div class="num-of-students">
-                  <div>
-                    <img height="50" src="img/colleges/college-<%= college.acronym %>.png" alt="<%= college.name %>" />
-                    <label for="college-<%= college.acronym %>"><%= college.name %> (<%= college.acronym %>): </label>
-                  </div>
-                  <input class="input" type="number" id="college-<%= college.acronym %>" name="colleges[<%= college.acronym %>]" value="<%= college.notRegisteredNotVoted %>" min="0" required />
+        <br />
+        <!-- Election Creation / Update Form -->
+        <section class="create-election">
+          <h2>Create / Update Election</h2>
+          <hr />
+          <form action="/configuration" method="POST">
+            <div>
+              <label for="electionName">Election Name:</label>
+              <input class="input" type="text" id="electionName" name="electionName" value="<%= electionConfig ? electionConfig.electionName : '' %>" required />
+            </div>
+            <div>
+              <label for="registrationStart">Registration Start Date:</label>
+              <input class="input" type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig ? toPHFormat(electionConfig.registrationStart) : '' %>" required />
+            </div>
+            <div>
+              <label for="registrationEnd">Registration End Date:</label>
+              <input class="input" type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig ? toPHFormat(electionConfig.registrationEnd) : '' %>" required />
+            </div>
+            <div>
+              <label for="votingStart">Voting Start Date:</label>
+              <input class="input" type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig ? toPHFormat(electionConfig.votingStart) : '' %>" required />
+            </div>
+            <div>
+              <label for="votingEnd">Voting End Date:</label>
+              <input class="input" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig ? toPHFormat(electionConfig.votingEnd) : '' %>" required />
+            </div>
+            <div>
+              <label for="partylists">Party List (comma separated):</label>
+              <!-- Join the partylists array back to a comma separated string -->
+              <input class="input" type="text" id="partylists" name="partylists" value="<%= electionConfig && electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
+            </div>
+            <fieldset>
+              <legend><strong>Number of Students Per College</strong></legend>
+              <% if(electionConfig && electionConfig.colleges) { %>
+              <% electionConfig.colleges.forEach((college) => { %>
+              <div class="num-of-students">
+                <div>
+                  <img height="50" src="img/colleges/college-<%= college.acronym %>.png" alt="<%= college.name %>" />
+                  <label for="college-<%= college.acronym %>"><%= college.name %> (<%= college.acronym %>): </label>
                 </div>
-                <% }) %> <% } else { %>
-                <!-- Fallback: in case there's no config, you can hard-code or leave it blank -->
-                <p>No college data found.</p>
-                <% } %>
-              </fieldset>
-              <button class="button button-save" type="submit">Save Election Configuration</button>
-            </form>
-            <form action="/reset-election" method="POST">
-              <button type="submit" style="background-color: #000; color: #fff">Reset Election</button>
-            </form>
-          </section>
+                <input class="input" type="number" id="college-<%= college.acronym %>" name="colleges[<%= college.acronym %>]" value="<%= college.notRegisteredNotVoted %>" min="0" required />
+              </div>
+              <% }) %>
+              <% } else { %>
+              <!-- Fallback: in case there's no config, you can hard-code or leave it blank -->
+              <p>No college data found.</p>
+              <% } %>
+            </fieldset>
+            <button class="button button-save" type="submit">Save Election Configuration</button>
+          </form>
+          <form action="/reset-election" method="POST">
+            <button type="submit" style="background-color: #000; color: #fff">Reset Election</button>
+          </form>
+        </section>
 
-          <!-- FAKE DATE -->
-          <!-- FAKE DATE (using form submission to reload the page) -->
-<div class="developer-only" style="border: 1px solid red; padding: 10px; margin-top: 20px">
-  <h3>Developer Tools</h3>
-  <p>
-    Current Date:
-    <span id="currentDate"> <%= formatDisplayDate(new Date()) %> </span>
-  </p>
-  <p>
-    Fake Current Date:
-    <span id="fakeCurrentDateDisplay">
-      <%= electionConfig && electionConfig.fakeCurrentDate 
-          ? formatDisplayDate(electionConfig.fakeCurrentDate)
-          : formatDisplayDate(new Date()) %>
-    </span>
-  </p>
-  <!-- Form that submits when the date changes -->
-  <form id="updateFakeDateForm" action="/update-fake-date" method="POST">
-    <label for="fakeDatePicker">Fake Date Picker:</label>
-    <input
-      type="datetime-local"
-      id="fakeDatePicker"
-      name="fakeCurrentDate"
-      value="<%= electionConfig && electionConfig.fakeCurrentDate 
+        <!-- FAKE DATE -->
+        <!-- FAKE DATE (using form submission to reload the page) -->
+        <div class="developer-only" style="border: 1px solid red; padding: 10px; margin-top: 20px">
+          <h3>Developer Tools</h3>
+          <p>
+            Current Date:
+            <span id="currentDate"> <%= formatDisplayDate(new Date()) %> </span>
+          </p>
+          <p>
+            Fake Current Date:
+            <span id="fakeCurrentDateDisplay">
+              <%= (electionConfig && electionConfig.useFakeDate && electionConfig.fakeCurrentDate) 
+                  ? formatDisplayDate(electionConfig.fakeCurrentDate)
+                  : formatDisplayDate(new Date()) %>
+            </span>
+          </p>
+          <!-- Form that submits when the date changes -->
+          <form id="updateFakeDateForm" action="/update-fake-date" method="POST">
+            <label for="fakeDatePicker">Fake Date Picker:</label>
+            <input type="datetime-local" id="fakeDatePicker" name="fakeCurrentDate" value="<%= (electionConfig && electionConfig.useFakeDate && electionConfig.fakeCurrentDate)
                 ? toPHFormat(electionConfig.fakeCurrentDate)
-                : toPHFormat(new Date()) %>"
-      onchange="this.form.submit()"
-    />
-  </form>
-  <!-- Reset form: sets fake date to current date and reloads -->
-  <form id="resetFakeDateForm" action="/update-fake-date" method="POST" style="margin-top: 10px">
-    <input
-      type="hidden"
-      name="fakeCurrentDate"
-      value="<%= toPHFormat(new Date()) %>"
-    />
-    <button type="submit">Reset Fake Date to Current Date</button>
-  </form>
-  <form action="/update-special-status" method="POST" style="margin: 10px 0;">
-  <button type="submit" name="specialStatus" value="None">None</button>
-  <button type="submit" name="specialStatus" value="System Temporarily Closed">System Temporarily Closed</button>
-  <button type="submit" name="specialStatus" value="Results Are Out">Results Are Out</button>
-</form>
-
-</div>
-
-
-          <!-- Include Moment libraries on the client if needed -->
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.40/moment-timezone-with-data.min.js"></script>
-          
-
-          <!-- END OF FAKE DATE -->
-
-          <script>
-  // Convert stored deadlines to moment objects in Asia/Manila timezone.
-  const regStart = config.registrationStart ? moment.tz(config.registrationStart.$date || config.registrationStart, "Asia/Manila") : null;
-  const regEnd = config.registrationEnd ? moment.tz(config.registrationEnd.$date || config.registrationEnd, "Asia/Manila") : null;
-  const voteStart = config.votingStart ? moment.tz(config.votingStart.$date || config.votingStart, "Asia/Manila") : null;
-  const voteEnd = config.votingEnd ? moment.tz(config.votingEnd.$date || config.votingEnd, "Asia/Manila") : null;
-
-  // Always use the fake current date from the config.
-  let fakeCurrent = moment.tz(config.fakeCurrentDate.$date || config.fakeCurrentDate, "Asia/Manila");
-
-  // Determine whether the fake date is set to "real time" by comparing it to now.
-  const now = moment.tz(new Date(), "Asia/Manila");
-  // If the difference is less than 1 second, assume it's real time.
-  const useRealTime = Math.abs(fakeCurrent.diff(now)) < 1000;
-
-  // Throttle function to limit database update frequency.
-  function throttle(func, wait) {
-    let timeout = null;
-    return function(...args) {
-      if (!timeout) {
-        func.apply(this, args);
-        timeout = setTimeout(() => {
-          timeout = null;
-        }, wait);
-      }
-    };
-  }
-
-  // Function to update fakeCurrentDate in the database.
-  function updateDatabaseFakeCurrent(currentTime) {
-    fetch('/update-fake-date', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fakeCurrentDate: currentTime.toISOString() })
-    }).catch(err => console.error('Error updating fakeCurrentDate:', err));
-  }
-
-  // Wrap the update function so that it only runs once every 10 seconds.
-  const throttledUpdateDatabase = throttle(updateDatabaseFakeCurrent, 10000);
-
-  function updateHeader() {
-    // Use real time if fake date was reset; otherwise, use fakeCurrent.
-    const currentTime = useRealTime ? moment.tz(new Date(), "Asia/Manila") : fakeCurrent;
-
-    let headerStatus = config.electionStatus || "";
-    let timeMessage = "";
-
-    if (headerStatus === "ELECTION ACTIVE") {
-      if (config.specialStatus && config.specialStatus !== "None") {
-        headerStatus += ` | ${config.specialStatus}`;
-      } else {
-        if (regStart && currentTime.isBefore(regStart)) {
-          headerStatus += " | Waiting for Registration Period";
-          const diffMs = regStart.diff(currentTime);
-          const duration = moment.duration(diffMs);
-          timeMessage = `Time until registration: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
-        } else if (regStart && regEnd && currentTime.isBetween(regStart, regEnd, null, '[)')) {
-          headerStatus += " | Registration Period";
-          timeMessage = `<strong>Start Date:</strong> ${regStart.format("MM/DD/YYYY, hh:mm:ss A")}<br>
-                         <strong>End Date:</strong> ${regEnd.format("MM/DD/YYYY, hh:mm:ss A")}`;
-        } else if (regEnd && voteStart && currentTime.isBetween(regEnd, voteStart, null, '[)')) {
-          headerStatus += " | Waiting for Voting Period";
-          const diffMs = voteStart.diff(currentTime);
-          const duration = moment.duration(diffMs);
-          timeMessage = `Time until voting: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
-        } else if (voteStart && voteEnd && currentTime.isBetween(voteStart, voteEnd, null, '[)')) {
-          headerStatus += " | Voting Period";
-          timeMessage = `<strong>Start Date:</strong> ${voteStart.format("MM/DD/YYYY, hh:mm:ss A")}<br>
-                         <strong>End Date:</strong> ${voteEnd.format("MM/DD/YYYY, hh:mm:ss A")}`;
-        } else if (voteEnd && currentTime.isAfter(voteEnd)) {
-          headerStatus += " | Results Double Checking Period";
-          timeMessage = `<strong>Waiting for results</strong>`;
-        }
-      }
-    }
-
-    // Split headerStatus by "|" and apply the proper styles.
-    let statusParts = headerStatus.split("|").map(part => part.trim());
-    let formattedStatus = `<span style="color: #369f2c;">${statusParts[0]}</span>`;
-    if (statusParts.length > 1) {
-      formattedStatus += ` <span style="color: white;"> | </span> <span style="color: #e1ae5b;"><i>${statusParts[1]}</i></span>`;
-    }
-
-    document.getElementById("headerStatus").innerHTML = `<span style="color: white;">Election Status: </span>${formattedStatus}`;
-    document.getElementById("timeMessage").innerHTML = timeMessage;
-
-    // Throttled database update call.
-    throttledUpdateDatabase(currentTime);
-  }
-
-  // Update the header every second.
-  setInterval(() => {
-    // If not using real time, increment fakeCurrent by one second.
-    if (!useRealTime) {
-      fakeCurrent.add(1, 'seconds');
-    }
-    updateHeader();
-  }, 1000);
-</script>
-
-
-
-
-          
-
-          <script>
-            function resetTestDate() {
-              const now = new Date();
-              // Use toPHFormat to format the current date for the datetime-local input.
-              const formattedNow = toPHFormat(now.toISOString());
-              document.getElementById("testDatePicker").value = formattedNow;
-              // Update the display using formatDisplayDate (which now shows both date and time).
-              document.getElementById("currentFakeDateDisplay").innerText = "Current Fake Date: " + formatDisplayDate(now.toISOString());
-              updateCurrentPeriod();
-            }
-          </script>
+                : toPHFormat(new Date()) %>" onchange="this.form.submit()" />
+          </form>
+          <!-- Reset form: sets fake date to current date and reloads -->
+          <form id="resetFakeDateForm" action="/update-fake-date" method="POST" style="margin-top: 10px">
+            <input type="hidden" name="fakeCurrentDate" value="<%= toPHFormat(new Date()) %>" />
+            <button type="submit">Reset Fake Date to Current Date</button>
+          </form>
+          <form action="/update-special-status" method="POST" style="margin: 10px 0;">
+            <button type="submit" name="specialStatus" value="None">None</button>
+            <button type="submit" name="specialStatus" value="System Temporarily Closed">System Temporarily Closed</button>
+            <button type="submit" name="specialStatus" value="Results Are Out">Results Are Out</button>
+          </form>
+          <!-- Toggle form to switch between fake and real date modes -->
+          <form id="toggleDateModeForm" action="/toggle-date-mode" method="POST" style="margin-top: 10px;">
+            <label for="useFakeDateToggle">Use Fake Date:</label>
+            <input type="checkbox" id="useFakeDateToggle" name="useFakeDate" value="true" <%= electionConfig && electionConfig.useFakeDate ? 'checked' : '' %> onchange="this.form.submit()" />
+          </form>
         </div>
-      </main>
+
+        <!-- Include Moment libraries on the client if needed -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.40/moment-timezone-with-data.min.js"></script>
+
+        <!-- Client-side JS -->
+        <script>
+          // Convert stored deadlines to moment objects in Asia/Manila timezone.
+          const regStart = config.registrationStart ? moment.tz(config.registrationStart.$date || config.registrationStart, "Asia/Manila") : null;
+          const regEnd = config.registrationEnd ? moment.tz(config.registrationEnd.$date || config.registrationEnd, "Asia/Manila") : null;
+          const voteStart = config.votingStart ? moment.tz(config.votingStart.$date || config.votingStart, "Asia/Manila") : null;
+          const voteEnd = config.votingEnd ? moment.tz(config.votingEnd.$date || config.votingEnd, "Asia/Manila") : null;
+
+          // Determine the current time: use fakeCurrentDate if useFakeDate is true; otherwise use real time.
+          let fakeCurrent = (config.useFakeDate && config.fakeCurrentDate) ?
+            moment.tz(config.fakeCurrentDate.$date || config.fakeCurrentDate, "Asia/Manila") :
+            moment.tz(new Date(), "Asia/Manila");
+
+          const now = moment.tz(new Date(), "Asia/Manila");
+          const useRealTime = Math.abs(fakeCurrent.diff(now)) < 1000;
+
+          // Throttle function to limit database update frequency.
+          function throttle(func, wait) {
+            let timeout = null;
+            return function(...args) {
+              if (!timeout) {
+                func.apply(this, args);
+                timeout = setTimeout(() => {
+                  timeout = null;
+                }, wait);
+              }
+            };
+          }
+
+          // Function to update fakeCurrentDate in the database.
+          function updateDatabaseFakeCurrent(currentTime) {
+            fetch('/update-fake-date', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                fakeCurrentDate: currentTime.toISOString()
+              })
+            }).catch(err => console.error('Error updating fakeCurrentDate:', err));
+          }
+
+          // Wrap the update function so that it only runs once every 10 seconds.
+          const throttledUpdateDatabase = throttle(updateDatabaseFakeCurrent, 10000);
+
+          function updateHeader() {
+            // Use real time if fake date was reset; otherwise, use fakeCurrent.
+            const currentTime = useRealTime ? moment.tz(new Date(), "Asia/Manila") : fakeCurrent;
+
+            let headerStatus = config.electionStatus || "";
+            let timeMessage = "";
+
+            if (headerStatus === "ELECTION ACTIVE") {
+              if (config.specialStatus && config.specialStatus !== "None") {
+                headerStatus += ` | ${config.specialStatus}`;
+              } else {
+                if (regStart && currentTime.isBefore(regStart)) {
+                  headerStatus += " | Waiting for Registration Period";
+                  const diffMs = regStart.diff(currentTime);
+                  const duration = moment.duration(diffMs);
+                  timeMessage = `Time until registration: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
+                } else if (regStart && regEnd && currentTime.isBetween(regStart, regEnd, null, '[)')) {
+                  headerStatus += " | Registration Period";
+                  timeMessage = `<strong>Start Date:</strong> ${regStart.format("MM/DD/YYYY, hh:mm:ss A")}<br>
+                         <strong>End Date:</strong> ${regEnd.format("MM/DD/YYYY, hh:mm:ss A")}`;
+                } else if (regEnd && voteStart && currentTime.isBetween(regEnd, voteStart, null, '[)')) {
+                  headerStatus += " | Waiting for Voting Period";
+                  const diffMs = voteStart.diff(currentTime);
+                  const duration = moment.duration(diffMs);
+                  timeMessage = `Time until voting: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
+                } else if (voteStart && voteEnd && currentTime.isBetween(voteStart, voteEnd, null, '[)')) {
+                  headerStatus += " | Voting Period";
+                  timeMessage = `<strong>Start Date:</strong> ${voteStart.format("MM/DD/YYYY, hh:mm:ss A")}<br>
+                         <strong>End Date:</strong> ${voteEnd.format("MM/DD/YYYY, hh:mm:ss A")}`;
+                } else if (voteEnd && currentTime.isAfter(voteEnd)) {
+                  headerStatus += " | Results Double Checking Period";
+                  timeMessage = `<strong>Waiting for results</strong>`;
+                }
+              }
+            }
+
+            // Split headerStatus by "|" and apply the proper styles.
+            let statusParts = headerStatus.split("|").map(part => part.trim());
+            let formattedStatus = `<span style="color: #369f2c;">${statusParts[0]}</span>`;
+            if (statusParts.length > 1) {
+              formattedStatus += ` <span style="color: white;"> | </span> <span style="color: #e1ae5b;"><i>${statusParts[1]}</i></span>`;
+            }
+
+            document.getElementById("headerStatus").innerHTML = `<span style="color: white;">Election Status: </span>${formattedStatus}`;
+            document.getElementById("timeMessage").innerHTML = timeMessage;
+
+            // Throttled database update call.
+            throttledUpdateDatabase(currentTime);
+          }
+
+          // Update the header every second.
+          setInterval(() => {
+            // If not using real time, increment fakeCurrent by one second.
+            if (!useRealTime) {
+              fakeCurrent.add(1, 'seconds');
+            }
+            updateHeader();
+          }, 1000);
+        </script>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <img src="img/calendar.png" class="footer-img" />
+      <span id="footerTime"></span>
     </div>
 
-    <footer class="footer">
-      <div class="footer-left">
-        <img src="img/calendar.png" class="footer-img" />
-      </div>
+    <div class="footer-center">
+      <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+      <p>2025 - Fourmula 1</p>
+    </div>
 
-      <div class="footer-center">
-        <img src="img/copyright.png" class="footer-img" id="copyright-img" />
-        <p>2025 - Fourmula 1</p>
-      </div>
+    <div class="footer-right">
+      <img src="img/info.png" class="footer-img" id="info-img" />
+      <p>Need help? Click&nbsp;</p>
+      <a href="help_page">here.</a>
+    </div>
+  </footer>
 
-      <div class="footer-right">
-        <img src="img/info.png" class="footer-img" id="info-img" />
-        <p>Need help? Click&nbsp;</p>
-        <a href="help_page">here.</a>
-      </div>
-    </footer>
+  <script>
+    // Function to update the footer time in real time.
+    function updateFooterTime() {
+      // Get the current time in the Asia/Manila timezone.
+      const now = moment.tz(new Date(), "Asia/Manila");
+      // Format it as "Month DD, YYYY at HH:mm:ss AM/PM"
+      const formattedTime = now.format("MMMM DD, YYYY [AT] hh:mm A");
+      // Update the footerTime element.
+      document.getElementById("footerTime").textContent = formattedTime;
+    }
 
-    <script>
-      function formatDate(isoString) {
-        const date = new Date(isoString);
-        const options = {
-          month: "long",
-          day: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        };
-        return date.toLocaleString("en-US", options).toUpperCase();
-      }
+    // Update the time immediately and then every second.
+    updateFooterTime();
+    setInterval(updateFooterTime, 30000);
+  </script>
 
-      function updateDateTime() {
-        const datetimeElement = document.getElementById("datetime");
-        if (!datetimeElement) return;
+  <script src="admin/js/sidebar.js"></script>
+  <script src="admin/js/index_admin.js"></script>
 
-        // Get the initial time from the data attribute
-        let currentTime = new Date(datetimeElement.getAttribute("data-date"));
+  <script type="module">
+    import {
+      createNotification
+    } from "/components/notification.js";
 
-        function update() {
-          datetimeElement.textContent = formatDate(currentTime);
-          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
+    document.addEventListener("DOMContentLoaded", () => {
+      // Select the election configuration form
+      const configForm = document.querySelector('form[action="/configuration"]');
+
+      // Form submission event handler for validation
+      configForm.addEventListener("submit", (e) => {
+        e.preventDefault(); // Prevent the form from auto-submitting
+
+        // Grab form input values
+        const electionNameInput = document.getElementById("electionName");
+        const electionName = electionNameInput.value.trim();
+
+        // Validate election name length
+        if (electionName.length < 8 || electionName.length > 60) {
+          createNotification("Election name must be between 8 and 60 characters.", "error", 2000);
+          return;
         }
 
-        update(); // Set initial formatted date
-        setInterval(update, 60000); // Update every minute (60000ms)
-      }
+        // Get date values from the datetime-local inputs
+        const registrationStartInput = document.getElementById("registrationStart").value;
+        const registrationEndInput = document.getElementById("registrationEnd").value;
+        const votingStartInput = document.getElementById("votingStart").value;
+        const votingEndInput = document.getElementById("votingEnd").value;
 
-      document.addEventListener("DOMContentLoaded", updateDateTime);
-    </script>
+        // Ensure all date fields are provided
+        if (!registrationStartInput || !registrationEndInput || !votingStartInput || !votingEndInput) {
+          createNotification("All date fields must be filled.", "error", 2000);
+          return;
+        }
 
-    <script src="admin/js/sidebar.js"></script>
-    <script src="admin/js/index_admin.js"></script>
+        // Convert inputs to Date objects
+        const registrationStart = new Date(registrationStartInput);
+        const registrationEnd = new Date(registrationEndInput);
+        const votingStart = new Date(votingStartInput);
+        const votingEnd = new Date(votingEndInput);
+        const now = new Date();
 
-    <script type="module">
-      import { createNotification } from "/components/notification.js";
+        // Validate the order of dates: now < registrationStart < registrationEnd < votingStart < votingEnd
+        if (!(now < registrationStart && registrationStart < registrationEnd && registrationEnd < votingStart && votingStart < votingEnd)) {
+          createNotification("Please ensure that the current date is before registration start, which is before registration end, then voting start, and finally voting end.", "error", 2000);
+          return;
+        }
 
-      document.addEventListener("DOMContentLoaded", () => {
-        // Select the election configuration form
-        const configForm = document.querySelector('form[action="/configuration"]');
+        // Validate and adjust the party list field
+        const partylistsInput = document.getElementById("partylists");
+        let partylistsValue = partylistsInput.value.trim();
 
-        // Form submission event handler for validation
-        configForm.addEventListener("submit", (e) => {
-          e.preventDefault(); // Prevent the form from auto-submitting
+        // If empty, default to "Independent"
+        if (!partylistsValue) {
+          partylistsValue = "Independent";
+        } else if (!/Independent/i.test(partylistsValue)) {
+          // If "Independent" isn't included (case-insensitive), append it.
+          partylistsValue += ", Independent";
+        }
+        // Update the partylists field with the ensured value
+        partylistsInput.value = partylistsValue;
 
-          // Grab form input values
-          const electionNameInput = document.getElementById("electionName");
-          const electionName = electionNameInput.value.trim();
-
-          // Validate election name length
-          if (electionName.length < 8 || electionName.length > 60) {
-            createNotification("Election name must be between 8 and 60 characters.", "error", 2000);
-            return;
-          }
-
-          // Get date values from the datetime-local inputs
-          const registrationStartInput = document.getElementById("registrationStart").value;
-          const registrationEndInput = document.getElementById("registrationEnd").value;
-          const votingStartInput = document.getElementById("votingStart").value;
-          const votingEndInput = document.getElementById("votingEnd").value;
-
-          // Ensure all date fields are provided
-          if (!registrationStartInput || !registrationEndInput || !votingStartInput || !votingEndInput) {
-            createNotification("All date fields must be filled.", "error", 2000);
-            return;
-          }
-
-          // Convert inputs to Date objects
-          const registrationStart = new Date(registrationStartInput);
-          const registrationEnd = new Date(registrationEndInput);
-          const votingStart = new Date(votingStartInput);
-          const votingEnd = new Date(votingEndInput);
-          const now = new Date();
-
-          // Validate the order of dates: now < registrationStart < registrationEnd < votingStart < votingEnd
-          if (!(now < registrationStart && registrationStart < registrationEnd && registrationEnd < votingStart && votingStart < votingEnd)) {
-            createNotification("Please ensure that the current date is before registration start, which is before registration end, then voting start, and finally voting end.", "error", 2000);
-            return;
-          }
-
-          // Validate and adjust the party list field
-          const partylistsInput = document.getElementById("partylists");
-          let partylistsValue = partylistsInput.value.trim();
-
-          // If empty, default to "Independent"
-          if (!partylistsValue) {
-            partylistsValue = "Independent";
-          } else if (!/Independent/i.test(partylistsValue)) {
-            // If "Independent" isn't included (case-insensitive), append it.
-            partylistsValue += ", Independent";
-          }
-          // Update the partylists field with the ensured value
-          partylistsInput.value = partylistsValue;
-
-          // All validations passed; submit the form
-          configForm.submit();
-        });
+        // All validations passed; submit the form
+        configForm.submit();
       });
-    </script>
+    });
+  </script>
 
-    <script type="module">
-      // Check if the URL contains ?saved in the query string
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has("saved")) {
-        createNotification("Election configuration saved successfully!", "success", 2000);
-        // Remove the query parameter so the notification doesn't appear again on refresh
-        history.replaceState({}, document.title, window.location.pathname);
-      }
-    </script>
-    <script src="admin/js/index-admin.js"></script>
-    <script src="js/dropdown.js"></script>
-  </body>
+  <script type="module">
+    // Check if the URL contains ?saved in the query string
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("saved")) {
+      createNotification("Election configuration saved successfully!", "success", 2000);
+      // Remove the query parameter so the notification doesn't appear again on refresh
+      history.replaceState({}, document.title, window.location.pathname);
+    }
+  </script>
+  <script src="admin/js/index-admin.js"></script>
+  <script src="js/dropdown.js"></script>
+</body>
+
 </html>

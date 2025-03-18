@@ -214,3 +214,7 @@
 /* .num-of-students > div label {
   justify-self: flex-end;
 } */
+
+.first-main strong {
+  color: black;
+}
