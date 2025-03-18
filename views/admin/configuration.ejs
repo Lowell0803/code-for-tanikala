@@ -438,23 +438,23 @@
                   headerStatus += " | Waiting for Registration Period";
                   const diffMs = regStart.diff(currentTime);
                   const duration = moment.duration(diffMs);
-                  timeMessage = `Time until registration: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
+                  timeMessage = `Time Until Registration: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
                 } else if (regStart && regEnd && currentTime.isBetween(regStart, regEnd, null, '[)')) {
                   headerStatus += " | Registration Period";
-                  timeMessage = `<strong>Start Date:</strong> ${regStart.format("MM/DD/YYYY, hh:mm:ss A")}<br>
-                         <strong>End Date:</strong> ${regEnd.format("MM/DD/YYYY, hh:mm:ss A")}`;
+                  timeMessage = `<strong>Start Date:</strong> ${regStart.format("MMMM DD, YYYY [AT] hh:mm A")}<br>
+                         <strong>End Date:</strong> ${regEnd.format("MMMM DD, YYYY [AT] hh:mm A")}`;
                 } else if (regEnd && voteStart && currentTime.isBetween(regEnd, voteStart, null, '[)')) {
                   headerStatus += " | Waiting for Voting Period";
                   const diffMs = voteStart.diff(currentTime);
                   const duration = moment.duration(diffMs);
-                  timeMessage = `Time until voting: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
+                  timeMessage = `Time Until Voting: <strong>${Math.floor(duration.asHours())}h ${duration.minutes()}m ${duration.seconds()}s</strong>`;
                 } else if (voteStart && voteEnd && currentTime.isBetween(voteStart, voteEnd, null, '[)')) {
                   headerStatus += " | Voting Period";
-                  timeMessage = `<strong>Start Date:</strong> ${voteStart.format("MM/DD/YYYY, hh:mm:ss A")}<br>
-                         <strong>End Date:</strong> ${voteEnd.format("MM/DD/YYYY, hh:mm:ss A")}`;
+                  timeMessage = `<strong>Start Date:</strong> ${voteStart.format("MMMM DD, YYYY [AT] hh:mm A")}<br>
+                         <strong>End Date:</strong> ${voteEnd.format("MMMM DD, YYYY [AT] hh:mm A")}`;
                 } else if (voteEnd && currentTime.isAfter(voteEnd)) {
                   headerStatus += " | Results Double Checking Period";
-                  timeMessage = `<strong>Waiting for results</strong>`;
+                  timeMessage = `<strong>Waiting For Results</strong>`;
                 }
               }
             }
