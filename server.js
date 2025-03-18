@@ -698,33 +698,99 @@ const startServer = async () => {
       }
     }
 
+    // app.get("/", async (req, res) => {
+    //   // Retrieve the configuration or use defaults
+    //   const electionConfigCollection = db.collection("election_config");
+    //   let electionConfig = await electionConfigCollection.findOne({});
+
+    //   const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //   electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+    //   console.log("Dynamic Index Route: Raw electionConfig from DB:", electionConfig);
+
+    //   // Use the fake current date if available; otherwise, use the actual current date.
+    //   // const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //   console.log("Dynamic Index Route: Using current date =", now);
+
+    //   // Compute the current phase based on the dates and current/fake date
+    //   const currentPeriod = computeCurrentPeriod(electionConfig, now);
+    //   console.log("Dynamic Index Route: Computed current period =", currentPeriod);
+
+    //   // Update the election configuration object to reflect the computed period
+    //   electionConfig.currentPeriod = currentPeriod;
+
+    //   // Determine the homepage view based on the computed current period name
+    //   const homepageView = getHomepageView(currentPeriod.name);
+    //   console.log("Dynamic Index Route: Rendering view =", homepageView);
+
+    //   // Render the view with the updated configuration and current date
+    //   res.render(homepageView, { electionConfig, currentDate: now.toISOString() });
+    // });
+
     app.get("/", async (req, res) => {
-      // Retrieve the configuration or use defaults
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
+      try {
+        // Retrieve election configuration document (assuming a single document)
+        const electionConfig = await db.collection("election_config").findOne({});
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        // Convert stored dates to moment objects in Asia/Manila timezone.
+        const fakeCurrent = electionConfig && electionConfig.fakeCurrentDate ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila") : moment.tz(new Date(), "Asia/Manila");
 
-      console.log("Dynamic Index Route: Raw electionConfig from DB:", electionConfig);
+        const electionStatus = electionConfig && electionConfig.electionStatus ? electionConfig.electionStatus : "";
+        const specialStatus = electionConfig && electionConfig.specialStatus ? electionConfig.specialStatus : "None";
 
-      // Use the fake current date if available; otherwise, use the actual current date.
-      // const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      console.log("Dynamic Index Route: Using current date =", now);
+        const regStart = electionConfig && electionConfig.registrationStart ? moment.tz(electionConfig.registrationStart, "Asia/Manila") : null;
+        const regEnd = electionConfig && electionConfig.registrationEnd ? moment.tz(electionConfig.registrationEnd, "Asia/Manila") : null;
+        const voteStart = electionConfig && electionConfig.votingStart ? moment.tz(electionConfig.votingStart, "Asia/Manila") : null;
+        const voteEnd = electionConfig && electionConfig.votingEnd ? moment.tz(electionConfig.votingEnd, "Asia/Manila") : null;
 
-      // Compute the current phase based on the dates and current/fake date
-      const currentPeriod = computeCurrentPeriod(electionConfig, now);
-      console.log("Dynamic Index Route: Computed current period =", currentPeriod);
+        // Determine which homepage to serve based on the logic.
+        let homepage = "";
 
-      // Update the election configuration object to reflect the computed period
-      electionConfig.currentPeriod = currentPeriod;
+        const currentDate = moment.tz(new Date(), "Asia/Manila");
 
-      // Determine the homepage view based on the computed current period name
-      const homepageView = getHomepageView(currentPeriod.name);
-      console.log("Dynamic Index Route: Rendering view =", homepageView);
+        if (electionStatus !== "ELECTION ACTIVE") {
+          homepage = "index-election-not-active.ejs";
+        } else {
+          // Election is active.
+          if (specialStatus !== "None") {
+            if (specialStatus === "System Temporarily Closed") {
+              homepage = "index-system-temporarily-closed.ejs";
+            } else if (specialStatus === "Results Are Out") {
+              homepage = "index-results-are-out-period.ejs";
+            } else {
+              // Fallback if an unexpected specialStatus is provided.
+              homepage = "index-election-not-active.ejs";
+            }
+          } else {
+            // specialStatus is "None" so determine based on date comparisons.
+            if (regStart && fakeCurrent.isBefore(regStart)) {
+              homepage = "index-registration-period.ejs";
+            } else if (regStart && regEnd && fakeCurrent.isBetween(regStart, regEnd, null, "[)")) {
+              homepage = "index-registration-period.ejs";
+            } else if (regEnd && voteStart && fakeCurrent.isBetween(regEnd, voteStart, null, "[)")) {
+              homepage = "index-vote-checking-period.ejs";
+            } else if (voteStart && voteEnd && fakeCurrent.isBetween(voteStart, voteEnd, null, "[)")) {
+              homepage = "index-voting-period.ejs";
+            } else if (voteEnd && fakeCurrent.isAfter(voteEnd)) {
+              homepage = "index-results-are-out-period.ejs";
+            } else {
+              // Fallback if no conditions match.
+              homepage = "index-election-not-active.ejs";
+            }
+          }
+        }
 
-      // Render the view with the updated configuration and current date
-      res.render(homepageView, { electionConfig, currentDate: now.toISOString() });
+        // Render the chosen homepage EJS file from the homepages folder.
+        // Pass in electionConfig, moment, and any helper functions your view might need.
+        res.render(`homepages/${homepage}`, {
+          electionConfig,
+          moment,
+          currentDate,
+        });
+      } catch (err) {
+        console.error("Error in home route:", err);
+        res.status(500).send("Internal Server Error");
+      }
     });
 
     app.get("/get-candidates", async (req, res) => {
@@ -2658,98 +2724,6 @@ const startServer = async () => {
       return currentDate;
     };
 
-    app.post("/reset-election", async (req, res) => {
-      try {
-        console.log("Reset election initiated.");
-
-        // Check if candidates have been submitted
-        console.log("Checking candidate submission status...");
-        const submissionStatus = await db.collection("system_status").findOne({ _id: "candidate_submission" });
-        console.log("Submission status retrieved:", submissionStatus);
-
-        if (submissionStatus && submissionStatus.submitted === true) {
-          console.log("Candidates have been submitted. Archiving candidate data...");
-
-          // Archive candidates data
-          const candidatesData = await db.collection("candidates").find({}).toArray();
-          const candidatesLscData = await db.collection("candidates_lsc").find({}).toArray();
-
-          const archiveResult = await db.collection("election_archive").insertOne({
-            electionName: "Previous Election",
-            registrationStart: submissionStatus.registrationStart || null,
-            registrationEnd: submissionStatus.registrationEnd || null,
-            votingStart: submissionStatus.votingStart || null,
-            votingEnd: submissionStatus.votingEnd || null,
-            electionStatus: "Candidates Submitted",
-            archivedAt: new Date(),
-            candidates: candidatesData,
-            candidatesLsc: candidatesLscData,
-          });
-          console.log("Candidate data archived. Archive ID:", archiveResult.insertedId);
-
-          // Reset blockchain candidates
-          // console.log("Triggering contract.resetCandidates()...");
-          // const tx = await contract.resetCandidates();
-          // await tx.wait();
-          // console.log("Blockchain candidate reset confirmed.");
-
-          // Update the submission status to false
-          await db.collection("system_status").updateOne({ _id: "candidate_submission" }, { $set: { submitted: false } });
-          console.log("Candidate submission status updated to false.");
-        } else {
-          console.log("Candidate submission status is not true. Skipping candidate archiving and blockchain reset.");
-        }
-
-        // Reset election configuration
-        console.log("Resetting election configuration...");
-        await db.collection("election_config").deleteMany({});
-        await db.collection("election_config").insertOne({
-          _id: "election_config", // <-- FIXED
-          electionName: "BulSU Student 2025",
-          registrationPeriod: { start: "", end: "" },
-          votingPeriod: { start: "", end: "" },
-          totalElections: 14,
-          totalPartylists: 0,
-          partylists: ["bulsu", "bulsuan"],
-          totalCandidates: 0,
-          phase: "Election Inactive",
-          listOfElections: [
-            { acronym: "CAFA", name: "College of Architecture and Fine Arts", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "CAL", name: "College of Arts and Letters", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "CBEA", name: "College of Business Education and Accountancy", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "CCJE", name: "College of Criminal Justice Education", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "CHTM", name: "College of Hospitality and Tourism Management", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "CIT", name: "College of Industrial Technology", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "CICT", name: "College of Information and Communications Technology", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "COE", name: "College of Engineering", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "COED", name: "College of Education", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "CN", name: "College of Nursing", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "CS", name: "College of Science", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "CSER", name: "College of Sports, Exercise, and Recreation", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-            { acronym: "CSSP", name: "College of Social Sciences and Philosophy", voters: 0, registeredVoters: 0, numberOfVoted: 0 },
-          ],
-          currentPeriod: { name: "Registration Period", duration: "", waitingFor: null },
-          electionStatus: "Registration Period",
-          updatedAt: new Date(),
-          registrationStart: new Date("2025-02-05T15:21:00.000Z"),
-          registrationEnd: new Date("2025-02-19T15:21:00.000Z"),
-          votingStart: new Date("2025-02-20T15:22:00.000Z"),
-          votingEnd: new Date("2025-02-21T15:22:00.000Z"),
-          totalStudents: 0,
-          fakeCurrentDate: "2025-02-12T12:40:00.000Z",
-        });
-
-        await logActivity("system_activity_logs", "Election Reset", "Admin", req);
-
-        console.log("Election configuration reset complete.");
-
-        res.redirect("configuration");
-      } catch (error) {
-        console.error("Error resetting election:", error);
-        res.status(500).json({ message: "Error resetting election", error: error.message });
-      }
-    });
-
     // ==================================================================================================
     //                                         ADMIN TABS
     // ==================================================================================================
@@ -2772,10 +2746,31 @@ const startServer = async () => {
           currentPeriod: { name: "Election Not Active", duration: "", waitingFor: null },
         };
       }
+
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      // Compute totals from listOfElections, if available
+      let totalRegisteredVoters = 0;
+      let totalVoted = 0;
+      let totalVoters = 0;
+      if (electionConfig.listOfElections && Array.isArray(electionConfig.listOfElections)) {
+        electionConfig.listOfElections.forEach((college) => {
+          totalRegisteredVoters += college.registeredVoters;
+          totalVoted += college.numberOfVoted;
+          totalVoters += college.voters;
+        });
+      }
+      // Calculate voter turnout percentage (avoid division by zero)
+      let turnoutPercentage = totalVoters > 0 ? (totalVoted / totalVoters) * 100 : 0;
+
       console.log(electionConfig);
-      res.render("admin/dashboard", { electionConfig, loggedInAdmin: req.session.admin });
+      res.render("admin/dashboard", {
+        electionConfig,
+        loggedInAdmin: req.session.admin,
+        totalRegisteredVoters,
+        turnoutPercentage,
+      });
     });
 
     const moment = require("moment-timezone");
@@ -2784,22 +2779,35 @@ const startServer = async () => {
     app.get("/configuration", ensureAdminAuthenticated, async (req, res) => {
       let electionConfig = await db.collection("election_config").findOne({});
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-      const simulatedDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).toISOString() : null;
-      res.render("admin/configuration", { electionConfig, simulatedDate, loggedInAdmin: req.session.admin, moment });
+      // Check if fakeCurrentDate exists, otherwise use the current date
+      // const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+
+      // electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      // Set simulatedDate to null if fakeCurrentDate doesn't exist
+      // const simulatedDate = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate).toISOString() : null;
+
+      res.render("admin/configuration", { electionConfig, loggedInAdmin: req.session.admin, moment });
     });
 
+    // POST endpoint to save election configuration
     app.post("/configuration", async (req, res) => {
       try {
-        // First, get the current configuration from the database.
-        let currentConfig = (await db.collection("election_config").findOne({})) || {};
+        // Destructure form data
+        const {
+          electionName,
+          registrationStart,
+          registrationEnd,
+          votingStart,
+          votingEnd,
+          partylists,
+          colleges, // Object: { CAFA: "value", CAL: "value", ... }
+        } = req.body;
 
-        const { electionName, registrationStart, registrationEnd, votingStart, votingEnd, partylists, colleges } = req.body;
-        // If partylists is not provided, keep the existing one
-        const partylistsArray = partylists ? partylists.split(",").map((item) => item.trim()) : currentConfig.partylists || [];
+        // Process the comma-separated party list into an array
+        const partylistsArray = partylists.split(",").map((item) => item.trim());
 
-        // Mapping from college acronym to full name.
+        // Fixed mapping for the 13 colleges
         const collegeMapping = {
           CAFA: "College of Architecture and Fine Arts",
           CAL: "College of Arts and Letters",
@@ -2816,57 +2824,121 @@ const startServer = async () => {
           CSER: "College of Sports, Exercise, and Recreation",
         };
 
-        // If new college data is provided, recalculate mergedList and totalStudents.
-        // Otherwise, keep the existing ones.
-        let mergedList = currentConfig.listOfElections || [];
-        let totalStudents = currentConfig.totalStudents || 0;
-        if (colleges && Object.keys(colleges).length > 0) {
-          mergedList = [];
-          totalStudents = 0;
-          // The form sends only voters value per college.
-          // For each college, preserve registeredVoters and numberOfVoted from the current config if available.
-          for (const acronym in colleges) {
-            const voters = parseInt(colleges[acronym], 10) || 0;
-            totalStudents += voters;
-            // Look for previous data for this college.
-            let prevCollege = (currentConfig.listOfElections || []).find((c) => c.acronym === acronym);
-            const registeredVoters = prevCollege ? prevCollege.registeredVoters : 0;
-            const numberOfVoted = prevCollege ? prevCollege.numberOfVoted : 0;
-            mergedList.push({
-              acronym: acronym,
-              name: collegeMapping[acronym] || acronym,
-              voters: voters,
-              registeredVoters: registeredVoters,
-              numberOfVoted: numberOfVoted,
-            });
-          }
+        // Create the colleges array using the fixed mapping.
+        // For each college, the value from the form (if any) will be used as the 'notRegisteredNotVoted' count.
+        let collegesArray = [];
+        for (const acronym in collegeMapping) {
+          const count = colleges && colleges[acronym] ? parseInt(colleges[acronym], 10) : 0;
+          collegesArray.push({
+            acronym: acronym,
+            name: collegeMapping[acronym],
+            notRegisteredNotVoted: count,
+            registeredNotVoted: 0,
+            registeredVoted: 0,
+          });
         }
 
-        // Build the update object by merging new values with existing ones if not provided.
-        // Dates are parsed in the 'Asia/Manila' timezone.
+        // Build the new configuration object.
         const update = {
-          electionName: electionName || currentConfig.electionName,
-          registrationStart: registrationStart ? moment.tz(registrationStart, "Asia/Manila").toDate() : currentConfig.registrationStart,
-          registrationEnd: registrationEnd ? moment.tz(registrationEnd, "Asia/Manila").toDate() : currentConfig.registrationEnd,
-          votingStart: votingStart ? moment.tz(votingStart, "Asia/Manila").toDate() : currentConfig.votingStart,
-          votingEnd: votingEnd ? moment.tz(votingEnd, "Asia/Manila").toDate() : currentConfig.votingEnd,
+          electionStatus: "ELECTION ACTIVE", // Immediately active when saved.
+          specialStatus: "None",
+          electionName,
+          registrationStart: registrationStart ? moment.tz(registrationStart, "Asia/Manila").toDate() : null,
+          registrationEnd: registrationEnd ? moment.tz(registrationEnd, "Asia/Manila").toDate() : null,
+          votingStart: votingStart ? moment.tz(votingStart, "Asia/Manila").toDate() : null,
+          votingEnd: votingEnd ? moment.tz(votingEnd, "Asia/Manila").toDate() : null,
           partylists: partylistsArray,
-          listOfElections: mergedList,
-          totalStudents: totalStudents,
-          // Set electionStatus and currentPeriod as needed (here defaulting to Registration Period)
-          electionStatus: "Registration Period",
-          currentPeriod: { name: "Registration Period", duration: "", waitingFor: null },
+          colleges: collegesArray,
           updatedAt: new Date(),
         };
 
-        await db.collection("election_config").updateOne({}, { $set: update, $setOnInsert: { createdAt: new Date() } }, { upsert: true });
-        const savedConfig = await db.collection("election_config").findOne({});
+        // Check if an election configuration exists and if it has fakeCurrentDate.
+        const existingConfig = await db.collection("election_config").findOne({});
+        if (!existingConfig || !existingConfig.fakeCurrentDate) {
+          update.fakeCurrentDate = new Date();
+        }
 
-        await logActivity("system_activity_logs", "Configuration Saved", "Admin", req);
-        console.log("Saved Configuration:", savedConfig);
+        // Overwrite the existing election configuration (upsert if not exists)
+        await db.collection("election_config").updateOne({}, { $set: update, $setOnInsert: { createdAt: new Date() } }, { upsert: true });
+
+        // Log the activity (assuming a logActivity function exists)
+        await logActivity("system_activity_logs", "Election Configuration Saved", "Admin", req);
+        console.log("Saved Election Configuration:", update);
+
         res.redirect("configuration?saved=true");
       } catch (error) {
-        console.error("Error updating configuration:", error);
+        console.error("Error updating election configuration:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.post("/update-special-status", async (req, res) => {
+      try {
+        // Get the new specialStatus from the form.
+        const { specialStatus } = req.body;
+
+        // Update the specialStatus field in the election_config collection.
+        // This assumes there is a single configuration document.
+        await db.collection("election_config").updateOne({}, { $set: { specialStatus } });
+
+        // Optionally, log the activity if you have a logging function.
+        await logActivity("system_activity_logs", `Special Status Updated to: ${specialStatus}`, "Admin", req);
+
+        // Redirect back to the referring page or to /configuration.
+        res.redirect(req.get("referer") || "/configuration");
+      } catch (error) {
+        console.error("Error updating specialStatus:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.post("/update-fake-date", async (req, res) => {
+      try {
+        const { fakeCurrentDate } = req.body;
+        console.log("Update fake date called:", fakeCurrentDate);
+        const newDate = moment.tz(fakeCurrentDate, "Asia/Manila").toDate();
+        await db.collection("election_config").updateOne({}, { $set: { fakeCurrentDate: newDate } });
+        res.redirect("/configuration");
+      } catch (err) {
+        console.error("Error updating fake current date", err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.post("/toggle-date-mode", async (req, res) => {
+      try {
+        // If the checkbox is checked, req.body.useFakeDate will be "true".
+        // If unchecked, the value may be undefined, so we default to false.
+        const useFakeDate = req.body.useFakeDate === "true" ? true : false;
+        console.log("Toggle date mode called:", useFakeDate);
+
+        await db.collection("election_config").updateOne({}, { $set: { useFakeDate: useFakeDate } });
+        res.redirect("/configuration");
+      } catch (err) {
+        console.error("Error updating date mode", err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // POST endpoint to reset the election (sets it to inactive)
+    app.post("/reset-election", async (req, res) => {
+      try {
+        // Update only the electionStatus (and optionally specialStatus) to mark it as inactive.
+        const update = {
+          electionStatus: "ELECTION INACTIVE",
+          specialStatus: "None",
+          updatedAt: new Date(),
+        };
+
+        await db.collection("election_config").updateOne({}, { $set: update }, { upsert: true });
+
+        // Log the reset activity
+        await logActivity("system_activity_logs", "Election Reset", "Admin", req);
+        console.log("Election has been reset to inactive.");
+
+        res.redirect("configuration?reset=true");
+      } catch (error) {
+        console.error("Error resetting election:", error);
         res.status(500).send("Internal Server Error");
       }
     });
