@@ -698,33 +698,99 @@ const startServer = async () => {
       }
     }
 
+    // app.get("/", async (req, res) => {
+    //   // Retrieve the configuration or use defaults
+    //   const electionConfigCollection = db.collection("election_config");
+    //   let electionConfig = await electionConfigCollection.findOne({});
+
+    //   const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //   electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+    //   console.log("Dynamic Index Route: Raw electionConfig from DB:", electionConfig);
+
+    //   // Use the fake current date if available; otherwise, use the actual current date.
+    //   // const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //   console.log("Dynamic Index Route: Using current date =", now);
+
+    //   // Compute the current phase based on the dates and current/fake date
+    //   const currentPeriod = computeCurrentPeriod(electionConfig, now);
+    //   console.log("Dynamic Index Route: Computed current period =", currentPeriod);
+
+    //   // Update the election configuration object to reflect the computed period
+    //   electionConfig.currentPeriod = currentPeriod;
+
+    //   // Determine the homepage view based on the computed current period name
+    //   const homepageView = getHomepageView(currentPeriod.name);
+    //   console.log("Dynamic Index Route: Rendering view =", homepageView);
+
+    //   // Render the view with the updated configuration and current date
+    //   res.render(homepageView, { electionConfig, currentDate: now.toISOString() });
+    // });
+
     app.get("/", async (req, res) => {
-      // Retrieve the configuration or use defaults
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
+      try {
+        // Retrieve election configuration document (assuming a single document)
+        const electionConfig = await db.collection("election_config").findOne({});
 
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+        // Convert stored dates to moment objects in Asia/Manila timezone.
+        const fakeCurrent = electionConfig && electionConfig.fakeCurrentDate ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila") : moment.tz(new Date(), "Asia/Manila");
 
-      console.log("Dynamic Index Route: Raw electionConfig from DB:", electionConfig);
+        const electionStatus = electionConfig && electionConfig.electionStatus ? electionConfig.electionStatus : "";
+        const specialStatus = electionConfig && electionConfig.specialStatus ? electionConfig.specialStatus : "None";
 
-      // Use the fake current date if available; otherwise, use the actual current date.
-      // const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      console.log("Dynamic Index Route: Using current date =", now);
+        const regStart = electionConfig && electionConfig.registrationStart ? moment.tz(electionConfig.registrationStart, "Asia/Manila") : null;
+        const regEnd = electionConfig && electionConfig.registrationEnd ? moment.tz(electionConfig.registrationEnd, "Asia/Manila") : null;
+        const voteStart = electionConfig && electionConfig.votingStart ? moment.tz(electionConfig.votingStart, "Asia/Manila") : null;
+        const voteEnd = electionConfig && electionConfig.votingEnd ? moment.tz(electionConfig.votingEnd, "Asia/Manila") : null;
 
-      // Compute the current phase based on the dates and current/fake date
-      const currentPeriod = computeCurrentPeriod(electionConfig, now);
-      console.log("Dynamic Index Route: Computed current period =", currentPeriod);
+        // Determine which homepage to serve based on the logic.
+        let homepage = "";
 
-      // Update the election configuration object to reflect the computed period
-      electionConfig.currentPeriod = currentPeriod;
+        const currentDate = moment.tz(new Date(), "Asia/Manila");
 
-      // Determine the homepage view based on the computed current period name
-      const homepageView = getHomepageView(currentPeriod.name);
-      console.log("Dynamic Index Route: Rendering view =", homepageView);
+        if (electionStatus !== "ELECTION ACTIVE") {
+          homepage = "index-election-not-active.ejs";
+        } else {
+          // Election is active.
+          if (specialStatus !== "None") {
+            if (specialStatus === "System Temporarily Closed") {
+              homepage = "index-system-temporarily-closed.ejs";
+            } else if (specialStatus === "Results Are Out") {
+              homepage = "index-results-are-out-period.ejs";
+            } else {
+              // Fallback if an unexpected specialStatus is provided.
+              homepage = "index-election-not-active.ejs";
+            }
+          } else {
+            // specialStatus is "None" so determine based on date comparisons.
+            if (regStart && fakeCurrent.isBefore(regStart)) {
+              homepage = "index-registration-period.ejs";
+            } else if (regStart && regEnd && fakeCurrent.isBetween(regStart, regEnd, null, "[)")) {
+              homepage = "index-registration-period.ejs";
+            } else if (regEnd && voteStart && fakeCurrent.isBetween(regEnd, voteStart, null, "[)")) {
+              homepage = "index-vote-checking-period.ejs";
+            } else if (voteStart && voteEnd && fakeCurrent.isBetween(voteStart, voteEnd, null, "[)")) {
+              homepage = "index-voting-period.ejs";
+            } else if (voteEnd && fakeCurrent.isAfter(voteEnd)) {
+              homepage = "index-results-are-out-period.ejs";
+            } else {
+              // Fallback if no conditions match.
+              homepage = "index-election-not-active.ejs";
+            }
+          }
+        }
 
-      // Render the view with the updated configuration and current date
-      res.render(homepageView, { electionConfig, currentDate: now.toISOString() });
+        // Render the chosen homepage EJS file from the homepages folder.
+        // Pass in electionConfig, moment, and any helper functions your view might need.
+        res.render(`homepages/${homepage}`, {
+          electionConfig,
+          moment,
+          currentDate,
+        });
+      } catch (err) {
+        console.error("Error in home route:", err);
+        res.status(500).send("Internal Server Error");
+      }
     });
 
     app.get("/get-candidates", async (req, res) => {
@@ -2802,6 +2868,26 @@ const startServer = async () => {
         res.redirect("configuration?saved=true");
       } catch (error) {
         console.error("Error updating election configuration:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.post("/update-special-status", async (req, res) => {
+      try {
+        // Get the new specialStatus from the form.
+        const { specialStatus } = req.body;
+
+        // Update the specialStatus field in the election_config collection.
+        // This assumes there is a single configuration document.
+        await db.collection("election_config").updateOne({}, { $set: { specialStatus } });
+
+        // Optionally, log the activity if you have a logging function.
+        await logActivity("system_activity_logs", `Special Status Updated to: ${specialStatus}`, "Admin", req);
+
+        // Redirect back to the referring page or to /configuration.
+        res.redirect(req.get("referer") || "/configuration");
+      } catch (error) {
+        console.error("Error updating specialStatus:", error);
         res.status(500).send("Internal Server Error");
       }
     });
