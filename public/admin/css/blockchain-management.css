@@ -22,29 +22,6 @@
   flex-basis: 60%;
 }
 
-.first-main {
-  display: flex;
-  flex-direction: row;
-
-  background-color: #bca8ff;
-  padding: 1.5rem;
-  border-radius: 1.5rem;
-  justify-content: flex-start;
-  align-items: flex-start;
-  margin: 2rem;
-}
-
-.left,
-.right {
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem;
-  flex-basis: 50%;
-  /* border: 3px solid black; */
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
 .first-main hr {
   border: none;
   width: 100%;
@@ -56,4 +33,104 @@
 
 .main strong {
   color: black;
+}
+
+.currency {
+  box-shadow: none;
+  border-radius: 0;
+  /* border: 1px solid black; */
+
+  /* color: aqua; */
+}
+
+tr:nth-child(even) {
+  background-color: #faf2db;
+}
+
+th,
+td {
+  border: 1px solid black;
+}
+
+th {
+  background: #dbc390;
+  color: black;
+}
+
+.left,
+.right {
+  padding: 1.5rem;
+  /* border: 2px solid black; */
+}
+
+.first-main {
+  gap: 2rem;
+}
+
+.first-main h2 {
+  color: #80550c;
+  text-decoration: underline;
+
+  /* border: 1px solid black; */
+}
+
+.indent {
+  padding-left: 2rem;
+}
+
+.first-main {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0;
+}
+
+.column-main {
+  display: flex;
+  flex-direction: column;
+  background: #f8eac2;
+  border: 0.25rem solid #80550c;
+  padding: 2rem;
+  border-radius: 1.5rem;
+  margin: 2rem;
+  max-width: 100%;
+}
+
+.right-update {
+  display: flex;
+  justify-content: flex-end;
+  /* border: 3px solid black; */
+  width: 100%;
+}
+
+.update-date {
+  display: flex;
+  justify-content: center;
+
+  /* border: 3px solid black; */
+  width: 100%;
+}
+
+.left,
+.right {
+  flex: 1;
+
+  flex-direction: column;
+  padding: 1.5rem;
+  flex-basis: 50%;
+  max-width: 50%;
+  /* border: 3px solid black; */
+  justify-content: flex-start;
+  align-items: flex-start;
+  overflow-wrap: break-word; /* ensure words can wrap */
+  word-wrap: break-word; /* older property for compatibility */
+  white-space: normal;
+}
+
+.indent-ish {
+  padding-left: 1rem;
+}
+
+.left {
 }

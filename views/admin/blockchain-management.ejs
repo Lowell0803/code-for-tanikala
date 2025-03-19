@@ -214,54 +214,124 @@
             </div>
           </div>
           <hr class="title-line" />
-          <div class="page-title">
-            <div class="blockchain">
-              <h4>
-                Blockchain Link:
-                <span>
-                  <% if (blockchainInfo && blockchainInfo.blockchainLink) { %>
-                  <a href="<%= blockchainInfo.blockchainLink %>" target="_blank">Amoy PolygonScan</a>
-                  <% } else { %> N/A <% } %>
-                </span>
-              </h4>
+
+          <div class="column-main box-shadow">
+            <div class="first-main">
+              <div class="left">
+                <h2>Blockchain Information</h2>
+                <br />
+                <div class="indent">
+                  <ul>
+                    <li>
+                      <p><strong>Blockchain Network: </strong>Polygon</p>
+                    </li>
+                    <li>
+                      <p><strong>Consensus Mechanism: </strong>Proof-of-stake (POS)</p>
+                    </li>
+                    <li>
+                      <p><strong>Average Transaction Speed: </strong>2000 -4000 Transaction per Second</p>
+                    </li>
+                    <li>
+                      <p><strong>Maximum Capacity: </strong>7000 Transaction per Second</p>
+                    </li>
+                  </ul>
+                </div>
+                <br />
+                <h2>Admin Wallet Information</h2>
+                <br />
+                <!-- Wallet Address -->
+                <div class="indent">
+                  <ul>
+                    <li>
+                      <p><strong>Wallet Address:</strong> <%= walletInfo ? walletInfo.address : "N/A" %></p>
+                    </li>
+                    <br />
+                    <li>
+                      <p>
+                        <strong>Current Balance: <span>Excellent</span></strong>
+                      </p>
+                    </li>
+                    <br />
+                    <table class="currency">
+                      <tr>
+                        <th>Polygon (POL)</th>
+                        <th>United States Dollar (USD)</th>
+                        <th>Philippine Peso (PHP)</th>
+                      </tr>
+                      <tr>
+                        <td><%= walletInfo ? walletInfo.balancePOL.toFixed(4) : "N/A" %> POL</td>
+                        <td><%= walletInfo && walletInfo.balanceUSD ? walletInfo.balanceUSD.toFixed(2) : "N/A" %> USD</td>
+                        <td><%= walletInfo && walletInfo.balancePHP ? walletInfo.balancePHP.toFixed(2) : "N/A" %> PHP</td>
+                      </tr>
+                    </table>
+                    <br />
+                    <!-- Last update of data -->
+
+                    <br />
+                    <li>
+                      <p><strong>Live Fee Estimate per Vote Transaction:</strong> <span>0 POL</span> | <span>0 USD</span> | <span>0 PHP</span></p>
+                    </li>
+
+                    <br />
+                    <li>
+                      <p><strong>Live Recommended Fund Estimate:</strong> <span>0 POL</span> | <span>0 USD</span> | <span>0 PHP</span></p>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="right">
+                <h2>Blockchain Transactions</h2>
+                <br />
+                <div class="indent">
+                  <ul>
+                    <li>
+                      <p><strong>Candidate Submission Count: </strong><span>0</span></p>
+                      <div class="indent-ish">
+                        <p><strong>Latest Transaction Hash:</strong> <%= blockchainInfo ? blockchainInfo.transactionHash : "N/A" %></p>
+                        <p>
+                          <strong>Latest Submission Date:</strong>
+                          <%= blockchainInfo && blockchainInfo.dateSent ? new Date(blockchainInfo.dateSent).toLocaleString() : "N/A" %>
+                        </p>
+                      </div>
+                    </li>
+
+                    <br />
+                    <li>
+                      <p><strong>Vote Transactions Count: </strong><span>0</span></p>
+                    </li>
+
+                    <br />
+                    <li>
+                      <p><strong>Total Blockchain Transactions: </strong><span>0</span></p>
+                      <div class="indent-ish">
+                        <p><strong>Total Gas Used:</strong> <%= blockchainInfo ? blockchainInfo.gasUsed : "N/A" %> Gas</p>
+                        <p><strong>Total Amount Spent (Wei):</strong> <%= blockchainInfo ? blockchainInfo.amountSpentWei : "N/A" %> Wei</p>
+                        <br />
+                        <p><strong>Total Amount Spent:</strong></p>
+                      </div>
+                    </li>
+                    <br />
+                    <table class="currency">
+                      <tr>
+                        <th>Polygon (POL)</th>
+                        <th>United States Dollar (USD)</th>
+                        <th>Philippine Peso (PHP)</th>
+                      </tr>
+                      <tr>
+                        <td><%= blockchainInfo ? blockchainInfo.amountSpentEth : "N/A" %> POL</td>
+                        <td><%= blockchainInfo && blockchainInfo.amountSpentUsd ? blockchainInfo.amountSpentUsd.toFixed(2) : "N/A" %> USD</td>
+                        <td><%= blockchainInfo && blockchainInfo.amountSpentPhp ? blockchainInfo.amountSpentPhp.toFixed(2) : "N/A" %> PHP PHP</td>
+                      </tr>
+                    </table>
+
+                    <br />
+                  </ul>
+                </div>
+              </div>
             </div>
-            <div class="smart">
-              <h4>Candidates Submitted to Blockchain: <%= candidateSubmission ? "Yes" : "No" %></h4>
-            </div>
-          </div>
-          <div class="first-main">
-            <div class="left">
-              <h2>Wallet Information</h2>
-              <!-- Wallet Address -->
-              <p><strong>Wallet Address:</strong> <%= walletInfo ? walletInfo.address : "N/A" %></p>
-              <!-- Wallet Balance (in POL) -->
-              <p><strong>Wallet Balance (POL):</strong> <%= walletInfo ? walletInfo.balancePOL.toFixed(4) : "N/A" %></p>
-              <!-- Wallet Balance (in PHP) -->
-              <p><strong>Wallet Balance (PHP):</strong> <%= walletInfo && walletInfo.balancePHP ? walletInfo.balancePHP.toFixed(2) : "N/A" %></p>
-              <!-- Wallet Balance (in USD) -->
-              <p><strong>Wallet Balance (USD):</strong> <%= walletInfo && walletInfo.balanceUSD ? walletInfo.balanceUSD.toFixed(2) : "N/A" %></p>
-              <!-- Last update of data -->
-              <p><strong>Last Update:</strong> <%= walletInfo ? walletInfo.updatedAt.toLocaleString() : "N/A" %></p>
-              <hr />
-            </div>
-            <div class="right">
-              <!-- Last Submission of Candidates Date -->
-              <p>
-                <strong>Last Submission Date:</strong>
-                <%= blockchainInfo && blockchainInfo.dateSent ? new Date(blockchainInfo.dateSent).toLocaleString() : "N/A" %>
-              </p>
-              <!-- Gas Used -->
-              <p><strong>Gas Used:</strong> <%= blockchainInfo ? blockchainInfo.gasUsed : "N/A" %></p>
-              <!-- Amount Spent (in Wei) -->
-              <p><strong>Amount Spent (Wei):</strong> <%= blockchainInfo ? blockchainInfo.amountSpentWei : "N/A" %></p>
-              <!-- Amount Spent (in POL) -->
-              <p><strong>Amount Spent (POL):</strong> <%= blockchainInfo ? blockchainInfo.amountSpentEth : "N/A" %></p>
-              <!-- Amount Spent (in PHP) -->
-              <p><strong>Amount Spent (PHP):</strong> <%= blockchainInfo && blockchainInfo.amountSpentPhp ? blockchainInfo.amountSpentPhp.toFixed(2) : "N/A" %></p>
-              <!-- Amount Spent (in USD) -->
-              <p><strong>Amount Spent (USD):</strong> <%= blockchainInfo && blockchainInfo.amountSpentUsd ? blockchainInfo.amountSpentUsd.toFixed(2) : "N/A" %></p>
-              <!-- Transaction Hash -->
-              <p><strong>Transaction Hash:</strong> <%= blockchainInfo ? blockchainInfo.transactionHash : "N/A" %></p>
+            <div class="update-date">
+              <p>All Data Last Updated on <strong><%= walletInfo ? walletInfo.updatedAt.toLocaleString() : "N/A" %></strong></p>
             </div>
           </div>
         </div>

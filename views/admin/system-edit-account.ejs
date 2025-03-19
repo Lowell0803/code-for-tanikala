@@ -12,6 +12,8 @@
 
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
@@ -195,45 +197,62 @@
         </ul>
       </div>
       <main class="main">
-        <div class="main-details">
-          <div class="main-details-info">
-            <h2>Account Details</h2>
-            <br />
-            <form id="form-details">
-              <div>
-                <label for="role">Role:</label>
-                <input type="text" id="role" placeholder="Role" value="<%= loggedInAdmin.role %>" disabled readonly />
-              </div>
-              <div>
-                <label for="name">Name:</label>
-                <input type="text" id="name" placeholder="Name" value="<%= loggedInAdmin.name %>" disabled />
-              </div>
-              <div>
-                <label for="username">Username:</label>
-                <input type="text" id="username" placeholder="Username" value="<%= loggedInAdmin.username %>" disabled />
-              </div>
-              <div>
-                <label for="password">Password:</label>
-                <input type="password" id="password" placeholder="Password" value="<%= loggedInAdmin.password %>" disabled />
-              </div>
-              <div>
-                <label for="confirm-password">Confirm Password:</label>
-                <input type="password" id="confirm-password" placeholder="Confirm Password" value="<%= loggedInAdmin.password %>" disabled />
-              </div>
-              <br />
-              <div>
-                <button type="button" id="button-edit">Edit</button>
-                <button type="submit" id="button-save" style="display: none">Save</button>
-              </div>
-            </form>
+        <div class="title-container">
+          <div class="r">
+            <i class="fa-solid fa-user-gear"></i>
+            <h1 class="title">Edit Account</h1>
           </div>
-          <div class="main-details-profile">
-            <img class="circle-img" id="img-admin" src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-            <p><span><%= loggedInAdmin.name %></span></p>
-            <!-- <button id="change-image">Change Profile Image</button> -->
+        </div>
+        <hr class="title-line" />
+        <div class="first-main">
+          <div class="container">
+            <h1 class="details">Account Details</h1>
             <br />
-            <!-- File input for image upload; using base64 conversion -->
-            <input type="file" class="input-file" id="input-file" />
+            <div class="main-details">
+              <div class="main-details-info">
+                <form id="form-details">
+                  <div>
+                    <label for="role">Role:</label>
+                    <input type="text" id="role" placeholder="Role" value="<%= loggedInAdmin.role %>" disabled readonly />
+                  </div>
+                  <div>
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" placeholder="Name" value="<%= loggedInAdmin.name %>" disabled />
+                  </div>
+                  <div>
+                    <label for="admin-email">Email: </label>
+                    <input type="text" id="admin-email" placeholder="Email" value="<%= loggedInAdmin.username %>" disabled />
+                  </div>
+                  <div>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" placeholder="Password" value="<%= loggedInAdmin.password %>" disabled />
+                  </div>
+                  <div>
+                    <label for="confirm-password">Confirm Password:</label>
+                    <input type="password" id="confirm-password" placeholder="Confirm Password" value="<%= loggedInAdmin.password %>" disabled />
+                  </div>
+                  <br />
+                  <div class="buttons">
+                    <button type="button" id="button-edit">Edit</button>
+                    <button type="submit" id="button-save" style="display: none">Save</button>
+                  </div>
+                </form>
+              </div>
+              <div class="main-details-profile">
+                <img class="circle-img" id="img-admin" src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
+                <br />
+                <p class="bold">
+                  <span><%= loggedInAdmin.name %></span>
+                </p>
+                <p class><i><%= loggedInAdmin.role %></i></p>
+                <br />
+
+                <button id="change-image" style="display: none">Change Profile Image</button>
+
+                <!-- File input for image upload; using base64 conversion -->
+                <!-- <div class="center"><input type="file" class="input-file" id="input-file" /></div> -->
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -308,6 +327,9 @@
       const formDetails = document.getElementById("form-details");
       const editButton = document.getElementById("button-edit");
       const saveButton = document.getElementById("button-save");
+      const closeButton = document.getElementById("button-close");
+      const changeImage = document.getElementById("change-image");
+
       // Select all inputs that are not readonly (do not include role)
       const inputs = formDetails.querySelectorAll("input:not([readonly])");
 

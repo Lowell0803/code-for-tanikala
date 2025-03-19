@@ -13,24 +13,26 @@
     border: 1px solid black;
   } */
 
-.main {
+/* .main {
   align-items: stretch;
   height: 100%;
   background-color: #faf2db;
-}
+} */
 
 #img-admin {
-  width: 30%;
+  width: 9rem;
+  height: 9rem;
+  border: 0.2rem solid rgba(58, 27, 5, 0.677);
 }
 
-.main > div {
+/* .main > div {
   flex-grow: 1;
-}
+} */
 
 .main-details {
   display: flex;
   flex-direction: row;
-  max-width: 100%;
+  /* max-width: 80%; */
   height: 30%;
 }
 
@@ -39,7 +41,7 @@
 }
 
 .main-details-info {
-  flex-basis: 40%;
+  flex-basis: 70%;
 }
 
 .main-details-profile {
@@ -48,7 +50,7 @@
   flex-direction: column;
 
   align-items: center;
-  padding-top: 7rem;
+  /* padding-top: 7rem; */
 }
 
 #form-details {
@@ -75,8 +77,10 @@
   padding: 0 3%;
 }
 
-#button-edit {
-  background-color: var(--background-green);
+#button-edit,
+#button-save,
+#button-close,
+#change-image {
   font-weight: bold;
   color: white;
   padding: 3% 6%;
@@ -84,6 +88,101 @@
   border: none;
 }
 
+#button-edit {
+  background-color: #0024e4;
+}
+
+#button-save {
+  background-color: #369f26;
+}
+
+#button-close {
+  background-color: #c11515;
+}
+
+#change-image {
+  background-color: #0024e4;
+}
+
 .main-control {
   padding: 2.5%;
 }
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 65%;
+
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: #f8eac2;
+  border: 0.25rem solid #80550c;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
+}
+
+.first-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* border: 3px solid black; */
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  /* border: 3px solid red; */
+}
+
+.main-details {
+  /* border: 3px solid red; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 90%;
+}
+
+.main-details-info {
+  padding: 1rem;
+  padding-right: 3rem;
+
+  /* border: 3px solid blue; */
+}
+
+#form-details {
+  text-align: left;
+
+  /* border: 3px solid green; */
+}
+
+.main-details-profile {
+  /* border: 3px solid pink; */
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 5rem;
+}
+
+.bold {
+  font-weight: bold;
+  font-size: 1.4rem;
+}
+
+.details {
+  color: #bb7e15;
+}
+
+/* .admin-name {
+  color: #e1ae5b;
+}
+
+.admin-role {
+  color: #f2ddb4;
+} */
