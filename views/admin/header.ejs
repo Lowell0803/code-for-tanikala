@@ -1,3 +1,14 @@
+<style>
+.warning-dropdown {
+  display: none;
+  /* Your existing styling here (position, background, etc.) */
+}
+
+.warning-dropdown.active {
+  display: block;
+}
+</style>
+
 <%
 // Get configuration values with fallbacks
 const electionName = (electionConfig && electionConfig.electionName) ? electionConfig.electionName : "Tanikala Voting System";
@@ -69,18 +80,48 @@ if(electionStatus === "ELECTION ACTIVE") {
   <p id="timeMessage"><%- timeMessage %></p>
 </div>
 <div class="header-user">
-  <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
-  <div class="profile">
-    <div class="admin-name"><%= loggedInAdmin.name %></div>
-    <i> <span class="job"><%= loggedInAdmin.role %></span></i>
-  </div>
-  <div class="dropdown" onclick="toggleDropdown()"></div>
-  <div class="dropdown-menu">
-    <a href="/edit-account">View Account</a>
-    <hr class="dropdown-line" />
-    <a href="/logout">Log Out</a>
+    <div class="warning-container">
+  <i class="fa fa-exclamation-triangle warning" aria-hidden="true"></i>
+  <div class="warning-dropdown">
+    <div class="triangle"></div>
+    <div class="dropdown-content">
+  <% 
+    // Determine which current time to use: fake or real
+    const currentTimeForDropdown = (electionConfig && electionConfig.useFakeDate && electionConfig.fakeCurrentDate)
+      ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila")
+      : moment.tz(new Date(), "Asia/Manila");
+
+    // Check if candidates have not been submitted
+    const candidatesNotSubmitted = (electionConfig && electionConfig.candidatesSubmitted === false);
+
+    // Determine if there is 1 day or less until voting starts (if voteStart exists)
+    let oneDayLeft = false;
+    if (voteStart) {
+      const diffMs = voteStart.diff(currentTimeForDropdown);
+      oneDayLeft = diffMs <= moment.duration(1, "day").asMilliseconds();
+    }
+  %>
+  <% if(candidatesNotSubmitted && oneDayLeft) { %>
+    <p>The voting period will start in less than 24 hours, but you haven’t submitted candidates to the blockchain yet. Please submit them now.</p>
+  <% } else { %>
+    <p>No warnings.</p>
+  <% } %>
+</div>
+
   </div>
 </div>
+        <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
+        <div class="profile">
+          <div class="admin-name"><%= loggedInAdmin.name %></div>
+          <span class="job"><%= loggedInAdmin.role %></span>
+        </div>
+        <div class="dropdown" onclick="toggleDropdown()"></div>
+        <div class="dropdown-menu">
+          <a href="/edit-account">View Account</a>
+          <hr class="dropdown-line" />
+          <a href="/logout">Log Out</a>
+        </div>
+      </div>
 
 </header>
 
@@ -152,3 +193,94 @@ function updateHeader() {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.40/moment-timezone-with-data.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const warningIcon = document.querySelector(".warning-container .warning");
+  const dropdown = document.querySelector(".warning-container .warning-dropdown");
+  let timeoutId = null;
+
+  function showDropdown() {
+    dropdown.classList.add("active");
+    // Clear any existing timeout so that each click resets the 10-second timer
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      dropdown.classList.remove("active");
+    }, 10000); // 10 seconds
+  }
+
+  function hideDropdown() {
+    dropdown.classList.remove("active");
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+  }
+
+  // Toggle dropdown on warning icon click
+  warningIcon.addEventListener("click", function(e) {
+    e.stopPropagation(); // Prevent the click from bubbling up
+    if (dropdown.classList.contains("active")) {
+      hideDropdown();
+    } else {
+      showDropdown();
+    }
+  });
+
+  // Clicking anywhere outside of the warning-container hides the dropdown
+  document.addEventListener("click", function(e) {
+    if (!e.target.closest(".warning-container")) {
+      hideDropdown();
+    }
+  });
+});
+</script>
+
+<script>
+// Check if voting period is about to start and candidates have not been submitted
+// Adjust the period by 1 day
+
+function checkAndUpdateVotingPeriod() {
+  // Determine current time using fakeCurrent (assumed defined in your header code) or real time.
+  const currentTime = useRealTime ? moment.tz(new Date(), "Asia/Manila") : fakeCurrent;
+  
+  // Ensure votingStart and votingEnd exist in config
+  if (config && config.votingStart && config.votingEnd && config.candidatesSubmitted === false) {
+    // Parse votingStart and votingEnd from config
+    let voteStartTime = moment.tz(config.votingStart.$date || config.votingStart, "Asia/Manila");
+    let voteEndTime = moment.tz(config.votingEnd.$date || config.votingEnd, "Asia/Manila");
+    
+    // Check if currentTime is on the same day as voteStart or between voteStart and voteEnd (inclusive)
+    if (currentTime.isSame(voteStartTime, 'day') || currentTime.isBetween(voteStartTime, voteEndTime, 'day', '[]')) {
+      // Add 1 day to both
+      voteStartTime.add(1, 'days');
+      voteEndTime.add(1, 'days');
+      
+      // Send an AJAX request to update the voting period in the database
+      fetch('/update-voting-period', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          votingStart: voteStartTime.toISOString(),
+          votingEnd: voteEndTime.toISOString()
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          console.log('Voting period updated by +1 day');
+          // Update the config object on the client if needed
+          config.votingStart = voteStartTime.toISOString();
+          config.votingEnd = voteEndTime.toISOString();
+        } else {
+          console.error('Error updating voting period:', data.error);
+        }
+      })
+      .catch(err => console.error('Error updating voting period:', err));
+    }
+  }
+}
+
+// Check every minute (adjust frequency as needed)
+setInterval(checkAndUpdateVotingPeriod, 60000);
+</script>

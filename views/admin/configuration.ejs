@@ -20,6 +20,7 @@
   <script type="module" src="components/notification.js"></script>
 
   <style>
+
     .period-info {
       margin: 10px 0;
       padding: 10px;
@@ -47,112 +48,7 @@
   <%- include('header') %>
 
   <div class="content">
-    <div class="sidebar close">
-      <div class="profile-details">
-        <img src="<%= loggedInAdmin.img %>" />
-        <span class="profile-name"><%= loggedInAdmin.name %></span>
-        <span class="job"><%= loggedInAdmin.role %></span>
-      </div>
-
-      <ul class="nav-links">
-        <hr />
-        <li>
-          <a href="#">
-            <i class="bx bx-menu"></i>
-            <span class="link_name">Menu</span>
-          </a>
-        </li>
-        <hr />
-        <li>
-          <a href="/dashboard">
-            <i class="bx bxs-dashboard"></i>
-            <span class="link_name">Dashboard</span>
-          </a>
-          <ul class="sub-menu blank">
-            <li><a class="link_name" href="/dashboard">Dashboard</a></li>
-          </ul>
-        </li>
-
-        <li id="active-tab">
-          <a href="/configuration">
-            <i class="fa fa-cogs"></i>
-            <span class="link_name">Configuration</span>
-          </a>
-          <ul class="sub-menu blank">
-            <li><a class="link_name" href="/configuration">Configuration</a></li>
-          </ul>
-        </li>
-        <li>
-          <a href="/candidates">
-            <i class="fa fa-users"></i>
-            <span class="link_name">Candidates</span>
-          </a>
-          <ul class="sub-menu blank">
-            <li><a class="link_name" href="/candidates">Candidates</a></li>
-          </ul>
-        </li>
-
-        <li>
-          <div class="icon-link">
-            <a href="/blockchain-management">
-              <i class="fa fa-link"></i>
-              <span class="link_name">Blockchain</span>
-            </a>
-            <i class="bx bxs-chevron-down arrow"></i>
-          </div>
-          <ul class="sub-menu">
-            <li><a class="link_name" href="/blockchain-management">Blockchain</a></li>
-            <li><a href="/blockchain-management">Blockchain Management</a></li>
-            <li><a href="/blockchain-activity-log">Activity Log</a></li>
-          </ul>
-        </li>
-
-        <li>
-          <div class="icon-link">
-            <a href="/voter-info">
-              <i class="fa fa-bar-chart"></i>
-              <span class="link_name">Election</span>
-            </a>
-            <i class="bx bxs-chevron-down arrow"></i>
-          </div>
-          <ul class="sub-menu">
-            <li><a class="link_name" href="/voter-info"> electionName || "No Election Ongoing"</a></li>
-            <li><a href="/voter-info">Voter Info</a></li>
-            <li><a href="/voter-turnout">Voter Turnout</a></li>
-            <li><a href="/vote-tally">Vote Tally</a></li>
-            <li><a href="/results">Results</a></li>
-            <li><a href="/reset">Reset Election</a></li>
-          </ul>
-        </li>
-
-        <li>
-          <a href="/archives">
-            <i class="bx bx-archive"></i>
-            <span class="link_name">Election Archives</span>
-          </a>
-          <ul class="sub-menu blank">
-            <li><a class="link_name" href="/archives">Election Archives</a></li>
-          </ul>
-        </li>
-
-        <li>
-          <div class="icon-link">
-            <a href="/edit-account">
-              <i class="fa fa-tasks"></i>
-              <span class="link_name">System</span>
-            </a>
-            <i class="bx bxs-chevron-down arrow"></i>
-          </div>
-          <ul class="sub-menu">
-            <li><a class="link_name" href="/edit-account">System</a></li>
-            <li><a href="/edit-account">Edit Account</a></li>
-            <li><a href="/manage-admins">Manage Admins</a></li>
-            <li><a href="/help-page">Help Page</a></li>
-            <li><a href="/system-activity-log">System Activity Log</a></li>
-          </ul>
-        </li>
-      </ul>
-    </div>
+    <%- include('sidebar', { activeTab: 'configuration' }) %>
     <main class="main">
       <div class="title-container">
         <div class="r">
@@ -283,6 +179,19 @@
             <label for="useFakeDateToggle">Use Fake Date:</label>
             <input type="checkbox" id="useFakeDateToggle" name="useFakeDate" value="true" <%= electionConfig && electionConfig.useFakeDate ? 'checked' : '' %> onchange="this.form.submit()" />
           </form>
+
+          <form id="toggleCandidatesSubmittedForm" action="/update-candidates-submitted" method="POST" style="margin-top: 10px;">
+            <p style="color: red;">
+              WARNING: Changing "candidatesSubmitted" may break something! Remember the original state.
+            </p>
+            <label for="candidatesSubmitted">Candidates Submitted:</label>
+            <select name="candidatesSubmitted" id="candidatesSubmitted">
+              <option value="true" <%= electionConfig && electionConfig.candidatesSubmitted === true ? 'selected' : '' %>>True</option>
+              <option value="false" <%= electionConfig && electionConfig.candidatesSubmitted === false ? 'selected' : '' %>>False</option>
+            </select>
+            <button type="submit">Update Candidates Submitted</button>
+          </form>
+          
         </div>
 
         <!-- Client-side JS -->

@@ -1,9 +1,7 @@
 <div class="first-main">
- 
- 
   <div class="main-content">
-  <br />
-  <br />
+    <br />
+    <br />
     <div class="left-container">
       <h1 class="ssc">Supreme Student Council</h1>
       <br />
@@ -12,7 +10,6 @@
         <div class="content-box-2">
           <br />
           <canvas id="chart-turnout"></canvas>
-
           <div class="summary-text">
             <span></span>
           </div>
@@ -22,84 +19,90 @@
       </div>
     </div>
     <div class="right-container">
-      <h1 class="lsc">Local Student Council </h1>
+      <h1 class="lsc">Local Student Council</h1>
       <br />
       <div class="campus">
         <select class="select">
           <option>Main Campus</option>
-          <option>External Campuses</option>
+          <!-- <option>External Campuses</option> -->
         </select>
-        </div>
-        <br />
-        <div class="main-right">
-          <h1>Voter Turnout per College</h1>
-          <div id="container-charts"></div>
-        </div>
+      </div>
+      <br />
+      <div class="main-right">
+        <h1>Voter Turnout per College</h1>
+        <div id="container-charts"></div>
       </div>
     </div>
   </div>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Get the container where liner bars will be rendered
+      // Get the container where the liner bars will be rendered.
       const container = document.getElementById("container-charts");
       if (!container) return;
 
-      // Retrieve the list of colleges from electionConfig
-      const colleges = <%- JSON.stringify(electionConfig.listOfElections) %>;
+      // Retrieve the list of colleges from electionConfig (new structure)
+      const colleges = <%- JSON.stringify(electionConfig.colleges) %>;
       console.log("Colleges data:", colleges);
 
-      // Loop through each college
+      // Loop through each college and create a liner bar.
       colleges.forEach((college) => {
-        // Create a container for the liner bar and give it a unique id
         const div = document.createElement("div");
         div.id = `liner-bar-college-${college.acronym}`;
-        div.classList.add("liner-bar-college"); // optional for additional styling
+        div.classList.add("liner-bar-college");
         container.appendChild(div);
 
-        // Prepare the data for the liner bar:
-        // "Voted" is 0 and "Not Yet Voted" is set to the total number of voters for that college.
+        // For each college, the "Voted" value is the registeredVoted,
+        // and "Not Yet Voted" is the remaining students.
         const data = {
           title: college.name,
-          dark: false, // change to true if you want a dark theme
+          dark: false,
           items: [
-            { name: "Voted", value: college.numberOfVoted, color: "#5fb643" },
-            { name: "Not Yet Voted", value: college.voters - college.numberOfVoted, color: "#FC440F" }
+            { name: "Voted", value: college.registeredVoted, color: "#5fb643" },
+            { 
+              name: "Not Yet Voted", 
+              value: college.notRegisteredNotVoted + college.registeredNotVoted, 
+              color: "#FC440F" 
+            }
           ]
         };
 
         // Instantiate the liner bar using your LinerBar class from liner-bar.js.
-        // Note: liner-bar.js exposes the constructor as LinerBar.
         const bar = new LinerBar(`#${div.id}`, data);
         bar.render();
-
-        // container.appendChild("<br>");
       });
     });
   </script>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Retrieve the list of colleges from electionConfig passed via EJS
-      const colleges = <%- JSON.stringify(electionConfig.listOfElections) %>;
+      // Retrieve the list of colleges from electionConfig (new structure)
+      const colleges = <%- JSON.stringify(electionConfig.colleges) %>;
 
-      // Sum up total registered voters and total voted across all colleges
+      // Compute overall totals
       let totalStudents = 0;
-      let totalRegistered = 0;
-      let totalVoted = 0;
+      let totalRegisteredNotVoted = 0;
+      let totalRegisteredVoted = 0;
+      let totalNotRegisteredNotVoted = 0;
+      
       colleges.forEach(college => {
-        totalStudents += college.voters;
-        totalRegistered += college.registeredVoters;
-        totalVoted += college.numberOfVoted;
+        totalStudents += college.numberOfStudents;
+        totalRegisteredNotVoted += college.registeredNotVoted;
+        totalRegisteredVoted += college.registeredVoted;
+        totalNotRegisteredNotVoted += college.notRegisteredNotVoted;
       });
-      const notVoted = totalRegistered - totalVoted;
+      
+      // For the overall pie chart:
+      // "Voted" is the sum of registeredVoted,
+      // "Not Yet Voted" is the sum of (registeredNotVoted + notRegisteredNotVoted)
+      const totalNotVoted = totalRegisteredNotVoted + totalNotRegisteredNotVoted;
 
       // Setup Chart.js chart data
       const ctx = document.getElementById('chart-turnout').getContext('2d');
       const data = {
         labels: ['Voted', 'Not Yet Voted'],
         datasets: [{
-          data: [totalVoted, totalStudents - totalVoted],
+          data: [totalRegisteredVoted, totalNotRegisteredNotVoted + totalRegisteredNotVoted ],
           backgroundColor: ['#5fb643', '#FC440F'],
           borderWidth: 1,
         }]
@@ -107,7 +110,7 @@
 
       // Instantiate the pie chart using Chart.js
       new Chart(ctx, {
-        type: 'pie', // Change to 'doughnut' if you prefer a donut chart
+        type: 'pie', // or 'doughnut' if preferred
         data: data,
         options: {
           responsive: true,
