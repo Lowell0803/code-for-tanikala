@@ -614,6 +614,7 @@ const startServer = async () => {
           admins,
           electionConfig,
           loggedInAdmin: req.session.admin,
+          moment,
         });
       } catch (error) {
         console.error("Error retrieving admin accounts:", error);
@@ -2770,6 +2771,7 @@ const startServer = async () => {
         loggedInAdmin: req.session.admin,
         totalRegisteredVoters,
         turnoutPercentage,
+        moment,
       });
     });
 
@@ -2832,6 +2834,7 @@ const startServer = async () => {
           collegesArray.push({
             acronym: acronym,
             name: collegeMapping[acronym],
+            numberOfStudents: count,
             notRegisteredNotVoted: count,
             registeredNotVoted: 0,
             registeredVoted: 0,
@@ -2916,6 +2919,21 @@ const startServer = async () => {
         res.redirect("/configuration");
       } catch (err) {
         console.error("Error updating date mode", err);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.post("/update-candidates-submitted", async (req, res) => {
+      try {
+        const { candidatesSubmitted } = req.body;
+        console.log("Update candidatesSubmitted called:", candidatesSubmitted);
+        // Convert the string value to a boolean.
+        const submitted = candidatesSubmitted === "true";
+        // Update the election_config document (using an empty filter if you're updating the single config document)
+        await db.collection("election_config").updateOne({}, { $set: { candidatesSubmitted: submitted } });
+        res.redirect("/configuration");
+      } catch (err) {
+        console.error("Error updating candidatesSubmitted", err);
         res.status(500).send("Internal Server Error");
       }
     });
@@ -3133,6 +3151,7 @@ const startServer = async () => {
           voterCounts,
           electionConfig,
           loggedInAdmin: req.session.admin,
+          moment,
         });
       } catch (error) {
         console.error("Error fetching candidates for dashboard:", error);
@@ -3200,6 +3219,7 @@ const startServer = async () => {
           walletInfo,
           blockchainInfo,
           candidateSubmission,
+          moment,
         });
       } catch (error) {
         console.error("Error in blockchain management route:", error);
@@ -3224,6 +3244,7 @@ const startServer = async () => {
           electionConfig,
           logs,
           loggedInAdmin: req.session.admin,
+          moment,
         });
       } catch (error) {
         console.error("Error fetching blockchain logs:", error);
@@ -3241,7 +3262,7 @@ const startServer = async () => {
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-        res.render("admin/election-voter-info", { voters, electionConfig, loggedInAdmin: req.session.admin }); // Pass voters to EJS template
+        res.render("admin/election-voter-info", { voters, electionConfig, loggedInAdmin: req.session.admin, moment }); // Pass voters to EJS template
       } catch (error) {
         console.error("Error fetching registered voters:", error);
         res.status(500).send("Internal Server Error");
@@ -3323,80 +3344,95 @@ const startServer = async () => {
         const electionConfigCollection = db.collection("election_config");
         let electionConfig = await electionConfigCollection.findOne({});
 
-        // Calculate overall totals from the registered_voters collection
         const votersCollection = db.collection("registered_voters");
-        const totalRegistered = await votersCollection.countDocuments({});
-        const totalVoted = await votersCollection.countDocuments({ status: "Voted" });
-        const totalNotVoted = await votersCollection.countDocuments({ status: "Registered" });
 
-        console.log("Voter Turnout:");
-        console.log("Total Registered:", totalRegistered);
-        console.log("Total Voted:", totalVoted);
-        console.log("Total Not Voted:", totalNotVoted);
-
-        // Update overall totals in electionConfig (if desired)
-        electionConfig.totalRegistered = totalRegistered;
-        electionConfig.totalVoted = totalVoted;
-        electionConfig.totalNotVoted = totalNotVoted;
-        await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { totalRegistered, totalVoted, totalNotVoted } });
-
-        // Aggregate total registered count per college (regardless of vote status)
-        const collegeTotalAggregation = await votersCollection
+        // Aggregate counts for "Registered" and "Voted" statuses per college
+        const collegeRegisteredAggregation = await votersCollection
           .aggregate([
             {
               $group: {
                 _id: "$college",
-                total: { $sum: 1 },
+                count: {
+                  $sum: { $cond: [{ $eq: ["$status", "Registered"] }, 1, 0] },
+                },
               },
             },
           ])
           .toArray();
 
-        // Aggregate voted counts per college (only count "Voted")
         const collegeVotedAggregation = await votersCollection
           .aggregate([
             {
               $group: {
                 _id: "$college",
-                voted: { $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] } },
+                count: {
+                  $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] },
+                },
               },
             },
           ])
           .toArray();
 
-        // Update each college in electionConfig.listOfElections.
-        // The "registeredVoters" field should be set based on the total entries from the registered_voters collection.
-        // The "numberOfVoted" field is updated with the voted count.
-        // The "voters" property is not modified.
-        electionConfig.listOfElections.forEach((collegeObj) => {
-          // Find the total count using the college's acronym.
-          const totalGroup = collegeTotalAggregation.find((g) => {
+        // Update each college object in electionConfig.colleges
+        electionConfig.colleges.forEach((collegeObj) => {
+          // The registered_voters document's college field is a string like "College of Arts and Letters (CAL)".
+          // Extract the acronym using regex.
+          const regGroup = collegeRegisteredAggregation.find((g) => {
             const match = g._id.match(/\(([^)]+)\)/);
             return match && match[1] === collegeObj.acronym;
           });
-          if (totalGroup) {
-            collegeObj.registeredVoters = totalGroup.total;
-          }
-
-          // Find the voted count for this college.
           const votedGroup = collegeVotedAggregation.find((g) => {
             const match = g._id.match(/\(([^)]+)\)/);
             return match && match[1] === collegeObj.acronym;
           });
-          if (votedGroup) {
-            collegeObj.numberOfVoted = votedGroup.voted;
-          }
+          // Set counts (defaulting to 0 if not found)
+          collegeObj.registeredNotVoted = regGroup ? regGroup.count : 0;
+          collegeObj.registeredVoted = votedGroup ? votedGroup.count : 0;
+          // Calculate notRegisteredNotVoted so that the sum equals numberOfStudents
+          collegeObj.notRegisteredNotVoted = collegeObj.numberOfStudents - (collegeObj.registeredNotVoted + collegeObj.registeredVoted);
         });
 
-        // Optionally update the election_config document with the updated listOfElections array.
-        await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { listOfElections: electionConfig.listOfElections } });
+        // Calculate overall totals by summing across all colleges
+        let totalNumberOfStudents = 0;
+        let totalNotRegisteredNotVoted = 0;
+        let totalRegisteredNotVoted = 0;
+        let totalRegisteredVoted = 0;
 
+        electionConfig.colleges.forEach((collegeObj) => {
+          totalNumberOfStudents += collegeObj.numberOfStudents;
+          totalNotRegisteredNotVoted += collegeObj.notRegisteredNotVoted;
+          totalRegisteredNotVoted += collegeObj.registeredNotVoted;
+          totalRegisteredVoted += collegeObj.registeredVoted;
+        });
+
+        // Update the overall totals in electionConfig
+        electionConfig.totalNumberOfStudents = totalNumberOfStudents;
+        electionConfig.totalNotRegisteredNotVoted = totalNotRegisteredNotVoted;
+        electionConfig.totalRegisteredNotVoted = totalRegisteredNotVoted;
+        electionConfig.totalRegisteredVoted = totalRegisteredVoted;
+
+        // Save updated college data and totals back to the database
+        await electionConfigCollection.updateOne(
+          { _id: electionConfig._id },
+          {
+            $set: {
+              colleges: electionConfig.colleges,
+              totalNumberOfStudents,
+              totalNotRegisteredNotVoted,
+              totalRegisteredNotVoted,
+              totalRegisteredVoted,
+            },
+          }
+        );
+
+        // Determine the current period using fakeCurrentDate if enabled
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
         res.render("admin/election-voter-turnout", {
           electionConfig,
           loggedInAdmin: req.session.admin,
+          moment,
         });
       } catch (error) {
         console.error("Error fetching voter turnout:", error);
@@ -3410,23 +3446,16 @@ const startServer = async () => {
         let electionConfig = await electionConfigCollection.findOne({});
 
         const votersCollection = db.collection("registered_voters");
-        const totalRegistered = await votersCollection.countDocuments({});
-        const totalVoted = await votersCollection.countDocuments({ status: "Voted" });
-        const totalNotVoted = await votersCollection.countDocuments({ status: "Registered" });
 
-        // Update electionConfig with overall totals
-        electionConfig.totalRegistered = totalRegistered;
-        electionConfig.totalVoted = totalVoted;
-        electionConfig.totalNotVoted = totalNotVoted;
-        await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { totalRegistered, totalVoted, totalNotVoted } });
-
-        // Aggregate totals per college
-        const collegeTotalAggregation = await votersCollection
+        // Aggregate counts for "Registered" and "Voted" statuses per college
+        const collegeRegisteredAggregation = await votersCollection
           .aggregate([
             {
               $group: {
                 _id: "$college",
-                total: { $sum: 1 },
+                count: {
+                  $sum: { $cond: [{ $eq: ["$status", "Registered"] }, 1, 0] },
+                },
               },
             },
           ])
@@ -3437,37 +3466,76 @@ const startServer = async () => {
             {
               $group: {
                 _id: "$college",
-                voted: { $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] } },
+                count: {
+                  $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] },
+                },
               },
             },
           ])
           .toArray();
 
-        // Update each college in electionConfig.listOfElections with aggregated totals
-        electionConfig.listOfElections.forEach((collegeObj) => {
-          const totalGroup = collegeTotalAggregation.find((g) => {
+        // Update each college object in electionConfig.colleges
+        electionConfig.colleges.forEach((collegeObj) => {
+          // The registered_voters document's college field is a string like "College of Arts and Letters (CAL)".
+          // Extract the acronym using regex.
+          const regGroup = collegeRegisteredAggregation.find((g) => {
             const match = g._id.match(/\(([^)]+)\)/);
             return match && match[1] === collegeObj.acronym;
           });
-          if (totalGroup) {
-            collegeObj.registeredVoters = totalGroup.total;
-          }
-
           const votedGroup = collegeVotedAggregation.find((g) => {
             const match = g._id.match(/\(([^)]+)\)/);
             return match && match[1] === collegeObj.acronym;
           });
-          if (votedGroup) {
-            collegeObj.numberOfVoted = votedGroup.voted;
-          }
+          // Set counts (defaulting to 0 if not found)
+          collegeObj.registeredNotVoted = regGroup ? regGroup.count : 0;
+          collegeObj.registeredVoted = votedGroup ? votedGroup.count : 0;
+          // Calculate notRegisteredNotVoted so that the sum equals numberOfStudents
+          collegeObj.notRegisteredNotVoted = collegeObj.numberOfStudents - (collegeObj.registeredNotVoted + collegeObj.registeredVoted);
         });
 
-        await electionConfigCollection.updateOne({ _id: electionConfig._id }, { $set: { listOfElections: electionConfig.listOfElections } });
+        // Calculate overall totals by summing across all colleges
+        let totalNumberOfStudents = 0;
+        let totalNotRegisteredNotVoted = 0;
+        let totalRegisteredNotVoted = 0;
+        let totalRegisteredVoted = 0;
 
+        electionConfig.colleges.forEach((collegeObj) => {
+          totalNumberOfStudents += collegeObj.numberOfStudents;
+          totalNotRegisteredNotVoted += collegeObj.notRegisteredNotVoted;
+          totalRegisteredNotVoted += collegeObj.registeredNotVoted;
+          totalRegisteredVoted += collegeObj.registeredVoted;
+        });
+
+        // Update the overall totals in electionConfig
+        electionConfig.totalNumberOfStudents = totalNumberOfStudents;
+        electionConfig.totalNotRegisteredNotVoted = totalNotRegisteredNotVoted;
+        electionConfig.totalRegisteredNotVoted = totalRegisteredNotVoted;
+        electionConfig.totalRegisteredVoted = totalRegisteredVoted;
+
+        // Save updated college data and totals back to the database
+        await electionConfigCollection.updateOne(
+          { _id: electionConfig._id },
+          {
+            $set: {
+              colleges: electionConfig.colleges,
+              totalNumberOfStudents,
+              totalNotRegisteredNotVoted,
+              totalRegisteredNotVoted,
+              totalRegisteredVoted,
+            },
+          }
+        );
+
+        // Determine the current period using fakeCurrentDate if enabled
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-        res.render("homepages/rvs-voter-turnout", { electionConfig });
+        // Render the view (using the same EJS partial as /voter-turnout)
+        res.render("homepages/rvs-voter-turnout", {
+          electionConfig,
+          loggedInAdmin: req.session && req.session.admin,
+          moment,
+        });
       } catch (error) {
         console.error("Error fetching voter turnout:", error);
         res.status(500).send("Server error while fetching voter turnout");
@@ -3563,7 +3631,7 @@ const startServer = async () => {
           };
         });
 
-        res.render("admin/election-vote-tally", { candidates, electionConfig, loggedInAdmin: req.session.admin });
+        res.render("admin/election-vote-tally", { candidates, electionConfig, loggedInAdmin: req.session.admin, moment });
       } catch (error) {
         console.error("Error fetching candidate details:", error);
         res.status(500).json({ error: error.message });
@@ -3639,7 +3707,7 @@ const startServer = async () => {
           };
         });
 
-        res.render("admin/election-results", { candidates, electionConfig, loggedInAdmin: req.session.admin });
+        res.render("admin/election-results", { candidates, electionConfig, loggedInAdmin: req.session.admin, moment });
       } catch (error) {
         console.error("Error fetching candidate details:", error);
         res.status(500).json({ error: error.message });
@@ -3690,7 +3758,7 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/election-reset", { electionConfig, loggedInAdmin: req.session.admin });
+      res.render("admin/election-reset", { electionConfig, loggedInAdmin: req.session.admin, moment });
     });
 
     app.get("/archives", async (req, res) => {
@@ -3701,7 +3769,7 @@ const startServer = async () => {
 
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-        res.render("admin/archives", { archives, electionConfig, loggedInAdmin: req.session.admin });
+        res.render("admin/archives", { archives, electionConfig, loggedInAdmin: req.session.admin, moment });
       } catch (error) {
         console.error("Error fetching archives:", error);
         res.status(500).send("Internal Server Error");
@@ -3715,7 +3783,7 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/system-edit-account", { electionConfig, loggedInAdmin: req.session.admin });
+      res.render("admin/system-edit-account", { electionConfig, loggedInAdmin: req.session.admin, moment });
     });
 
     app.get("/admin-accounts", async (req, res) => {
@@ -3837,7 +3905,7 @@ const startServer = async () => {
       const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
-      res.render("admin/system-help-page", { electionConfig, loggedInAdmin: req.session.admin });
+      res.render("admin/system-help-page", { electionConfig, loggedInAdmin: req.session.admin, moment });
     });
     app.get("/system-activity-log", async (req, res) => {
       try {
@@ -3854,6 +3922,7 @@ const startServer = async () => {
           electionConfig,
           loggedInAdmin: req.session.admin,
           activityLogs,
+          moment,
         });
       } catch (error) {
         console.error("Error fetching activity logs:", error);

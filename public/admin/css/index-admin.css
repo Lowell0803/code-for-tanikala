@@ -40,7 +40,7 @@
 
   /* header sizes */
   --width-header-logo: 25vw;
-  --width-header-user: 20vw;
+  --width-header-user: 25vw;
   --width-header-content: calc(100vw - var(--width-header-logo) - var(--width-header-user));
 
   /* footer sizes */
