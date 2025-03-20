@@ -11,6 +11,7 @@
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
+    
     <style>
       /* Modal styling */
       .modal {
@@ -53,43 +54,8 @@
         <hr class="title-line" />
         <div class="first-main">
           <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
-          <div class="space">
-            <!-- Note: No enctype attribute -->
-            <form id="add-admin-form" action="/admin-accounts/add" method="POST">
-              <label>Name:</label>
-              <input type="text" name="name" required />
-              
-              <label>Role:</label>
-              <select name="role" class="role" required>
-                <option>Select a Role</option>
-                <option value="Electoral Board Member">Electoral Board</option>
-                <option value="Technical Team Member">Technical Team</option>
-                <option value="Creatives Team Member">Creatives Team</option>
-                <option value="Developer">Developer</option>
-              </select>
-              
-              <label>Email:</label>
-              <input type="email" name="email" required />
-              
-              <label>Password:</label>
-              <input type="password" name="password" required />
-              
-              <!-- <label>Status:</label>
-              <select name="status" required>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select> -->
-              
-              <label>Profile Image:</label>
-              <!-- File input triggers conversion -->
-              <input type="file" name="imgUpload" accept="image/*" onchange="convertImageToBase64(event)" required />
-              <img id="img-preview" src="img/placeholder_admin_profile.png" alt="Image Preview" style="max-width: 100px; display: block" />
-              <!-- Hidden input to hold the Base64 image data -->
-              <input type="hidden" name="img" id="imgBase64" value="img/placeholder_admin_profile.png" />
-              
-              <button type="submit" class="button button-brown">Add Admin</button>
-            </form>
-          </div>
+          <!-- Button to open Add Admin Modal -->
+          <button class="button button-brown" onclick="openAddModal()">Add Admin</button>
           <% } %>
           <br />
           <td class="table-container">
@@ -152,6 +118,49 @@
       </main>
     </div>
 
+    <!-- Add Admin Modal -->
+    <div id="addModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Add Admin Account</h2>
+        <!-- Note: No enctype attribute -->
+        <form id="add-admin-form" action="/admin-accounts/add" method="POST">
+          <label>Name:</label>
+          <input type="text" name="name" required />
+          
+          <label>Role:</label>
+          <select name="role" class="role" required>
+            <option>Select a Role</option>
+            <option value="Electoral Board Member">Electoral Board</option>
+            <option value="Technical Team Member">Technical Team</option>
+            <option value="Creatives Team Member">Creatives Team</option>
+            <option value="Developer">Developer</option>
+          </select>
+          
+          <label>Email:</label>
+          <input type="email" name="email" required />
+          
+          <label>Password:</label>
+          <input type="password" name="password" required />
+          
+          <!-- <label>Status:</label>
+          <select name="status" required>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select> -->
+          
+          <label>Profile Image:</label>
+          <!-- File input triggers conversion -->
+          <input type="file" name="imgUpload" accept="image/*" onchange="convertImageToBase64(event)" required />
+          <img id="img-preview" src="img/placeholder_admin_profile.png" alt="Image Preview" style="max-width: 100px; display: block" />
+          <!-- Hidden input to hold the Base64 image data -->
+          <input type="hidden" name="img" id="imgBase64" value="img/placeholder_admin_profile.png" />
+          
+          <button type="submit" class="button button-brown">Add Admin</button>
+        </form>
+      </div>
+    </div>
+
     <!-- Edit Modal -->
     <div id="editModal" class="modal">
       <div class="modal-content">
@@ -186,8 +195,8 @@
             <option value="Inactive">Inactive</option>
           </select>
            -->
-           <label>Status:</label>
-<input type="text" id="edit-status-display" disabled />
+          <label>Status:</label>
+          <input type="text" id="edit-status-display" disabled />
            
           <label>Profile Image:</label>
           <input type="file" name="imgUpload" id="edit-imgUpload" accept="image/*" onchange="convertEditImageToBase64(event)" />
@@ -214,45 +223,27 @@
         }
       }
 
-      // Modal functions
+      // Modal functions for Edit Admin
       const editModal = document.getElementById("editModal");
-      document.querySelectorAll(".button-edit").forEach(button => {
-        button.addEventListener("click", () => {
-          
-          const row = button.closest("tr");
-          console.log(row.getAttribute("data-id"));
-          console.log(row.getAttribute("data-name"));
-          document.getElementById("edit-id").value = row.getAttribute("data-id");
-          document.getElementById("edit-name").value = row.getAttribute("data-name");
-          document.getElementById("edit-email").value = row.getAttribute("data-email");
-          document.getElementById("edit-role").value = row.getAttribute("data-role");
-          // document.getElementById("edit-status").value = row.getAttribute("data-status");
-          document.getElementById("edit-status-display").value = row.getAttribute("data-status");
-
-          document.getElementById("edit-password").value = row.getAttribute("data-password");
-          const imgSrc = row.getAttribute("data-img");
-          document.getElementById("edit-img-preview").src = imgSrc;
-          document.getElementById("edit-imgBase64").value = imgSrc;
-          editModal.style.display = "block";
-        });
-      });
-
+     
+      // Function to close any open modal
       function closeModal() {
         editModal.style.display = "none";
+        addModal.style.display = "none";
       }
       window.onclick = function(event) {
-        if (event.target === editModal) {
+        if (event.target === editModal || event.target === addModal) {
           closeModal();
         }
       };
 
-      // Toggle password visibility in modal
+      // Toggle password visibility in Edit Admin modal
       function toggleEditPassword() {
         const passwordInput = document.getElementById("edit-password");
         passwordInput.type = passwordInput.type === "password" ? "text" : "password";
       }
 
-      // Convert image to Base64 for add-admin form
+      // Convert image to Base64 for Add Admin form
       function convertImageToBase64(event) {
         const file = event.target.files[0];
         const reader = new FileReader();
@@ -267,7 +258,7 @@
         }
       }
 
-      // Convert image to Base64 for edit-admin form
+      // Convert image to Base64 for Edit Admin form
       function convertEditImageToBase64(event) {
         const file = event.target.files[0];
         const reader = new FileReader();
@@ -279,8 +270,16 @@
           reader.readAsDataURL(file);
         }
       }
+
+      // Modal functions for Add Admin
+      const addModal = document.getElementById("addModal");
+      function openAddModal() {
+        addModal.style.display = "block";
+      }
     </script>
     <script src="admin/js/sidebar.js"></script>
+    <script src="admin/js/manage-admins.js"></script>
+    
     <script src="admin/js/index-admin.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
