@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap");
 
 .liner-bar-card,
 .liner-bar-card * {
@@ -25,8 +25,8 @@
 }
 
 .liner-bar-dark {
-    background-color: #20293e;
-    color: #fff !important;
+  background-color: #20293e;
+  color: #fff !important;
 }
 
 .liner-bar-legend-item-button {
@@ -69,21 +69,14 @@
 }
 
 .liner-bar-progess-item {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
   justify-content: center;
   margin-left: 2px;
-  color: transparent;
-  -webkit-transition: color 0.2s ease, -webkit-transform 0.2s ease;
-  transition: color 0.2s ease, -webkit-transform 0.2s ease;
-  -o-transition: transform 0.2s ease, color 0.2s ease;
-  transition: transform 0.2s ease, color 0.2s ease, -webkit-transform 0.2s ease;
+  font-size: 13px;
+  color: #fff; /* Set the text color immediately */
+  transform: scaleY(1.25);
+  transition: none; /* Remove animation */
 }
 
 .liner-bar-progess-item:first-child {
@@ -92,8 +85,8 @@
 }
 
 .liner-bar-progess-item:last-child {
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
 }
 
 .liner-bar-progess-item.activated {

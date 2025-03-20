@@ -33,6 +33,16 @@
           </div>
           <hr class="title-line" />
           <div class="quick-actions-container">
+ <div class="quick-actions-buttons">
+              <img class="quick-buttons" id="voter-info-button" src="../img/voter-info.png" alt="Voter Information" />
+              <p>Voter Information</p>
+              <div class="view-export">
+                <a href="voter_information.html">View</a>
+                <span class="separator">|</span>
+                <a href="export-voter-info">Export</a>
+              </div>
+            </div>
+
             <div class="quick-actions-buttons">
               <img class="quick-buttons" src="../img/election-results.png" alt="Election Results" />
               <p>Election Results</p>
@@ -45,6 +55,17 @@
 
             <div class="quick-actions-buttons">
               <img class="quick-buttons" src="../img/candidates.png" alt="Candidates" />
+              <p>Vote Tally</p>
+              <div class="view-export">
+                <a href="candidates">View</a>
+                <span class="separator">|</span>
+                <a href="export-candidates">Export</a>
+              </div>
+            </div>
+
+           
+<div class="quick-actions-buttons">
+              <img class="quick-buttons" src="../img/candidates.png" alt="Candidates" />
               <p>Candidates</p>
               <div class="view-export">
                 <a href="candidates">View</a>
@@ -53,25 +74,6 @@
               </div>
             </div>
 
-            <div class="quick-actions-buttons">
-              <img class="quick-buttons" id="voter-info-button" src="../img/voter-info.png" alt="Voter Information" />
-              <p>Voter Info</p>
-              <div class="view-export">
-                <a href="voter_information.html">View</a>
-                <span class="separator">|</span>
-                <a href="export-voter-info">Export</a>
-              </div>
-            </div>
-
-            <div class="quick-actions-buttons">
-              <img class="quick-buttons" id="admin-button" src="../img/admin-accounts.png" alt="Admin Accounts" />
-              <p>Admin Accounts</p>
-              <div class="view-export">
-                <a href="manage-accounts.html">View</a>
-                <span class="separator">|</span>
-                <a href="export-admin-accounts">Export</a>
-              </div>
-            </div>
             <div class="quick-actions-buttons">
               <img class="quick-buttons" id="admin-button" src="../img/admin-accounts.png" alt="Admin Accounts" />
               <p>Admin Accounts</p>
@@ -211,12 +213,13 @@
             </div>
 
             <div class="right-side">
+               <% let totalRegisteredVoters = 0; let totalVoted = 0; let totalVoters = 0; if (electionConfig.listOfElections && electionConfig.listOfElections.length) { electionConfig.listOfElections.forEach(college => { totalRegisteredVoters += college.registeredVoters; totalVoted += college.numberOfVoted; totalVoters += college.voters; }); } let turnoutPercentage = totalVoters > 0 ? (totalVoted / totalVoters * 100) : 0; %>
               <div class="beside">
-                <% let totalRegisteredVoters = 0; let totalVoted = 0; let totalVoters = 0; if (electionConfig.listOfElections && electionConfig.listOfElections.length) { electionConfig.listOfElections.forEach(college => { totalRegisteredVoters += college.registeredVoters; totalVoted += college.numberOfVoted; totalVoters += college.voters; }); } let turnoutPercentage = totalVoters > 0 ? (totalVoted / totalVoters * 100) : 0; %>
+               
 
-                <div class="form" id="registered-students">
-                  <h4 class="center">Number of Registered Voters</h4>
-                  <p class="center"><%= totalRegisteredVoters %></p>
+                <div class="form" id="candidate-submission">
+                  <h4 class="center">Candidate Submission on Blockchain:</h4>
+                  <p class="center">Not Submitted  |  Submitted</p>
                 </div>
                 <div class="form" id="voter-turnout">
                   <h4 class="center">Voter Turnout</h4>
@@ -224,7 +227,21 @@
                 </div>
               </div>
 
-              <div class="form" id="blockchain-management">
+              <div class="beside">
+               
+
+                <div class="form" id="vote-queue">
+                  <h4 class="center">Current Vote Transactions Queue on Blockchain:</h4>
+                  <p class="center">10</p>
+                </div>
+                <div class="form" id="voter-turnout">
+                  <h4 class="center">Voter Turnout</h4>
+                  <p class="center"><%= turnoutPercentage.toFixed(2) %>%</p>
+                </div>
+              </div>
+
+
+              <!-- <div class="form" id="blockchain-management">
                 <h3 class="center">Blockchain Management</h3>
                 <br />
                 <p><b>Smart Contract Status: </b>Not Deployed | Deployed</p>
@@ -258,11 +275,9 @@
                 <p><b>Live Transaction Fee Estimate: </b><span>No data available yet.</span></p>
                 <br />
                 <p><b>Recommended Fund Estimate: </b><span>No data available yet.</span></p>
-              </div>
+              </div> -->
 
-              <div class="form" id="quick-actions">
-                <h3>Quick Actions</h3>
-              </div>
+              
             </div>
           </div>
         </div>
