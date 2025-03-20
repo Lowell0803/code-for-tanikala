@@ -1,105 +1,107 @@
 
 
-
 <div class="sidebar close">
-    <div class="profile-details">
-      <img src="<%= loggedInAdmin.img %>" />
-      <span class="profile-name"><%= loggedInAdmin.name %></span>
-      <span class="job"><%= loggedInAdmin.role %></span>
-    </div>
-  
-    <ul class="nav-links">
-      <hr />
-      <li>
-        <a href="#">
-          <i class="bx bx-menu"></i>
-          <span class="link_name">Menu</span>
-        </a>
-      </li>
-      <hr />
-      <li <%= activeTab === 'dashboard' ? 'id="active-tab"' : '' %>>
-        <a href="/dashboard">
-          <i class="bx bxs-dashboard"></i>
-          <span class="link_name">Dashboard</span>
-        </a>
-        <ul class="sub-menu blank">
-          <li><a class="link_name" href="/dashboard">Dashboard</a></li>
-        </ul>
-      </li>
-      <li <%= activeTab === 'configuration' ? 'id="active-tab"' : '' %>>
-        <a href="/configuration">
-          <i class="fa fa-cogs"></i>
-          <span class="link_name">Configuration</span>
-        </a>
-        <ul class="sub-menu blank">
-          <li><a class="link_name" href="/configuration">Configuration</a></li>
-        </ul>
-      </li>
-      <li <%= activeTab === 'candidates' ? 'id="active-tab"' : '' %>>
-        <a href="/candidates">
-          <i class="fa fa-users"></i>
-          <span class="link_name">Candidates</span>
-        </a>
-        <ul class="sub-menu blank">
-          <li><a class="link_name" href="/candidates">Candidates</a></li>
-        </ul>
-      </li>
-      <li <%= activeTab === 'blockchain' ? 'id="active-tab"' : '' %>>
-        <div class="icon-link">
-          <a href="/blockchain-management">
-            <i class="fa fa-link"></i>
-            <span class="link_name">Blockchain</span>
-          </a>
-          <i class="bx bxs-chevron-down arrow"></i>
-        </div>
-        <ul class="sub-menu">
-          <li><a class="link_name" href="/blockchain-management">Blockchain</a></li>
-          <li><a href="/blockchain-management">Blockchain Management</a></li>
-          <li><a href="/blockchain-activity-log">Activity Log</a></li>
-        </ul>
-      </li>
-      <li <%= activeTab === 'election' ? 'id="active-tab"' : '' %>>
-        <div class="icon-link">
-          <a href="/voter-info">
-            <i class="fa fa-bar-chart"></i>
-            <span class="link_name">Election</span>
-          </a>
-          <i class="bx bxs-chevron-down arrow"></i>
-        </div>
-        <ul class="sub-menu">
-          <li><a class="link_name" href="/voter-info"> electionName || "No Election Ongoing"</a></li>
-          <li><a href="/voter-info">Voter Info</a></li>
-          <li><a href="/voter-turnout">Voter Turnout</a></li>
-          <li><a href="/vote-tally">Vote Tally</a></li>
-          <li><a href="/results">Results</a></li>
-          <li><a href="/reset">Reset Election</a></li>
-        </ul>
-      </li>
-      <li <%= activeTab === 'archives' ? 'id="active-tab"' : '' %>>
-        <a href="/archives">
-          <i class="bx bx-archive"></i>
-          <span class="link_name">Election Archives</span>
-        </a>
-        <ul class="sub-menu blank">
-          <li><a class="link_name" href="/archives">Election Archives</a></li>
-        </ul>
-      </li>
-      <li <%= activeTab === 'system' ? 'id="active-tab"' : '' %>>
-        <div class="icon-link">
-          <a href="/edit-account">
-            <i class="fa fa-tasks"></i>
-            <span class="link_name">System</span>
-          </a>
-          <i class="bx bxs-chevron-down arrow"></i>
-        </div>
-        <ul class="sub-menu">
-          <li><a class="link_name" href="/edit-account">System</a></li>
-          <li><a href="/edit-account">Edit Account</a></li>
-          <li><a href="/manage-admins">Manage Admins</a></li>
-          <li><a href="/help-page">Help Page</a></li>
-          <li><a href="/system-activity-log">System Activity Log</a></li>
-        </ul>
-      </li>
-    </ul>
+  <div class="profile-details">
+    <img src="<%= loggedInAdmin.img %>" />
+    <span class="profile-name"><%= loggedInAdmin.name %></span>
+    <span class="job"><%= loggedInAdmin.role %></span>
   </div>
-  
+
+  <ul class="nav-links">
+    <hr />
+    <li>
+      <a href="#">
+        <i class="bx bx-menu"></i>
+        <span class="link_name">Menu</span>
+      </a>
+    </li>
+    <hr />
+    <li <% if (activeTab === 'dashboard') { %> id="active-tab" <% } %>>
+      <a href="/dashboard">
+        <i class="bx bxs-dashboard"></i>
+        <span class="link_name">Dashboard</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="/dashboard">Dashboard</a></li>
+      </ul>
+    </li>
+    <li <% if (activeTab === 'configuration') { %> id="active-tab" <% } %>>
+      <a href="/configuration">
+        <i class="fa fa-cogs"></i>
+        <span class="link_name">Configuration</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="/configuration">Configuration</a></li>
+      </ul>
+    </li>
+    <li <% if (activeTab === 'candidates') { %> id="active-tab" <% } %>>
+      <a href="/candidates">
+        <i class="fa fa-users"></i>
+        <span class="link_name">Candidates</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="/candidates">Candidates</a></li>
+      </ul>
+    </li>
+    <li <% if (activeTab === 'blockchain') { %> id="active-tab" <% } %>>
+      <div class="icon-link">
+        <a href="/blockchain-management">
+          <i class="fa fa-link"></i>
+          <span class="link_name">Blockchain</span>
+        </a>
+        <i class="bx bxs-chevron-down arrow"></i>
+      </div>
+      <ul class="sub-menu">
+        <li><a class="link_name" href="/blockchain-management">Blockchain</a></li>
+        <li><a href="/blockchain-management">Blockchain Management</a></li>
+        <li><a href="/blockchain-activity-log">Activity Log</a></li>
+      </ul>
+    </li>
+    <li <% if (activeTab === 'election') { %> id="active-tab" <% } %>>
+      <div class="icon-link">
+        <a href="/voter-info">
+          <i class="fa fa-bar-chart"></i>
+          <span class="link_name">Election</span>
+        </a>
+        <i class="bx bxs-chevron-down arrow"></i>
+      </div>
+      <ul class="sub-menu">
+        <li>
+          <a class="link_name" href="/voter-info">
+            electionName || "No Election Ongoing"
+          </a>
+        </li>
+        <li><a href="/voter-info">Voter Info</a></li>
+        <li><a href="/voter-turnout">Voter Turnout</a></li>
+        <li><a href="/vote-tally">Vote Tally</a></li>
+        <li><a href="/results">Results</a></li>
+        <li><a href="/reset">Reset Election</a></li>
+      </ul>
+    </li>
+    <li <% if (activeTab === 'archives') { %> id="active-tab" <% } %>>
+      <a href="/archives">
+        <i class="bx bx-archive"></i>
+        <span class="link_name">Election Archives</span>
+      </a>
+      <ul class="sub-menu blank">
+        <li><a class="link_name" href="/archives">Election Archives</a></li>
+      </ul>
+    </li>
+    <li <% if (activeTab === 'system') { %> id="active-tab" <% } %>>
+      <div class="icon-link">
+        <a href="/edit-account">
+          <i class="fa fa-tasks"></i>
+          <span class="link_name">System</span>
+        </a>
+        <i class="bx bxs-chevron-down arrow"></i>
+      </div>
+      <ul class="sub-menu">
+        <li><a class="link_name" href="/edit-account">System</a></li>
+        <li><a href="/edit-account">Edit Account</a></li>
+        <li><a href="/manage-admins">Manage Admins</a></li>
+        <li><a href="/help-page">Help Page</a></li>
+        <li><a href="/system-activity-log">System Activity Log</a></li>
+      </ul>
+    </li>
+  </ul>
+</div>
