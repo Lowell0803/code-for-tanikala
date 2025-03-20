@@ -12,6 +12,8 @@
   flex-direction: row;
   flex-basis: 100%;
   margin-bottom: 1.5rem;
+  padding: 2rem;
+  padding-top: 0;
 }
 
 .main-column {
@@ -45,7 +47,11 @@
   display: flex;
   flex-direction: row;
   justify-content: center;
+  align-items: center;
   margin-bottom: 1.5rem;
+  width: 100%;
+  padding: 2rem;
+  padding-bottom: 0;
 }
 
 #quick-actions {
@@ -58,7 +64,7 @@
 }
 
 .quick-actions-buttons {
-  background-color: #ffbc97;
+  background-color: #f8d69e;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -66,9 +72,14 @@
   margin-left: 0.5rem;
   margin-right: 0.5rem;
   border-radius: 1.5rem;
-  font-size: 0.7rem;
+  font-size: 1rem;
   padding: 0.35rem;
   width: 22%;
+  height: 10rem;
+}
+
+.quick-actions-buttons p {
+  font-weight: bold;
 }
 
 .quick-buttons {
@@ -98,6 +109,7 @@
   padding: 1.5rem;
   margin-right: 1.5rem;
   margin-bottom: 1.5rem;
+  height: 25vh;
 }
 
 .center {
@@ -133,11 +145,24 @@
   flex-direction: row;
 }
 
+#candidate-submission,
+#vote-queue {
+  display: flex;
+  flex-direction: column;
+  height: 25vh;
+  flex-basis: 60%;
+  background-color: #dbd1fa;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  margin-right: 0.5rem;
+  align-items: center;
+}
+
 #registered-students {
   display: flex;
   flex-direction: column;
-  height: 26vh;
-  flex-basis: 50%;
+  height: 25vh;
+  flex-basis: 40%;
   background-color: #f8d69e;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -148,7 +173,7 @@
 #voter-turnout {
   display: flex;
   flex-direction: column;
-  flex-basis: 50%;
+  flex-basis: 40%;
   height: 26vh;
   background-color: #f8d69e;
   align-items: center;
