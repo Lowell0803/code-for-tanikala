@@ -631,7 +631,7 @@ const startServer = async () => {
         const electionConfig = (await db.collection("election_config").findOne({})) || {};
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-        console.log("Current Role: ", req.session.admin);
+        console.log("Current Role: ", req.session.admin.role);
         res.render("admin/system-manage-admins", {
           admins,
           electionConfig,
@@ -3981,6 +3981,50 @@ const startServer = async () => {
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
       res.render("admin/system-edit-account", { electionConfig, loggedInAdmin: req.session.admin, moment });
+    });
+
+    app.post("/update-account", async (req, res) => {
+      try {
+        // Ensure the admin is authenticated
+        if (!req.session.admin) {
+          return res.json({ success: false, error: "Not authenticated" });
+        }
+
+        const { name, email, oldPassword, newPassword, img } = req.body;
+
+        // Server-side basic validation (even though client-side validates)
+        if (!name || !email) {
+          return res.json({ success: false, error: "Missing required fields." });
+        }
+
+        let updateFields = { name, email, img };
+
+        // If a password change is requested, verify the old password
+        if (newPassword) {
+          if (!oldPassword) {
+            return res.json({ success: false, error: "Please enter your old password to change your password." });
+          }
+          // In production, use hashed passwords and a proper password verification method.
+          if (req.session.admin.password !== oldPassword) {
+            return res.json({ success: false, error: "Old password is incorrect." });
+          }
+          updateFields.password = newPassword;
+        }
+
+        // Update the admin record using the admin's _id
+        const adminsCollection = db.collection("admins");
+        const adminId = req.session.admin._id;
+        await adminsCollection.updateOne({ _id: adminId }, { $set: updateFields });
+
+        // Update session data with new details
+        req.session.admin = { ...req.session.admin, ...updateFields };
+
+        // Return a success response
+        res.json({ success: true, message: "Profile saved successfully." });
+      } catch (err) {
+        console.error("Error updating account:", err);
+        res.json({ success: false, error: "Server error." });
+      }
     });
 
     app.get("/help-page", async (req, res) => {
