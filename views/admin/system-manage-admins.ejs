@@ -3,25 +3,44 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
     <title>BulSU Voting System</title>
-
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/system-manage-accounts.css" />
-
-    <!-- Boxicons CDN Link -->
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      /* Modal styling */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+      .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+      }
+      .close {
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+    </style>
   </head>
-
   <body>
     <%- include('header') %>
-
     <div class="content">
       <%- include('sidebar', { activeTab: 'system' }) %>
       <main class="main">
@@ -35,43 +54,43 @@
         <div class="first-main">
           <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
           <div class="space">
-            <form id="add-admin-form" action="/admin-accounts/add" method="POST" enctype="multipart/form-data">
+            <!-- Note: No enctype attribute -->
+            <form id="add-admin-form" action="/admin-accounts/add" method="POST">
               <label>Name:</label>
               <input type="text" name="name" required />
-
+              
               <label>Role:</label>
               <select name="role" class="role" required>
                 <option>Select a Role</option>
                 <option value="Electoral Board Member">Electoral Board</option>
                 <option value="Technical Team Member">Technical Team</option>
                 <option value="Creatives Team Member">Creatives Team</option>
-                <option value="Developer">Developers</option>
+                <option value="Developer">Developer</option>
               </select>
-
+              
               <label>Email:</label>
               <input type="email" name="email" required />
-
+              
               <label>Password:</label>
               <input type="password" name="password" required />
-
-              <label>Status:</label>
+              
+              <!-- <label>Status:</label>
               <select name="status" required>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
-              </select>
-
+              </select> -->
+              
               <label>Profile Image:</label>
+              <!-- File input triggers conversion -->
               <input type="file" name="imgUpload" accept="image/*" onchange="convertImageToBase64(event)" required />
-              <!-- Image preview element preloaded with the placeholder -->
               <img id="img-preview" src="img/placeholder_admin_profile.png" alt="Image Preview" style="max-width: 100px; display: block" />
-              <!-- Hidden input to hold the Base64 image data, defaulting to the placeholder -->
+              <!-- Hidden input to hold the Base64 image data -->
               <input type="hidden" name="img" id="imgBase64" value="img/placeholder_admin_profile.png" />
-
+              
               <button type="submit" class="button button-brown">Add Admin</button>
             </form>
           </div>
           <% } %>
-
           <br />
           <td class="table-container">
             <table>
@@ -83,36 +102,44 @@
                   <th>EMAIL</th>
                   <th>PASSWORD</th>
                   <th>STATUS</th>
-                  <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
+                  <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
                   <th>ACTIONS</th>
                   <% } %>
                 </tr>
               </thead>
               <tbody>
                 <% admins.forEach(function(admin) { %>
-                <tr data-username="<%= admin.username %>">
+                <tr data-id="<%= admin._id %>"
+                    data-name="<%= admin.name %>"
+                    data-email="<%= admin.email %>"
+                    data-role="<%= admin.role %>"
+                    data-status="<%= admin.online ? 'Active' : 'Inactive' %>"
+                    data-img="<%= admin.img %>"
+                    data-password="<%= admin.password %>">
                   <td>
                     <img class="circle-img" src="<%= admin.img %>" alt="Admin Image" style="width: 50px; height: 50px" />
                   </td>
                   <td><%= admin.name %></td>
                   <td><%= admin.role %></td>
-                  <td><%= admin.username %></td>
+                  <td><%= admin.email %></td>
                   <td>
                     <span class="password-mask">********</span>
-                    <button type="button" onclick="togglePassword(this)" data-password="<%= admin.password %>"><i class="fa-solid fa-magnifying-glass"></i>show</button>
+                    <button type="button" onclick="togglePassword(this)" data-password="<%= admin.password %>">
+                      <i class="fa-solid fa-magnifying-glass"></i> show
+                    </button>
                   </td>
                   <td>
                     <% if (admin.online) { %>
-                    <span class="status-indicator active">Active</span>
+                      <span class="status-indicator active">Active</span>
                     <% } else { %>
-                    <span class="status-indicator inactive">Inactive</span>
+                      <span class="status-indicator inactive">Inactive</span>
                     <% } %>
                   </td>
-                  <% if (loggedInAdmin.role === "Technical Team" || loggedInAdmin.role === "Developers") { %>
+                  <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
                   <td>
                     <div class="actions">
-                      <button class="action-buttons button-edit" data-username="<%= admin.username %>">Edit</button>
-                      <button class="action-buttons button-cancel" data-username="<%= admin.username %>">Delete</button>
+                      <button class="action-buttons button-edit" data-id="<%= admin._id %>">Edit</button>
+                      <button class="action-buttons button-cancel" data-id="<%= admin._id %>">Delete</button>
                     </div>
                   </td>
                   <% } %>
@@ -125,11 +152,60 @@
       </main>
     </div>
 
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Edit Admin Account</h2>
+        <!-- Remove enctype attribute here as well -->
+        <form id="edit-admin-form" action="/admin-accounts/edit" method="POST">
+          <input type="hidden" name="id" id="edit-id" />
+          
+          <label>Name:</label>
+          <input type="text" name="name" id="edit-name" required />
+          
+          <label>Role:</label>
+          <select name="role" id="edit-role" required>
+            <option value="">Select a Role</option>
+            <option value="Electoral Board Member">Electoral Board</option>
+            <option value="Technical Team Member">Technical Team</option>
+            <option value="Creatives Team Member">Creatives Team</option>
+            <option value="Developer">Developer</option>
+          </select>
+          
+          <label>Email:</label>
+          <input type="email" name="email" id="edit-email" required />
+          
+          <label>Password:</label>
+          <input type="password" name="password" id="edit-password" required />
+          <button type="button" onclick="toggleEditPassword()">Show/Hide</button>
+          
+          <!-- <label>Status:</label>
+          <select name="status" id="edit-status" required>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+           -->
+           <label>Status:</label>
+<input type="text" id="edit-status-display" disabled />
+           
+          <label>Profile Image:</label>
+          <input type="file" name="imgUpload" id="edit-imgUpload" accept="image/*" onchange="convertEditImageToBase64(event)" />
+          <img id="edit-img-preview" src="" alt="Image Preview" style="max-width: 100px; display: block" />
+          <input type="hidden" name="img" id="edit-imgBase64" />
+          
+          <button type="submit" class="button button-brown">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+    <%- include('footer') %>
+
     <script>
+      // Toggle password in table rows
       function togglePassword(button) {
         const span = button.previousElementSibling;
         if (span.textContent === "********") {
-          // Use button.dataset.password instead of span.dataset.password
           span.textContent = button.dataset.password;
           button.textContent = "Hide";
         } else {
@@ -137,46 +213,77 @@
           button.textContent = "Show";
         }
       }
-    </script>
 
-    <%- include('footer') %>
+      // Modal functions
+      const editModal = document.getElementById("editModal");
+      document.querySelectorAll(".button-edit").forEach(button => {
+        button.addEventListener("click", () => {
+          
+          const row = button.closest("tr");
+          console.log(row.getAttribute("data-id"));
+          console.log(row.getAttribute("data-name"));
+          document.getElementById("edit-id").value = row.getAttribute("data-id");
+          document.getElementById("edit-name").value = row.getAttribute("data-name");
+          document.getElementById("edit-email").value = row.getAttribute("data-email");
+          document.getElementById("edit-role").value = row.getAttribute("data-role");
+          // document.getElementById("edit-status").value = row.getAttribute("data-status");
+          document.getElementById("edit-status-display").value = row.getAttribute("data-status");
 
-    <script>
+          document.getElementById("edit-password").value = row.getAttribute("data-password");
+          const imgSrc = row.getAttribute("data-img");
+          document.getElementById("edit-img-preview").src = imgSrc;
+          document.getElementById("edit-imgBase64").value = imgSrc;
+          editModal.style.display = "block";
+        });
+      });
+
+      function closeModal() {
+        editModal.style.display = "none";
+      }
+      window.onclick = function(event) {
+        if (event.target === editModal) {
+          closeModal();
+        }
+      };
+
+      // Toggle password visibility in modal
+      function toggleEditPassword() {
+        const passwordInput = document.getElementById("edit-password");
+        passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+      }
+
+      // Convert image to Base64 for add-admin form
       function convertImageToBase64(event) {
         const file = event.target.files[0];
         const reader = new FileReader();
-
         reader.onload = function () {
           document.getElementById("imgBase64").value = reader.result;
-          // Update the preview image and show it
           const preview = document.getElementById("img-preview");
           preview.src = reader.result;
           preview.style.display = "block";
         };
-
         if (file) {
           reader.readAsDataURL(file);
         }
       }
 
-      function togglePassword(button) {
-        const span = button.previousElementSibling;
-        if (span.textContent === "********") {
-          span.textContent = span.dataset.password;
-          button.textContent = "Hide";
-        } else {
-          span.textContent = "********";
-          button.textContent = "Show";
+      // Convert image to Base64 for edit-admin form
+      function convertEditImageToBase64(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function () {
+          document.getElementById("edit-imgBase64").value = reader.result;
+          document.getElementById("edit-img-preview").src = reader.result;
+        };
+        if (file) {
+          reader.readAsDataURL(file);
         }
       }
     </script>
-
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
-
     <script src="/socket.io/socket.io.js"></script>
     <script>
-      // Connect to Socket.IO, passing the logged-in admin's email
       const socket = io("/", { query: { email: "<%= loggedInAdmin.email %>" } });
     </script>
   </body>

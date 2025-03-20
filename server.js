@@ -599,16 +599,38 @@ const startServer = async () => {
       res.redirect("/admin-login");
     }
 
+    // app.get("/manage-admins", ensureAdminAuthenticated, async (req, res) => {
+    //   try {
+    //     // Fetch all admin accounts (using username as unique identifier) from your collection
+    //     const admins = await db.collection("admin_accounts").find({}).toArray();
+    //     // Optionally, fetch additional configuration data if needed
+    //     const electionConfig = (await db.collection("election_config").findOne({})) || {};
+
+    //     const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //     electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+    //     console.log("Current Role: ", req.session.admin);
+    //     res.render("admin/system-manage-admins", {
+    //       admins,
+    //       electionConfig,
+    //       loggedInAdmin: req.session.admin,
+    //       moment,
+    //     });
+    //   } catch (error) {
+    //     console.error("Error retrieving admin accounts:", error);
+    //     res.status(500).send("Internal Server Error");
+    //   }
+    // });
+
+    // Existing route
     app.get("/manage-admins", ensureAdminAuthenticated, async (req, res) => {
       try {
         // Fetch all admin accounts (using username as unique identifier) from your collection
         const admins = await db.collection("admin_accounts").find({}).toArray();
         // Optionally, fetch additional configuration data if needed
         const electionConfig = (await db.collection("election_config").findOne({})) || {};
-
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
         console.log("Current Role: ", req.session.admin);
         res.render("admin/system-manage-admins", {
           admins,
@@ -618,6 +640,115 @@ const startServer = async () => {
         });
       } catch (error) {
         console.error("Error retrieving admin accounts:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    app.post("/admin-accounts/add", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        console.log("Received request to add admin account.");
+        // Destructure the fields from the request body; notice no status field.
+        const { name, email, role, password, img } = req.body;
+
+        // Create a new admin account object with online set to false by default.
+        const newAdmin = {
+          name,
+          email,
+          role,
+          password, // (Remember: you should hash passwords in production.)
+          online: false, // Default status is inactive
+          img,
+        };
+
+        // Insert the new admin into your database.
+        const result = await db.collection("admin_accounts").insertOne(newAdmin);
+
+        if (result.insertedId) {
+          console.log("New admin added successfully:", result.insertedId);
+          res.redirect("/manage-admins");
+        } else {
+          console.error("Failed to add new admin account.");
+          res.status(400).send("Unable to add admin account.");
+        }
+      } catch (error) {
+        console.error("Error adding admin account:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // New route to update an admin account using _id as the unique identifier
+    app.post("/admin-accounts/edit", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        console.log("========================================");
+        console.log("Received request to update admin account.");
+        console.log("Request body:", req.body);
+
+        // Extract the fields from the request body, including the id
+        const { id, name, email, role, password, status, img } = req.body;
+        console.log("Parsed values:");
+        console.log("id:", id);
+        console.log("name:", name);
+        console.log("email:", email);
+        console.log("role:", role);
+        console.log("password:", password);
+        console.log("status:", status);
+        console.log("img:", img);
+
+        // Construct the update data
+        // const updateData = {
+        //   name,
+        //   email,
+        //   role,
+        //   password, // Consider hashing if needed
+        //   online: status === "Active",
+        //   img,
+        // };
+        const updateData = {
+          name,
+          email,
+          role,
+          password, // (hash the password if needed)
+          // Do not update the online status – keep it as is.
+          img,
+        };
+
+        console.log("Constructed updateData object:", updateData);
+
+        // Convert id to ObjectId
+        const objectId = new ObjectId(id);
+        console.log("Converted id to ObjectId:", objectId);
+
+        // Update the admin account using the _id as the identifier
+        console.log("About to update document with _id:", objectId);
+        const result = await db.collection("admin_accounts").updateOne({ _id: objectId }, { $set: updateData });
+        console.log("MongoDB update result:", result);
+
+        if (result.modifiedCount === 1) {
+          console.log("Update successful. Redirecting to /manage-admins");
+          res.redirect("/manage-admins");
+        } else {
+          console.log("Update failed. No documents were modified.");
+          res.status(400).send("Unable to update admin account.");
+        }
+        console.log("========================================");
+      } catch (error) {
+        console.error("Error updating admin account:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // (Optional) Route to delete an admin account
+    app.post("/admin-accounts/delete", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        const { username } = req.body;
+        const result = await db.collection("admin_accounts").deleteOne({ username });
+        if (result.deletedCount === 1) {
+          res.redirect("/manage-admins");
+        } else {
+          res.status(400).send("Unable to delete admin account.");
+        }
+      } catch (error) {
+        console.error("Error deleting admin account:", error);
         res.status(500).send("Internal Server Error");
       }
     });
@@ -3159,6 +3290,72 @@ const startServer = async () => {
       }
     });
 
+    app.get("/old-candidates", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const collection = db.collection("candidates");
+        const data = await collection.find({}).toArray();
+        const allCandidates = data.map((doc) => doc.candidates).flat();
+
+        const collection_lsc = db.collection("candidates_lsc");
+        const data_lsc = await collection_lsc.find({}).toArray();
+        const structuredData = data_lsc.map((collegeDoc) => {
+          const college = {
+            collegeName: collegeDoc.collegeName,
+            collegeAcronym: collegeDoc.collegeAcronym,
+            positions: {},
+          };
+
+          collegeDoc.positions.forEach((positionDoc) => {
+            const position = positionDoc.position;
+
+            // If it's a Board Member position, group by program
+            if (position === "Board Member" && positionDoc.programs) {
+              college.positions[position] = positionDoc.programs.reduce((programMap, programDoc) => {
+                programMap[programDoc.program] = programDoc.candidates;
+                return programMap;
+              }, {});
+            } else {
+              // For other positions (Governor, Vice Governor), just map them normally
+              college.positions[position] = positionDoc.candidates;
+            }
+          });
+          return college;
+        });
+
+        // console.log(structuredData);
+
+        // Fetch voter counts per college
+        const votersCollection = db.collection("voters");
+        const colleges = await votersCollection.find({}).toArray();
+        const voterCounts = {};
+
+        colleges.forEach((college) => {
+          voterCounts[college.acronym] = {
+            name: college.college,
+            voters: college.voters,
+          };
+        });
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        res.render("admin/old-candidates", {
+          candidates: allCandidates,
+          candidates_lsc: structuredData,
+          voterCounts,
+          electionConfig,
+          loggedInAdmin: req.session.admin,
+          moment,
+        });
+      } catch (error) {
+        console.error("Error fetching candidates for dashboard:", error);
+        res.status(500).send("Failed to fetch candidates data for the dashboard");
+      }
+    });
+
     app.get("/blockchain-management", ensureAdminAuthenticated, async (req, res) => {
       try {
         // Fetch election configuration.
@@ -3784,118 +3981,6 @@ const startServer = async () => {
       electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
       res.render("admin/system-edit-account", { electionConfig, loggedInAdmin: req.session.admin, moment });
-    });
-
-    app.get("/admin-accounts", async (req, res) => {
-      try {
-        const admins = await db.collection("admin_accounts").find({}).toArray();
-        res.json(admins);
-      } catch (error) {
-        console.error("Error retrieving admin accounts:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
-    });
-
-    app.get("/admin-accounts/:username", async (req, res) => {
-      try {
-        if (!["Technical Team", "Developers"].includes(req.session.admin.role)) {
-          return res.status(403).json({ error: "Unauthorized access." });
-        }
-
-        const username = req.params.username;
-        const admin = await db.collection("admin_accounts").findOne({ username });
-
-        if (!admin) {
-          return res.status(404).json({ error: "Admin not found." });
-        }
-
-        res.json(admin);
-      } catch (error) {
-        console.error("Error retrieving admin:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
-    });
-
-    // Add New Admin (Base64 Image)
-    app.post("/admin-accounts/add", async (req, res) => {
-      try {
-        if (!["Technical Team", "Developers"].includes(req.session.admin.role)) {
-          return res.status(403).json({ error: "Only Technical Team or Developers can add new admins." });
-        }
-
-        const { name, username, password, role, imgBase64 } = req.body;
-
-        // Validate role
-        const allowedRoles = ["Electoral Board", "Technical Team", "Creatives Team", "Developers"];
-        if (!allowedRoles.includes(role)) {
-          return res.status(400).json({ error: "Invalid role selected" });
-        }
-
-        // Ensure username is unique
-        const existingAdmin = await db.collection("admin_accounts").findOne({ username });
-        if (existingAdmin) {
-          return res.status(400).json({ error: "Username already exists." });
-        }
-
-        const newAdmin = {
-          name,
-          username,
-          password, // Plain-text password (not recommended for security)
-          role,
-          img: imgBase64,
-        };
-
-        await db.collection("admin_accounts").insertOne(newAdmin);
-        res.redirect("/manage-admins");
-      } catch (error) {
-        console.error("Error adding admin:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    app.post("/admin-accounts/edit/:username", async (req, res) => {
-      try {
-        if (!["Technical Team", "Developers"].includes(req.session.admin.role)) {
-          return res.status(403).json({ error: "Only Technical Team or Developers can edit admin accounts." });
-        }
-
-        const username = req.params.username;
-        const { name, newUsername, role, imgBase64 } = req.body;
-
-        const updateFields = {
-          name,
-          username: newUsername || username, // Allow updating username
-          role,
-          img: imgBase64,
-        };
-
-        await db.collection("admin_accounts").updateOne(
-          { username }, // Find by username
-          { $set: updateFields }
-        );
-
-        res.redirect("/manage-admins");
-      } catch (error) {
-        console.error("Error editing admin:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
-    // Delete Admin
-    app.post("/admin-accounts/delete/:username", async (req, res) => {
-      try {
-        if (!["Technical Team", "Developers"].includes(req.session.admin.role)) {
-          return res.status(403).json({ error: "Only Technical Team or Developers can delete admin accounts." });
-        }
-
-        const username = req.params.username;
-        await db.collection("admin_accounts").deleteOne({ username });
-
-        res.redirect("/manage-admins");
-      } catch (error) {
-        console.error("Error deleting admin:", error);
-        res.status(500).send("Internal Server Error");
-      }
     });
 
     app.get("/help-page", async (req, res) => {
