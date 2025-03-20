@@ -160,7 +160,6 @@
         };
 
         try {
-          // Send data via AJAX to the server
           const response = await fetch("/update-account", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -169,17 +168,17 @@
           const result = await response.json();
 
           if (result.success) {
-            // Store a flag in localStorage, then reload the page.
-            localStorage.setItem("profileSaved", "true");
-            window.location.reload();
+            // Store a flag in localStorage before reloading
+            localStorage.setItem("profileUpdated", "true");
+            location.reload(); // Reload the page
           } else {
-            // Display error message from server
             notify(result.error || "An error occurred while saving.", "error", 3000);
           }
         } catch (err) {
           console.error("Error updating profile:", err);
           notify("A server error occurred. Please try again later.", "error", 3000);
         }
+
       });
     </script>
 
@@ -187,11 +186,16 @@
     <script src="admin/js/index-admin.js"></script>
     <script type="module" src="components/notificationHandler.js"></script>
     <!-- Check localStorage for the flag and display notification on page load -->
-    <script type="module">
-      if (localStorage.getItem("profileSaved") === "true") {
-        createNotification("Profile saved successfully!", "success", 2000);
-        localStorage.removeItem("profileSaved");
-      }
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("Checking localStorage for profileUpdated...");
+        if (localStorage.getItem("profileUpdated") === "true") {
+          console.log("Profile update flag found. Showing notification...");
+          notify("Profile saved successfully!", "success", 2000);
+          localStorage.removeItem("profileUpdated"); // Remove flag after showing notification
+        }
+      });
     </script>
+    
   </body>
 </html>
