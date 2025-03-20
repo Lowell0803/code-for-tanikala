@@ -69,3 +69,8 @@ if (urlParams.get("otp_sent") === "true") {
   notify('Check the "spam" in your emall for the OTP.', "email", 8000);
   history.replaceState({}, document.title, window.location.pathname);
 }
+
+if (urlParams.get("error") === "old_password_incorrect") {
+  notify("Old password is incorrect!", "error", 5000);
+  history.replaceState({}, document.title, window.location.pathname);
+}
