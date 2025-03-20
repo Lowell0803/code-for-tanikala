@@ -56,19 +56,58 @@
                   </ul>
                 </div>
                 <br />
+                <%
+                  // Compute Live Fee Estimate per Vote Transaction using blockchainMgmt data.
+                  let liveFeeEstimatePOL = 0, liveFeeEstimateUSD = 0, liveFeeEstimatePHP = 0;
+                  if (blockchainMgmt && blockchainMgmt.voteTransactionsCount > 0) {
+                    liveFeeEstimatePOL = blockchainMgmt.totalAmountSpentPol / blockchainMgmt.voteTransactionsCount;
+                    liveFeeEstimateUSD = blockchainMgmt.totalAmountSpentUSD / blockchainMgmt.voteTransactionsCount;
+                    liveFeeEstimatePHP = blockchainMgmt.totalAmountSpentPHP / blockchainMgmt.voteTransactionsCount;
+                  }
+
+                  // Compute Live Recommended Fund Estimate using electionConfig.totalNumberOfStudents.
+                  let recommendedFundPOL = 0, recommendedFundUSD = 0, recommendedFundPHP = 0;
+                  if (electionConfig && electionConfig.totalNumberOfStudents && blockchainMgmt && blockchainMgmt.voteTransactionsCount > 0) {
+                    recommendedFundPOL = liveFeeEstimatePOL * electionConfig.totalNumberOfStudents;
+                    recommendedFundUSD = liveFeeEstimateUSD * electionConfig.totalNumberOfStudents;
+                    recommendedFundPHP = liveFeeEstimatePHP * electionConfig.totalNumberOfStudents;
+                  }
+
+                  // Determine the current balance status based on walletInfo.balancePOL relative to recommendedFundPOL.
+                  let balanceStatus = "";
+                  let balanceDescription = "";
+                  if (walletInfo) {
+                    if (walletInfo.balancePOL > recommendedFundPOL * 1.5) {
+                      balanceStatus = "🔵 Excellent";
+                      balanceDescription = "The admin wallet balance is well above the recommended fund estimate. You have more than enough funds to execute the blockchain voting operation confidently.";
+                    } else if (walletInfo.balancePOL >= recommendedFundPOL) {
+                      balanceStatus = "🟢 Good";
+                      balanceDescription = "The admin wallet balance matches the recommended fund estimate. You are in a stable position to proceed with the blockchain voting operation.";
+                    } else {
+                      balanceStatus = "🟠 Warning";
+                      balanceDescription = "The admin wallet balance is below the recommended fund estimate. Consider adding more funds to avoid potential issues during the blockchain voting operation.";
+                    }
+                  }
+                %>
+
                 <h2>Admin Wallet Information</h2>
                 <br />
                 <!-- Wallet Address -->
                 <div class="indent">
                   <ul>
                     <li>
-                      <p><strong>Wallet Address:</strong> <%= walletInfo ? walletInfo.address : "N/A" %></p>
+                      <p>
+                        <strong>Wallet Address:</strong>
+                        <%= walletInfo ? walletInfo.address : "N/A" %>
+                      </p>
                     </li>
                     <br />
                     <li>
                       <p>
-                        <strong>Current Balance: <span>Excellent</span></strong>
+                        <strong>Current Balance:</strong>
+                        <span><%= balanceStatus %></span>
                       </p>
+                      <p><em><%= balanceDescription %></em></p>
                     </li>
                     <br />
                     <table class="currency">
@@ -84,19 +123,42 @@
                       </tr>
                     </table>
                     <br />
-                    <!-- Last update of data -->
-
-                    <br />
                     <li>
-                      <p><strong>Live Fee Estimate per Vote Transaction:</strong> <span>0 POL</span> | <span>0 USD</span> | <span>0 PHP</span></p>
+                      <p>
+                        <strong>Live Fee Estimate per Vote Transaction:</strong>
+                        <span>
+                          <%= (blockchainMgmt && blockchainMgmt.voteTransactionsCount > 0) ? liveFeeEstimatePOL.toFixed(4) : "0" %> POL |
+                          <%= (blockchainMgmt && blockchainMgmt.voteTransactionsCount > 0) ? liveFeeEstimateUSD.toFixed(2) : "0" %> USD |
+                          <%= (blockchainMgmt && blockchainMgmt.voteTransactionsCount > 0) ? liveFeeEstimatePHP.toFixed(2) : "0" %> PHP
+                        </span>
+                      </p>
                     </li>
-
                     <br />
                     <li>
-                      <p><strong>Live Recommended Fund Estimate:</strong> <span>0 POL</span> | <span>0 USD</span> | <span>0 PHP</span></p>
+                      <p>
+                        <strong>Live Recommended Fund Estimate:</strong>
+                        <span>
+                          <%= (blockchainMgmt && electionConfig && blockchainMgmt.voteTransactionsCount > 0) ? recommendedFundPOL.toFixed(4) : "0" %> POL |
+                          <%= (blockchainMgmt && electionConfig && blockchainMgmt.voteTransactionsCount > 0) ? recommendedFundUSD.toFixed(2) : "0" %> USD |
+                          <%= (blockchainMgmt && electionConfig && blockchainMgmt.voteTransactionsCount > 0) ? recommendedFundPHP.toFixed(2) : "0" %> PHP
+                        </span>
+                      </p>
+                    </li>
+                    <li>
+                      <p>
+                        <strong>Blockchain Link:</strong>
+                        <% if (blockchainInfo && blockchainInfo.transactionHash) { %>
+                          <a href="https://amoy.polygonscan.com/tx/<%= blockchainInfo.transactionHash %>#eventlog" target="_blank">
+                            View Transaction
+                          </a>
+                        <% } else { %>
+                          N/A
+                        <% } %>
+                      </p>
                     </li>
                   </ul>
                 </div>
+
               </div>
 
               <div class="right">
@@ -105,27 +167,45 @@
                 <div class="indent">
                   <ul>
                     <li>
-                      <p><strong>Candidate Submission Count: </strong><span>0</span></p>
+                      <p>
+                        <strong>Candidate Submission Count: </strong>
+                        <span><%= blockchainMgmt ? blockchainMgmt.candidateSubmissionsCount : "N/A" %></span>
+                      </p>
                       <div class="indent-ish">
-                        <p><strong>Latest Transaction Hash:</strong> <%= blockchainInfo ? blockchainInfo.transactionHash : "N/A" %></p>
+                        <p>
+                          <strong>Latest Transaction Hash:</strong>
+                          <%= blockchainInfo && blockchainInfo.transactionHash ? blockchainInfo.transactionHash : "N/A" %>
+                        </p>
                         <p>
                           <strong>Latest Submission Date:</strong>
                           <%= blockchainInfo && blockchainInfo.dateSent ? new Date(blockchainInfo.dateSent).toLocaleString() : "N/A" %>
                         </p>
                       </div>
                     </li>
-
                     <br />
                     <li>
-                      <p><strong>Vote Transactions Count: </strong><span>0</span></p>
+                      <p>
+                        <strong>Vote Transactions Count: </strong>
+                        <span><%= blockchainMgmt ? blockchainMgmt.voteTransactionsCount : "N/A" %></span>
+                      </p>
                     </li>
-
                     <br />
                     <li>
-                      <p><strong>Total Blockchain Transactions: </strong><span>0</span></p>
+                      <p>
+                        <strong>Total Blockchain Transactions: </strong>
+                        <span>
+                          <%= blockchainMgmt ? (blockchainMgmt.voteTransactionsCount + blockchainMgmt.candidateSubmissionsCount) : "N/A" %>
+                        </span>
+                      </p>
                       <div class="indent-ish">
-                        <p><strong>Total Gas Used:</strong> <%= blockchainInfo ? blockchainInfo.gasUsed : "N/A" %> Gas</p>
-                        <p><strong>Total Amount Spent (Wei):</strong> <%= blockchainInfo ? blockchainInfo.amountSpentWei : "N/A" %> Wei</p>
+                        <p>
+                          <strong>Total Gas Used:</strong>
+                          <%= blockchainMgmt ? blockchainMgmt.totalGasUsed : "N/A" %> Gas
+                        </p>
+                        <p>
+                          <strong>Total Amount Spent (Wei):</strong>
+                          <%= blockchainMgmt ? blockchainMgmt.totalWeiSpent : "N/A" %> Wei
+                        </p>
                         <br />
                         <p><strong>Total Amount Spent:</strong></p>
                       </div>
@@ -138,16 +218,28 @@
                         <th>Philippine Peso (PHP)</th>
                       </tr>
                       <tr>
-                        <td><%= blockchainInfo ? blockchainInfo.amountSpentEth : "N/A" %> POL</td>
-                        <td><%= blockchainInfo && blockchainInfo.amountSpentUsd ? blockchainInfo.amountSpentUsd.toFixed(2) : "N/A" %> USD</td>
-                        <td><%= blockchainInfo && blockchainInfo.amountSpentPhp ? blockchainInfo.amountSpentPhp.toFixed(2) : "N/A" %> PHP PHP</td>
+                        <td>
+                          <%= blockchainMgmt && blockchainMgmt.totalAmountSpentPol !== undefined
+                            ? blockchainMgmt.totalAmountSpentPol.toFixed(18)
+                            : "N/A" %> POL
+                        </td>
+                        <td>
+                          <%= blockchainMgmt && blockchainMgmt.totalAmountSpentUSD !== undefined
+                            ? blockchainMgmt.totalAmountSpentUSD.toFixed(2)
+                            : "N/A" %> USD
+                        </td>
+                        <td>
+                          <%= blockchainMgmt && blockchainMgmt.totalAmountSpentPHP !== undefined
+                            ? blockchainMgmt.totalAmountSpentPHP.toFixed(2)
+                            : "N/A" %> PHP
+                        </td>
                       </tr>
                     </table>
-
                     <br />
                   </ul>
                 </div>
               </div>
+              
             </div>
             <div class="update-date">
               <p>All Data Last Updated on <strong><%= walletInfo ? walletInfo.updatedAt.toLocaleString() : "N/A" %></strong></p>

@@ -230,7 +230,38 @@
                   <% }); %> <% } %> <% } %> <% }); %>
                 </div>
 
-               
+                <!-- <div class="container container-lsc" id="container-lsc-board-member">
+                  <h1>Board Member</h1>
+
+                  <% let cafa = candidates_lsc.find(college => college.collegeAcronym === "CAFA"); if (cafa && cafa.positions["Board Member"]) { let boardMembers = cafa.positions["Board Member"]; %> <% Object.keys(boardMembers).forEach(program => { %>
+                  <h3><%= program %></h3>
+                  <button class="button button-add" onclick="addCandidateLSC('Board Member', '<%= program %>')">Add Candidate</button>
+
+                  <ul>
+                    <% boardMembers[program].forEach(candidate => { %>
+                    <li>
+                      <img src="<%= candidate.image %>" alt="<%= candidate.name %>" />
+                      <strong><%= candidate.name %></strong> - <%= candidate.party %>
+                      
+                      <button
+                        class="button button-edit"
+                        onclick="editCandidateLSC(
+                            '<%= candidate._id %>', 
+                            '<%= candidate.position %>', 
+                            '<%= candidate.party %>', 
+                            '<%= candidate.name %>', 
+                            '<%= candidate.moreInfo %>', 
+                            '<%= candidate.image %>', 
+                            '<%= cafa.collegeAcronym %>'
+                        )"
+                      >
+                        Edit
+                      </button>
+                    </li>
+                    <% }); %>
+                  </ul>
+                  <% }); %> <% } %>
+                </div> -->
 
                 <!-- Board Member Container -->
                 <% const boardMembersAll = candidates.filter(candidate => candidate.position === 'board member' && candidate.college && candidate.program); const boardMembersNonAbstain = boardMembersAll.filter(candidate => candidate.name !== 'Abstain'); const boardMembersAbstain = boardMembersAll.filter(candidate => candidate.name === 'Abstain'); const totalVotesBoardMember = boardMembersNonAbstain.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); let boardMembersByProgram
@@ -240,7 +271,7 @@
                 <div class="container-lsc" id="container-lsc-board-member">
                   <div class="container-position">
                     <h1 class="position-lsc">Board Members</h1>
-                    <button class="button button-add" onclick="addCandidateLSC('Board Member', '<%= program %>')">Add Candidate</button>
+                    <button class="button button-add" onclick="addCandidate('President')">Add Candidate</button>
                   </div>
                   <hr />
 

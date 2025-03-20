@@ -136,6 +136,41 @@ agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }
 
     // Log blockchain activity for vote submission
     await recordBlockchainActivity("blockchain_activity_logs", "Vote Submitted", "Voter", fakeReq, receipt, cryptoPrices);
+
+    // --- NEW SECTION: Update blockchain_management collection ---
+    const gasUsed = Number(receipt.gasUsed);
+    const gasPrice = Number(receipt.gasPrice);
+    const voteCost = gasUsed * gasPrice; // cost in wei
+    const voteCostInPOL = voteCost / 1e18; // cost in POL (assuming 1 POL = 1e18 wei)
+
+    // Fetch crypto prices for conversion
+    let polPriceUsd = 0;
+    let polPricePhp = 0;
+    if (cryptoPrices) {
+      polPriceUsd = cryptoPrices.polPriceUsd;
+      polPricePhp = cryptoPrices.polPricePhp;
+    }
+
+    // Calculate the total amounts in USD and PHP
+    const amountSpentUSD = voteCostInPOL * polPriceUsd;
+    const amountSpentPHP = voteCostInPOL * polPricePhp;
+
+    await db.collection("blockchain_management").updateOne(
+      {},
+      {
+        $set: { latestVoteCost: voteCostInPOL },
+        $inc: {
+          voteTransactionsCount: 1,
+          totalGasUsed: gasUsed,
+          totalWeiSpent: voteCost,
+          totalAmountSpentPol: voteCostInPOL,
+          totalAmountSpentUSD: amountSpentUSD,
+          totalAmountSpentPHP: amountSpentPHP,
+        },
+      }
+    );
+
+    // --- End new section ---
   } catch (error) {
     console.error("Error processing vote submission:", error);
     await db.collection("waiting_votes").updateOne(
@@ -1362,8 +1397,7 @@ const startServer = async () => {
         }
 
         // Gas Calculation (Fix BigInt issue)
-        const gasUsed = Number(receipt.gasUsed);
-        const gasPrice = Number(receipt.gasPrice);
+        z;
         const amountSpentEth = (gasUsed * gasPrice) / 1e18;
         const amountSpentPhp = ethPricePhp ? amountSpentEth * ethPricePhp : "N/A";
         const amountSpentUsd = ethPriceUsd ? amountSpentEth * ethPriceUsd : "N/A";
@@ -1385,6 +1419,27 @@ const startServer = async () => {
 
         // Save Blockchain Info in Database
         await db.collection("blockchainInfo").updateOne({}, { $set: blockchainInfo }, { upsert: true });
+
+        const gasUsedCandidate = Number(receipt.gasUsed);
+        const gasPriceCandidate = Number(receipt.gasPrice);
+        const candidateCost = gasUsedCandidate * gasPriceCandidate; // cost in wei
+        const candidateCostInPOL = candidateCost / 1e18; // convert wei to POL
+
+        await db.collection("blockchain_management").updateOne(
+          {},
+          {
+            $set: { latestCandidateSubmissionCost: candidateCostInPOL },
+            $inc: {
+              candidateSubmissionsCount: 1,
+              totalGasUsed: gasUsedCandidate,
+              totalWeiSpent: candidateCost,
+              totalAmountSpentPol: candidateCostInPOL,
+              totalAmountSpentUSD: candidateCostInPOL * polPriceUsd,
+              totalAmountSpentPHP: candidateCostInPOL * polPricePhp,
+            },
+          }
+        );
+
         res.status(200).json({
           message: "Candidates submitted to blockchain successfully",
           count: aggregatedCandidates.length,
@@ -3383,38 +3438,22 @@ const startServer = async () => {
         };
 
         // ----- Get Blockchain Transaction Info -----
-        // Get the latest blockchainInfo document.
-        const blockchainInfoRaw = (await db.collection("blockchainInfo").findOne({})) || null;
+        // Get the latest blockchainInfo document (for transaction hash and submission date).
+        const blockchainInfo = (await db.collection("blockchainInfo").findOne({})) || null;
 
-        // Recalculate the amount spent based on the POL value:
-        let amountSpentPOL = 0;
-        if (blockchainInfoRaw && blockchainInfoRaw.amountSpentWei) {
-          amountSpentPOL = parseFloat(ethers.formatUnits(blockchainInfoRaw.amountSpentWei, 18));
-        }
-        // Calculate Amount Spent (PHP and USD) using polygon prices.
-        const amountSpentPHPCalculated = amountSpentPOL * (prices?.polPricePhp || 0);
-        const amountSpentUSDCalculated = amountSpentPOL * (prices?.polPriceUsd || 0);
-
-        // Build a new blockchainInfo object with recalculated values.
-        const blockchainInfo = blockchainInfoRaw
-          ? {
-              ...blockchainInfoRaw,
-              amountSpentPhp: amountSpentPHPCalculated,
-              amountSpentUsd: amountSpentUSDCalculated,
-              amountSpentEth: amountSpentPOL, // This value is in POL units.
-            }
-          : null;
+        // Get blockchain management totals from blockchain_management collection.
+        const blockchainMgmt = (await db.collection("blockchain_management").findOne({})) || null;
 
         // ----- Get Candidate Submission Status -----
         const systemStatus = await db.collection("system_status").findOne({ _id: "candidate_submission" });
         const candidateSubmission = systemStatus ? systemStatus.submitted : false;
 
-        // Render the EJS page with all data.
         res.render("admin/blockchain-management", {
           electionConfig,
           loggedInAdmin: req.session.admin,
           walletInfo,
-          blockchainInfo,
+          blockchainInfo, // Latest transaction info (hash, date)
+          blockchainMgmt, // Totals and counts (candidateSubmissionsCount, voteTransactionsCount, totals, etc.)
           candidateSubmission,
           moment,
         });
@@ -3423,6 +3462,7 @@ const startServer = async () => {
         res.status(500).json({ error: error.message });
       }
     });
+
     // Inline function to record blockchain activity with cost details
 
     app.get("/blockchain-activity-log", ensureAdminAuthenticated, async (req, res) => {
