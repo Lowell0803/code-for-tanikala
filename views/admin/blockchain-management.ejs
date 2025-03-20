@@ -178,7 +178,7 @@
                         </p>
                         <p>
                           <strong>Latest Submission Date:</strong>
-                          <%= blockchainInfo && blockchainInfo.dateSent ? new Date(blockchainInfo.dateSent).toLocaleString() : "N/A" %>
+                          <%= blockchainInfo && blockchainInfo.dateSent ? moment(blockchainInfo.dateSent).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
                         </p>
                       </div>
                     </li>
@@ -242,7 +242,7 @@
               
             </div>
             <div class="update-date">
-              <p>All Data Last Updated on <strong><%= walletInfo ? walletInfo.updatedAt.toLocaleString() : "N/A" %></strong></p>
+              <p>All Data Last Updated on <strong><%= walletInfo ? moment(walletInfo.updatedAt).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %></strong></p>
             </div>
           </div>
         </div>
