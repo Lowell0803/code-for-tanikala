@@ -116,7 +116,7 @@
             <div>
               <label for="partylists">Party List (comma separated):</label>
               <!-- Join the partylists array back to a comma separated string -->
-              <input class="input" type="text" id="partylists" name="partylists" value="<%= electionConfig && electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
+              <input class="input party" type="text" id="partylists" name="partylists" value="<%= electionConfig && electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
             </div>
             <fieldset>
               <legend><strong>Number of Students per College</strong></legend>
