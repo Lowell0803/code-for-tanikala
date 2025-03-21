@@ -170,7 +170,11 @@ hr {
 }
 
 .center {
+  width: 100%;
   text-align: center;
+  /* border: 1px solid black; */
+  display: flex;
+  justify-content: center;
 }
 
 /* From Uiverse.io by Satwinder04 */
@@ -227,10 +231,38 @@ hr {
   color: black;
 }
 
-.party {
-  width: 70%;
-}
-
 .create-election label {
   width: 50rem;
+}
+
+.box {
+  width: 30%;
+}
+
+.rectangle {
+  padding-left: 1rem;
+}
+
+.create-election form > div {
+  display: flex;
+  align-items: center; /* Vertically center label & input in a row */
+  margin-bottom: 1rem; /* Spacing between each label-input pair */
+}
+
+.create-election form > div label {
+  /* Give each label a consistent width so inputs line up */
+  width: 21rem;
+  margin-right: 1rem;
+  text-align: left; /* Ensures label text is left-aligned */
+  padding-left: 2rem;
+}
+
+.create-election form > div input {
+  width: 30%;
+}
+
+.developer-only {
+  border: 1px solid black;
+  padding: 10px;
+  margin-top: 20px;
 }

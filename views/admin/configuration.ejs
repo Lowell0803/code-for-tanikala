@@ -94,29 +94,29 @@
           <br />
           <form action="/configuration" method="POST">
             <div>
-              <label for="electionName">Election Name:</label>
-              <input class="input" type="text" id="electionName" name="electionName" value="<%= electionConfig ? electionConfig.electionName : '' %>" required />
+             <label for="electionName" class="rectangle">Election Name:</label>
+              <input class="input box" type="text" id="electionName" name="electionName" value="<%= electionConfig ? electionConfig.electionName : '' %>" required />
             </div>
             <div>
-              <label for="registrationStart">Registration Start Date:</label>
-              <input class="input" type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig ? toPHFormat(electionConfig.registrationStart) : '' %>" required />
+              <label for="registrationStart" class="rectangle">Registration Start Date:</label>
+              <input class="input box" type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig ? toPHFormat(electionConfig.registrationStart) : '' %>" required />
             </div>
             <div>
-              <label for="registrationEnd">Registration End Date:</label>
-              <input class="input" type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig ? toPHFormat(electionConfig.registrationEnd) : '' %>" required />
+              <label for="registrationEnd" class="rectangle">Registration End Date:</label>
+              <input class="input box" type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig ? toPHFormat(electionConfig.registrationEnd) : '' %>" required />
             </div>
             <div>
-              <label for="votingStart">Voting Start Date:</label>
-              <input class="input" type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig ? toPHFormat(electionConfig.votingStart) : '' %>" required />
+              <label for="votingStart" class="rectangle">Voting Start Date:</label>
+              <input class="input box" type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig ? toPHFormat(electionConfig.votingStart) : '' %>" required />
             </div>
             <div>
-              <label for="votingEnd">Voting End Date:</label>
-              <input class="input" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig ? toPHFormat(electionConfig.votingEnd) : '' %>" required />
+              <label for="votingEnd" class="rectangle">Voting End Date:</label>
+              <input class="input box" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig ? toPHFormat(electionConfig.votingEnd) : '' %>" required />
             </div>
             <div>
-              <label for="partylists">Party List (comma separated):</label>
+              <label for="partylists" class="rectangle">Party List (comma separated):</label>
               <!-- Join the partylists array back to a comma separated string -->
-              <input class="input party" type="text" id="partylists" name="partylists" value="<%= electionConfig && electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
+              <input class="input box" type="text" id="partylists" name="partylists" value="<%= electionConfig && electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
             </div>
             <fieldset>
               <legend><strong>Number of Students per College</strong></legend>
@@ -146,7 +146,7 @@
 
         <!-- FAKE DATE -->
         <!-- FAKE DATE (using form submission to reload the page) -->
-        <div class="developer-only" style="border: 1px solid red; padding: 10px; margin-top: 20px">
+        <div class="developer-only" style="">
           <h3>Developer Tools</h3>
           <p>
             Current Date:

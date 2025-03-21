@@ -85,15 +85,19 @@
 
               let boardMembersHTML = `<div class="container-position">
                 <h1 class="position-lsc">Board Members</h1>
-                <button class="button button-add" onclick="addCandidateLSC('Board Member')">Add Candidate</button>
+                
               </div>
               <hr />`;
 
               for (const program in boardMembersByProgram) {
                 boardMembersHTML += `
                   <div class="program-group" id="college-${collegeAcronym}-${program}">
-                    <h2>${program}</h2>
+                    <br />
+                   <h2 class="position-program"><u>${program}</u></h2>
+                    <br />
+                    <div class="right">
                     <button class="button button-add" onclick="addCandidateLSC('Board Member', '${program}')">Add Candidate</button>
+                    </div>
                     <div>
                       ${boardMembersByProgram[program].map((candidate) => createBoardMemberCard(candidate, collegeAcronym)).join("")}
                     </div>
@@ -412,13 +416,15 @@
                   <% Object.keys(boardMembersByProgram).forEach(program => { let programTotalVotes = boardMembersByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); if (abstainByProgram[program]) { programTotalVotes += abstainByProgram[program].reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); } %>
                   <!-- Wrap each program in its own container, adding an id based on college -->
                   <div class="program-group" id="college-<%= boardMembersByProgram[program][0].college %>">
+                    <br />
                     <h2 class="program-header">
                       <ul>
                         <%= program %>
                       </ul>
                     </h2>
                     <!-- Add Candidate button for this program -->
-                    <button class="button button-add" onclick="addCandidateLSC('Board Member', '<%= program %>')">Add Candidate</button>
+                     <br />
+                    <button class="button button-add right-usog" onclick="addCandidateLSC('Board Member', '<%= program %>')">Add Candidate</button>
                     <br />
 
                     <% boardMembersByProgram[program].forEach(candidate => { const voteCount = Number(candidate.voteCount) || 0; const percentage = programTotalVotes > 0 ? ((voteCount / programTotalVotes) * 100).toFixed(2) : 0; %>
