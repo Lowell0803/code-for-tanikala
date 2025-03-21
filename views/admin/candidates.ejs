@@ -28,6 +28,140 @@
   <body>
     <%- include('header') %>
 
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const selectCollege = document.getElementById("collegeSelect");
+        const governorContainer = document.getElementById("container-lsc-governor");
+        const viceGovernorContainer = document.getElementById("container-lsc-vice-governor");
+        const boardMemberContainer = document.getElementById("container-lsc-board-member");
+
+        selectCollege.addEventListener("change", function () {
+          updateLSCCandidates(selectCollege.value);
+        });
+
+        async function updateLSCCandidates(collegeAcronym) {
+          try {
+            const response = await fetch(`/api/lsc-candidates?college=${collegeAcronym}`);
+            const data = await response.json();
+
+            if (data.error) {
+              console.warn("API Error:", data.error);
+              return;
+            }
+
+            // Governor Section
+            governorContainer.innerHTML = `
+              <div class="container-position">
+                <h1 class="position-lsc">Governor</h1>
+                <button class="button button-add" onclick="addCandidateLSC('Governor')">Add Candidate</button>
+              </div>
+              <hr />
+              <div>
+                ${data.governor.length ? data.governor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}
+              </div>
+            `;
+
+            // Vice Governor Section
+            viceGovernorContainer.innerHTML = `
+              <div class="container-position">
+                <h1 class="position-lsc">Vice Governor</h1>
+                <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add Candidate</button>
+              </div>
+              <hr />
+              <div>
+                ${data.viceGovernor.length ? data.viceGovernor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}
+              </div>
+            `;
+
+            // Board Members Section: Group candidates by program
+            if (data.boardMembers.length) {
+              const boardMembersByProgram = {};
+              data.boardMembers.forEach((candidate) => {
+                if (!boardMembersByProgram[candidate.program]) {
+                  boardMembersByProgram[candidate.program] = [];
+                }
+                boardMembersByProgram[candidate.program].push(candidate);
+              });
+
+              let boardMembersHTML = `<div class="container-position">
+                <h1 class="position-lsc">Board Members</h1>
+                <button class="button button-add" onclick="addCandidateLSC('Board Member')">Add Candidate</button>
+              </div>
+              <hr />`;
+
+              for (const program in boardMembersByProgram) {
+                boardMembersHTML += `
+                  <div class="program-group" id="college-${collegeAcronym}-${program}">
+                    <h2>${program}</h2>
+                    <button class="button button-add" onclick="addCandidateLSC('Board Member', '${program}')">Add Candidate</button>
+                    <div>
+                      ${boardMembersByProgram[program].map((candidate) => createBoardMemberCard(candidate, collegeAcronym)).join("")}
+                    </div>
+                  </div>
+                `;
+              }
+              boardMemberContainer.innerHTML = boardMembersHTML;
+            } else {
+              boardMemberContainer.innerHTML = `
+                <div class="container-position">
+                  <h1 class="position-lsc">Board Members</h1>
+                  <button class="button button-add" onclick="addCandidateLSC('Board Member')">Add Candidate</button>
+                </div>
+                <hr />
+                <div><p>No board members found.</p></div>
+              `;
+            }
+          } catch (error) {
+            console.error("Error fetching LSC candidates:", error);
+          }
+        }
+
+        function createCandidateCard(candidate, collegeAcronym) {
+          return `
+            <div class="candidate">
+              <div class="candidate-content">
+                <div class="img-container">
+                  <img src="${candidate.image}" alt="${candidate.name}">
+                </div>
+                <div>
+                  <h2>${candidate.name}</h2>
+                  <p>Party: ${candidate.party}</p>
+                </div>
+              </div>
+              <button class="button button-edit"
+                onclick="editCandidateLSC('${candidate._id}', '${candidate.position}', '${candidate.party}', '${candidate.name}', '${candidate.moreInfo}', '${candidate.image}', '${collegeAcronym}')">
+                Edit
+              </button>
+            </div>
+          `;
+        }
+
+        // Board member card without printing the candidate's program (group header displays it)
+        function createBoardMemberCard(candidate, collegeAcronym) {
+          return `
+            <div class="candidate">
+              <div class="candidate-content">
+                <div class="img-container">
+                  <img src="${candidate.image}" alt="${candidate.name}">
+                </div>
+                <div>
+                  <h2>${candidate.name}</h2>
+                  <p>Party: ${candidate.party}</p>
+                </div>
+              </div>
+              <button class="button button-edit"
+                onclick="editCandidateLSC('${candidate._id}', '${candidate.position}', '${candidate.party}', '${candidate.name}', '${candidate.moreInfo}', '${candidate.image}', '${collegeAcronym}', '${candidate.program}')">
+                Edit
+              </button>
+            </div>
+          `;
+        }
+
+        // Load default selection on first page load
+        updateLSCCandidates(selectCollege.value);
+      });
+    </script>
+
     <div class="content">
       <%- include('sidebar', { activeTab: 'candidates' }) %>
       <main class="main">
@@ -436,10 +570,13 @@
                 <label for="name">Name:</label>
                 <input type="text" id="name-add-lsc" name="name" maxlength="35" class="field fill" required /><br /><br />
                 <label for="party">Party:</label>
+                <!-- For the LSC "Add Candidate" form -->
                 <select id="party-add-lsc" name="party" class="field fill">
-                  <option value="KASAMA - BulSU">KASAMA - BulSU</option>
-                  <option value="BulSUONE">BulSUONE</option>
+                  <% electionConfig.partylists.forEach(function(party) { %>
+                    <option value="<%= party %>"><%= party %></option>
+                  <% }); %>
                 </select>
+
               </div>
               <div class="right-content">
                 <label for="more-info">Info:</label>
@@ -494,10 +631,13 @@
                 <label for="name">Name:</label>
                 <input type="text" id="name-edit-lsc" name="name" maxlength="35" class="field fill" /><br /><br />
                 <label for="party">Party:</label>
+                <!-- For the LSC "Edit Candidate" form -->
                 <select id="party-edit-lsc" name="party" class="field fill">
-                  <option value="KASAMA - BulSU">KASAMA</option>
-                  <option value="BulSUONE">BulSU ONE</option>
+                  <% electionConfig.partylists.forEach(function(party) { %>
+                    <option value="<%= party %>"><%= party %></option>
+                  <% }); %>
                 </select>
+
               </div>
               <div class="right-content">
                 <label for="more-info">Info:</label>
@@ -545,10 +685,13 @@
                 <label for="name">Name:</label>
                 <input type="text" id="name-add" name="name" maxlength="35" class="field fill" required /><br /><br />
                 <label for="party">Party:</label>
+                <!-- For the "Add Candidate" form (SSC) -->
                 <select id="party-add" name="party" class="field fill">
-                  <option value="KASAMA - BulSU">KASAMA - BulSU</option>
-                  <option value="BulSUONE">BulSUONE</option>
+                  <% electionConfig.partylists.forEach(function(party) { %>
+                    <option value="<%= party %>"><%= party %></option>
+                  <% }); %>
                 </select>
+
               </div>
               <div class="right-content">
                 <label for="more-info">Info:</label>
@@ -591,10 +734,13 @@
                 <label for="name">Name:</label>
                 <input type="text" id="name-edit" name="name" maxlength="35" class="field fill" /><br /><br />
                 <label for="party">Party:</label>
+                <!-- For the "Edit Candidate" form (SSC) -->
                 <select id="party-edit" name="party" class="field fill">
-                  <option value="KASAMA - BulSU">KASAMA</option>
-                  <option value="BulSUONE">BulSU ONE</option>
+                  <% electionConfig.partylists.forEach(function(party) { %>
+                    <option value="<%= party %>"><%= party %></option>
+                  <% }); %>
                 </select>
+
               </div>
               <div class="right-content">
                 <label for="more-info">Info:</label><br />
@@ -673,51 +819,53 @@
       }
 
       function addCandidateLSC(position, program = "") {
-        let formId = "form-add-lsc";
-        toggleForm(formId); // Show form before setting values
+  let formId = "form-add-lsc";
+  toggleForm(formId); // Show form before setting values
 
-        let selectedCollege = document.getElementById("collegeSelect");
-        let inputCollege = document.getElementById("college-acronym-add-lsc");
-        let inputPosition = document.getElementById("position-add-lsc");
-        let inputProgram = document.getElementById("program-add-lsc");
-        let inputCandidateId = document.getElementById("candidate-id-add-lsc");
+  // Update the heading to include the program if provided
+  let headingPosition = document.getElementById("heading-position-add-lsc");
+  headingPosition.innerHTML = position + (program ? ' - ' + program : '');
 
-        // Ensure all elements exist before using them
-        if (!selectedCollege || !inputCollege || !inputPosition || !inputCandidateId) {
-          console.error("⚠️ Missing form elements! Check IDs in the HTML.");
-          return;
-        }
+  let selectedCollege = document.getElementById("collegeSelect");
+  let inputCollege = document.getElementById("college-acronym-add-lsc");
+  let inputPosition = document.getElementById("position-add-lsc");
+  let inputProgram = document.getElementById("program-add-lsc");
+  let inputCandidateId = document.getElementById("candidate-id-add-lsc");
 
-        // Set values dynamically
-        inputCollege.value = selectedCollege.value;
-        inputPosition.value = position;
-        inputProgram.value = program || "";
+  // Ensure all elements exist before using them
+  if (!selectedCollege || !inputCollege || !inputPosition || !inputCandidateId) {
+    console.error("⚠️ Missing form elements! Check IDs in the HTML.");
+    return;
+  }
 
-        // Fetch candidates to determine next ID
-        fetch(`/api/candidates-lsc?position=${encodeURIComponent(position)}&college=${selectedCollege.value}${program ? `&program=${encodeURIComponent(program)}` : ""}`)
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.error) {
-              console.warn("API Error:", data.error);
-              return;
-            }
+  // Set values dynamically
+  inputCollege.value = selectedCollege.value;
+  inputPosition.value = position;
+  inputProgram.value = program || "";
 
-            let maxId = 0;
-            data.candidates.forEach((candidate) => {
-              const match = candidate._id.match(/_(\d+)$/);
-              if (match) {
-                const num = parseInt(match[1], 10);
-                if (num > maxId) {
-                  maxId = num;
-                }
-              }
-            });
-
-            // Generate new ID dynamically
-            inputCandidateId.value = `${position.toLowerCase().replace(" ", "_")}_${maxId + 1}`;
-          })
-          .catch((error) => console.error("Error fetching candidates:", error));
+  // Fetch candidates to determine next ID (if needed)
+  fetch(`/api/candidates-lsc?position=${encodeURIComponent(position)}&college=${selectedCollege.value}${program ? `&program=${encodeURIComponent(program)}` : ""}`)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.error) {
+        console.warn("API Error:", data.error);
+        return;
       }
+      let maxId = 0;
+      data.candidates.forEach((candidate) => {
+        const match = candidate._id.match(/_(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxId) {
+            maxId = num;
+          }
+        }
+      });
+      // Generate new candidate ID dynamically
+      inputCandidateId.value = `${position.toLowerCase().replace(" ", "_")}_${maxId + 1}`;
+    })
+    .catch((error) => console.error("Error fetching candidates:", error));
+}
 
       async function deleteCandidateLSC() {
         let candidateId = document.getElementById("candidate-id-edit-lsc").value;
