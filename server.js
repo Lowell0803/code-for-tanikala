@@ -110,6 +110,12 @@ agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }
       }
     );
 
+    // Calculate the new queue length (number of pending votes)
+    const newQueueLength = await waitingCollection.countDocuments({ status: "pending" });
+
+    // Emit the updated queue length to all connected clients
+    io.emit("voteQueueUpdate", { queueNumber: newQueueLength });
+
     // Update candidate_hashes collection.
     const candidateHashesCollection = db.collection("candidate_hashes");
     await Promise.all(candidateIds.map((candidateId) => candidateHashesCollection.updateOne({ candidateId }, { $addToSet: { emails: hashedEmail } }, { upsert: true })));

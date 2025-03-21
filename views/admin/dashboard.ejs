@@ -84,211 +84,249 @@
               </div>
             </div>
           </div>
-          <div class="first-main">
-            <div class="main-column">
-              <div class="form" id="election-settings">
-                <p>
-                  <b>Current Election Status: </b>
-                </p>
-                <br />
-                <div class="center">
+            <div class="first-main">
+              <div class="main-column">
+                <div class="form" id="election-settings">
                   <p>
-                    <span>ELECTION ONGOING</span>
-                    <span class="separator">|</span>Voting
+                    <b>Current Election Status: </b>
                   </p>
+                  <br />
+                  <div class="center">
+                    <p id="electionStatusText"><!-- Status text will be updated here dynamically --></p>
+                  </div>
+                  <script>
+                    // Reinitialize configuration variables with new names
+                    const newConfig = <%- JSON.stringify(electionConfig || {}) %>;
+                    const newUseRealTime = !(newConfig.useFakeDate && newConfig.fakeCurrentDate);
+                  
+                    // Pre-calculate time variables with new names
+                    const newRegStart = newConfig.registrationStart ? moment.tz(newConfig.registrationStart, "Asia/Manila") : null;
+                    const newRegEnd = newConfig.registrationEnd ? moment.tz(newConfig.registrationEnd, "Asia/Manila") : null;
+                    const newVoteStart = newConfig.votingStart ? moment.tz(newConfig.votingStart, "Asia/Manila") : null;
+                    const newVoteEnd = newConfig.votingEnd ? moment.tz(newConfig.votingEnd, "Asia/Manila") : null;
+                    let newFakeCurrent = (newConfig.useFakeDate && newConfig.fakeCurrentDate)
+                      ? moment.tz(newConfig.fakeCurrentDate, "Asia/Manila")
+                      : moment.tz(new Date(), "Asia/Manila");
+                  
+                    function updateElectionStatusNew() {
+                      // Determine current time: use real time if enabled, else newFakeCurrent
+                      const currentTime = newUseRealTime ? moment.tz(new Date(), "Asia/Manila") : newFakeCurrent;
+                      let statusText = newConfig.electionStatus || "";
+                  
+                      if (statusText === "ELECTION ACTIVE") {
+                        if (newConfig.specialStatus && newConfig.specialStatus !== "None") {
+                          statusText += ` | ${newConfig.specialStatus}`;
+                        } else {
+                          if (newRegStart && currentTime.isBefore(newRegStart)) {
+                            statusText += " | Waiting for Registration Period";
+                          } else if (newRegStart && newRegEnd && currentTime.isBetween(newRegStart, newRegEnd, null, '[)')) {
+                            statusText += " | Registration Period";
+                          } else if (newRegEnd && newVoteStart && currentTime.isBetween(newRegEnd, newVoteStart, null, '[)')) {
+                            statusText += " | Waiting for Voting Period";
+                          } else if (newVoteStart && newVoteEnd && currentTime.isBetween(newVoteStart, newVoteEnd, null, '[)')) {
+                            statusText += " | Voting Period";
+                          } else if (newVoteEnd && currentTime.isAfter(newVoteEnd)) {
+                            statusText += " | Results Double Checking Period";
+                          }
+                        }
+                      }
+                  
+                      document.getElementById("electionStatusText").innerHTML = statusText;
+                    }
+                  
+                    // Initial update
+                    updateElectionStatusNew();
+                  
+                    // Update every second
+                    setInterval(() => {
+                      if (!newUseRealTime) {
+                        newFakeCurrent.add(1, 'seconds');
+                      }
+                      updateElectionStatusNew();
+                    }, 1000);
+                  </script>
+                  
+
+                  <br />
+                  <div>
+                    <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
+                    <form action="/resume-election" method="POST">
+                      <button type="submit" style="background-color: #4caf50; color: #fff">Resume Election</button>
+                    </form>
+                    <% } else { %>
+                    <form action="/temporarily-closed" method="POST">
+                      <button type="submit" style="background-color: #f44336; color: #fff">Temporarily Close Election</button>
+                    </form>
+                    <% } %>
+                  </div>
                 </div>
-                <br />
-                <div>
-                  <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
-                  <form action="/resume-election" method="POST">
-                    <button type="submit" style="background-color: #4caf50; color: #fff">Resume Election</button>
-                  </form>
+
+                <div class="form" id="election-configuration">
+                  <h3 class="center">Election Configurations</h3>
+                  <br />
+                  <% if (electionConfig.electionName) { %>
+                  <p>
+                    <b>Election Name:</b>
+                    <span><%= electionConfig.electionName %></span>
+                  </p>
                   <% } else { %>
-                  <form action="/temporarily-closed" method="POST">
-                    <button type="submit" style="background-color: #f44336; color: #fff">Temporarily Close Election</button>
-                  </form>
+                  <p><b>Election Name:</b> <span>Not set</span></p>
                   <% } %>
+                  <br />
+
+                  <p><b>Registration Period:</b></p>
+                  <% if (electionConfig.registrationStart && electionConfig.registrationEnd) { %>
+                  <p>
+                    &nbsp;&nbsp;Start Date:
+                    <span><%= new Date(electionConfig.registrationStart).toLocaleString() %></span>
+                  </p>
+                  <p>
+                    &nbsp;&nbsp;End Date:
+                    <span><%= new Date(electionConfig.registrationEnd).toLocaleString() %></span>
+                  </p>
+                  <% } else { %>
+                  <p>Registration dates not set.</p>
+                  <% } %>
+                  <br />
+
+                  <p><b>Voting Period:</b></p>
+                  <% if (electionConfig.votingStart && electionConfig.votingEnd) { %>
+                  <p>
+                    &nbsp;&nbsp;Start Date:
+                    <span><%= new Date(electionConfig.votingStart).toLocaleString() %></span>
+                  </p>
+                  <p>
+                    &nbsp;&nbsp;End Date:
+                    <span><%= new Date(electionConfig.votingEnd).toLocaleString() %></span>
+                  </p>
+                  <% } else { %>
+                  <p>Voting dates not set.</p>
+                  <% } %>
+                  <br />
+
+                  <% if (electionConfig.totalElections) { %>
+                  <p><b>Total Number of Elections:</b> <span><%= electionConfig.totalElections %></span></p>
+                  <% } %>
+                  <br />
+
+                  <% if (electionConfig.totalPartylists) { %>
+                  <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.totalPartylists %></span></p>
+                  <% } else { %>
+                  <p><b>Total Number of Party Lists:</b> <span>0</span></p>
+                  <% } %> <% if (electionConfig.partylists && electionConfig.partylists.length > 0) { %>
+                  <ul class="election-configuration">
+                    <% electionConfig.partylists.forEach(function(party) { %>
+                    <li><%= party %></li>
+                    <% }); %>
+                  </ul>
+                  <% } else { %>
+                  <p>No party lists available.</p>
+                  <% } %>
+                  <br />
+
+                  <% if (electionConfig.totalCandidates) { %>
+                  <p><b>Total Number of Candidates:</b> <span><%= electionConfig.totalCandidates %></span></p>
+                  <% } else { %>
+                  <p><b>Total Number of Candidates:</b> <span>0</span></p>
+                  <% } %>
+                  <br />
+
+                  <% if (electionConfig.totalStudents) { %>
+                  <p><b>Total Number of Voters:</b> <span><%= electionConfig.totalStudents %></span></p>
+                  <% } else { %>
+                  <p><b>Total Number of Voters:</b> <span>0</span></p>
+                  <% } %>
+                  <br />
+
+                  <% if (electionConfig.listOfElections && electionConfig.listOfElections.length > 0) { %>
+                  <p><b>List of Elections and Their Number of Students (Voters):</b></p>
+                  <br />
+                  <ol class="election-configuration">
+                    <% electionConfig.listOfElections.forEach(function(elec) { %>
+                    <li>
+                      <p>
+                        <b><%= elec.name %>:</b>
+                        <span><%= elec.voters ? elec.voters + " students" : "No data" %></span>
+                      </p>
+                    </li>
+                    <% }); %>
+                  </ol>
+                  <% } else { %>
+                  <p>No elections data available.</p>
+                  <% } %>
+                  <br />
+                  <br />
+                  <div class="center">
+                    <a href="settings_election_management.html">Go to Election Management</a>
+                  </div>
                 </div>
               </div>
 
-              <div class="form" id="election-configuration">
-                <h3 class="center">Election Configurations</h3>
-                <br />
-                <% if (electionConfig.electionName) { %>
-                <p>
-                  <b>Election Name:</b>
-                  <span><%= electionConfig.electionName %></span>
-                </p>
-                <% } else { %>
-                <p><b>Election Name:</b> <span>Not set</span></p>
-                <% } %>
-                <br />
-
-                <p><b>Registration Period:</b></p>
-                <% if (electionConfig.registrationStart && electionConfig.registrationEnd) { %>
-                <p>
-                  &nbsp;&nbsp;Start Date:
-                  <span><%= new Date(electionConfig.registrationStart).toLocaleString() %></span>
-                </p>
-                <p>
-                  &nbsp;&nbsp;End Date:
-                  <span><%= new Date(electionConfig.registrationEnd).toLocaleString() %></span>
-                </p>
-                <% } else { %>
-                <p>Registration dates not set.</p>
-                <% } %>
-                <br />
-
-                <p><b>Voting Period:</b></p>
-                <% if (electionConfig.votingStart && electionConfig.votingEnd) { %>
-                <p>
-                  &nbsp;&nbsp;Start Date:
-                  <span><%= new Date(electionConfig.votingStart).toLocaleString() %></span>
-                </p>
-                <p>
-                  &nbsp;&nbsp;End Date:
-                  <span><%= new Date(electionConfig.votingEnd).toLocaleString() %></span>
-                </p>
-                <% } else { %>
-                <p>Voting dates not set.</p>
-                <% } %>
-                <br />
-
-                <% if (electionConfig.totalElections) { %>
-                <p><b>Total Number of Elections:</b> <span><%= electionConfig.totalElections %></span></p>
-                <% } %>
-                <br />
-
-                <% if (electionConfig.totalPartylists) { %>
-                <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.totalPartylists %></span></p>
-                <% } else { %>
-                <p><b>Total Number of Party Lists:</b> <span>0</span></p>
-                <% } %> <% if (electionConfig.partylists && electionConfig.partylists.length > 0) { %>
-                <ul class="election-configuration">
-                  <% electionConfig.partylists.forEach(function(party) { %>
-                  <li><%= party %></li>
-                  <% }); %>
-                </ul>
-                <% } else { %>
-                <p>No party lists available.</p>
-                <% } %>
-                <br />
-
-                <% if (electionConfig.totalCandidates) { %>
-                <p><b>Total Number of Candidates:</b> <span><%= electionConfig.totalCandidates %></span></p>
-                <% } else { %>
-                <p><b>Total Number of Candidates:</b> <span>0</span></p>
-                <% } %>
-                <br />
-
-                <% if (electionConfig.totalStudents) { %>
-                <p><b>Total Number of Voters:</b> <span><%= electionConfig.totalStudents %></span></p>
-                <% } else { %>
-                <p><b>Total Number of Voters:</b> <span>0</span></p>
-                <% } %>
-                <br />
-
-                <% if (electionConfig.listOfElections && electionConfig.listOfElections.length > 0) { %>
-                <p><b>List of Elections and Their Number of Students (Voters):</b></p>
-                <br />
-                <ol class="election-configuration">
-                  <% electionConfig.listOfElections.forEach(function(elec) { %>
-                  <li>
-                    <p>
-                      <b><%= elec.name %>:</b>
-                      <span><%= elec.voters ? elec.voters + " students" : "No data" %></span>
-                    </p>
-                  </li>
-                  <% }); %>
-                </ol>
-                <% } else { %>
-                <p>No elections data available.</p>
-                <% } %>
-                <br />
-                <br />
-                <div class="center">
-                  <a href="settings_election_management.html">Go to Election Management</a>
+              <div class="right-side">
+                <% 
+                  // Determine candidate submission status based on the boolean value.
+                  let candidateStatus = electionConfig.candidatesSubmitted ? "Submitted" : "Not Submitted";
+                  
+                  // Calculate the total number of registered voters from not voted and voted.
+                  let registeredVotersCount = electionConfig.totalRegisteredNotVoted + electionConfig.totalRegisteredVoted;
+                  // Calculate the percentage of registered voters relative to the total number of students.
+                  let registeredVotersPercentage = electionConfig.totalNumberOfStudents > 0 ? 
+                    (registeredVotersCount / electionConfig.totalNumberOfStudents * 100) : 0;
+                  
+                  // Calculate voter turnout percentage: voted students out of the total number of students.
+                  let voterTurnoutPercentage = electionConfig.totalNumberOfStudents > 0 ? 
+                    (electionConfig.totalVoted / electionConfig.totalNumberOfStudents * 100) : 0;
+                %>
+              
+                <div class="beside">
+                  <div class="form" id="candidate-submission">
+                    <h4 class="center">Candidate Submission on Blockchain:</h4>
+                    <p class="center"><%= candidateStatus %></p>
+                  </div>
+                  <div class="form" id="registered-students">
+                    <h4 class="center">Registered Voters</h4>
+                    <p class="center"><%= registeredVotersPercentage.toFixed(2) %>%</p>
+                    <p class="center"><%= registeredVotersCount %> registered voters out of <%= electionConfig.totalNumberOfStudents %> total students</p>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div class="right-side">
-               <% let totalRegisteredVoters = 0; let totalVoted = 0; let totalVoters = 0; if (electionConfig.listOfElections && electionConfig.listOfElections.length) { electionConfig.listOfElections.forEach(college => { totalRegisteredVoters += college.registeredVoters; totalVoted += college.numberOfVoted; totalVoters += college.voters; }); } let turnoutPercentage = totalVoters > 0 ? (totalVoted / totalVoters * 100) : 0; %>
-              <div class="beside">
-               
-
-                <div class="form" id="candidate-submission">
-                  <h4 class="center">Candidate Submission on Blockchain:</h4>
-                  <p class="center">Not Submitted  |  Submitted</p>
+              
+                <div class="beside">
+                  <div class="form" id="vote-queue">
+                    <h4 class="center">Current Vote Transactions Queue on Blockchain:</h4>
+                    <p class="center" id="queue-number">0</p>
+                  </div>
+                  
+                  <script src="/socket.io/socket.io.js"></script>
+                  <script>
+                    // Connect to the Socket.IO server.
+                    const socket = io();
+                  
+                    // Listen for real-time updates to the vote queue.
+                    socket.on('voteQueueUpdate', (data) => {
+                      // Update the element with the new queue number.
+                      document.getElementById('queue-number').innerText = data.queueNumber;
+                    });
+                  </script>
+                  
+                  <div class="form" id="voter-turnout">
+                    <h4 class="center">Voter Turnout</h4>
+                    <p class="center"><%= voterTurnoutPercentage.toFixed(2) %>%</p>
+                    <p class="center"><%= electionConfig.totalVoted %> voted students out of <%= electionConfig.totalNumberOfStudents %> total students</p>
+                  </div>
                 </div>
-                <div class="form" id="registered-students">
-                  <h4 class="center">Registered Voters</h4>
-                  <p class="center"><%= turnoutPercentage.toFixed(2) %>%</p>
-                </div>
-              </div>
-
-              <div class="beside">
-               
-
-                <div class="form" id="vote-queue">
-                  <h4 class="center">Current Vote Transactions Queue on Blockchain:</h4>
-                  <p class="center">10</p>
-                </div>
-                <div class="form" id="voter-turnout">
-                  <h4 class="center">Voter Turnout</h4>
-                  <p class="center"><%= turnoutPercentage.toFixed(2) %>%</p>
-                </div>
-              </div>
-
-              <div class="form" id="blockchain-dashboard">
+              
+                <div class="form" id="blockchain-dashboard">
                   <h4 class="center">Admin Wallet Information:</h4>
                   <p class="center">10</p>
                   <hr />
- <h4 class="center">Blockchain Transactions:</h4>
+                  <h4 class="center">Blockchain Transactions:</h4>
                   <p class="center">10</p>
-
-              </div>
-
-
-              <!-- <div class="form" id="blockchain-management">
-                <h3 class="center">Blockchain Management</h3>
-                <br />
-                <p><b>Smart Contract Status: </b>Not Deployed | Deployed</p>
-                <br />
-                <p><b>No. of Smart Contracts Deployed: </b><span> 1</span></p>
-                <p><b>Smart Contract Address: </b><span>No data available yet.</span></p>
-                <br />
-                <p><b>No. of Vote Transactions: </b><span>7000</span></p>
-                <p><b>Blockchain Link: </b>No data available yet.</p>
-                <br />
-                <p><b>Total No. of Blockchain Transactions: </b><span>7001</span></p>
-                <br />
-                <hr />
-                <br />
-                <h3 class="center">Admin Wallet & Fund Management</h3>
-                <br />
-                <p><b>Username (Public Key): </b><span>No data available yet.</span></p>
-                <br />
-                <p><b>Current Fund: </b><span>₱50,000</span></p>
-                <br />
-                <p><b>Total Deposit: </b><span>₱100,000</span></p>
-                <p><b>Last Deposit Date: </b><span>February 18, 2025 - 5:05 PM</span></p>
-                <br />
-                <p><b>Total Expense: </b><span>₱50,000</span></p>
-                <p><b>Last Expense Date: </b><span>February 18, 2025 - 5:05 PM</span></p>
-                <br />
-                <div class="button-container">
-                  <a href="">Fund Wallet on Binance</a>
                 </div>
-                <br />
-                <p><b>Live Transaction Fee Estimate: </b><span>No data available yet.</span></p>
-                <br />
-                <p><b>Recommended Fund Estimate: </b><span>No data available yet.</span></p>
-              </div> -->
-
+              </div>
+              
+              
               
             </div>
-          </div>
         </div>
       </main>
     </div>
