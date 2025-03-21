@@ -76,6 +76,7 @@
   padding: 0.35rem;
   width: 22%;
   height: 10rem;
+  color: #956004;
 }
 
 .quick-actions-buttons p {
@@ -194,6 +195,25 @@
   display: flex;
   flex-direction: column;
 }
+
+.quick-actions-buttons i {
+  font-size: 3.2rem;
+  padding-bottom: 0.5rem;
+}
+
+.quick-actions-buttons p {
+  font-size: 1.1rem;
+}
+
+#blockchain-dashboard {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 50%;
+  background-color: #b8e5ff;
+  margin-right: 1.5rem;
+  padding: 1.5rem;
+}
+
 /* .left-blockchain,
 .right-blockchain {
   display: flex;

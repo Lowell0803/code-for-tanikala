@@ -28,7 +28,7 @@
         currentTime = moment.tz(new Date(), "Asia/Manila");
       }
       // Format the time.
-      const formattedTime = currentTime.format("MMMM DD, YYYY [AT] hh:mm A");
+      const formattedTime = currentTime.format("MMMM DD, YYYY [AT] hh:mm A").toUpperCase();
       document.getElementById("footerTime").textContent = formattedTime;
     }
   

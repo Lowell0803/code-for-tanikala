@@ -34,7 +34,7 @@
           <hr class="title-line" />
           <div class="quick-actions-container">
  <div class="quick-actions-buttons">
-              <img class="quick-buttons" id="voter-info-button" src="../img/voter-info.png" alt="Voter Information" />
+              <i class="fa-regular fa-address-card"></i>
               <p>Voter Information</p>
               <div class="view-export">
                 <a href="voter_information.html">View</a>
@@ -44,7 +44,7 @@
             </div>
 
             <div class="quick-actions-buttons">
-              <img class="quick-buttons" src="../img/election-results.png" alt="Election Results" />
+             <i class="fa fa-bar-chart" aria-hidden="true"></i>
               <p>Election Results</p>
               <div class="view-export">
                 <a href="results.html">View</a>
@@ -54,7 +54,7 @@
             </div>
 
             <div class="quick-actions-buttons">
-              <img class="quick-buttons" src="../img/candidates.png" alt="Candidates" />
+              <i class="fas fa-list-ol"></i>
               <p>Vote Tally</p>
               <div class="view-export">
                 <a href="candidates">View</a>
@@ -65,7 +65,7 @@
 
            
 <div class="quick-actions-buttons">
-              <img class="quick-buttons" src="../img/candidates.png" alt="Candidates" />
+             <i class="fa fa-users"></i>
               <p>Candidates</p>
               <div class="view-export">
                 <a href="candidates">View</a>
@@ -75,7 +75,7 @@
             </div>
 
             <div class="quick-actions-buttons">
-              <img class="quick-buttons" id="admin-button" src="../img/admin-accounts.png" alt="Admin Accounts" />
+              <i class="fa-solid fa-user-tie"></i>
               <p>Admin Accounts</p>
               <div class="view-export">
                 <a href="manage-accounts.html">View</a>
@@ -221,8 +221,8 @@
                   <h4 class="center">Candidate Submission on Blockchain:</h4>
                   <p class="center">Not Submitted  |  Submitted</p>
                 </div>
-                <div class="form" id="voter-turnout">
-                  <h4 class="center">Voter Turnout</h4>
+                <div class="form" id="registered-students">
+                  <h4 class="center">Registered Voters</h4>
                   <p class="center"><%= turnoutPercentage.toFixed(2) %>%</p>
                 </div>
               </div>
@@ -238,6 +238,15 @@
                   <h4 class="center">Voter Turnout</h4>
                   <p class="center"><%= turnoutPercentage.toFixed(2) %>%</p>
                 </div>
+              </div>
+
+              <div class="form" id="blockchain-dashboard">
+                  <h4 class="center">Admin Wallet Information:</h4>
+                  <p class="center">10</p>
+                  <hr />
+ <h4 class="center">Blockchain Transactions:</h4>
+                  <p class="center">10</p>
+
               </div>
 
 

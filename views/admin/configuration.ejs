@@ -91,6 +91,7 @@
         <section class="create-election">
           <h2>Create / Update Election</h2>
           <hr />
+          <br />
           <form action="/configuration" method="POST">
             <div>
               <label for="electionName">Election Name:</label>
@@ -118,7 +119,7 @@
               <input class="input" type="text" id="partylists" name="partylists" value="<%= electionConfig && electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
             </div>
             <fieldset>
-              <legend><strong>Number of Students Per College</strong></legend>
+              <legend><strong>Number of Students per College</strong></legend>
               <% if(electionConfig && electionConfig.colleges) { %>
               <% electionConfig.colleges.forEach((college) => { %>
               <div class="num-of-students">
@@ -134,11 +135,13 @@
               <p>No college data found.</p>
               <% } %>
             </fieldset>
+            <div class="center">
             <button class="button button-save" type="submit">Save Election Configuration</button>
+            </div>
           </form>
-          <form action="/reset-election" method="POST">
+          <!-- <form action="/reset-election" method="POST">
             <button type="submit" style="background-color: #000; color: #fff">Reset Election</button>
-          </form>
+          </form> -->
         </section>
 
         <!-- FAKE DATE -->
