@@ -44,21 +44,21 @@
     </li>
     <li <% if (activeTab === 'blockchain') { %> id="active-tab" <% } %>>
       <div class="icon-link">
-        <a href="/blockchain-management">
+        <a >
           <i class="fa fa-link"></i>
           <span class="link_name">Blockchain</span>
         </a>
         <i class="bx bxs-chevron-down arrow"></i>
       </div>
       <ul class="sub-menu">
-        <li><a class="link_name" href="/blockchain-management">Blockchain</a></li>
+        <li><a class="link_name" >Blockchain</a></li>
         <li <% if (activeSub === 'blockchain-management') { %> id="active-sub" <% } %>><a href="/blockchain-management">Blockchain Management</a></li>
         <li <% if (activeSub === 'blockchain-activity-log') { %> id="active-sub" <% } %>><a href="/blockchain-activity-log">Blockchain Activity Log</a></li>
       </ul>
     </li>
     <li <% if (activeTab === 'election') { %> id="active-tab" <% } %>>
       <div class="icon-link">
-        <a href="/voter-info">
+        <a>
           <i class="fa fa-bar-chart"></i>
           <span class="link_name">Election</span>
         </a>
@@ -66,7 +66,7 @@
       </div>
       <ul class="sub-menu">
         <li>
-          <a class="link_name" href="/voter-info">
+          <a class="link_name">
             <%= electionConfig.electionName || "No Election Ongoing" %>
           </a>
         </li>
@@ -88,14 +88,14 @@
     </li>
     <li <% if (activeTab === 'system') { %> id="active-tab" <% } %>>
       <div class="icon-link">
-        <a href="/edit-account">
+        <a>
           <i class="fa fa-tasks"></i>
           <span class="link_name">System</span>
         </a>
         <i class="bx bxs-chevron-down arrow"></i>
       </div>
       <ul class="sub-menu">
-        <li><a class="link_name" href="/edit-account">System</a></li>
+        <li><a class="link_name">System</a></li>
         <li <% if (activeSub === 'edit-account') { %> id="active-sub" <% } %>><a href="/edit-account">Edit Account</a></li>
         <li <% if (activeSub === 'manage-admins') { %> id="active-sub" <% } %>><a href="/manage-admins">Manage Admins</a></li>
         <li <% if (activeSub === 'help-page') { %> id="active-sub" <% } %>><a href="/help-page">Help Page</a></li>
