@@ -212,7 +212,8 @@
                   <% if (electionConfig.totalPartylists) { %>
                   <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.totalPartylists %></span></p>
                   <% } else { %>
-                  <p><b>Total Number of Party Lists:</b> <span>0</span></p>
+                  <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.partylists ? electionConfig.partylists.length : 0 %></span></p>
+
                   <% } %> <% if (electionConfig.partylists && electionConfig.partylists.length > 0) { %>
                   <ul class="election-configuration">
                     <% electionConfig.partylists.forEach(function(party) { %>
@@ -225,35 +226,42 @@
                   <br />
 
                   <% if (electionConfig.totalCandidates) { %>
-                  <p><b>Total Number of Candidates:</b> <span><%= electionConfig.totalCandidates %></span></p>
+                    <p><b>Total Number of Candidates:</b> <span><%= electionConfig.totalCandidates %></span></p>
+
                   <% } else { %>
                   <p><b>Total Number of Candidates:</b> <span>0</span></p>
                   <% } %>
                   <br />
 
-                  <% if (electionConfig.totalStudents) { %>
-                  <p><b>Total Number of Voters:</b> <span><%= electionConfig.totalStudents %></span></p>
+                  <% if (electionConfig.totalNumberOfStudents) { %>
+                  <p><b>Total Number of Voters:</b> <span><%= electionConfig.totalNumberOfStudents %></span></p>
                   <% } else { %>
                   <p><b>Total Number of Voters:</b> <span>0</span></p>
                   <% } %>
                   <br />
 
-                  <% if (electionConfig.listOfElections && electionConfig.listOfElections.length > 0) { %>
-                  <p><b>List of Elections and Their Number of Students (Voters):</b></p>
-                  <br />
-                  <ol class="election-configuration">
-                    <% electionConfig.listOfElections.forEach(function(elec) { %>
-                    <li>
-                      <p>
-                        <b><%= elec.name %>:</b>
-                        <span><%= elec.voters ? elec.voters + " students" : "No data" %></span>
-                      </p>
-                    </li>
-                    <% }); %>
-                  </ol>
+                  <% if (electionConfig.colleges && electionConfig.colleges.length > 0) { %>
+                    <p><b>List of Colleges and Their Number of Voters:</b></p>
+                    <br />
+                    <ol class="election-configuration">
+                      <% 
+                        let totalCollegeVoters = 0;
+                        electionConfig.colleges.forEach(function(college) { 
+                          totalCollegeVoters += college.numberOfStudents;
+                      %>
+                        <li>
+                          <p>
+                            <b><%= college.name %>:</b>
+                            <span><%= college.numberOfStudents %> students</span>
+                          </p>
+                        </li>
+                      <% }); %>
+                    </ol>
+                    <p><b>Total Number of Voters across Colleges:</b> <span><%= totalCollegeVoters %></span></p>
                   <% } else { %>
-                  <p>No elections data available.</p>
+                    <p>No college data available.</p>
                   <% } %>
+                  
                   <br />
                   <br />
                   <div class="center">

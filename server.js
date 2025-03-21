@@ -2981,6 +2981,10 @@ const startServer = async () => {
         updatedAt: new Date(),
       };
 
+      // const totalCandidates = await db.collection("blockchain_candidates").countDocuments({});
+      // Update totalCandidates in electionConfig by counting documents in blockchain_candidates collection
+      electionConfig.totalCandidates = await db.collection("blockchain_candidates").countDocuments({});
+
       console.log(electionConfig);
       res.render("admin/dashboard", {
         electionConfig,
@@ -2991,6 +2995,7 @@ const startServer = async () => {
         blockchainInfo,
         blockchainMgmt,
         walletInfo,
+        // totalCandidates,
       });
     });
 
