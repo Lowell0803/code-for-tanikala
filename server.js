@@ -2957,6 +2957,30 @@ const startServer = async () => {
       // Calculate voter turnout percentage (avoid division by zero)
       let turnoutPercentage = totalVoters > 0 ? (totalVoted / totalVoters) * 100 : 0;
 
+      // Get the latest blockchainInfo document (for transaction hash and submission date).
+      const blockchainInfo = (await db.collection("blockchainInfo").findOne({})) || null;
+
+      // Get blockchain management totals from blockchain_management collection.
+      const blockchainMgmt = (await db.collection("blockchain_management").findOne({})) || null;
+
+      // ----- Get Wallet Info -----
+      const balanceWei = await provider.getBalance(publicAddress);
+      const balancePOL = parseFloat(ethers.formatUnits(balanceWei, 18));
+
+      // Fetch prices using polygon-ecosystem-token.
+      const prices = await getCryptoPrices();
+      // Calculate wallet equivalents in USD and PHP.
+      const balanceUSD = balancePOL * (prices?.polPriceUsd || 0);
+      const balancePHP = balancePOL * (prices?.polPricePhp || 0);
+
+      const walletInfo = {
+        address: publicAddress,
+        balancePOL,
+        balanceUSD,
+        balancePHP,
+        updatedAt: new Date(),
+      };
+
       console.log(electionConfig);
       res.render("admin/dashboard", {
         electionConfig,
@@ -2964,6 +2988,9 @@ const startServer = async () => {
         totalRegisteredVoters,
         turnoutPercentage,
         moment,
+        blockchainInfo,
+        blockchainMgmt,
+        walletInfo,
       });
     });
 
