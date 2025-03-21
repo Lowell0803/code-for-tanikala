@@ -226,3 +226,11 @@ hr {
 .first-main strong {
   color: black;
 }
+
+.party {
+  width: 70%;
+}
+
+.create-election label {
+  width: 50rem;
+}
