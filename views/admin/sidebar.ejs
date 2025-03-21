@@ -1,5 +1,4 @@
 
-
 <div class="sidebar close">
   <div class="profile-details">
     <img src="<%= loggedInAdmin.img %>" />
@@ -53,8 +52,8 @@
       </div>
       <ul class="sub-menu">
         <li><a class="link_name" href="/blockchain-management">Blockchain</a></li>
-        <li><a href="/blockchain-management">Blockchain Management</a></li>
-        <li><a href="/blockchain-activity-log">Blockchain Activity Log</a></li>
+        <li <% if (activeSub === 'blockchain-management') { %> id="active-sub" <% } %>><a href="/blockchain-management">Blockchain Management</a></li>
+        <li <% if (activeSub === 'blockchain-activity-log') { %> id="active-sub" <% } %>><a href="/blockchain-activity-log">Blockchain Activity Log</a></li>
       </ul>
     </li>
     <li <% if (activeTab === 'election') { %> id="active-tab" <% } %>>
@@ -68,14 +67,14 @@
       <ul class="sub-menu">
         <li>
           <a class="link_name" href="/voter-info">
-            electionName || "No Election Ongoing"
+            <%= electionConfig.electionName || "No Election Ongoing" %>
           </a>
         </li>
-        <li><a href="/voter-info">Voter Information</a></li>
-        <li><a href="/voter-turnout">Voter Turnout</a></li>
-        <li><a href="/vote-tally">Vote Tally</a></li>
-        <li><a href="/results">Election Results</a></li>
-        <li><a href="/reset">Reset Election</a></li>
+        <li <% if (activeSub === 'voter-info') { %> id="active-sub" <% } %>><a href="/voter-info" >Voter Information</a></li>
+        <li <% if (activeSub === 'voter-turnout') { %> id="active-sub" <% } %>><a href="/voter-turnout">Voter Turnout</a></li>
+        <li <% if (activeSub === 'vote-tally') { %> id="active-sub" <% } %>><a href="/vote-tally">Vote Tally</a></li>
+        <li <% if (activeSub === 'results') { %> id="active-sub" <% } %>><a href="/results">Election Results</a></li>
+        <li <% if (activeSub === 'reset') { %> id="active-sub" <% } %>><a href="/reset">Reset Election</a></li>
       </ul>
     </li>
     <li <% if (activeTab === 'archives') { %> id="active-tab" <% } %>>
@@ -97,10 +96,10 @@
       </div>
       <ul class="sub-menu">
         <li><a class="link_name" href="/edit-account">System</a></li>
-        <li><a href="/edit-account">Edit Account</a></li>
-        <li><a href="/manage-admins">Manage Admins</a></li>
-        <li><a href="/help-page">Help Page</a></li>
-        <li><a href="/system-activity-log">System Activity Log</a></li>
+        <li <% if (activeSub === 'edit-account') { %> id="active-sub" <% } %>><a href="/edit-account">Edit Account</a></li>
+        <li <% if (activeSub === 'manage-admins') { %> id="active-sub" <% } %>><a href="/manage-admins">Manage Admins</a></li>
+        <li <% if (activeSub === 'help-page') { %> id="active-sub" <% } %>><a href="/help-page">Help Page</a></li>
+        <li <% if (activeSub === 'system-activity-log') { %> id="active-sub" <% } %>><a href="/system-activity-log">System Activity Log</a></li>
       </ul>
     </li>
   </ul>
