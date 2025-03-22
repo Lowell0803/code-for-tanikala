@@ -10,6 +10,15 @@
 </style>
 
 <%
+function formatDisplayDate(date) {
+  // Ensure the date is a Moment object; if not, wrap it.
+  const momentDate = moment.isMoment(date) ? date : moment(date);
+  return momentDate.format("MMMM DD, YYYY [AT] hh:mm A");
+}
+%>
+
+
+<%
 // Get configuration values with fallbacks
 const electionName = (electionConfig && electionConfig.electionName) ? electionConfig.electionName : "Tanikala Voting System";
 const electionStatus = (electionConfig && electionConfig.electionStatus) ? electionConfig.electionStatus : "";

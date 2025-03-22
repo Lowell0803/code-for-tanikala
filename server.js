@@ -592,6 +592,7 @@ const startServer = async () => {
           name: admin.name,
           email: admin.email,
           role: admin.role,
+          password: admin.password,
           img: admin.img,
         };
 
@@ -672,7 +673,7 @@ const startServer = async () => {
         const electionConfig = (await db.collection("election_config").findOne({})) || {};
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-        console.log("Current Role: ", req.session.admin.role);
+        console.log("Current Role: ", req.session.admin.id);
         res.render("admin/system-manage-admins", {
           admins,
           electionConfig,
@@ -780,12 +781,25 @@ const startServer = async () => {
 
     // (Optional) Route to delete an admin account
     app.post("/admin-accounts/delete", ensureAdminAuthenticated, async (req, res) => {
+      console.log("=== /admin-accounts/delete route called ===");
       try {
-        const { username } = req.body;
-        const result = await db.collection("admin_accounts").deleteOne({ username });
+        const { email } = req.body;
+        console.log("Email received for deletion:", email);
+
+        if (!email) {
+          console.warn("No email provided in request body.");
+          return res.status(400).send("Email is required to delete an admin account.");
+        }
+
+        console.log("Attempting to delete admin with email:", email);
+        const result = await db.collection("admin_accounts").deleteOne({ email });
+        console.log("MongoDB deletion result:", result);
+
         if (result.deletedCount === 1) {
+          console.log("Deletion successful for admin with email:", email);
           res.redirect("/manage-admins");
         } else {
+          console.warn("Deletion did not remove any documents for email:", email);
           res.status(400).send("Unable to delete admin account.");
         }
       } catch (error) {
@@ -4062,48 +4076,141 @@ const startServer = async () => {
     });
 
     app.post("/update-account", async (req, res) => {
+      console.log("=== /update-account called ===");
+
+      // Ensure an admin is logged in
+      if (!req.session.admin) {
+        console.error("Session admin not found.");
+        return res.status(401).json({ success: false, error: "Unauthorized access." });
+      }
+
+      console.log("Session admin:", req.session.admin);
+
+      // Destructure form data
+      const { name, email, oldPassword, newPassword, img } = req.body;
+      console.log("Received data:", { name, email, oldPassword, newPassword, img });
+
+      // Validate required fields
+      if (!name || !email) {
+        console.error("Missing required fields: name or email.");
+        return res.json({ success: false, error: "Name and Email are required." });
+      }
+
+      // Use req.session.admin.id since that’s how it is stored
+      let adminId;
       try {
-        // Ensure the admin is authenticated
-        if (!req.session.admin) {
-          return res.json({ success: false, error: "Not authenticated" });
+        console.log("Converting session id to ObjectId. Session id:", req.session.admin.id);
+        adminId = new ObjectId(req.session.admin.id);
+        console.log("Converted adminId:", adminId);
+      } catch (err) {
+        console.error("Error converting id:", err);
+        return res.json({ success: false, error: "Invalid admin id." });
+      }
+
+      // Fetch the latest admin record from the database
+      try {
+        console.log("Attempting to fetch admin record from database with _id:", adminId);
+        const adminRecord = await db.collection("admin_accounts").findOne({ _id: adminId });
+        console.log("Fetched admin record:", adminRecord);
+
+        if (!adminRecord) {
+          console.error("Admin record not found for _id:", adminId);
+          return res.json({ success: false, error: "Admin record not found." });
         }
 
-        const { name, email, oldPassword, newPassword, img } = req.body;
-
-        // Server-side basic validation (even though client-side validates)
-        if (!name || !email) {
-          return res.json({ success: false, error: "Missing required fields." });
-        }
-
-        let updateFields = { name, email, img };
-
-        // If a password change is requested, verify the old password
+        // If a password change is attempted, validate the old password
         if (newPassword) {
+          console.log("Password change attempted. Validating old password...");
           if (!oldPassword) {
-            return res.json({ success: false, error: "Please enter your old password to change your password." });
+            console.error("Old password not provided for password change.");
+            return res.json({ success: false, error: "Old password is required to change your password." });
           }
-          // In production, use hashed passwords and a proper password verification method.
-          if (req.session.admin.password !== oldPassword) {
+
+          // For now using plain text comparison; consider using bcrypt in production
+          console.log("Comparing input old password:", oldPassword, "with stored password:", adminRecord.password);
+          if (oldPassword !== adminRecord.password) {
+            console.error("Old password does not match.");
             return res.json({ success: false, error: "Old password is incorrect." });
           }
-          updateFields.password = newPassword;
         }
 
-        // Update the admin record using the admin's _id
-        const adminsCollection = db.collection("admins");
-        const adminId = req.session.admin._id;
-        await adminsCollection.updateOne({ _id: adminId }, { $set: updateFields });
+        // Build the update object with the provided fields
+        const updateObj = {
+          name,
+          email,
+          img,
+        };
 
-        // Update session data with new details
-        req.session.admin = { ...req.session.admin, ...updateFields };
+        if (newPassword) {
+          updateObj.password = newPassword;
+        }
 
-        // Return a success response
-        res.json({ success: true, message: "Profile saved successfully." });
-      } catch (err) {
-        console.error("Error updating account:", err);
-        res.json({ success: false, error: "Server error." });
+        console.log("Update object to be applied:", updateObj);
+
+        // Update the document and capture the result
+        const updateResult = await db.collection("admin_accounts").updateOne({ _id: adminId }, { $set: updateObj });
+
+        console.log("Update result:", updateResult);
+
+        if (updateResult.modifiedCount === 0) {
+          console.warn("No changes were made to the account. It might be because the new data matches the existing data.");
+          return res.json({ success: false, error: "No changes were made to the account." });
+        }
+
+        // Update the session with the new details. Use the same key as stored originally.
+        req.session.admin = { ...req.session.admin, ...updateObj };
+        console.log("Session admin updated to:", req.session.admin);
+
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error during admin account update:", error);
+        res.json({ success: false, error: "An error occurred while updating the account." });
       }
     });
+
+    // app.post("/update-account", async (req, res) => {
+    //   try {
+    //     // Ensure the admin is authenticated
+    //     if (!req.session.admin) {
+    //       return res.json({ success: false, error: "Not authenticated" });
+    //     }
+
+    //     const { name, email, oldPassword, newPassword, img } = req.body;
+
+    //     // Server-side basic validation (even though client-side validates)
+    //     if (!name || !email) {
+    //       return res.json({ success: false, error: "Missing required fields." });
+    //     }
+
+    //     let updateFields = { name, email, img };
+
+    //     // If a password change is requested, verify the old password
+    //     if (newPassword) {
+    //       if (!oldPassword) {
+    //         return res.json({ success: false, error: "Please enter your old password to change your password." });
+    //       }
+    //       // In production, use hashed passwords and a proper password verification method.
+    //       if (req.session.admin.password !== oldPassword) {
+    //         return res.json({ success: false, error: "Old password is incorrect." });
+    //       }
+    //       updateFields.password = newPassword;
+    //     }
+
+    //     // Update the admin record using the admin's _id
+    //     const adminsCollection = db.collection("admins");
+    //     const adminId = req.session.admin._id;
+    //     await adminsCollection.updateOne({ _id: adminId }, { $set: updateFields });
+
+    //     // Update session data with new details
+    //     req.session.admin = { ...req.session.admin, ...updateFields };
+
+    //     // Return a success response
+    //     res.json({ success: true, message: "Profile saved successfully." });
+    //   } catch (err) {
+    //     console.error("Error updating account:", err);
+    //     res.json({ success: false, error: "Server error." });
+    //   }
+    // });
 
     app.get("/help-page", async (req, res) => {
       const electionConfigCollection = db.collection("election_config");

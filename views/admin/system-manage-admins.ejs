@@ -41,6 +41,10 @@
     </style>
   </head>
   <body>
+    <script>
+      const loggedInAdminId = "<%= loggedInAdmin.id %>";
+      console.log("Logged in admin id from EJS:", loggedInAdminId);
+    </script>
     <%- include('header') %>
     <div class="content">
       <%- include('sidebar', { activeTab: 'system', activeSub: "manage-admins" }) %>
@@ -67,7 +71,7 @@
                   <th>ROLE</th>
                   <th>EMAIL</th>
                   <th>PASSWORD</th>
-                  <th>STATUS</th>
+                  <!-- <th>STATUS</th> -->
                   <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
                   <th>ACTIONS</th>
                   <% } %>
@@ -94,13 +98,13 @@
                       <i class="fa-solid fa-magnifying-glass"></i> show
                     </button>
                   </td>
-                  <td>
+                  <!-- <td>
                     <% if (admin.online) { %>
                       <span class="status-indicator active">Active</span>
                     <% } else { %>
                       <span class="status-indicator inactive">Inactive</span>
                     <% } %>
-                  </td>
+                  </td> -->
                   <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
                   <td>
                     <div class="actions">
@@ -195,8 +199,8 @@
             <option value="Inactive">Inactive</option>
           </select>
            -->
-          <label>Status:</label>
-          <input type="text" id="edit-status-display" disabled />
+          <!-- <label>Status:</label>
+          <input type="text" id="edit-status-display" disabled /> -->
            
           <label>Profile Image:</label>
           <input type="file" name="imgUpload" id="edit-imgUpload" accept="image/*" onchange="convertEditImageToBase64(event)" />
@@ -285,5 +289,6 @@
     <script>
       const socket = io("/", { query: { email: "<%= loggedInAdmin.email %>" } });
     </script>
+    
   </body>
 </html>

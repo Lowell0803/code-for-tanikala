@@ -3,22 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
     <title>BulSU Voting System</title>
 
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/election-voter-info.css" />
 
-    <!-- Boxicons CDN Link -->
-
+    <!-- Boxicons & Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
   </head>
-
   <body>
     <%- include('header') %>
 
@@ -32,6 +29,7 @@
           </div>
         </div>
         <hr class="title-line" />
+
         <div class="main-header">
           <div class="main-header-title">
             <h1 class="brown">List of Registered Student Voters</h1>
@@ -45,12 +43,11 @@
             <input placeholder="Search" type="search" class="input" />
           </div>
           <div class="main-header-options">
-            <!-- <img src="../img/setting.png" class="option-filter" /> -->
             <img src="../img/printer.png" class="option-print" />
           </div>
         </div>
 
-        <!-- New Filter Controls -->
+        <!-- Filter Controls -->
         <div class="filter-controls" style="margin: 10px 0; padding: 5px; border: 1px solid #ccc">
           <label for="collegeFilter">Filter by College:</label>
           <select id="collegeFilter">
@@ -64,7 +61,7 @@
             <option value="College of Information and Communications Technology">College of Information and Communications Technology</option>
             <option value="College of Engineering">College of Engineering</option>
             <option value="College of Education">College of Education</option>
-            <option value="CN">CN</option>
+            <option value="College of Nursing">College of Nursing</option>
             <option value="College of Science">College of Science</option>
             <option value="College of Sports, Exercise, and Recreation">College of Sports, Exercise, and Recreation</option>
             <option value="College of Social Sciences and Philosophy">College of Social Sciences and Philosophy</option>
@@ -80,7 +77,6 @@
             <option value="all">All</option>
             <option value="Registered">Registered</option>
             <option value="Voted">Voted</option>
-            <!-- Add additional statuses as needed -->
           </select>
         </div>
 
@@ -101,206 +97,231 @@
               </tr>
             </thead>
             <tbody>
-              <% if (voters.length > 0) { %> <% voters.forEach((voter, index) => { %>
-              <tr>
-                <td><%= index + 1 %></td>
-                <td><%= voter.name %></td>
-                <td><%= voter.email %></td>
-                <td><%= voter.student_number %></td>
-                <td><%= voter.campus %></td>
-                <td><%= voter.college %></td>
-                <td><%= voter.program %></td>
-                <td><%= voter.status %></td>
-              </tr>
-              <% }); %> <% } else { %>
-              <tr>
-                <td colspan="8" style="text-align: center">No registered voters found.</td>
-              </tr>
+              <% if (voters.length > 0) { %>
+                <% voters.forEach((voter, index) => { %>
+                  <tr>
+                    <td><%= index + 1 %></td>
+                    <td><%= voter.name %></td>
+                    <td><%= voter.email %></td>
+                    <td><%= voter.student_number %></td>
+                    <td><%= voter.campus %></td>
+                    <td><%= voter.college %></td>
+                    <td><%= voter.program %></td>
+                    <td><%= voter.status %></td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="8" style="text-align: center">No registered voters found.</td>
+                </tr>
               <% } %>
             </tbody>
           </table>
+          <!-- Pagination controls will be injected here -->
+          <div id="paginationControls"></div>
         </div>
       </main>
     </div>
 
+    <%- include('footer') %>
+
     <script>
-      // Set how many rows per page
-      const rowsPerPage = 100;
-      let currentPage = 1;
-
-      // Function to paginate table rows
-      function paginateTable() {
-        // Get all rows that are currently visible after filtering.
-        const filteredRows = Array.from(document.querySelectorAll("#studentTable tbody tr")).filter((row) => row.style.display !== "none");
-
-        const totalRows = filteredRows.length;
-        const totalPages = Math.ceil(totalRows / rowsPerPage);
-
-        // Hide all filtered rows first
-        filteredRows.forEach((row) => (row.style.display = "none"));
-
-        // Calculate start and end indices for the current page.
-        const start = (currentPage - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-
-        // Show only the rows for the current page.
-        filteredRows.slice(start, end).forEach((row) => (row.style.display = ""));
-
-        // Render pagination controls.
-        renderPaginationControls(totalPages);
-      }
-
-      // Function to render pagination controls
-      function renderPaginationControls(totalPages) {
-        // Remove any existing controls.
-        let paginationContainer = document.getElementById("paginationControls");
-        if (!paginationContainer) {
-          paginationContainer = document.createElement("div");
-          paginationContainer.id = "paginationControls";
-          paginationContainer.style.marginTop = "10px";
-          document.querySelector(".main-content").appendChild(paginationContainer);
+      // Mapping for each college to its programs (keys in lowercase)
+      const collegePrograms = {
+        "college of architecture and fine arts": [
+          "Bachelor of Science in Architecture",
+          "Bachelor of Fine Arts Major in Visual Communication",
+          "Bachelor of Landscape Architecture"
+        ],
+        "college of arts and letters": [
+          "Bachelor of Arts in Broadcasting",
+          "Bachelor of Arts in Journalism",
+          "Batsilyer ng Sining sa Malikhaing Pagsulat",
+          "Bachelor of Performing Arts"
+        ],
+        "college of business education and accountancy": [
+          "Bachelor of Science in Accountancy/Accounting Information System",
+          "Bachelor of Science in Business Administration",
+          "Bachelor of Science in Entrepreneurship"
+        ],
+        "college of criminal justice education": [
+          "Bachelor of Science in Criminology",
+          "Bachelor of Arts in Legal Management"
+        ],
+        "college of hospitality and tourism management": [
+          "Bachelor of Science in Hospitality Management",
+          "Bachelor of Science in Tourism Management"
+        ],
+        "college of industrial technology": [
+          "Bachelor of Industrial Technology"
+        ],
+        "college of information and communications technology": [
+          "Bachelor of Science in Information Technology",
+          "Bachelor of Library and Information Science",
+          "Bachelor of Science in Information System"
+        ],
+        "college of engineering": [
+          "Bachelor of Science in Civil Engineering",
+          "Bachelor of Science in Computer Engineering",
+          "Bachelor of Science in Electrical Engineering",
+          "Bachelor of Science in Electronics Engineering",
+          "Bachelor of Science in Industrial Engineering",
+          "Bachelor of Science in Manufacturing Engineering",
+          "Bachelor of Science in Mechanical Engineering",
+          "Bachelor of Science in Mechatronics Engineering"
+        ],
+        "college of education": [
+          "Bachelor of Elementary Education",
+          "Bachelor of Secondary Education",
+          "Bachelor of Early Childhood Education",
+          "Bachelor of Physical Education",
+          "Bachelor of Technical Vocational Teacher Education",
+          "Bachelor of Technology and Livelihood Education"
+        ],
+        "cn": [
+          "Bachelor of Science in Nursing"
+        ],
+        "college of science": [
+          "Bachelor of Science in Biology",
+          "Bachelor of Science in Environmental Science",
+          "Bachelor of Science in Medical Technology",
+          "Bachelor of Science in Food Technology",
+          "Bachelor of Science in Math with Specialization in Applied Statistics",
+          "Bachelor of Science in Math with Specialization in Business Applications",
+          "Bachelor of Science in Math with Specialization in Computer Science"
+        ],
+        "college of sports, exercise and recreation": [
+          "Bachelor of Science in Exercise and Sports Science"
+        ],
+        "college of social sciences and philosophy": [
+          "Bachelor of Science in Psychology",
+          "Bachelor of Public Administration",
+          "Bachelor of Science in Social Work"
+        ]
+      };
+    
+      // Get filter elements and table rows
+      const searchInput = document.querySelector(".input");
+      const collegeFilter = document.getElementById("collegeFilter");
+      const programFilter = document.getElementById("programFilter");
+      const statusFilter = document.getElementById("statusFilter");
+      const table = document.getElementById("studentTable");
+      const rows = table.querySelectorAll("tbody tr");
+    
+      // Function to update the program dropdown based on selected college
+      function updateProgramDropdown() {
+        const selectedCollege = collegeFilter.value; // e.g., "College of Architecture and Fine Arts"
+        // Clear current options
+        programFilter.innerHTML = "";
+    
+        // If "all" is selected, disable the program filter and set default option
+        if (selectedCollege.toLowerCase() === "all") {
+          programFilter.disabled = true;
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "all";
+          defaultOption.textContent = "All Programs";
+          programFilter.appendChild(defaultOption);
+          return;
         }
-        paginationContainer.innerHTML = "";
-
-        // Create Previous button.
-        const prevBtn = document.createElement("button");
-        prevBtn.textContent = "Previous";
-        prevBtn.disabled = currentPage === 1;
-        prevBtn.addEventListener("click", () => {
-          if (currentPage > 1) {
-            currentPage--;
-            paginateTable();
-          }
-        });
-        paginationContainer.appendChild(prevBtn);
-
-        // Create page number buttons (you can limit the number shown if desired).
-        for (let i = 1; i <= totalPages; i++) {
-          const btn = document.createElement("button");
-          btn.textContent = i;
-          btn.style.margin = "0 5px";
-          if (i === currentPage) {
-            btn.style.fontWeight = "bold";
-          }
-          btn.addEventListener("click", () => {
-            currentPage = i;
-            paginateTable();
-          });
-          paginationContainer.appendChild(btn);
+    
+        // Normalize the college name for matching (lowercase)
+        const normalizedCollege = selectedCollege.toLowerCase();
+        const programs = collegePrograms[normalizedCollege] || [];
+    
+        if (programs.length === 0) {
+          programFilter.disabled = true;
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "all";
+          defaultOption.textContent = "All Programs";
+          programFilter.appendChild(defaultOption);
+          return;
         }
-
-        // Create Next button.
-        const nextBtn = document.createElement("button");
-        nextBtn.textContent = "Next";
-        nextBtn.disabled = currentPage === totalPages;
-        nextBtn.addEventListener("click", () => {
-          if (currentPage < totalPages) {
-            currentPage++;
-            paginateTable();
-          }
+    
+        // Enable program filter and populate options
+        programFilter.disabled = false;
+        // Add default "All Programs" option
+        const allOption = document.createElement("option");
+        allOption.value = "all";
+        allOption.textContent = "All Programs";
+        programFilter.appendChild(allOption);
+    
+        programs.forEach((prog) => {
+          const option = document.createElement("option");
+          option.value = prog;
+          option.textContent = prog;
+          programFilter.appendChild(option);
         });
-        paginationContainer.appendChild(nextBtn);
       }
-
-      // Update filterTable to call paginateTable at the end.
+    
+      // Function to filter the table based on all criteria (without pagination)
       function filterTable() {
         const searchText = searchInput.value.toLowerCase();
         const selectedCollege = collegeFilter.value.toLowerCase();
         const selectedProgram = programFilter.value.toLowerCase();
         const selectedStatus = statusFilter.value.toLowerCase();
-
-        for (let row of rows) {
-          // Columns: 1: NAME, 2: EMAIL, 5: COLLEGE, 6: PROGRAM, 7: STATUS
+    
+        rows.forEach((row) => {
+          // Column indices: 1: NAME, 2: EMAIL, 5: COLLEGE, 6: PROGRAM, 7: STATUS
           const name = row.cells[1].textContent.toLowerCase();
           const email = row.cells[2].textContent.toLowerCase();
           const college = row.cells[5].textContent.toLowerCase();
           const program = row.cells[6].textContent.toLowerCase();
           const status = row.cells[7].textContent.toLowerCase();
-
+    
           const matchesSearch = name.includes(searchText) || email.includes(searchText);
           const matchesCollege = selectedCollege === "all" || college.includes(selectedCollege);
           const matchesProgram = selectedProgram === "all" || program.includes(selectedProgram);
           const matchesStatus = selectedStatus === "all" || status === selectedStatus;
-
-          // Set display based on filter; temporarily show all that match.
-          row.style.display = matchesSearch && matchesCollege && matchesProgram && matchesStatus ? "" : "none";
-        }
-        // Reset current page and paginate after filtering.
-        currentPage = 1;
-        paginateTable();
+    
+          row.style.display = (matchesSearch && matchesCollege && matchesProgram && matchesStatus) ? "" : "none";
+        });
       }
-
-      // Update event listeners to call filterTable (which in turn paginates)
+    
+      // Attach event listeners for filter controls
       searchInput.addEventListener("input", filterTable);
-      collegeFilter.addEventListener("change", function () {
+      collegeFilter.addEventListener("change", () => {
         updateProgramDropdown();
         filterTable();
       });
       programFilter.addEventListener("change", filterTable);
       statusFilter.addEventListener("change", filterTable);
-
-      // Run pagination initially in case there is preexisting filter
-      document.addEventListener("DOMContentLoaded", function () {
-        paginateTable();
+    
+      // Run initial filtering when the DOM is loaded
+      document.addEventListener("DOMContentLoaded", () => {
+        updateProgramDropdown();
+        filterTable();
       });
     </script>
+  
 
-    <%- include('footer') %>
-
+    <!-- Print button using jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        const searchInput = document.querySelector(".input");
-        const table = document.getElementById("studentTable");
-        const rows = table.querySelectorAll("tbody tr");
+        const printButton = document.querySelector(".option-print");
+        printButton.addEventListener("click", function () {
+          console.log("Print button clicked.");
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF("p", "pt");
 
-        searchInput.addEventListener("input", function () {
-          const filter = searchInput.value.toLowerCase();
-          rows.forEach((row) => {
-            // Assuming the "NAME" column is the second cell (index 1)
-            const nameCell = row.cells[1].textContent.toLowerCase();
-            if (nameCell.indexOf(filter) > -1) {
-              row.style.display = "";
-            } else {
-              row.style.display = "none";
-            }
+          doc.setFontSize(18);
+          doc.text("Registered Student Voters", 40, 40);
+
+          doc.autoTable({
+            html: "#studentTable",
+            startY: 60,
+            theme: "grid",
+            headStyles: { fillColor: [41, 128, 185] },
+            styles: { fontSize: 10 },
           });
+
+          doc.save("voters.pdf");
         });
       });
     </script>
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // Print button functionality using jsPDF and autoTable.
-        const printButton = document.querySelector(".option-print");
-        printButton.addEventListener("click", function () {
-          console.log("clicked");
-          // Use the jsPDF module from the window
-          const { jsPDF } = window.jspdf;
-          const doc = new jsPDF("p", "pt");
-
-          // Optionally add a title
-          doc.setFontSize(18);
-          doc.text("Registered Student Voters", 40, 40);
-
-          // Use autoTable plugin; the table element is your table with id "studentTable"
-          doc.autoTable({
-            html: "#studentTable",
-            startY: 60,
-            theme: "grid", // You can change the theme
-            headStyles: { fillColor: [41, 128, 185] },
-            styles: { fontSize: 10 },
-          });
-
-          // Save or open the PDF in a new window.
-          doc.save("voters.pdf");
-        });
-      });
-    </script>
   </body>
 </html>
