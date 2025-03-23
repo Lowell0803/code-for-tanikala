@@ -3870,96 +3870,6 @@ const startServer = async () => {
       }
     });
 
-    async function saveVoterTurnoutData() {
-      try {
-        const electionConfigCollection = db.collection("election_config");
-        let electionConfig = await electionConfigCollection.findOne({});
-
-        const votersCollection = db.collection("registered_voters");
-
-        // Aggregate counts for "Registered" statuses per college
-        const collegeRegisteredAggregation = await votersCollection
-          .aggregate([
-            {
-              $group: {
-                _id: "$college",
-                count: {
-                  $sum: { $cond: [{ $eq: ["$status", "Registered"] }, 1, 0] },
-                },
-              },
-            },
-          ])
-          .toArray();
-
-        // Aggregate counts for "Voted" statuses per college
-        const collegeVotedAggregation = await votersCollection
-          .aggregate([
-            {
-              $group: {
-                _id: "$college",
-                count: {
-                  $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] },
-                },
-              },
-            },
-          ])
-          .toArray();
-
-        // Update each college object in electionConfig.colleges with computed values and percentages
-        electionConfig.colleges.forEach((collegeObj) => {
-          // Extract acronym from the registered_voters college field using regex.
-          const regGroup = collegeRegisteredAggregation.find((g) => {
-            const match = g._id.match(/\(([^)]+)\)/);
-            return match && match[1] === collegeObj.acronym;
-          });
-          const votedGroup = collegeVotedAggregation.find((g) => {
-            const match = g._id.match(/\(([^)]+)\)/);
-            return match && match[1] === collegeObj.acronym;
-          });
-
-          collegeObj.registeredNotVoted = regGroup ? regGroup.count : 0;
-          collegeObj.registeredVoted = votedGroup ? votedGroup.count : 0;
-          collegeObj.notRegisteredNotVoted = collegeObj.numberOfStudents - (collegeObj.registeredNotVoted + collegeObj.registeredVoted);
-
-          // Compute the turnout percentage for the college
-          collegeObj.voterTurnoutPercentage = collegeObj.numberOfStudents > 0 ? ((collegeObj.registeredVoted / collegeObj.numberOfStudents) * 100).toFixed(2) : "0.00";
-        });
-
-        // Calculate overall totals
-        let totalNumberOfStudents = 0;
-        let totalRegisteredVoted = 0;
-
-        electionConfig.colleges.forEach((collegeObj) => {
-          totalNumberOfStudents += collegeObj.numberOfStudents;
-          totalRegisteredVoted += collegeObj.registeredVoted;
-        });
-
-        // Update overall totals and overall turnout percentage in electionConfig
-        electionConfig.totalNumberOfStudents = totalNumberOfStudents;
-        electionConfig.totalRegisteredVoted = totalRegisteredVoted;
-        electionConfig.overallVoterTurnoutPercentage = totalNumberOfStudents > 0 ? ((totalRegisteredVoted / totalNumberOfStudents) * 100).toFixed(2) : "0.00";
-
-        // Determine the current period using fakeCurrentDate if enabled
-        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-        // Prepare the document to be stored
-        const voterTurnoutData = {
-          timestamp: new Date(),
-          data: electionConfig,
-        };
-
-        // Save the computed data into the "voter_turnout" collection
-        const voterTurnoutCollection = db.collection("voter_turnout");
-        await voterTurnoutCollection.insertOne(voterTurnoutData);
-
-        return "Voter turnout data saved successfully.";
-      } catch (error) {
-        console.error("Error saving voter turnout data:", error);
-        throw error;
-      }
-    }
-
     app.get("/rvs-voter-turnout", async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
@@ -4503,6 +4413,209 @@ const startServer = async () => {
       }
     });
 
+    app.get("/rvs-election-results", async (req, res) => {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Call the getCandidateDetails function from the contract
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+        // Fetch candidates from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine Blockchain Data with Candidate Info
+        const candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+          };
+        });
+
+        res.render("homepages/rvs-election-results", { candidates, electionConfig });
+      } catch (error) {
+        console.error("Error fetching candidate details:", error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    app.get("/reset", async (req, res) => {
+      const electionConfigCollection = db.collection("election_config");
+      let electionConfig = await electionConfigCollection.findOne({});
+
+      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+      res.render("admin/election-reset", { electionConfig, loggedInAdmin: req.session.admin, moment });
+    });
+
+    // Function to update and save voter turnout data
+    async function saveVoterTurnoutData() {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const votersCollection = db.collection("registered_voters");
+
+        // Aggregate counts for "Registered" statuses per college
+        const collegeRegisteredAggregation = await votersCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$college",
+                count: {
+                  $sum: { $cond: [{ $eq: ["$status", "Registered"] }, 1, 0] },
+                },
+              },
+            },
+          ])
+          .toArray();
+
+        // Aggregate counts for "Voted" statuses per college
+        const collegeVotedAggregation = await votersCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$college",
+                count: {
+                  $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] },
+                },
+              },
+            },
+          ])
+          .toArray();
+
+        // Update each college object in electionConfig.colleges with computed values and percentages
+        electionConfig.colleges.forEach((collegeObj) => {
+          // Extract acronym from the registered_voters college field using regex.
+          const regGroup = collegeRegisteredAggregation.find((g) => {
+            const match = g._id.match(/\(([^)]+)\)/);
+            return match && match[1] === collegeObj.acronym;
+          });
+          const votedGroup = collegeVotedAggregation.find((g) => {
+            const match = g._id.match(/\(([^)]+)\)/);
+            return match && match[1] === collegeObj.acronym;
+          });
+
+          collegeObj.registeredNotVoted = regGroup ? regGroup.count : 0;
+          collegeObj.registeredVoted = votedGroup ? votedGroup.count : 0;
+          collegeObj.notRegisteredNotVoted = collegeObj.numberOfStudents - (collegeObj.registeredNotVoted + collegeObj.registeredVoted);
+
+          // Compute the turnout percentage for the college
+          collegeObj.voterTurnoutPercentage = collegeObj.numberOfStudents > 0 ? ((collegeObj.registeredVoted / collegeObj.numberOfStudents) * 100).toFixed(2) : "0.00";
+        });
+
+        // Calculate overall totals
+        let totalNumberOfStudents = 0;
+        let totalRegisteredVoted = 0;
+
+        electionConfig.colleges.forEach((collegeObj) => {
+          totalNumberOfStudents += collegeObj.numberOfStudents;
+          totalRegisteredVoted += collegeObj.registeredVoted;
+        });
+
+        // Update overall totals and overall turnout percentage in electionConfig
+        electionConfig.totalNumberOfStudents = totalNumberOfStudents;
+        electionConfig.totalRegisteredVoted = totalRegisteredVoted;
+        electionConfig.overallVoterTurnoutPercentage = totalNumberOfStudents > 0 ? ((totalRegisteredVoted / totalNumberOfStudents) * 100).toFixed(2) : "0.00";
+
+        // Determine the current period using fakeCurrentDate if enabled
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Prepare the document to be stored
+        const voterTurnoutData = {
+          timestamp: new Date(),
+          data: electionConfig,
+        };
+
+        // Save the computed data into the "voter_turnout" collection
+        const voterTurnoutCollection = db.collection("voter_turnout");
+        await voterTurnoutCollection.insertOne(voterTurnoutData);
+
+        return "Voter turnout data saved successfully.";
+      } catch (error) {
+        console.error("Error saving voter turnout data:", error);
+        throw error;
+      }
+    }
+
+    // Function to compute and save vote tally data
+    async function saveVoteTallyData() {
+      try {
+        // Fetch election configuration and compute the current period
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Retrieve candidate details from the blockchain
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+        // Fetch candidate info from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine blockchain data with candidate info
+        let candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+            uniqueId: candidate ? candidate.uniqueId : "",
+          };
+        });
+
+        // For each candidate, fetch the vote hashes from the candidate_hashes collection.
+        const candidateHashesCollection = db.collection("candidate_hashes");
+        candidates = await Promise.all(
+          candidates.map(async (candidate) => {
+            const candidateHashes = await candidateHashesCollection.findOne({
+              candidateId: candidate.uniqueId,
+            });
+            return {
+              ...candidate,
+              hashes: candidateHashes ? candidateHashes.emails : [],
+            };
+          })
+        );
+
+        // Prepare the document for storage
+        const voteTallyData = {
+          timestamp: new Date(),
+          electionConfig, // includes the current period and other election settings
+          candidates, // includes candidate info along with vote counts and hashes
+        };
+
+        // Insert the document into the vote_tally collection
+        const voteTallyCollection = db.collection("vote_tally");
+        await voteTallyCollection.insertOne(voteTallyData);
+
+        return "Vote tally data (including hashes) saved successfully.";
+      } catch (error) {
+        console.error("Error saving vote tally data:", error);
+        throw error;
+      }
+    }
+
+    // Function to compute and save election results data
     async function saveResultsData() {
       try {
         // Retrieve election configuration and compute the current period
@@ -4534,8 +4647,8 @@ const startServer = async () => {
         });
 
         /* -------------------------------
-           Process Results as in shared-results.ejs
-           ------------------------------- */
+       Process Results as in shared-results.ejs
+       ------------------------------- */
 
         // PRESIDENT processing
         const presidentCandidates = candidates.filter((c) => c.position === "president" && c.name !== "Abstain");
@@ -4708,54 +4821,6 @@ const startServer = async () => {
       }
     }
 
-    app.get("/rvs-election-results", async (req, res) => {
-      try {
-        const electionConfigCollection = db.collection("election_config");
-        let electionConfig = await electionConfigCollection.findOne({});
-
-        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-        // Call the getCandidateDetails function from the contract
-        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
-
-        // Fetch candidates from MongoDB
-        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
-        const allCandidates = aggregatedData.candidates;
-
-        // Combine Blockchain Data with Candidate Info
-        const candidates = candidateIds.map((id, index) => {
-          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
-          return {
-            candidateId: id.toString(),
-            name: candidate ? candidate.name : "Unknown Candidate",
-            party: candidate ? candidate.party : "Unknown Party",
-            position: candidate ? candidate.position : "Unknown Position",
-            image: candidate ? candidate.image : "No Image",
-            college: candidate ? candidate.college : "",
-            program: candidate ? candidate.program : "",
-            voteCount: voteCounts[index].toString(),
-          };
-        });
-
-        res.render("homepages/rvs-election-results", { candidates, electionConfig });
-      } catch (error) {
-        console.error("Error fetching candidate details:", error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    app.get("/reset", async (req, res) => {
-      const electionConfigCollection = db.collection("election_config");
-      let electionConfig = await electionConfigCollection.findOne({});
-
-      const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
-      electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-
-      res.render("admin/election-reset", { electionConfig, loggedInAdmin: req.session.admin, moment });
-    });
-
-    // Reset Election Route – Archive election data (deletion steps are commented out)
     // Reset-election route that calls the three functions and archives the data
     app.post("/reset-election", ensureAdminAuthenticated, async (req, res) => {
       try {
