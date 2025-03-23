@@ -32,8 +32,8 @@
             </div>
             <h3 class="top">
                           <b>Blockchain Link:</b>
-                          <% if (blockchainInfo && blockchainInfo.transactionHash) { %>
-                            <a href="https://amoy.polygonscan.com/tx/<%= blockchainInfo.transactionHash %>#eventlog" target="_blank">
+                          <% if (blockchainMgmt && blockchainMgmt.candidateSubmissionHash) { %>
+                            <a href="https://amoy.polygonscan.com/tx/<%= blockchainMgmt.candidateSubmissionHash %>#eventlog" target="_blank">
                               View Transaction
                             </a>
                           <% } else { %>
@@ -120,35 +120,40 @@
                       : moment.tz(new Date(), "Asia/Manila");
                   
                     function updateElectionStatusNew() {
-                      // Determine current time: use real time if enabled, else newFakeCurrent
                       const currentTime = newUseRealTime ? moment.tz(new Date(), "Asia/Manila") : newFakeCurrent;
-                      let statusText = newConfig.electionStatus || "";
+                      const baseStatus = newConfig.electionStatus || "";
+                      let appendedText = "";
                   
-                      if (statusText === "ELECTION ACTIVE") {
+                      // Determine the appended text if status is ELECTION ACTIVE or ELECTION INACTIVE
+                      if (newConfig.electionStatus === "ELECTION ACTIVE" || newConfig.electionStatus === "ELECTION INACTIVE") {
                         if (newConfig.specialStatus && newConfig.specialStatus !== "None") {
-                          statusText += ` | ${newConfig.specialStatus}`;
-                        } else {
+                          appendedText = newConfig.specialStatus;
+                        } else if (newConfig.electionStatus === "ELECTION ACTIVE") {
                           if (newRegStart && currentTime.isBefore(newRegStart)) {
-                            statusText += " | Waiting for Registration Period";
+                            appendedText = "Waiting for Registration Period";
                           } else if (newRegStart && newRegEnd && currentTime.isBetween(newRegStart, newRegEnd, null, '[)')) {
-                            statusText += " | Registration Period";
+                            appendedText = "Registration Period";
                           } else if (newRegEnd && newVoteStart && currentTime.isBetween(newRegEnd, newVoteStart, null, '[)')) {
-                            statusText += " | Waiting for Voting Period";
+                            appendedText = "Waiting for Voting Period";
                           } else if (newVoteStart && newVoteEnd && currentTime.isBetween(newVoteStart, newVoteEnd, null, '[)')) {
-                            statusText += " | Voting Period";
+                            appendedText = "Voting Period";
                           } else if (newVoteEnd && currentTime.isAfter(newVoteEnd)) {
-                            statusText += " | Results Double Checking Period";
+                            appendedText = "Results Double Checking Period";
                           }
                         }
                       }
                   
-                      document.getElementById("electionStatusText").innerHTML = statusText;
+                      let finalStatus = baseStatus;
+                      if (appendedText) {
+                        // Use red if appended text is "System Temporarily Closed", otherwise use golden hue.
+                        const color = (appendedText === "System Temporarily Closed") ? "#a60212" : "#956004";
+                        finalStatus += " | " + `<i style="color: ${color};">${appendedText}</i>`;
+                      }
+                      document.getElementById("electionStatusText").innerHTML = finalStatus;
                     }
                   
-                    // Initial update
+                    // Initial update and continuous updates
                     updateElectionStatusNew();
-                  
-                    // Update every second
                     setInterval(() => {
                       if (!newUseRealTime) {
                         newFakeCurrent.add(1, 'seconds');
@@ -156,6 +161,7 @@
                       updateElectionStatusNew();
                     }, 1000);
                   </script>
+                  
                   
 
                   <br />
