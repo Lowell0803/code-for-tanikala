@@ -3243,39 +3243,23 @@ const startServer = async () => {
       }
     });
 
-    // POST /temporarily-closed
     app.post("/temporarily-closed", async (req, res) => {
       try {
-        const update = {
-          electionStatus: "Temporarily Closed",
-          currentPeriod: { name: "Temporarily Closed", duration: "", waitingFor: null },
-          updatedAt: new Date(),
-        };
-        await db.collection("election_config").updateOne({}, { $set: update });
-        res.redirect("/dashboard");
+        await db.collection("election_config").updateOne({}, { $set: { specialStatus: "System Temporarily Closed" } });
+        res.redirect("/dashboard"); // Redirect to the homepage or appropriate route
       } catch (error) {
-        console.error("Error setting temporarily closed:", error);
-        res.status(500).send("Internal Server Error");
+        console.error("Error closing election:", error);
+        res.status(500).send("Error updating election configuration");
       }
     });
 
-    // POST /resume-election
     app.post("/resume-election", async (req, res) => {
       try {
-        // When resuming, you may want to recalc the current phase based on dates.
-        const config = await db.collection("election_config").findOne({});
-        const now = config.fakeCurrentDate ? new Date(config.fakeCurrentDate) : new Date();
-        const currentPeriod = calculateCurrentPeriod(config, now);
-        const update = {
-          electionStatus: currentPeriod.name, // e.g. "Registration Period" or as computed
-          currentPeriod,
-          updatedAt: new Date(),
-        };
-        await db.collection("election_config").updateOne({}, { $set: update });
-        res.redirect("/configuration");
+        await db.collection("election_config").updateOne({}, { $set: { specialStatus: "None" } });
+        res.redirect("/dashboard"); // Redirect to the homepage or appropriate route
       } catch (error) {
         console.error("Error resuming election:", error);
-        res.status(500).send("Internal Server Error");
+        res.status(500).send("Error updating election configuration");
       }
     });
 

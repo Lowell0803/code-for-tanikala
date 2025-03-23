@@ -160,7 +160,7 @@
 
                   <br />
                   <div class="center">
-                    <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
+                    <% if (electionConfig.specialStatus === "System Temporarily Closed") { %>
                     <form action="/resume-election" method="POST">
                       <button type="submit election" class="action-buttons resume">Resume Election</button>
                     </form>
@@ -294,7 +294,7 @@
                   
                   // Calculate voter turnout percentage: voted students out of the total number of students.
                   let voterTurnoutPercentage = electionConfig.totalNumberOfStudents > 0 ? 
-                    (electionConfig.totalVoted / electionConfig.totalNumberOfStudents * 100) : 0;
+                    (electionConfig.totalRegisteredVoted / electionConfig.totalNumberOfStudents * 100) : 0;
                 %>
               
                 <div class="beside">
@@ -393,13 +393,13 @@
                       <br />
                       <table class="currency">
                         <tr>
-                          <!-- <th>Polygon (POL)</th>
-                          <th>United States Dollar (USD)</th> -->
+                          <th>Polygon (POL)</th>
+                          <th>United States Dollar (USD)</th>
                           <th>Philippine Peso (PHP)</th>
                         </tr>
                         <tr>
-                          <!-- <td><%= walletInfo ? walletInfo.balancePOL.toFixed(4) : "N/A" %> POL</td>
-                          <td><%= walletInfo && walletInfo.balanceUSD ? walletInfo.balanceUSD.toFixed(2) : "N/A" %> USD</td> -->
+                          <td><%= walletInfo ? walletInfo.balancePOL.toFixed(4) : "N/A" %> POL</td>
+                          <td><%= walletInfo && walletInfo.balanceUSD ? walletInfo.balanceUSD.toFixed(2) : "N/A" %> USD</td>
                           <td><%= walletInfo && walletInfo.balancePHP ? walletInfo.balancePHP.toFixed(2) : "N/A" %> PHP</td>
                         </tr>
                       </table>
@@ -442,17 +442,29 @@
                       
                       <br />
                       <table class="currency">
-                        <tr>
-                          <th>Philippine Peso (PHP)</th>
-                        </tr>
-                        <tr>
-                          <td>
-                            <%= blockchainMgmt && blockchainMgmt.totalAmountSpentPHP !== undefined
-                              ? blockchainMgmt.totalAmountSpentPHP.toFixed(2)
-                              : "N/A" %> PHP
-                          </td>
-                        </tr>
-                      </table>
+                      <tr>
+                        <th>Polygon (POL)</th>
+                        <th>United States Dollar (USD)</th>
+                        <th>Philippine Peso (PHP)</th>
+                      </tr>
+                      <tr>
+                        <td>
+                          <%= blockchainMgmt && blockchainMgmt.totalAmountSpentPol !== undefined
+                            ? blockchainMgmt.totalAmountSpentPol.toFixed(6)
+                            : "N/A" %> POL
+                        </td>
+                        <td>
+                          <%= blockchainMgmt && blockchainMgmt.totalAmountSpentUSD !== undefined
+                            ? blockchainMgmt.totalAmountSpentUSD.toFixed(2)
+                            : "N/A" %> USD
+                        </td>
+                        <td>
+                          <%= blockchainMgmt && blockchainMgmt.totalAmountSpentPHP !== undefined
+                            ? blockchainMgmt.totalAmountSpentPHP.toFixed(2)
+                            : "N/A" %> PHP
+                        </td>
+                      </tr>
+                    </table>
                       <br />
                    
                  
