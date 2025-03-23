@@ -8,7 +8,8 @@
 
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
-    <link rel="stylesheet" type="text/css" href="admin/css/voter-id-form.css" />
+   
+    <link rel="stylesheet" type="text/css" href="admin/css/system-help-page.css" />
 
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
@@ -31,32 +32,140 @@
         </div>
         <hr class="title-line" />
         <div class="first-main">
-          <!-- sample voter ids form -->
-          <div class="hashes-container">
-            <h2 class="hashes-title">List of Transaction Hashes for "John Doe"</h2>
-            <div class="top-bar">
-              <strong
-                ><p class="total-votes">Total Votes: <span id="totalVotes"></span></p
-              ></strong>
-              <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search..." />
-                <button id="searchBtn">
-                  <i class="fa fa-search"></i>
-                  <!-- or any icon library -->
-                </button>
-              </div>
-            </div>
+        
+  
+    <p>
+      Welcome to the Tanikala Voting System, the official blockchain-based voting platform for the student government elections at Bulacan State University. Below, you will find descriptions of each tab and contact information for support.
+    </p>
+    <br />
+    <br />
+    <h1 class="center">Tab Descriptions</h1>
 
-            <div class="hashes-grid" id="hashesGrid">
-              <!-- The 3-column listing of transaction hashes goes here -->
-            </div>
+  <div class="indent">
+    <ul class="tabs">
+      <li>
+        <h3>Dashboard</h3>
+        <p>
+          Provides quick access to essential election-related information, including voter details, candidates, election results, and blockchain statistics such as the current admin fund, total blockchain expenses, registered voters, and voter turnout.
+        </p>
+      </li>
+      <br />
+      <li>
+        <h3>Configuration</h3>
+        <p>
+          Allows administrators to configure election details, including the election name, registration period, voting period, party lists, and the list of colleges along with their student population.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Candidate Management</h3>
+        <p>
+          Enables the addition, modification, and removal of candidates participating in the election.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Blockchain Management</h3>
+        <p>
+          Displays blockchain-related information, including admin wallet details, blockchain transactions, and other relevant blockchain data.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Blockchain Activity Log</h3>
+        <p>
+          Records all blockchain-related activities, ensuring transparency and accountability in blockchain operations.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Voter Information</h3>
+        <p>
+          Provides a list of registered voters, including their status and other relevant details.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Voter Turnout</h3>
+        <p>
+          Monitors and tracks voter participation in real-time during the election period.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Vote Tally</h3>
+        <p>
+          Displays vote counts per candidate as the election progresses.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Election Results</h3>
+        <p>
+          Presents the final results of the election once voting has concluded.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Reset Election</h3>
+        <p>
+          Allows administrators to reset the election data in case of an official restart.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Election Archives</h3>
+        <p>
+          Stores past election data for reference and record-keeping.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Edit Account</h3>
+        <p>
+          Enables administrators to update their account details and credentials.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Manage Admins</h3>
+        <p>
+          Allows for the addition and removal of admin accounts responsible for overseeing the election process.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>Help Page</h3>
+        <p>
+          Provides information on how to use the system, including FAQs and support contacts.
+        </p>
+      </li>
+       <br />
+      <li>
+        <h3>System Activity Log</h3>
+        <p>
+          Logs all administrative activities within the system for security and auditing purposes.
+        </p>
+      </li>
+       <br />
+    </ul>
+    </div>
+    <br />
+    <hr />
+    <br />
+    <h2>Contact Information</h2>
+    <br />
+    <p>
+      For any concerns or technical assistance, please reach out to the Tanikala Voting System support team:
+      
+    </p>
+    
+    <ul class="contact-info indent">
+      <li><b>Email:</b> tanikalavotingsystem@gmail.com</li>
+      <li><b>Phone:</b> 09761732057</li>
+     
+    </ul>
 
-            <div class="pagination">
-              <button id="prevBtn">&lt;</button>
-              <span id="pageInfo">Page 1 of 1</span>
-              <button id="nextBtn">&gt;</button>
-            </div>
-          </div>
         </div>
       </main>
     </div>

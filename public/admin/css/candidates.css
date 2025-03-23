@@ -339,7 +339,8 @@ form img {
 
 #form-add-lsc,
 #form-add,
-#form-edit {
+#form-edit,
+#form-edit-lsc {
   padding: 0;
   margin: 0;
 }

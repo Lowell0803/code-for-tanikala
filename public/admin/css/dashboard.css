@@ -69,8 +69,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
   border-radius: 1.5rem;
   font-size: 1rem;
   padding: 0.35rem;
@@ -151,11 +151,11 @@
   display: flex;
   flex-direction: column;
   height: 25vh;
-  flex-basis: 60%;
+  flex-basis: 50%;
   background-color: #dbd1fa;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  margin-right: 0.5rem;
+  margin-right: 1.5rem;
   align-items: center;
 }
 
@@ -163,24 +163,23 @@
   display: flex;
   flex-direction: column;
   height: 25vh;
-  flex-basis: 40%;
+  flex-basis: 50%;
   background-color: #f8d69e;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  margin-right: 0.5rem;
+
   align-items: center;
 }
 
 #voter-turnout {
   display: flex;
   flex-direction: column;
-  flex-basis: 40%;
-  height: 26vh;
+  flex-basis: 50%;
+  height: 25vh;
   background-color: #f8d69e;
   align-items: center;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  margin-left: 0.5rem;
 }
 
 #blockchain-management {
@@ -201,17 +200,83 @@
   padding-bottom: 0.5rem;
 }
 
-.quick-actions-buttons p {
+.quick-actions-buttons p,
+.box-label {
   font-size: 1.1rem;
 }
 
 #blockchain-dashboard {
   display: flex;
   flex-direction: column;
-  flex-basis: 50%;
+  width: 100%;
   background-color: #b8e5ff;
   margin-right: 1.5rem;
   padding: 1.5rem;
+}
+
+#registered-students,
+#voter-turnout {
+  background-color: #ffbc97;
+}
+
+#blockchain-dashboard,
+#vote-queue,
+#candidate-submission {
+  background-color: #dbd1fa;
+}
+
+.big {
+  font-size: 2.5rem;
+  padding-bottom: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.med {
+  font-size: 2rem;
+}
+
+.pre-med {
+  font-size: 1.5rem;
+}
+
+.first {
+  margin-left: 0;
+}
+
+.last {
+  margin-right: 0;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  /* border: 3px solid black; */
+}
+
+.orange {
+  color: #c24703;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.purple {
+  color: #402e7b;
+}
+
+.green {
+  color: #0b8000;
+}
+
+.grow {
+  font-size: 1.1rem;
+}
+
+.top {
+  color: #885708;
 }
 
 /* .left-blockchain,

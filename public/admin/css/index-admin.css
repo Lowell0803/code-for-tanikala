@@ -415,12 +415,14 @@ h6 {
 }
 
 .save-button,
-.button-save {
+.button-save,
+.resume {
   background-color: #369f2c;
 }
 
 .cancel-button,
-.button-cancel {
+.button-cancel,
+.reset {
   background-color: #c11515;
 }
 
@@ -797,4 +799,8 @@ input {
 
 .dropdown-content p {
   font-weight: 600;
+}
+
+.top {
+  color: #885708;
 }
