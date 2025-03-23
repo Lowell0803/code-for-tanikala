@@ -2241,6 +2241,75 @@ const startServer = async () => {
       return null;
     }
 
+    app.post("/delete-candidate-lsc", async (req, res) => {
+      try {
+        const { _id, candidatePosition, collegeAcronym, program } = req.body;
+
+        if (!_id || !candidatePosition || !collegeAcronym) {
+          return res.status(400).json({ error: "Missing required fields." });
+        }
+
+        // Find the college document in the candidates_lsc collection
+        const college = await db.collection("candidates_lsc").findOne({ collegeAcronym });
+        if (!college) {
+          console.log(`❌ College with acronym '${collegeAcronym}' not found.`);
+          return res.status(404).json({ error: `College '${collegeAcronym}' not found.` });
+        }
+
+        // Find the specific position in the college's positions array
+        let positionFound = college.positions.find((pos) => pos.position === candidatePosition);
+        if (!positionFound) {
+          console.log(`❌ Position '${candidatePosition}' not found.`);
+          return res.status(404).json({ error: `Position '${candidatePosition}' not found.` });
+        }
+
+        let deleted = false;
+
+        // If the candidate is a Board Member and a program is specified, search within the program array
+        if (candidatePosition === "Board Member" && program) {
+          if (!positionFound.programs) {
+            console.log(`❌ No programs data available for Board Member in college '${collegeAcronym}'.`);
+            return res.status(404).json({ error: `No program data for Board Member in college '${collegeAcronym}'.` });
+          }
+
+          let programFound = positionFound.programs.find((prog) => prog.program === program);
+          if (!programFound) {
+            console.log(`❌ Program '${program}' not found in Board Member.`);
+            return res.status(404).json({ error: `Program '${program}' not found.` });
+          }
+
+          const originalLength = programFound.candidates.length;
+          programFound.candidates = programFound.candidates.filter((candidate) => candidate._id !== _id);
+
+          if (programFound.candidates.length < originalLength) {
+            deleted = true;
+          }
+        } else {
+          // For positions other than Board Member or if no program is specified
+          const originalLength = positionFound.candidates.length;
+          positionFound.candidates = positionFound.candidates.filter((candidate) => candidate._id !== _id);
+
+          if (positionFound.candidates.length < originalLength) {
+            deleted = true;
+          }
+        }
+
+        if (!deleted) {
+          console.log(`❌ Candidate with ID '${_id}' not found.`);
+          return res.status(404).json({ error: "Candidate not found." });
+        }
+
+        // Update the document with the modified positions array
+        await db.collection("candidates_lsc").updateOne({ collegeAcronym }, { $set: { positions: college.positions } });
+
+        console.log(`Candidate with ID ${_id} deleted successfully.`);
+        res.status(200).json({ message: `Candidate with ID '${_id}' deleted successfully.` });
+      } catch (error) {
+        console.error("❌ Error deleting candidate in LSC:", error);
+        res.status(500).json({ error: "Internal server error." });
+      }
+    });
+
     app.post("/update-candidate", async (req, res) => {
       console.log("Form data:", req.body);
       try {
@@ -2622,75 +2691,6 @@ const startServer = async () => {
       } catch (error) {
         console.error("Error deleting candidate:", error);
         res.status(500).send("Failed to delete candidate.");
-      }
-    });
-
-    app.post("/delete-candidate-lsc", async (req, res) => {
-      try {
-        const { _id, candidatePosition, collegeAcronym, program } = req.body;
-
-        if (!_id || !candidatePosition || !collegeAcronym) {
-          return res.status(400).json({ error: "Missing required fields." });
-        }
-
-        console.log(`🔍 Attempting to delete candidate ID: ${_id}`);
-
-        // Find the college document
-        const college = await db.collection("candidates_lsc").findOne({ collegeAcronym });
-
-        if (!college) {
-          return res.status(404).json({ error: `College '${collegeAcronym}' not found.` });
-        }
-
-        console.log("✅ College Found:", college.collegeName);
-
-        let positionFound = college.positions.find((pos) => pos.position === candidatePosition);
-
-        if (!positionFound) {
-          return res.status(404).json({ error: `Position '${candidatePosition}' not found.` });
-        }
-
-        console.log("✅ Position Found:", candidatePosition);
-
-        let updated = false;
-
-        if (candidatePosition === "Board Member" && program) {
-          // Find the correct program within Board Member
-          let programFound = positionFound.programs.find((prog) => prog.program === program);
-
-          if (!programFound) {
-            return res.status(404).json({ error: `Program '${program}' not found.` });
-          }
-
-          console.log("✅ Program Found:", program);
-
-          // Remove the candidate
-          const newCandidates = programFound.candidates.filter((candidate) => candidate._id !== _id);
-          if (newCandidates.length !== programFound.candidates.length) {
-            programFound.candidates = newCandidates;
-            updated = true;
-          }
-        } else {
-          // For Governor and Vice Governor
-          const newCandidates = positionFound.candidates.filter((candidate) => candidate._id !== _id);
-          if (newCandidates.length !== positionFound.candidates.length) {
-            positionFound.candidates = newCandidates;
-            updated = true;
-          }
-        }
-
-        if (!updated) {
-          return res.status(404).json({ error: "Candidate not found." });
-        }
-
-        // Update database
-        await db.collection("candidates_lsc").updateOne({ collegeAcronym }, { $set: { positions: college.positions } });
-
-        console.log(`✅ Candidate '${_id}' deleted successfully.`);
-        res.redirect("/dashboard");
-      } catch (error) {
-        console.error("❌ Error deleting candidate:", error);
-        res.status(500).json({ error: "Internal server error." });
       }
     });
 

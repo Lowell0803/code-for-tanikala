@@ -156,12 +156,7 @@
         </div>
 
   </header>
-
-  <!-- Pass the election config to the client -->
-  <script>
-  const config = <%- JSON.stringify(electionConfig || {}) %>;
-  const useRealTime = !(config.useFakeDate && config.fakeCurrentDate);
-  </script>
+  
 
   <script>
     function updateHeader() {
