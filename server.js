@@ -1,6 +1,8 @@
 const express = require("express");
 const path = require("path");
 const { connectToDatabase, client } = require("./db");
+const { Parser } = require("json2csv");
+const archiver = require("archiver");
 
 require("dotenv").config();
 const session = require("express-session");
@@ -1417,54 +1419,39 @@ const startServer = async () => {
         }
 
         // Gas Calculation (Fix BigInt issue)
-        z;
-        const amountSpentEth = (gasUsed * gasPrice) / 1e18;
-        const amountSpentPhp = ethPricePhp ? amountSpentEth * ethPricePhp : "N/A";
-        const amountSpentUsd = ethPriceUsd ? amountSpentEth * ethPriceUsd : "N/A";
+        // Note: assuming gasUsed and gasPrice are defined from receipt
+        const gasUsed = Number(receipt.gasUsed);
+        const gasPrice = Number(receipt.gasPrice);
 
-        // Blockchain Info
-        const blockchainInfo = {
+        // Calculate candidate cost in wei and convert to POL (assuming 1 POL = 1e18 wei)
+        const candidateCostWei = gasUsed * gasPrice;
+        const candidateCostInPOL = candidateCostWei / 1e18;
+        // Calculate cost in PHP and USD using POL prices
+        const candidateCostPHP = polPricePhp ? candidateCostInPOL * polPricePhp : "N/A";
+        const candidateCostUSD = polPriceUsd ? candidateCostInPOL * polPriceUsd : "N/A";
+
+        // Instead of saving blockchainInfo, update blockchain_management with the desired fields in POL
+        const candidateSubmissionData = {
           blockchainLink: `https://amoy.polygonscan.com/address/${receipt.hash}`,
-          dateSent: new Date(),
-          amountSpentWei: (gasUsed * gasPrice).toString(),
-          amountSpentEth,
-          amountSpentPhp,
-          amountSpentUsd,
-          gasUsed: gasUsed.toString(),
-          tokenUsed: "ETH",
-          transactionHash: receipt.hash,
-          polPricePhp,
-          polPriceUsd,
+          candidateSubmissionDate: new Date(),
+          candidateSubmissionHash: receipt.hash,
+          candidateSubmissionCostGas: gasUsed.toString(),
+          candidateSubmissionCostWei: candidateCostWei.toString(),
+          candidateSubmissionCostPHP: candidateCostPHP,
+          candidateSubmissionCostUSD: candidateCostUSD,
         };
 
-        // Save Blockchain Info in Database
-        await db.collection("blockchainInfo").updateOne({}, { $set: blockchainInfo }, { upsert: true });
+        await db.collection("blockchain_management").updateOne({}, { $set: candidateSubmissionData, $inc: { candidateSubmissionsCount: 1 } }, { upsert: true });
 
-        const gasUsedCandidate = Number(receipt.gasUsed);
-        const gasPriceCandidate = Number(receipt.gasPrice);
-        const candidateCost = gasUsedCandidate * gasPriceCandidate; // cost in wei
-        const candidateCostInPOL = candidateCost / 1e18; // convert wei to POL
+        // The old update to blockchain_management with $inc operations is removed in favor of the above update.
 
-        await db.collection("blockchain_management").updateOne(
-          {},
-          {
-            $set: { latestCandidateSubmissionCost: candidateCostInPOL },
-            $inc: {
-              candidateSubmissionsCount: 1,
-              totalGasUsed: gasUsedCandidate,
-              totalWeiSpent: candidateCost,
-              totalAmountSpentPol: candidateCostInPOL,
-              totalAmountSpentUSD: candidateCostInPOL * polPriceUsd,
-              totalAmountSpentPHP: candidateCostInPOL * polPricePhp,
-            },
-          }
-        );
+        await db.collection("electionConfig").updateOne({}, { $set: { candidatesSubmitted: true } }, { upsert: true });
 
         res.status(200).json({
           message: "Candidates submitted to blockchain successfully",
           count: aggregatedCandidates.length,
           blockchainTx: receipt,
-          blockchainInfo,
+          candidateSubmissionData, // returning the candidate submission data instead of blockchainInfo
         });
         // res.status(200).json({
         //   message: "Candidates aggregated and submitted to blockchain successfully",
@@ -3176,29 +3163,6 @@ const startServer = async () => {
       }
     });
 
-    // POST endpoint to reset the election (sets it to inactive)
-    app.post("/reset-election", async (req, res) => {
-      try {
-        // Update only the electionStatus (and optionally specialStatus) to mark it as inactive.
-        const update = {
-          electionStatus: "ELECTION INACTIVE",
-          specialStatus: "None",
-          updatedAt: new Date(),
-        };
-
-        await db.collection("election_config").updateOne({}, { $set: update }, { upsert: true });
-
-        // Log the reset activity
-        await logActivity("system_activity_logs", "Election Reset", "Admin", req);
-        console.log("Election has been reset to inactive.");
-
-        res.redirect("configuration?reset=true");
-      } catch (error) {
-        console.error("Error resetting election:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
-
     function recalculatePeriodUsing(testDate, electionConfig) {
       // Helper to extract a Date from a field that might be a Date string or an object with a "$date" property.
       const getDate = (dateField) => {
@@ -3279,39 +3243,23 @@ const startServer = async () => {
       }
     });
 
-    // POST /temporarily-closed
     app.post("/temporarily-closed", async (req, res) => {
       try {
-        const update = {
-          electionStatus: "Temporarily Closed",
-          currentPeriod: { name: "Temporarily Closed", duration: "", waitingFor: null },
-          updatedAt: new Date(),
-        };
-        await db.collection("election_config").updateOne({}, { $set: update });
-        res.redirect("/dashboard");
+        await db.collection("election_config").updateOne({}, { $set: { specialStatus: "System Temporarily Closed" } });
+        res.redirect("/dashboard"); // Redirect to the homepage or appropriate route
       } catch (error) {
-        console.error("Error setting temporarily closed:", error);
-        res.status(500).send("Internal Server Error");
+        console.error("Error closing election:", error);
+        res.status(500).send("Error updating election configuration");
       }
     });
 
-    // POST /resume-election
     app.post("/resume-election", async (req, res) => {
       try {
-        // When resuming, you may want to recalc the current phase based on dates.
-        const config = await db.collection("election_config").findOne({});
-        const now = config.fakeCurrentDate ? new Date(config.fakeCurrentDate) : new Date();
-        const currentPeriod = calculateCurrentPeriod(config, now);
-        const update = {
-          electionStatus: currentPeriod.name, // e.g. "Registration Period" or as computed
-          currentPeriod,
-          updatedAt: new Date(),
-        };
-        await db.collection("election_config").updateOne({}, { $set: update });
-        res.redirect("/configuration");
+        await db.collection("election_config").updateOne({}, { $set: { specialStatus: "None" } });
+        res.redirect("/dashboard"); // Redirect to the homepage or appropriate route
       } catch (error) {
         console.error("Error resuming election:", error);
-        res.status(500).send("Internal Server Error");
+        res.status(500).send("Error updating election configuration");
       }
     });
 
@@ -3729,6 +3677,187 @@ const startServer = async () => {
       }
     });
 
+    // app.post("/voter-turnout/save", ensureAdminAuthenticated, async (req, res) => {
+    //   try {
+    //     const electionConfigCollection = db.collection("election_config");
+    //     let electionConfig = await electionConfigCollection.findOne({});
+
+    //     const votersCollection = db.collection("registered_voters");
+
+    //     // Aggregate counts for "Registered" and "Voted" statuses per college
+    //     const collegeRegisteredAggregation = await votersCollection
+    //       .aggregate([
+    //         {
+    //           $group: {
+    //             _id: "$college",
+    //             count: {
+    //               $sum: { $cond: [{ $eq: ["$status", "Registered"] }, 1, 0] },
+    //             },
+    //           },
+    //         },
+    //       ])
+    //       .toArray();
+
+    //     const collegeVotedAggregation = await votersCollection
+    //       .aggregate([
+    //         {
+    //           $group: {
+    //             _id: "$college",
+    //             count: {
+    //               $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] },
+    //             },
+    //           },
+    //         },
+    //       ])
+    //       .toArray();
+
+    //     // Update each college object in electionConfig.colleges with computed values
+    //     electionConfig.colleges.forEach((collegeObj) => {
+    //       // Extract acronym from the registered_voters college field
+    //       const regGroup = collegeRegisteredAggregation.find((g) => {
+    //         const match = g._id.match(/\(([^)]+)\)/);
+    //         return match && match[1] === collegeObj.acronym;
+    //       });
+    //       const votedGroup = collegeVotedAggregation.find((g) => {
+    //         const match = g._id.match(/\(([^)]+)\)/);
+    //         return match && match[1] === collegeObj.acronym;
+    //       });
+    //       collegeObj.registeredNotVoted = regGroup ? regGroup.count : 0;
+    //       collegeObj.registeredVoted = votedGroup ? votedGroup.count : 0;
+    //       collegeObj.notRegisteredNotVoted = collegeObj.numberOfStudents - (collegeObj.registeredNotVoted + collegeObj.registeredVoted);
+    //     });
+
+    //     // Calculate overall totals
+    //     let totalNumberOfStudents = 0;
+    //     let totalNotRegisteredNotVoted = 0;
+    //     let totalRegisteredNotVoted = 0;
+    //     let totalRegisteredVoted = 0;
+
+    //     electionConfig.colleges.forEach((collegeObj) => {
+    //       totalNumberOfStudents += collegeObj.numberOfStudents;
+    //       totalNotRegisteredNotVoted += collegeObj.notRegisteredNotVoted;
+    //       totalRegisteredNotVoted += collegeObj.registeredNotVoted;
+    //       totalRegisteredVoted += collegeObj.registeredVoted;
+    //     });
+
+    //     // Update overall totals in electionConfig
+    //     electionConfig.totalNumberOfStudents = totalNumberOfStudents;
+    //     electionConfig.totalNotRegisteredNotVoted = totalNotRegisteredNotVoted;
+    //     electionConfig.totalRegisteredNotVoted = totalRegisteredNotVoted;
+    //     electionConfig.totalRegisteredVoted = totalRegisteredVoted;
+
+    //     // Determine the current period using fakeCurrentDate if enabled
+    //     const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+    //     electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+    //     // Prepare the document to be stored in voter_turnout collection.
+    //     // Optionally, you might want to remove any properties (like _id) that you don't want to persist.
+    //     const voterTurnoutData = {
+    //       timestamp: new Date(),
+    //       data: electionConfig, // storing the computed election configuration
+    //     };
+
+    //     // Save the computed turnout data into the "voter_turnout" collection
+    //     const voterTurnoutCollection = db.collection("voter_turnout");
+    //     await voterTurnoutCollection.insertOne(voterTurnoutData);
+
+    //     res.send("Voter turnout data saved successfully.");
+    //   } catch (error) {
+    //     console.error("Error saving voter turnout data:", error);
+    //     res.status(500).send("Server error while saving voter turnout data");
+    //   }
+    // });
+
+    app.get("/voter-turnout/save", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const votersCollection = db.collection("registered_voters");
+
+        // Aggregate counts for "Registered" statuses per college
+        const collegeRegisteredAggregation = await votersCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$college",
+                count: {
+                  $sum: { $cond: [{ $eq: ["$status", "Registered"] }, 1, 0] },
+                },
+              },
+            },
+          ])
+          .toArray();
+
+        // Aggregate counts for "Voted" statuses per college
+        const collegeVotedAggregation = await votersCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$college",
+                count: {
+                  $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] },
+                },
+              },
+            },
+          ])
+          .toArray();
+
+        // Update each college object in electionConfig.colleges with computed values and percentages
+        electionConfig.colleges.forEach((collegeObj) => {
+          // Extract acronym from the registered_voters college field using regex.
+          const regGroup = collegeRegisteredAggregation.find((g) => {
+            const match = g._id.match(/\(([^)]+)\)/);
+            return match && match[1] === collegeObj.acronym;
+          });
+          const votedGroup = collegeVotedAggregation.find((g) => {
+            const match = g._id.match(/\(([^)]+)\)/);
+            return match && match[1] === collegeObj.acronym;
+          });
+
+          collegeObj.registeredNotVoted = regGroup ? regGroup.count : 0;
+          collegeObj.registeredVoted = votedGroup ? votedGroup.count : 0;
+          collegeObj.notRegisteredNotVoted = collegeObj.numberOfStudents - (collegeObj.registeredNotVoted + collegeObj.registeredVoted);
+
+          // Compute the turnout percentage for the college
+          collegeObj.voterTurnoutPercentage = collegeObj.numberOfStudents > 0 ? ((collegeObj.registeredVoted / collegeObj.numberOfStudents) * 100).toFixed(2) : "0.00";
+        });
+
+        // Calculate overall totals
+        let totalNumberOfStudents = 0;
+        let totalRegisteredVoted = 0;
+
+        electionConfig.colleges.forEach((collegeObj) => {
+          totalNumberOfStudents += collegeObj.numberOfStudents;
+          totalRegisteredVoted += collegeObj.registeredVoted;
+        });
+
+        // Update overall totals and overall turnout percentage in electionConfig
+        electionConfig.totalNumberOfStudents = totalNumberOfStudents;
+        electionConfig.totalRegisteredVoted = totalRegisteredVoted;
+        electionConfig.overallVoterTurnoutPercentage = totalNumberOfStudents > 0 ? ((totalRegisteredVoted / totalNumberOfStudents) * 100).toFixed(2) : "0.00";
+
+        // Determine the current period using fakeCurrentDate if enabled
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Prepare the document to be stored
+        const voterTurnoutData = {
+          timestamp: new Date(),
+          data: electionConfig,
+        };
+
+        // Save the computed data into the "voter_turnout" collection
+        const voterTurnoutCollection = db.collection("voter_turnout");
+        await voterTurnoutCollection.insertOne(voterTurnoutData);
+
+        res.send("Voter turnout data saved successfully.");
+      } catch (error) {
+        console.error("Error saving voter turnout data:", error);
+        res.status(500).send("Server error while saving voter turnout data");
+      }
+    });
+
     app.get("/rvs-voter-turnout", async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
@@ -3927,6 +4056,71 @@ const startServer = async () => {
       }
     });
 
+    app.get("/vote-tally/save", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        // Fetch election configuration and compute the current period
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Retrieve candidate details from the blockchain
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+        // Fetch candidate info from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine blockchain data with candidate info
+        let candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+            uniqueId: candidate ? candidate.uniqueId : "",
+          };
+        });
+
+        // For each candidate, fetch the vote hashes from the candidate_hashes collection.
+        // This uses the same approach as your /api/voter-ids/:uniqueId endpoint.
+        const candidateHashesCollection = db.collection("candidate_hashes");
+        candidates = await Promise.all(
+          candidates.map(async (candidate) => {
+            const candidateHashes = await candidateHashesCollection.findOne({
+              candidateId: candidate.uniqueId,
+            });
+            return {
+              ...candidate,
+              hashes: candidateHashes ? candidateHashes.emails : [],
+            };
+          })
+        );
+
+        // Prepare the document for storage
+        const voteTallyData = {
+          timestamp: new Date(),
+          electionConfig, // includes the current period and other election settings
+          candidates, // includes candidate info along with vote counts and hashes
+        };
+
+        // Insert the document into the vote_tally collection
+        const voteTallyCollection = db.collection("vote_tally");
+        // await voteTallyCollection.insertOne(voteTallyData);
+        await voteTallyCollection.replaceOne({}, voteTallyData, { upsert: true });
+
+        res.send("Vote tally data (including hashes) saved successfully.");
+      } catch (error) {
+        console.error("Error saving vote tally data:", error);
+        res.status(500).send("Server error while saving vote tally data");
+      }
+    });
+
     app.get("/rvs-votes-per-candidate", async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
@@ -4003,6 +4197,211 @@ const startServer = async () => {
       }
     });
 
+    app.get("/results/save", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        // Retrieve election configuration and compute the current period
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Retrieve candidate details from the blockchain
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+        // Fetch candidate information from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine blockchain vote counts with candidate details
+        const candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+          };
+        });
+
+        /* -------------------------------
+           Process Results as in shared-results.ejs
+           ------------------------------- */
+
+        // PRESIDENT processing
+        const presidentCandidates = candidates.filter((c) => c.position === "president" && c.name !== "Abstain");
+        const abstainCandidate = candidates.find((c) => c.position === "president" && c.name === "Abstain");
+        presidentCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+        let totalVotesPres = presidentCandidates.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+        const abstainVotes = abstainCandidate ? Number(abstainCandidate.voteCount) || 0 : 0;
+        let maxVoteCountPres = 0;
+        presidentCandidates.forEach((c) => {
+          const votes = Number(c.voteCount) || 0;
+          if (votes > maxVoteCountPres) maxVoteCountPres = votes;
+        });
+        if (abstainCandidate && abstainVotes <= maxVoteCountPres) {
+          totalVotesPres += abstainVotes;
+        }
+        const winnersPres = presidentCandidates.filter((c) => Number(c.voteCount) === maxVoteCountPres);
+
+        // VICE PRESIDENT processing
+        const viceCandidates = candidates.filter((c) => c.position === "vice president" && c.name !== "Abstain");
+        const abstainCandidateVice = candidates.find((c) => c.position === "vice president" && c.name === "Abstain");
+        viceCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+        let totalVotesVice = viceCandidates.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+        const abstainVotesVice = abstainCandidateVice ? Number(abstainCandidateVice.voteCount) || 0 : 0;
+        let maxVoteCountVice = 0;
+        viceCandidates.forEach((c) => {
+          const votes = Number(c.voteCount) || 0;
+          if (votes > maxVoteCountVice) maxVoteCountVice = votes;
+        });
+        if (abstainCandidateVice && abstainVotesVice <= maxVoteCountVice) {
+          totalVotesVice += abstainVotesVice;
+        }
+        const winnersVice = viceCandidates.filter((c) => Number(c.voteCount) === maxVoteCountVice);
+
+        // SENATORS processing
+        const senatorCandidates = candidates.filter((c) => c.position === "senator" && c.name !== "Abstain");
+        senatorCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+        const totalVotesSenator = senatorCandidates.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+        let winnersSenator = [];
+        if (senatorCandidates.length <= 7) {
+          winnersSenator = senatorCandidates;
+        } else {
+          const threshold = Number(senatorCandidates[6].voteCount) || 0;
+          winnersSenator = senatorCandidates.filter((c) => (Number(c.voteCount) || 0) >= threshold);
+        }
+        const calculatedTotalVotesSenator = winnersSenator.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+
+        // LOCAL STUDENT COUNCIL (LSC) - Governor & Vice Governor processing
+        const colleges = ["CAFA", "CAL", "CBEA", "CCJE", "CHTM", "CICT", "CIT", "CN", "COE", "COED", "CS", "CSER", "CSSP"];
+
+        // Governor Results (grouped by college)
+        const governorCandidates = candidates.filter((c) => c.position === "governor" && c.college && c.name !== "Abstain");
+        const abstainCandidateGovernor = candidates.find((c) => c.position === "governor" && c.college && c.name === "Abstain");
+        const governorResults = [];
+        colleges.forEach((college) => {
+          let collegeCandidates = governorCandidates.filter((c) => c.college === college);
+          if (collegeCandidates.length) {
+            collegeCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+            let collegeTotalVotes = collegeCandidates.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+            let abstainVotes = 0;
+            if (abstainCandidateGovernor && abstainCandidateGovernor.college === college) {
+              abstainVotes = Number(abstainCandidateGovernor.voteCount) || 0;
+              if (collegeCandidates[0] && abstainVotes <= Number(collegeCandidates[0].voteCount)) {
+                collegeTotalVotes += abstainVotes;
+              }
+            }
+            let maxVoteCount = 0;
+            collegeCandidates.forEach((c) => {
+              const votes = Number(c.voteCount) || 0;
+              if (votes > maxVoteCount) maxVoteCount = votes;
+            });
+            const winners = collegeCandidates.filter((c) => Number(c.voteCount) === maxVoteCount);
+            governorResults.push({
+              college,
+              winners,
+              totalVotes: collegeTotalVotes,
+              maxVoteCount,
+            });
+          }
+        });
+
+        // Vice Governor Results (grouped by college)
+        const viceGovernorCandidates = candidates.filter((c) => c.position === "vice governor" && c.college && c.name !== "Abstain");
+        const abstainCandidateViceGovernor = candidates.find((c) => c.position === "vice governor" && c.college && c.name === "Abstain");
+        const viceGovernorResults = [];
+        colleges.forEach((college) => {
+          let collegeCandidates = viceGovernorCandidates.filter((c) => c.college === college);
+          if (collegeCandidates.length) {
+            collegeCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+            let collegeTotalVotes = collegeCandidates.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+            let abstainVotes = 0;
+            if (abstainCandidateViceGovernor && abstainCandidateViceGovernor.college === college) {
+              abstainVotes = Number(abstainCandidateViceGovernor.voteCount) || 0;
+              if (collegeCandidates[0] && abstainVotes <= Number(collegeCandidates[0].voteCount)) {
+                collegeTotalVotes += abstainVotes;
+              }
+            }
+            let maxVoteCount = 0;
+            collegeCandidates.forEach((c) => {
+              const votes = Number(c.voteCount) || 0;
+              if (votes > maxVoteCount) maxVoteCount = votes;
+            });
+            const winners = collegeCandidates.filter((c) => Number(c.voteCount) === maxVoteCount);
+            viceGovernorResults.push({
+              college,
+              winners,
+              totalVotes: collegeTotalVotes,
+              maxVoteCount,
+            });
+          }
+        });
+
+        // BOARD MEMBERS (grouped by program)
+        const boardMembersAll = candidates.filter((c) => c.position === "board member" && c.college && c.program);
+        const boardMembersNonAbstain = boardMembersAll.filter((c) => c.name !== "Abstain");
+        const boardMembersAbstain = boardMembersAll.filter((c) => c.name === "Abstain");
+        let boardMembersByProgram = {};
+        boardMembersNonAbstain.forEach((c) => {
+          if (!boardMembersByProgram[c.program]) {
+            boardMembersByProgram[c.program] = [];
+          }
+          boardMembersByProgram[c.program].push(c);
+        });
+        Object.keys(boardMembersByProgram).forEach((program) => {
+          boardMembersByProgram[program].sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+          const highestVoteCount = boardMembersByProgram[program][0]?.voteCount || 0;
+          boardMembersByProgram[program] = boardMembersByProgram[program].filter((c) => Number(c.voteCount) === Number(highestVoteCount));
+        });
+        let abstainByProgram = {};
+        boardMembersAbstain.forEach((c) => {
+          if (!abstainByProgram[c.program]) {
+            abstainByProgram[c.program] = [];
+          }
+          abstainByProgram[c.program].push(c);
+        });
+
+        // Assemble the results object
+        const resultsData = {
+          timestamp: new Date(),
+          electionConfig,
+          president: {
+            winners: winnersPres,
+            totalVotes: totalVotesPres,
+            maxVoteCount: maxVoteCountPres,
+          },
+          vicePresident: {
+            winners: winnersVice,
+            totalVotes: totalVotesVice,
+            maxVoteCount: maxVoteCountVice,
+          },
+          senators: {
+            winners: winnersSenator,
+            totalVotes: calculatedTotalVotesSenator,
+          },
+          governors: governorResults,
+          viceGovernors: viceGovernorResults,
+          boardMembers: {
+            winnersByProgram: boardMembersByProgram,
+            abstain: abstainByProgram,
+          },
+        };
+
+        // Save the results data into the "results" collection
+        const resultsCollection = db.collection("results");
+        await resultsCollection.insertOne(resultsData);
+
+        res.send("Election results saved successfully in the results collection.");
+      } catch (error) {
+        console.error("Error saving election results:", error);
+        res.status(500).send("Server error while saving election results");
+      }
+    });
+
     app.get("/rvs-election-results", async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
@@ -4050,6 +4449,447 @@ const startServer = async () => {
       res.render("admin/election-reset", { electionConfig, loggedInAdmin: req.session.admin, moment });
     });
 
+    // Function to update and save voter turnout data
+    async function saveVoterTurnoutData() {
+      try {
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+
+        const votersCollection = db.collection("registered_voters");
+
+        // Aggregate counts for "Registered" statuses per college
+        const collegeRegisteredAggregation = await votersCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$college",
+                count: {
+                  $sum: { $cond: [{ $eq: ["$status", "Registered"] }, 1, 0] },
+                },
+              },
+            },
+          ])
+          .toArray();
+
+        // Aggregate counts for "Voted" statuses per college
+        const collegeVotedAggregation = await votersCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$college",
+                count: {
+                  $sum: { $cond: [{ $eq: ["$status", "Voted"] }, 1, 0] },
+                },
+              },
+            },
+          ])
+          .toArray();
+
+        // Update each college object in electionConfig.colleges with computed values and percentages
+        electionConfig.colleges.forEach((collegeObj) => {
+          // Extract acronym from the registered_voters college field using regex.
+          const regGroup = collegeRegisteredAggregation.find((g) => {
+            const match = g._id.match(/\(([^)]+)\)/);
+            return match && match[1] === collegeObj.acronym;
+          });
+          const votedGroup = collegeVotedAggregation.find((g) => {
+            const match = g._id.match(/\(([^)]+)\)/);
+            return match && match[1] === collegeObj.acronym;
+          });
+
+          collegeObj.registeredNotVoted = regGroup ? regGroup.count : 0;
+          collegeObj.registeredVoted = votedGroup ? votedGroup.count : 0;
+          collegeObj.notRegisteredNotVoted = collegeObj.numberOfStudents - (collegeObj.registeredNotVoted + collegeObj.registeredVoted);
+
+          // Compute the turnout percentage for the college
+          collegeObj.voterTurnoutPercentage = collegeObj.numberOfStudents > 0 ? ((collegeObj.registeredVoted / collegeObj.numberOfStudents) * 100).toFixed(2) : "0.00";
+        });
+
+        // Calculate overall totals
+        let totalNumberOfStudents = 0;
+        let totalRegisteredVoted = 0;
+
+        electionConfig.colleges.forEach((collegeObj) => {
+          totalNumberOfStudents += collegeObj.numberOfStudents;
+          totalRegisteredVoted += collegeObj.registeredVoted;
+        });
+
+        // Update overall totals and overall turnout percentage in electionConfig
+        electionConfig.totalNumberOfStudents = totalNumberOfStudents;
+        electionConfig.totalRegisteredVoted = totalRegisteredVoted;
+        electionConfig.overallVoterTurnoutPercentage = totalNumberOfStudents > 0 ? ((totalRegisteredVoted / totalNumberOfStudents) * 100).toFixed(2) : "0.00";
+
+        // Determine the current period using fakeCurrentDate if enabled
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Prepare the document to be stored
+        const voterTurnoutData = {
+          timestamp: new Date(),
+          data: electionConfig,
+        };
+
+        // Save the computed data into the "voter_turnout" collection
+        const voterTurnoutCollection = db.collection("voter_turnout");
+        // await voterTurnoutCollection.insertOne(voterTurnoutData);
+        await voterTurnoutCollection.replaceOne({}, voterTurnoutData, { upsert: true });
+
+        return "Voter turnout data saved successfully.";
+      } catch (error) {
+        console.error("Error saving voter turnout data:", error);
+        throw error;
+      }
+    }
+
+    // Function to compute and save vote tally data
+    async function saveVoteTallyData() {
+      try {
+        // Fetch election configuration and compute the current period
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Retrieve candidate details from the blockchain
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+        // Fetch candidate info from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine blockchain data with candidate info
+        let candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+            uniqueId: candidate ? candidate.uniqueId : "",
+          };
+        });
+
+        // For each candidate, fetch the vote hashes from the candidate_hashes collection.
+        const candidateHashesCollection = db.collection("candidate_hashes");
+        candidates = await Promise.all(
+          candidates.map(async (candidate) => {
+            const candidateHashes = await candidateHashesCollection.findOne({
+              candidateId: candidate.uniqueId,
+            });
+            return {
+              ...candidate,
+              hashes: candidateHashes ? candidateHashes.emails : [],
+            };
+          })
+        );
+
+        // Prepare the document for storage
+        const voteTallyData = {
+          timestamp: new Date(),
+          electionConfig, // includes the current period and other election settings
+          candidates, // includes candidate info along with vote counts and hashes
+        };
+
+        // Insert the document into the vote_tally collection
+        const voteTallyCollection = db.collection("vote_tally");
+        await voteTallyCollection.insertOne(voteTallyData);
+
+        return "Vote tally data (including hashes) saved successfully.";
+      } catch (error) {
+        console.error("Error saving vote tally data:", error);
+        throw error;
+      }
+    }
+
+    // Function to compute and save election results data
+    async function saveResultsData() {
+      try {
+        // Retrieve election configuration and compute the current period
+        const electionConfigCollection = db.collection("election_config");
+        let electionConfig = await electionConfigCollection.findOne({});
+        const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
+        electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
+
+        // Retrieve candidate details from the blockchain
+        const [candidateIds, voteCounts] = await contract.getCandidateDetails();
+
+        // Fetch candidate information from MongoDB
+        const aggregatedData = await db.collection("aggregatedCandidates").findOne({});
+        const allCandidates = aggregatedData.candidates;
+
+        // Combine blockchain vote counts with candidate details
+        const candidates = candidateIds.map((id, index) => {
+          const candidate = allCandidates.find((c) => c.uniqueId === id.toString());
+          return {
+            candidateId: id.toString(),
+            name: candidate ? candidate.name : "Unknown Candidate",
+            party: candidate ? candidate.party : "Unknown Party",
+            position: candidate ? candidate.position : "Unknown Position",
+            image: candidate ? candidate.image : "No Image",
+            college: candidate ? candidate.college : "",
+            program: candidate ? candidate.program : "",
+            voteCount: voteCounts[index].toString(),
+          };
+        });
+
+        /* -------------------------------
+       Process Results as in shared-results.ejs
+       ------------------------------- */
+
+        // PRESIDENT processing
+        const presidentCandidates = candidates.filter((c) => c.position === "president" && c.name !== "Abstain");
+        const abstainCandidate = candidates.find((c) => c.position === "president" && c.name === "Abstain");
+        presidentCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+        let totalVotesPres = presidentCandidates.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+        const abstainVotes = abstainCandidate ? Number(abstainCandidate.voteCount) || 0 : 0;
+        let maxVoteCountPres = 0;
+        presidentCandidates.forEach((c) => {
+          const votes = Number(c.voteCount) || 0;
+          if (votes > maxVoteCountPres) maxVoteCountPres = votes;
+        });
+        if (abstainCandidate && abstainVotes <= maxVoteCountPres) {
+          totalVotesPres += abstainVotes;
+        }
+        const winnersPres = presidentCandidates.filter((c) => Number(c.voteCount) === maxVoteCountPres);
+
+        // VICE PRESIDENT processing
+        const viceCandidates = candidates.filter((c) => c.position === "vice president" && c.name !== "Abstain");
+        const abstainCandidateVice = candidates.find((c) => c.position === "vice president" && c.name === "Abstain");
+        viceCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+        let totalVotesVice = viceCandidates.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+        const abstainVotesVice = abstainCandidateVice ? Number(abstainCandidateVice.voteCount) || 0 : 0;
+        let maxVoteCountVice = 0;
+        viceCandidates.forEach((c) => {
+          const votes = Number(c.voteCount) || 0;
+          if (votes > maxVoteCountVice) maxVoteCountVice = votes;
+        });
+        if (abstainCandidateVice && abstainVotesVice <= maxVoteCountVice) {
+          totalVotesVice += abstainVotesVice;
+        }
+        const winnersVice = viceCandidates.filter((c) => Number(c.voteCount) === maxVoteCountVice);
+
+        // SENATORS processing
+        const senatorCandidates = candidates.filter((c) => c.position === "senator" && c.name !== "Abstain");
+        senatorCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+        const totalVotesSenator = senatorCandidates.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+        let winnersSenator = [];
+        if (senatorCandidates.length <= 7) {
+          winnersSenator = senatorCandidates;
+        } else {
+          const threshold = Number(senatorCandidates[6].voteCount) || 0;
+          winnersSenator = senatorCandidates.filter((c) => (Number(c.voteCount) || 0) >= threshold);
+        }
+        const calculatedTotalVotesSenator = winnersSenator.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+
+        // LOCAL STUDENT COUNCIL (LSC) - Governor & Vice Governor processing
+        const colleges = ["CAFA", "CAL", "CBEA", "CCJE", "CHTM", "CICT", "CIT", "CN", "COE", "COED", "CS", "CSER", "CSSP"];
+
+        // Governor Results (grouped by college)
+        const governorCandidates = candidates.filter((c) => c.position === "governor" && c.college && c.name !== "Abstain");
+        const abstainCandidateGovernor = candidates.find((c) => c.position === "governor" && c.college && c.name === "Abstain");
+        const governorResults = [];
+        colleges.forEach((college) => {
+          let collegeCandidates = governorCandidates.filter((c) => c.college === college);
+          if (collegeCandidates.length) {
+            collegeCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+            let collegeTotalVotes = collegeCandidates.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+            let abstainVotes = 0;
+            if (abstainCandidateGovernor && abstainCandidateGovernor.college === college) {
+              abstainVotes = Number(abstainCandidateGovernor.voteCount) || 0;
+              if (collegeCandidates[0] && abstainVotes <= Number(collegeCandidates[0].voteCount)) {
+                collegeTotalVotes += abstainVotes;
+              }
+            }
+            let maxVoteCount = 0;
+            collegeCandidates.forEach((c) => {
+              const votes = Number(c.voteCount) || 0;
+              if (votes > maxVoteCount) maxVoteCount = votes;
+            });
+            const winners = collegeCandidates.filter((c) => Number(c.voteCount) === maxVoteCount);
+            governorResults.push({
+              college,
+              winners,
+              totalVotes: collegeTotalVotes,
+              maxVoteCount,
+            });
+          }
+        });
+
+        // Vice Governor Results (grouped by college)
+        const viceGovernorCandidates = candidates.filter((c) => c.position === "vice governor" && c.college && c.name !== "Abstain");
+        const abstainCandidateViceGovernor = candidates.find((c) => c.position === "vice governor" && c.college && c.name === "Abstain");
+        const viceGovernorResults = [];
+        colleges.forEach((college) => {
+          let collegeCandidates = viceGovernorCandidates.filter((c) => c.college === college);
+          if (collegeCandidates.length) {
+            collegeCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+            let collegeTotalVotes = collegeCandidates.reduce((acc, c) => acc + (Number(c.voteCount) || 0), 0);
+            let abstainVotes = 0;
+            if (abstainCandidateViceGovernor && abstainCandidateViceGovernor.college === college) {
+              abstainVotes = Number(abstainCandidateViceGovernor.voteCount) || 0;
+              if (collegeCandidates[0] && abstainVotes <= Number(collegeCandidates[0].voteCount)) {
+                collegeTotalVotes += abstainVotes;
+              }
+            }
+            let maxVoteCount = 0;
+            collegeCandidates.forEach((c) => {
+              const votes = Number(c.voteCount) || 0;
+              if (votes > maxVoteCount) maxVoteCount = votes;
+            });
+            const winners = collegeCandidates.filter((c) => Number(c.voteCount) === maxVoteCount);
+            viceGovernorResults.push({
+              college,
+              winners,
+              totalVotes: collegeTotalVotes,
+              maxVoteCount,
+            });
+          }
+        });
+
+        // BOARD MEMBERS (grouped by program)
+        const boardMembersAll = candidates.filter((c) => c.position === "board member" && c.college && c.program);
+        const boardMembersNonAbstain = boardMembersAll.filter((c) => c.name !== "Abstain");
+        const boardMembersAbstain = boardMembersAll.filter((c) => c.name === "Abstain");
+        let boardMembersByProgram = {};
+        boardMembersNonAbstain.forEach((c) => {
+          if (!boardMembersByProgram[c.program]) {
+            boardMembersByProgram[c.program] = [];
+          }
+          boardMembersByProgram[c.program].push(c);
+        });
+        Object.keys(boardMembersByProgram).forEach((program) => {
+          boardMembersByProgram[program].sort((a, b) => Number(b.voteCount) - Number(a.voteCount));
+          const highestVoteCount = boardMembersByProgram[program][0]?.voteCount || 0;
+          boardMembersByProgram[program] = boardMembersByProgram[program].filter((c) => Number(c.voteCount) === Number(highestVoteCount));
+        });
+        let abstainByProgram = {};
+        boardMembersAbstain.forEach((c) => {
+          if (!abstainByProgram[c.program]) {
+            abstainByProgram[c.program] = [];
+          }
+          abstainByProgram[c.program].push(c);
+        });
+
+        // Assemble the results object
+        const resultsData = {
+          timestamp: new Date(),
+          electionConfig,
+          president: {
+            winners: winnersPres,
+            totalVotes: totalVotesPres,
+            maxVoteCount: maxVoteCountPres,
+          },
+          vicePresident: {
+            winners: winnersVice,
+            totalVotes: totalVotesVice,
+            maxVoteCount: maxVoteCountVice,
+          },
+          senators: {
+            winners: winnersSenator,
+            totalVotes: calculatedTotalVotesSenator,
+          },
+          governors: governorResults,
+          viceGovernors: viceGovernorResults,
+          boardMembers: {
+            winnersByProgram: boardMembersByProgram,
+            abstain: abstainByProgram,
+          },
+        };
+
+        // Save the results data into the "results" collection
+        const resultsCollection = db.collection("results");
+        // await resultsCollection.insertOne(resultsData);
+        await resultsCollection.replaceOne({}, resultsData, { upsert: true });
+
+        return "Election results saved successfully in the results collection.";
+      } catch (error) {
+        console.error("Error saving election results:", error);
+        throw error;
+      }
+    }
+
+    // Reset-election route that calls the three functions and archives the data
+    app.post("/reset-election", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        // 1. Get the current election configuration document
+        const electionConfig = await db.collection("election_config").findOne({});
+        if (!electionConfig) {
+          return res.status(404).send("Election configuration not found.");
+        }
+
+        // Use the specialStatus if it's "Results Are Out"
+        const electionName = electionConfig.electionName || "Unnamed Election";
+        let electionStatus = electionConfig.electionStatus;
+        if (electionConfig.specialStatus === "Results Are Out") {
+          electionStatus = electionConfig.specialStatus;
+        }
+
+        // 2. Prepare registration and voting period objects
+        const registrationPeriod = {
+          start: electionConfig.registrationStart,
+          end: electionConfig.registrationEnd,
+        };
+        const votingPeriod = {
+          start: electionConfig.votingStart,
+          end: electionConfig.votingEnd,
+        };
+
+        // BEFORE #3: Update and store additional election data by calling helper functions.
+        await saveVoterTurnoutData();
+        await saveVoteTallyData();
+        await saveResultsData();
+
+        // 3. Read whole collections from the database, including computed data
+        const configDocs = await db.collection("election_config").find({}).toArray();
+        const candidatesDocs = await db.collection("candidates").find({}).toArray();
+        const candidatesLSCDocs = await db.collection("candidates_lsc").find({}).toArray();
+        const registeredVotersDocs = await db.collection("registered_voters").find({}).toArray();
+        const voterTurnoutDocs = await db.collection("voter_turnout").find({}).toArray();
+        const voteTallyDocs = await db.collection("vote_tally").find({}).toArray();
+        const resultsDocs = await db.collection("results").find({}).toArray();
+
+        // 4. Prepare the archive document, including all computed data
+        const archiveDoc = {
+          archivedAt: new Date(),
+          electionName,
+          electionStatus,
+          registrationPeriod,
+          votingPeriod,
+          electionConfig: configDocs,
+          candidates: candidatesDocs,
+          candidates_lsc: candidatesLSCDocs,
+          registeredVoters: registeredVotersDocs,
+          voterTurnout: voterTurnoutDocs,
+          voterTally: voteTallyDocs,
+          voterResults: resultsDocs,
+        };
+
+        // 5. Insert the archive document into the election_archive collection
+        await db.collection("election_archive").insertOne(archiveDoc);
+
+        await db.collection("electionConfig").updateOne({}, { $set: { candidatesSubmitted: false } }, { upsert: true });
+
+        // 6. (Optional) Delete the current election data.
+        // await db.collection("election_config").deleteMany({});
+        // await db.collection("candidates").deleteMany({});
+        // await db.collection("candidates_lsc").deleteMany({});
+        // await db.collection("registered_voters").deleteMany({});
+
+        // Log the archiving activity (assuming logActivity is defined)
+        await logActivity("activity_logs", "Reset Election Archiving", "ARCHIVE", req, "Archived election data.");
+
+        res.redirect("/reset?reset=success");
+      } catch (error) {
+        console.error("Error in reset-election route:", error);
+        res.status(500).send("Error resetting election.");
+      }
+    });
+
+    // Route for rendering archives
     app.get("/archives", async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
@@ -4062,6 +4902,118 @@ const startServer = async () => {
       } catch (error) {
         console.error("Error fetching archives:", error);
         res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // Route for downloading all sections as a zip file in JSON or CSV format
+    app.get("/api/download-archive/:id/all/:format", async (req, res) => {
+      try {
+        const { id, format } = req.params;
+        console.log(`📥 Received request to download all sections for archive ID: ${id} in ${format.toUpperCase()} format`);
+
+        if (!["json", "csv"].includes(format)) {
+          console.log("❌ Invalid format requested:", format);
+          return res.status(400).send("Invalid format requested");
+        }
+
+        const archive = await db.collection("election_archive").findOne({ _id: new ObjectId(id) });
+        if (!archive) {
+          console.log("❌ Archive not found for ID:", id);
+          return res.status(404).send("Archive not found");
+        }
+
+        // Log all keys available in the archive document
+        console.log("✅ Archive found! Available sections:", Object.keys(archive));
+
+        // List of expected sections
+        const sections = ["electionConfig", "candidates", "candidates_lsc", "registeredVoters", "voterTurnout", "voterTally", "voterResults"];
+
+        // Filter out missing sections (in your file, only "electionConfig" and "candidates" exist)
+        const existingSections = sections.filter((section) => archive.hasOwnProperty(section));
+        console.log("📂 Sections to be included in ZIP:", existingSections);
+
+        if (existingSections.length === 0) {
+          console.log("❌ No valid sections found for this archive.");
+          return res.status(400).send("No valid sections found for this archive.");
+        }
+
+        // Set up headers for ZIP file
+        res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_all_${format}.zip`);
+        res.setHeader("Content-Type", "application/zip");
+
+        const zipArchive = archiver("zip");
+        zipArchive.pipe(res);
+
+        // Track number of files added
+        let filesAdded = 0;
+
+        for (const section of existingSections) {
+          let content;
+          let fileName = `${section}.${format}`;
+          try {
+            if (format === "json") {
+              content = JSON.stringify(archive[section], null, 2);
+            } else {
+              let data = archive[section];
+              let dataArray = Array.isArray(data) ? data : [data];
+              const json2csvParser = new Parser();
+              content = json2csvParser.parse(dataArray);
+              console.log(`✅ Successfully converted ${section} to CSV`);
+            }
+            zipArchive.append(content, { name: fileName });
+            console.log(`📎 Added ${fileName} to ZIP`);
+            filesAdded++;
+          } catch (error) {
+            console.error(`❌ Error processing ${section}:`, error);
+          }
+        }
+
+        if (filesAdded === 0) {
+          console.log("❌ No files were added to the ZIP. Ending request.");
+          return res.status(500).send("Failed to generate ZIP file.");
+        }
+
+        zipArchive.finalize();
+        console.log("📦 ZIP file finalized and sent to client.");
+      } catch (error) {
+        console.error("❌ Error exporting archive all sections:", error);
+        return res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // Route for downloading a specific section as JSON or CSV
+    app.get("/api/download-archive/:id/:section/:format", async (req, res) => {
+      try {
+        const { id, section, format } = req.params;
+        if (!["json", "csv"].includes(format)) {
+          return res.status(400).send("Invalid format requested");
+        }
+        const archive = await db.collection("election_archive").findOne({ _id: new ObjectId(id) });
+        if (!archive) return res.status(404).send("Archive not found");
+        if (!archive.hasOwnProperty(section)) return res.status(400).send("Invalid section requested");
+
+        const data = archive[section];
+
+        if (format === "json") {
+          res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_${section}.json`);
+          res.setHeader("Content-Type", "application/json");
+          return res.send(JSON.stringify(data, null, 2));
+        } else {
+          let dataArray = Array.isArray(data) ? data : [data];
+          try {
+            const json2csvParser = new Parser();
+            const csv = json2csvParser.parse(dataArray);
+            res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_${section}.csv`);
+            res.setHeader("Content-Type", "text/csv");
+            return res.send(csv);
+          } catch (csvError) {
+            console.error("CSV conversion error:", csvError);
+            return res.status(500).send("Error converting data to CSV");
+          }
+        }
+      } catch (error) {
+        console.error("Error exporting archive section:", error);
+        return res.status(500).send("Internal Server Error");
       }
     });
 
@@ -4330,4 +5282,4 @@ startServer();
 
 // setInterval(() => {
 //   console.log(process.memoryUsage());
-// }, 60000); // logs memory usage every minutd
+// }, 60000); // logs memory usage every minute
