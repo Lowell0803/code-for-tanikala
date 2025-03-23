@@ -1445,6 +1445,8 @@ const startServer = async () => {
 
         // The old update to blockchain_management with $inc operations is removed in favor of the above update.
 
+        await db.collection("electionConfig").updateOne({}, { $set: { candidatesSubmitted: true } }, { upsert: true });
+
         res.status(200).json({
           message: "Candidates submitted to blockchain successfully",
           count: aggregatedCandidates.length,
@@ -4884,6 +4886,8 @@ const startServer = async () => {
 
         // 5. Insert the archive document into the election_archive collection
         await db.collection("election_archive").insertOne(archiveDoc);
+
+        await db.collection("electionConfig").updateOne({}, { $set: { candidatesSubmitted: false } }, { upsert: true });
 
         // 6. (Optional) Delete the current election data.
         // await db.collection("election_config").deleteMany({});
