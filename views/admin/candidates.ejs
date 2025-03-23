@@ -174,7 +174,13 @@
             <i class="fa fa-users"></i>
             <h1 class="title">Candidate Management</h1>
           </div>
-          <h3><span class="purple">Candidate Submission on Blockchain:</span> <span class="smart-contract-status">Not Submitted  |  Submitted</span></h3>
+          <h3>
+            <span class="purple">Candidate Submission on Blockchain:</span>
+            <span class="smart-contract-status">
+              <%= electionConfig.candidatesSubmitted ? "Submitted" : "Not Submitted" %>
+            </span>
+          </h3>
+          
         </div>
         <hr class="title-line" />
 
