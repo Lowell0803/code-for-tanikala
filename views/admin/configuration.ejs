@@ -198,6 +198,8 @@
 
         <!-- Client-side JS -->
         <script>
+          // Pass electionConfig from server to client
+  const config = <%- JSON.stringify(electionConfig) %>;
           // Convert stored deadlines to moment objects in Asia/Manila timezone.
           const regStart = config.registrationStart ? moment.tz(config.registrationStart.$date || config.registrationStart, "Asia/Manila") : null;
           const regEnd = config.registrationEnd ? moment.tz(config.registrationEnd.$date || config.registrationEnd, "Asia/Manila") : null;
