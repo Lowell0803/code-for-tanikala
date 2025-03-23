@@ -24,7 +24,7 @@
       <%- include('sidebar', { activeTab: 'election', activeSub: "reset" }) %>
       <main class="main">
         <div class="reset-election box-shadow">
-          <form>
+          <form action="/reset-election" method="POST">
             <img src="../img/warning.png" class="image" alt="Reset Election Warning" />
             <h2>Are you sure you want to reset the current election?</h2>
             <br />

@@ -147,8 +147,8 @@
                     <li>
                       <p>
                         <strong>Blockchain Link:</strong>
-                        <% if (blockchainInfo && blockchainInfo.transactionHash) { %>
-                          <a href="https://amoy.polygonscan.com/tx/<%= blockchainInfo.transactionHash %>#eventlog" target="_blank">
+                        <% if (blockchainMgmt && blockchainMgmt.candidateSubmissionHash) { %>
+                          <a href="https://amoy.polygonscan.com/tx/<%= blockchainMgmt.candidateSubmissionHash %>#eventlog" target="_blank">
                             View Transaction
                           </a>
                         <% } else { %>
@@ -174,11 +174,11 @@
                       <div class="indent-ish">
                         <p>
                           <strong>Latest Transaction Hash:</strong>
-                          <%= blockchainInfo && blockchainInfo.transactionHash ? blockchainInfo.transactionHash : "N/A" %>
+                          <%= blockchainMgmt && blockchainMgmt.candidateSubmissionHash ? blockchainMgmt.candidateSubmissionHash : "N/A" %>
                         </p>
                         <p>
                           <strong>Latest Submission Date:</strong>
-                          <%= blockchainInfo && blockchainInfo.dateSent ? moment(blockchainInfo.dateSent).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
+                          <%= blockchainMgmt && blockchainMgmt.candidateSubmissionDate ? moment(blockchainMgmt.candidateSubmissionDate).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
                         </p>
                       </div>
                     </li>
