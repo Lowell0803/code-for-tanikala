@@ -30,10 +30,21 @@
               <i class="bx bxs-dashboard"></i>
               <h1 class="title">Dashboard</h1>
             </div>
+            <h3 class="top">
+                          <b>Blockchain Link:</b>
+                          <% if (blockchainInfo && blockchainInfo.transactionHash) { %>
+                            <a href="https://amoy.polygonscan.com/tx/<%= blockchainInfo.transactionHash %>#eventlog" target="_blank">
+                              View Transaction
+                            </a>
+                          <% } else { %>
+                            N/A
+                          <% } %>
+                          </h3>
+
           </div>
           <hr class="title-line" />
           <div class="quick-actions-container">
- <div class="quick-actions-buttons">
+ <div class="quick-actions-buttons first">
               <i class="fa-regular fa-address-card"></i>
               <p>Voter Information</p>
               <div class="view-export">
@@ -74,7 +85,7 @@
               </div>
             </div>
 
-            <div class="quick-actions-buttons">
+            <div class="quick-actions-buttons last">
               <i class="fa-solid fa-user-tie"></i>
               <p>Admin Accounts</p>
               <div class="view-export">
@@ -87,12 +98,12 @@
             <div class="first-main">
               <div class="main-column">
                 <div class="form" id="election-settings">
-                  <p>
+                  <p class="box-label">
                     <b>Current Election Status: </b>
                   </p>
                   <br />
                   <div class="center">
-                    <p id="electionStatusText"><!-- Status text will be updated here dynamically --></p>
+                    <p class="pre-med bold green" id="electionStatusText"><!-- Status text will be updated here dynamically --></p>
                   </div>
                   <script>
                     // Reinitialize configuration variables with new names
@@ -148,21 +159,21 @@
                   
 
                   <br />
-                  <div>
+                  <div class="center">
                     <% if (electionConfig.electionStatus === "Temporarily Closed") { %>
                     <form action="/resume-election" method="POST">
-                      <button type="submit" style="background-color: #4caf50; color: #fff">Resume Election</button>
+                      <button type="submit election" class="action-buttons resume">Resume Election</button>
                     </form>
                     <% } else { %>
                     <form action="/temporarily-closed" method="POST">
-                      <button type="submit" style="background-color: #f44336; color: #fff">Temporarily Close Election</button>
+                      <button type="submit" class="action-buttons reset">Temporarily Close Election</button>
                     </form>
                     <% } %>
                   </div>
                 </div>
 
                 <div class="form" id="election-configuration">
-                  <h3 class="center">Election Configurations</h3>
+                  <h3 class="center box-label">Election Configuration</h3>
                   <br />
                   <% if (electionConfig.electionName) { %>
                   <p>
@@ -257,7 +268,7 @@
                         </li>
                       <% }); %>
                     </ol>
-                    <p><b>Total Number of Voters across Colleges:</b> <span><%= totalCollegeVoters %></span></p>
+                    
                   <% } else { %>
                     <p>No college data available.</p>
                   <% } %>
@@ -265,7 +276,7 @@
                   <br />
                   <br />
                   <div class="center">
-                    <a href="settings_election_management.html">Go to Election Management</a>
+                    <a href="/configuration">Go to Election Configuration Settings</a>
                   </div>
                 </div>
               </div>
@@ -288,20 +299,23 @@
               
                 <div class="beside">
                   <div class="form" id="candidate-submission">
-                    <h4 class="center">Candidate Submission on Blockchain:</h4>
-                    <p class="center"><%= candidateStatus %></p>
+                    <h4 class="center box-label">Candidate Submission on Blockchain:</h4>
+                    <br />
+                    <p class="center pre-med bold purple"><%= candidateStatus %></p>
                   </div>
                   <div class="form" id="registered-students">
-                    <h4 class="center">Registered Voters</h4>
-                    <p class="center"><%= registeredVotersPercentage.toFixed(2) %>%</p>
+                    <h4 class="center box-label">Registered Voters</h4>
+                    
+                    <p class="center big orange bold"><%= registeredVotersPercentage.toFixed(2) %>%</p> 
+                    
                     <p class="center"><%= registeredVotersCount %> registered voters out of <%= electionConfig.totalNumberOfStudents %> total students</p>
                   </div>
                 </div>
               
                 <div class="beside">
                   <div class="form" id="vote-queue">
-                    <h4 class="center">Current Vote Transactions Queue on Blockchain:</h4>
-                    <p class="center" id="queue-number">0</p>
+                    <h4 class="center box-label">Current Vote Transactions Queue on Blockchain:</h4>
+                    <p class="center big bold purple" id="queue-number">0</p>
                   </div>
                   
                   <script src="/socket.io/socket.io.js"></script>
@@ -317,8 +331,10 @@
                   </script>
                   
                   <div class="form" id="voter-turnout">
-                    <h4 class="center">Voter Turnout</h4>
-                    <p class="center"><%= voterTurnoutPercentage.toFixed(2) %>%</p>
+                    <h4 class="center box-label">Voter Turnout</h4>
+                   
+                    <p class="center big orange bold"><%= voterTurnoutPercentage.toFixed(2) %>%</p>
+                   
                     <p class="center"><%= electionConfig.totalVoted %> voted students out of <%= electionConfig.totalNumberOfStudents %> total students</p>
                   </div>
                 </div>
@@ -357,23 +373,23 @@
                     }
                   }
                 %>
-                  <h4 class="center">Admin Wallet Information:</h4>
-                  <div class="indent">
-                    <ul>
-                      <li>
+                  <h4 class="center box-label">Admin Wallet Information</h4>
+                
+                    
+                     <br />
                         <p>
-                          <strong>Wallet Address:</strong>
+                          <b>Wallet Address:</b>
                           <%= walletInfo ? walletInfo.address : "N/A" %>
                         </p>
-                      </li>
+                      
                       <br />
-                      <li>
+                      
                         <p>
-                          <strong>Current Balance:</strong>
+                          <b>Current Balance:</b>
                           <span><%= balanceStatus %></span>
                         </p>
                         <p><em><%= balanceDescription %></em></p>
-                      </li>
+                      
                       <br />
                       <table class="currency">
                         <tr>
@@ -388,34 +404,25 @@
                         </tr>
                       </table>
                       <br />
-                      <li>
-                        <p>
-                          <strong>Blockchain Link:</strong>
-                          <% if (blockchainInfo && blockchainInfo.transactionHash) { %>
-                            <a href="https://amoy.polygonscan.com/tx/<%= blockchainInfo.transactionHash %>#eventlog" target="_blank">
-                              View Transaction
-                            </a>
-                          <% } else { %>
-                            N/A
-                          <% } %>
-                        </p>
-                      </li>
-                    </ul>
-                  </div>
+                     
+                        
+                     
+                  
                   <hr />
-                  <h4 class="center">Blockchain Transactions:</h4>
-                  <div class="indent">
-                    <ul>
-                      <li>
+                  <br />
+                  <h4 class="center grow">Blockchain Transactions</h4>
+                 
+                    <br />
+                     
                         <p>
-                          <strong>Vote Transactions Count: </strong>
+                          <b>Vote Transactions Count: </b>
                           <span><%= blockchainMgmt ? blockchainMgmt.voteTransactionsCount : "N/A" %></span>
                         </p>
-                      </li>
+                      
                       <br />
-                      <li>
+                     
                         <!-- <p>
-                          <strong>Total Blockchain Transactions: </strong>
+                          <b>Total Blockchain Transactions: </b>
                           <span>
                             <%= blockchainMgmt ? (blockchainMgmt.voteTransactionsCount + blockchainMgmt.candidateSubmissionsCount) : "N/A" %>
                           </span>
@@ -426,13 +433,13 @@
                             <%= blockchainMgmt ? blockchainMgmt.totalGasUsed : "N/A" %> Gas
                           </p>
                           <p>
-                            <strong>Total Amount Spent (Wei):</strong>
+                            <b>Total Amount Spent (Wei):</b>
                             <%= blockchainMgmt ? blockchainMgmt.totalWeiSpent : "N/A" %> Wei
                           </p> -->
                           <br />
-                          <p><strong>Total Amount Spent:</strong></p>
+                          <p><b>Total Amount Spent:</b></p>
                         </div>
-                      </li>
+                      
                       <br />
                       <table class="currency">
                         <tr>
@@ -447,8 +454,8 @@
                         </tr>
                       </table>
                       <br />
-                    </ul>
-                  </div>
+                   
+                 
                 </div>
               </div>
               

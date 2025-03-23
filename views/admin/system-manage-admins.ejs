@@ -59,8 +59,11 @@
         <div class="first-main">
           <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
           <!-- Button to open Add Admin Modal -->
+           <div class="right">
           <button class="button button-brown" onclick="openAddModal()">Add Admin</button>
+          </div>
           <% } %>
+          <br />
           <br />
           <td class="table-container">
             <table>

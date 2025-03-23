@@ -31,6 +31,16 @@
               <i class="fa fa-link"></i>
               <h1 class="title">Blockchain Management</h1>
             </div>
+             <h3 class="top">
+                        <b>Blockchain Link:</b>
+                        <% if (blockchainInfo && blockchainInfo.transactionHash) { %>
+                          <a href="https://amoy.polygonscan.com/tx/<%= blockchainInfo.transactionHash %>#eventlog" target="_blank">
+                            View Transaction
+                          </a>
+                        <% } else { %>
+                          N/A
+                        <% } %>
+                        </h3>
           </div>
           <hr class="title-line" />
 
@@ -144,18 +154,7 @@
                         </span>
                       </p>
                     </li>
-                    <li>
-                      <p>
-                        <strong>Blockchain Link:</strong>
-                        <% if (blockchainInfo && blockchainInfo.transactionHash) { %>
-                          <a href="https://amoy.polygonscan.com/tx/<%= blockchainInfo.transactionHash %>#eventlog" target="_blank">
-                            View Transaction
-                          </a>
-                        <% } else { %>
-                          N/A
-                        <% } %>
-                      </p>
-                    </li>
+                    
                   </ul>
                 </div>
 

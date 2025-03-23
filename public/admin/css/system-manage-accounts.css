@@ -62,4 +62,18 @@ table th,
 table td {
   height: 8vh;
   text-align: center;
+  padding: 1rem;
+}
+
+.table-container {
+  border: 3px solid black;
+}
+
+.main-content {
+  border: 3px solid black;
+}
+
+.right {
+  /* border: 3px solid black; */
+  text-align: right;
 }
