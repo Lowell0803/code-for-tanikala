@@ -1254,188 +1254,166 @@ const startServer = async () => {
 
     app.post("/submit-candidates", async (req, res) => {
       try {
+        // Helper function to assign a unique ID and merge additional fields
+        const processCandidates = (candidates, extra = {}) =>
+          candidates.map((candidate) => ({
+            ...candidate,
+            uniqueId: generateRandomKey(),
+            ...extra,
+          }));
+
+        // Query SSC and LSC candidates concurrently
+        const [sscData, lscData] = await Promise.all([db.collection("candidates").find({}).toArray(), db.collection("candidates_lsc").find({}).toArray()]);
+
         let aggregatedCandidates = [];
 
-        // Query the SSC candidates collection ("candidates")
-        const sscData = await db.collection("candidates").find({}).toArray();
+        // Process SSC candidates
         sscData.forEach((group) => {
           if (Array.isArray(group.candidates)) {
-            group.candidates.forEach((candidate) => {
-              // Assign a random unique identifier (32-byte hex string)
-              candidate.uniqueId = generateRandomKey();
-              aggregatedCandidates.push(candidate);
-            });
+            aggregatedCandidates.push(...processCandidates(group.candidates));
           }
         });
 
-        // Query the LSC candidates collection ("candidates_lsc")
-        const lscData = await db.collection("candidates_lsc").find({}).toArray();
+        // Process LSC candidates
         lscData.forEach((collegeGroup) => {
-          if (Array.isArray(collegeGroup.positions)) {
-            collegeGroup.positions.forEach((position) => {
-              // Positions with a direct candidates array (e.g., Governor, Vice Governor)
-              if (Array.isArray(position.candidates)) {
-                position.candidates.forEach((candidate) => {
-                  candidate.uniqueId = generateRandomKey();
-                  candidate.college = candidate.college || collegeGroup.collegeAcronym || collegeGroup.collegeName;
-                  aggregatedCandidates.push(candidate);
-                });
-              }
-              // Positions with nested programs (e.g., Board Members)
-              if (Array.isArray(position.programs)) {
-                position.programs.forEach((programGroup) => {
-                  if (Array.isArray(programGroup.candidates)) {
-                    programGroup.candidates.forEach((candidate) => {
-                      candidate.uniqueId = generateRandomKey();
-                      candidate.college = candidate.college || collegeGroup.collegeAcronym || collegeGroup.collegeName;
-                      candidate.program = candidate.program || programGroup.program;
-                      aggregatedCandidates.push(candidate);
-                    });
-                  }
-                });
-              }
-            });
-          }
+          if (!Array.isArray(collegeGroup.positions)) return;
+          collegeGroup.positions.forEach((position) => {
+            // For positions with direct candidates
+            if (Array.isArray(position.candidates)) {
+              const extra = {
+                college: position.college || collegeGroup.collegeAcronym || collegeGroup.collegeName,
+              };
+              aggregatedCandidates.push(...processCandidates(position.candidates, extra));
+            }
+            // For positions with nested programs
+            if (Array.isArray(position.programs)) {
+              position.programs.forEach((programGroup) => {
+                if (Array.isArray(programGroup.candidates)) {
+                  const extra = {
+                    college: programGroup.college || collegeGroup.collegeAcronym || collegeGroup.collegeName,
+                    program: programGroup.program,
+                  };
+                  aggregatedCandidates.push(...processCandidates(programGroup.candidates, extra));
+                }
+              });
+            }
+          });
         });
 
-        // Create maps/sets to track which abstain candidates we need to add.
-        // For general positions (not governor, vice governor, or board member), one abstain candidate per position.
+        // Build maps to determine which abstain candidates need to be added
         const generalPositions = new Set();
-        // For governor and vice governor, we add one per distinct (position + college) combination.
         const govPositionsMap = {};
-        // For board member, add one per distinct (position + program) combination.
         const boardPositionsMap = {};
 
         aggregatedCandidates.forEach((candidate) => {
           const posLower = candidate.position.toLowerCase();
           if (posLower === "governor" || posLower === "vice governor") {
             if (candidate.college) {
-              const key = posLower + "_" + candidate.college.toLowerCase();
+              const key = `${posLower}_${candidate.college.toLowerCase()}`;
               govPositionsMap[key] = { position: candidate.position, college: candidate.college };
             }
-            // Build the board member map using both college and program.
           } else if (posLower === "board member") {
-            if (candidate.program && candidate.college) {
-              // Use both college and program as key
-              const key = posLower + "_" + candidate.college.toLowerCase() + "_" + candidate.program.toLowerCase();
+            if (candidate.college && candidate.program) {
+              const key = `${posLower}_${candidate.college.toLowerCase()}_${candidate.program.toLowerCase()}`;
               boardPositionsMap[key] = { position: candidate.position, college: candidate.college, program: candidate.program };
             }
           } else {
-            generalPositions.add(candidate.position); // Preserve original case
+            generalPositions.add(candidate.position);
           }
+        });
+
+        // Helper for creating an abstain candidate object
+        const createAbstainCandidate = (idPart, extras = {}) => ({
+          _id: "abstain_" + idPart,
+          party: "",
+          name: "Abstain",
+          image: "",
+          moreInfo: "Abstain",
+          ...extras,
+          uniqueId: generateRandomKey(),
         });
 
         // Add abstain candidate for each general position
         generalPositions.forEach((position) => {
-          const abstainCandidate = {
-            _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase(),
-            party: "",
-            name: "Abstain",
-            image: "",
-            moreInfo: "Abstain",
-            position: position,
-            uniqueId: generateRandomKey(),
-          };
-          aggregatedCandidates.push(abstainCandidate);
+          const idPart = position.replace(/\s+/g, "_").toLowerCase();
+          aggregatedCandidates.push(createAbstainCandidate(idPart, { position }));
         });
 
         // Add abstain candidate for each governor/vice governor (per college)
         Object.values(govPositionsMap).forEach(({ position, college }) => {
-          const abstainCandidate = {
-            _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase() + "_" + college.replace(/\s+/g, "_").toLowerCase(),
-            party: "",
-            name: "Abstain",
-            image: "",
-            moreInfo: "Abstain",
-            position: position,
-            college: college,
-            uniqueId: generateRandomKey(),
-          };
-          aggregatedCandidates.push(abstainCandidate);
+          const idPart = `${position.replace(/\s+/g, "_").toLowerCase()}_${college.replace(/\s+/g, "_").toLowerCase()}`;
+          aggregatedCandidates.push(createAbstainCandidate(idPart, { position, college }));
         });
 
-        // Add abstain candidate for each board member (per program)
         // Add abstain candidate for each board member (per college and program)
         Object.values(boardPositionsMap).forEach(({ position, college, program }) => {
-          const abstainCandidate = {
-            _id: "abstain_" + position.replace(/\s+/g, "_").toLowerCase() + "_" + college.replace(/\s+/g, "_").toLowerCase() + "_" + program.replace(/\s+/g, "_").toLowerCase(),
-            party: "",
-            name: "Abstain",
-            image: "",
-            moreInfo: "Abstain",
-            position: position,
-            college: college, // now included
-            program: program,
-            uniqueId: generateRandomKey(),
-          };
-          aggregatedCandidates.push(abstainCandidate);
+          const idPart = `${position.replace(/\s+/g, "_").toLowerCase()}_${college.replace(/\s+/g, "_").toLowerCase()}_${program.replace(/\s+/g, "_").toLowerCase()}`;
+          aggregatedCandidates.push(createAbstainCandidate(idPart, { position, college, program }));
         });
 
-        // Extract only the unique IDs (which are now valid 32-byte hex strings)
+        // Extract candidate unique IDs (assumed to be valid 32-byte hex strings)
         const candidateIds = aggregatedCandidates.map((candidate) => candidate.uniqueId);
 
+        // Reset candidates on blockchain
         const resetTx = await contract.resetCandidates();
         await resetTx.wait();
 
-        // Submit the candidate unique IDs to the blockchain using the smart contract.
-        const tx = await contract.registerCandidates(candidateIds);
-        const receipt = await tx.wait();
+        // Batch the registration transactions to avoid high fees.
+        const BATCH_SIZE = 50; // adjust as needed
+        const receipts = [];
+        for (let i = 0; i < candidateIds.length; i += BATCH_SIZE) {
+          const batch = candidateIds.slice(i, i + BATCH_SIZE);
+          // You can add transaction fee overrides here if needed
+          const tx = await contract.registerCandidates(batch, {
+            // Example fee overrides (adjust to your needs)
+            maxFeePerGas: ethers.parseUnits("150", "gwei"),
+            maxPriorityFeePerGas: ethers.parseUnits("50", "gwei"),
+          });
+          const receipt = await tx.wait();
+          receipts.push(receipt);
+          console.log(`Batch ${i / BATCH_SIZE + 1} registered: ${receipt.hash}`);
+        }
 
-        // Optionally, update your database with the aggregated candidate data
-        const result = await db.collection("aggregatedCandidates").updateOne({}, { $set: { candidates: aggregatedCandidates } }, { upsert: true });
+        // Update aggregated candidates in the database
+        await db.collection("aggregatedCandidates").updateOne({}, { $set: { candidates: aggregatedCandidates } }, { upsert: true });
 
-        // Reset the candidate_hashes collection and insert new documents.
-        // Each document includes the candidateId and an empty emails array.
+        // Reset and insert candidate hashes
         await db.collection("candidate_hashes").deleteMany({});
         const candidateHashesDocs = aggregatedCandidates.map((candidate) => ({
           candidateId: candidate.uniqueId,
-          emails: [], // initial emails array is empty
+          emails: [],
         }));
         await db.collection("candidate_hashes").insertMany(candidateHashesDocs);
 
-        // await logActivity("system_activity_logs", "Candidates Submitted", "Admin", req);
-
         // Fetch crypto prices for cost calculation
         const priceData = await getCryptoPrices();
-        if (!priceData) {
-          console.log("Failed to fetch crypto prices. Skipping cost calculation.");
-        }
+        if (!priceData) console.log("Failed to fetch crypto prices. Skipping cost calculation.");
 
-        // (Optional) Log blockchain activity with cost details using the inline function
-        // Make sure recordBlockchainActivity is defined inline in this file.
-        await recordBlockchainActivity("system_activity_logs", "Candidates Submitted", "Admin", req, receipt, priceData);
+        // Log blockchain activity (ensure recordBlockchainActivity is defined)
+        await recordBlockchainActivity("system_activity_logs", "Candidates Submitted", "Admin", req, receipts, priceData);
 
-        console.log("Transaction Receipt:", receipt);
+        // Aggregate gas costs from each batch
+        let totalGasUsed = 0;
+        let totalGasPrice = 0;
+        receipts.forEach((receipt) => {
+          totalGasUsed += Number(receipt.gasUsed);
+          totalGasPrice += Number(receipt.gasPrice);
+        });
+        const candidateCostWei = totalGasUsed * totalGasPrice;
+        const candidateCostInPOL = candidateCostWei / 1e18;
 
-        // Ensure ETH and POL prices exist
-        const ethPricePhp = priceData?.ethPricePhp || 0;
-        const ethPriceUsd = priceData?.ethPriceUsd || 0;
-        let polPricePhp = priceData?.polPricePhp || 0;
-        const polPriceUsd = priceData?.polPriceUsd || 0;
-
-        // Convert POL → PHP manually if missing
+        let { ethPricePhp = 0, ethPriceUsd = 0, polPricePhp = 0, polPriceUsd = 0 } = priceData || {};
         if (!polPricePhp && polPriceUsd && ethPricePhp && ethPriceUsd) {
           polPricePhp = (polPriceUsd / ethPriceUsd) * ethPricePhp;
         }
-
-        // Gas Calculation (Fix BigInt issue)
-        // Note: assuming gasUsed and gasPrice are defined from receipt
-        const gasUsed = Number(receipt.gasUsed);
-        const gasPrice = Number(receipt.gasPrice);
-
-        // Calculate candidate cost in wei and convert to POL (assuming 1 POL = 1e18 wei)
-        const candidateCostWei = gasUsed * gasPrice;
-        const candidateCostInPOL = candidateCostWei / 1e18;
-        // Calculate cost in PHP and USD using POL prices
         const candidateCostPHP = polPricePhp ? candidateCostInPOL * polPricePhp : "N/A";
         const candidateCostUSD = polPriceUsd ? candidateCostInPOL * polPriceUsd : "N/A";
 
-        // Instead of saving blockchainInfo, update blockchain_management with the desired fields in POL
         const candidateSubmissionData = {
-          blockchainLink: `https://amoy.polygonscan.com/address/${receipt.hash}`,
+          blockchainLink: `https://amoy.polygonscan.com/address/${receipts[receipts.length - 1].hash}`,
           candidateSubmissionDate: new Date(),
-          candidateSubmissionHash: receipt.hash,
-          candidateSubmissionCostGas: gasUsed.toString(),
+          candidateSubmissionHash: receipts[receipts.length - 1].hash,
+          candidateSubmissionCostGas: totalGasUsed.toString(),
           candidateSubmissionCostWei: candidateCostWei.toString(),
           candidateSubmissionCostPHP: candidateCostPHP,
           candidateSubmissionCostUSD: candidateCostUSD,
@@ -1443,23 +1421,14 @@ const startServer = async () => {
 
         await db.collection("blockchain_management").updateOne({}, { $set: candidateSubmissionData, $inc: { candidateSubmissionsCount: 1 } }, { upsert: true });
 
-        // The old update to blockchain_management with $inc operations is removed in favor of the above update.
-
         await db.collection("electionConfig").updateOne({}, { $set: { candidatesSubmitted: true } }, { upsert: true });
 
         res.status(200).json({
           message: "Candidates submitted to blockchain successfully",
           count: aggregatedCandidates.length,
-          blockchainTx: receipt,
-          candidateSubmissionData, // returning the candidate submission data instead of blockchainInfo
+          blockchainTxReceipts: receipts,
+          candidateSubmissionData,
         });
-        // res.status(200).json({
-        //   message: "Candidates aggregated and submitted to blockchain successfully",
-        //   count: aggregatedCandidates.length,
-        //   dbResult: result,
-        //   blockchainTx: receipt,
-        //   blockchainInfo: bcResult,
-        // });
       } catch (error) {
         console.error("Error aggregating candidates:", error);
         res.status(500).json({ error: error.message });
