@@ -1,6 +1,8 @@
 const express = require("express");
 const path = require("path");
 const { connectToDatabase, client } = require("./db");
+const { Parser } = require("json2csv");
+const archiver = require("archiver");
 
 require("dotenv").config();
 const session = require("express-session");
@@ -4123,7 +4125,8 @@ const startServer = async () => {
 
         // Insert the document into the vote_tally collection
         const voteTallyCollection = db.collection("vote_tally");
-        await voteTallyCollection.insertOne(voteTallyData);
+        // await voteTallyCollection.insertOne(voteTallyData);
+        await voteTallyCollection.replaceOne({}, voteTallyData, { upsert: true });
 
         res.send("Vote tally data (including hashes) saved successfully.");
       } catch (error) {
@@ -4542,7 +4545,8 @@ const startServer = async () => {
 
         // Save the computed data into the "voter_turnout" collection
         const voterTurnoutCollection = db.collection("voter_turnout");
-        await voterTurnoutCollection.insertOne(voterTurnoutData);
+        // await voterTurnoutCollection.insertOne(voterTurnoutData);
+        await voterTurnoutCollection.replaceOne({}, voterTurnoutData, { upsert: true });
 
         return "Voter turnout data saved successfully.";
       } catch (error) {
@@ -4812,7 +4816,8 @@ const startServer = async () => {
 
         // Save the results data into the "results" collection
         const resultsCollection = db.collection("results");
-        await resultsCollection.insertOne(resultsData);
+        // await resultsCollection.insertOne(resultsData);
+        await resultsCollection.replaceOne({}, resultsData, { upsert: true });
 
         return "Election results saved successfully in the results collection.";
       } catch (error) {
@@ -4868,7 +4873,6 @@ const startServer = async () => {
           electionStatus,
           registrationPeriod,
           votingPeriod,
-          // Entire collections are stored for complete archival
           electionConfig: configDocs,
           candidates: candidatesDocs,
           candidates_lsc: candidatesLSCDocs,
@@ -4897,6 +4901,7 @@ const startServer = async () => {
       }
     });
 
+    // Route for rendering archives
     app.get("/archives", async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");
@@ -4909,6 +4914,118 @@ const startServer = async () => {
       } catch (error) {
         console.error("Error fetching archives:", error);
         res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // Route for downloading all sections as a zip file in JSON or CSV format
+    app.get("/api/download-archive/:id/all/:format", async (req, res) => {
+      try {
+        const { id, format } = req.params;
+        console.log(`📥 Received request to download all sections for archive ID: ${id} in ${format.toUpperCase()} format`);
+
+        if (!["json", "csv"].includes(format)) {
+          console.log("❌ Invalid format requested:", format);
+          return res.status(400).send("Invalid format requested");
+        }
+
+        const archive = await db.collection("election_archive").findOne({ _id: new ObjectId(id) });
+        if (!archive) {
+          console.log("❌ Archive not found for ID:", id);
+          return res.status(404).send("Archive not found");
+        }
+
+        // Log all keys available in the archive document
+        console.log("✅ Archive found! Available sections:", Object.keys(archive));
+
+        // List of expected sections
+        const sections = ["electionConfig", "candidates", "candidates_lsc", "registeredVoters", "voterTurnout", "voterTally", "voterResults"];
+
+        // Filter out missing sections (in your file, only "electionConfig" and "candidates" exist)
+        const existingSections = sections.filter((section) => archive.hasOwnProperty(section));
+        console.log("📂 Sections to be included in ZIP:", existingSections);
+
+        if (existingSections.length === 0) {
+          console.log("❌ No valid sections found for this archive.");
+          return res.status(400).send("No valid sections found for this archive.");
+        }
+
+        // Set up headers for ZIP file
+        res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_all_${format}.zip`);
+        res.setHeader("Content-Type", "application/zip");
+
+        const zipArchive = archiver("zip");
+        zipArchive.pipe(res);
+
+        // Track number of files added
+        let filesAdded = 0;
+
+        for (const section of existingSections) {
+          let content;
+          let fileName = `${section}.${format}`;
+          try {
+            if (format === "json") {
+              content = JSON.stringify(archive[section], null, 2);
+            } else {
+              let data = archive[section];
+              let dataArray = Array.isArray(data) ? data : [data];
+              const json2csvParser = new Parser();
+              content = json2csvParser.parse(dataArray);
+              console.log(`✅ Successfully converted ${section} to CSV`);
+            }
+            zipArchive.append(content, { name: fileName });
+            console.log(`📎 Added ${fileName} to ZIP`);
+            filesAdded++;
+          } catch (error) {
+            console.error(`❌ Error processing ${section}:`, error);
+          }
+        }
+
+        if (filesAdded === 0) {
+          console.log("❌ No files were added to the ZIP. Ending request.");
+          return res.status(500).send("Failed to generate ZIP file.");
+        }
+
+        zipArchive.finalize();
+        console.log("📦 ZIP file finalized and sent to client.");
+      } catch (error) {
+        console.error("❌ Error exporting archive all sections:", error);
+        return res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // Route for downloading a specific section as JSON or CSV
+    app.get("/api/download-archive/:id/:section/:format", async (req, res) => {
+      try {
+        const { id, section, format } = req.params;
+        if (!["json", "csv"].includes(format)) {
+          return res.status(400).send("Invalid format requested");
+        }
+        const archive = await db.collection("election_archive").findOne({ _id: new ObjectId(id) });
+        if (!archive) return res.status(404).send("Archive not found");
+        if (!archive.hasOwnProperty(section)) return res.status(400).send("Invalid section requested");
+
+        const data = archive[section];
+
+        if (format === "json") {
+          res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_${section}.json`);
+          res.setHeader("Content-Type", "application/json");
+          return res.send(JSON.stringify(data, null, 2));
+        } else {
+          let dataArray = Array.isArray(data) ? data : [data];
+          try {
+            const json2csvParser = new Parser();
+            const csv = json2csvParser.parse(dataArray);
+            res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_${section}.csv`);
+            res.setHeader("Content-Type", "text/csv");
+            return res.send(csv);
+          } catch (csvError) {
+            console.error("CSV conversion error:", csvError);
+            return res.status(500).send("Error converting data to CSV");
+          }
+        }
+      } catch (error) {
+        console.error("Error exporting archive section:", error);
+        return res.status(500).send("Internal Server Error");
       }
     });
 
