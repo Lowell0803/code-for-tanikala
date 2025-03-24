@@ -5098,10 +5098,8 @@ const startServer = async () => {
         await db.collection("election_config").updateOne({}, { $set: defaultElectionConfig });
 
         // 6. (Optional) Delete the current election data.
-        // await db.collection("election_config").deleteMany({});
-        // await db.collection("candidates").deleteMany({});
-        // await db.collection("candidates_lsc").deleteMany({});
-        // await db.collection("registered_voters").deleteMany({});
+        await db.collection("registered_voters").deleteMany({});
+        await contract.resetCandidates();
 
         // Log the archiving activity (assuming logActivity is defined)
         await logActivity("activity_logs", "Reset Election Archiving", "ARCHIVE", req, "Archived election data.");

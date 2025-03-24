@@ -23,6 +23,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="components/notification.css" />
+  <script type="module" src="components/notification.js"></script>
   </head>
 
   <body>
@@ -492,6 +495,19 @@
           <!-- Reset Candidates Button (Initially Hidden) -->
           <button class="action-button" id="resetCandidatesBtn">Reset Candidates</button>
 
+          <script type="module">
+            import { createNotification } from "/components/notification.js";
+          
+            document.addEventListener("DOMContentLoaded", () => {
+              const resetCandidatesBtn = document.getElementById("resetCandidatesBtn");
+          
+              resetCandidatesBtn.addEventListener("click", () => {
+                createNotification("This feature is currently disabled during testing.", "warning", 5000);
+              });
+            });
+          </script>
+          
+
           <!-- Status Message -->
           <p id="statusMessage"></p>
 
@@ -527,26 +543,26 @@
               }
             });
 
-            // Event listener for "Reset Candidates" button
-            document.getElementById("resetCandidatesBtn").addEventListener("click", async () => {
-              try {
-                // Send request to reset candidates
-                const response = await fetch("/reset-candidates", { method: "POST" });
-                const data = await response.json();
-                alert(data.message);
+            // // Event listener for "Reset Candidates" button
+            // document.getElementById("resetCandidatesBtn").addEventListener("click", async () => {
+            //   try {
+            //     // Send request to reset candidates
+            //     const response = await fetch("/reset-candidates", { method: "POST" });
+            //     const data = await response.json();
+            //     alert(data.message);
 
-                if (response.ok) {
-                  // Optionally hide the "Reset Candidates" button again
-                  document.getElementById("resetCandidatesBtn").style.display = "none";
+            //     if (response.ok) {
+            //       // Optionally hide the "Reset Candidates" button again
+            //       document.getElementById("resetCandidatesBtn").style.display = "none";
 
-                  // Reset the "Deploy Candidates" button appearance and re-enable it
-                  document.getElementById("submitBtn").style.opacity = "1";
-                  document.getElementById("submitBtn").disabled = false;
-                }
-              } catch (error) {
-                alert("Failed to reset candidates.");
-              }
-            });
+            //       // Reset the "Deploy Candidates" button appearance and re-enable it
+            //       document.getElementById("submitBtn").style.opacity = "1";
+            //       document.getElementById("submitBtn").disabled = false;
+            //     }
+            //   } catch (error) {
+            //     alert("Failed to reset candidates.");
+            //   }
+            // });
           </script>
         </div>
       </main>
