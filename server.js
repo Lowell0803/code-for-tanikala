@@ -25,23 +25,43 @@ const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractABI, 
 
 async function recordBlockchainActivity(collectionName, action, actor, req, txReceipt, cryptoPrices) {
   let db = await connectToDatabase();
-  // Calculate cost details if cryptoPrices and txReceipt are provided
+  let totalGasUsed = 0;
+  let transactionHash = "N/A";
   let costPhp = "N/A";
   let costPol = "N/A";
-  if (txReceipt && cryptoPrices) {
-    const gasUsed = Number(txReceipt.gasUsed);
-    const gasPrice = Number(txReceipt.gasPrice);
-    // Calculate the gas cost in POL tokens
-    const amountSpentPol = (gasUsed * gasPrice) / 1e18;
-    // Cost in PHP by converting POL cost to PHP using the POL price
+
+  // Check if txReceipt is an array (batch transaction)
+  if (Array.isArray(txReceipt)) {
+    // Sum gasUsed from each receipt
+    txReceipt.forEach((receipt) => {
+      totalGasUsed += Number(receipt.gasUsed);
+    });
+    // Use the hash of the first receipt as the transaction hash
+    transactionHash = txReceipt[0].hash;
+  } else if (txReceipt) {
+    totalGasUsed = Number(txReceipt.gasUsed);
+    transactionHash = txReceipt.hash;
+  }
+
+  // Calculate cost details if cryptoPrices is provided
+  if (cryptoPrices) {
+    let combinedCostWei = 0;
+    if (Array.isArray(txReceipt)) {
+      txReceipt.forEach((receipt) => {
+        combinedCostWei += Number(receipt.gasUsed) * Number(receipt.gasPrice);
+      });
+    } else if (txReceipt) {
+      combinedCostWei = totalGasUsed * Number(txReceipt.gasPrice);
+    }
+
+    const amountSpentPol = combinedCostWei / 1e18;
     costPhp = cryptoPrices.polPricePhp ? (amountSpentPol * cryptoPrices.polPricePhp).toFixed(2) : "N/A";
-    // Actual cost in POL tokens
     costPol = amountSpentPol.toFixed(4);
   }
 
   const logEntry = {
     timestamp: new Date(),
-    transactionHash: txReceipt ? txReceipt.hash : "N/A",
+    transactionHash,
     action,
     costPhp,
     costPol,
@@ -1414,7 +1434,7 @@ const startServer = async () => {
           candidateSubmissionDate: new Date(),
           candidateSubmissionHash: receipts.map((r) => r.hash), // array of hashes from batch submissions
           candidateSubmissionCostGas: totalGasUsed, // stored as a number
-          candidateSubmissionCostWei: candidateCostWei.toString(),
+          candidateSubmissionCostWei: candidateCostWei,
           candidateSubmissionCostPHP: candidateCostPHP,
           candidateSubmissionCostUSD: candidateCostUSD,
           latestCandidateSubmissionCost: candidateCostInPOL, // cost in POL
@@ -1428,17 +1448,17 @@ const startServer = async () => {
             $set: candidateSubmissionData,
             $inc: {
               candidateSubmissionsCount: 1,
-              totalGasUsed: totalGasUsed,
-              totalWeiSpent: candidateCostWei,
-              totalAmountSpentPol: candidateCostInPOL,
-              totalAmountSpentUSD: candidateCostUSD === "N/A" ? 0 : candidateCostUSD,
-              totalAmountSpentPHP: candidateCostPHP === "N/A" ? 0 : candidateCostPHP,
+              totalGasUsedInCandidates: totalGasUsed,
+              totalWeiSpentInCandidates: candidateCostWei,
+              totalAmountSpentInCandidatesPol: candidateCostInPOL,
+              totalAmountSpentInCandidatesUSD: candidateCostUSD === "N/A" ? 0 : candidateCostUSD,
+              totalAmountSpentInCandidatesPHP: candidateCostPHP === "N/A" ? 0 : candidateCostPHP,
             },
           },
           { upsert: true }
         );
 
-        await db.collection("electionConfig").updateOne({}, { $set: { candidatesSubmitted: true } }, { upsert: true });
+        await db.collection("election_config").updateOne({}, { $set: { candidatesSubmitted: true } }, { upsert: true });
 
         res.status(200).json({
           message: "Candidates submitted to blockchain successfully",
