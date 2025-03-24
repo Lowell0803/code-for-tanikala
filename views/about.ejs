@@ -227,7 +227,7 @@
       </div>
     </div>
 
-    <footer class="footer">
+    <!-- <footer class="footer">
       <div class="footer-left">
         <img src="img/calendar.png" class="footer-img" />
         <p id="datetime" data-date="<%= electionConfig.fakeCurrentDate %>"></p>
@@ -241,8 +241,8 @@
         <p>Admin? Log in&nbsp;</p>
         <a href="/admin-login"> here.</a>
       </div>
-    </footer>
-    <script src="js/index.js"></script>
+    </footer> -->
+    <!-- <script src="js/index.js"></script>
     <script>
       function formatDate(isoString) {
         const date = new Date(isoString);
@@ -274,7 +274,7 @@
       }
 
       document.addEventListener("DOMContentLoaded", updateDateTime);
-    </script>
+    </script> -->
     <script>
       // voting countdown
       // Use voting dates from server configuration.
@@ -362,5 +362,6 @@
         }
       }, 1000);
     </script>
+    <%- include('homepages/footer') %>
   </body>
 </html>

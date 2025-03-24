@@ -44,6 +44,8 @@
   font-weight: 700;
   border-radius: 5rem;
   border: 0.2rem solid #5fb643;
+  background-color: transparent;
+  color: #5fb643;
 
   /* smoother transition */
   transition: all 0.3s ease, transform 0.2s ease;

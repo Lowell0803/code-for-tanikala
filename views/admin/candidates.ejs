@@ -487,10 +487,16 @@
 
         <div class="blockchain">
           <!-- Deploy Candidates Button -->
-          <button class="action-button" id="submitBtn">Deploy Candidates to Blockchain</button>
+          <button class="action-button" id="submitBtn" 
+  <%= electionConfig.candidatesSubmitted ? "style='opacity:0.5; pointer-events: none;'" : "Submitted" %>>
+  Submit Candidates to Blockchain
+</button>
 
           <!-- Reset Candidates Button (Initially Hidden) -->
-          <button class="action-button" id="resetCandidatesBtn">Reset Candidates</button>
+         <button class="action-button" id="resetCandidatesBtn" 
+  <%= electionConfig.candidatesSubmitted ? "Not Submitted" : "style='display:none;'" %>>
+  Reset Candidate Submissions on Blockchain
+</button>
 
           <!-- Status Message -->
           <p id="statusMessage"></p>
@@ -519,7 +525,8 @@
 
                   // Make "Deploy Candidates" button less opaque and unclickable
                   document.getElementById("submitBtn").style.opacity = "0.5";
-                  document.getElementById("submitBtn").disabled = true; // Make the button unclickable
+                   document.getElementById("submitBtn").style.pointerEvents = "none";
+                  
                 }
               } catch (error) {
                 console.error("Error:", error);
@@ -540,8 +547,8 @@
                   document.getElementById("resetCandidatesBtn").style.display = "none";
 
                   // Reset the "Deploy Candidates" button appearance and re-enable it
-                  document.getElementById("submitBtn").style.opacity = "1";
-                  document.getElementById("submitBtn").disabled = false;
+                 document.getElementById("submitBtn").style.opacity = "1";
+      document.getElementById("submitBtn").style.pointerEvents = "auto";
                 }
               } catch (error) {
                 alert("Failed to reset candidates.");
