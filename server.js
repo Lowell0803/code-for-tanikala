@@ -922,7 +922,7 @@ const startServer = async () => {
         const electionConfig = await db.collection("election_config").findOne({});
 
         // Convert stored dates to moment objects in Asia/Manila timezone.
-        const fakeCurrent = electionConfig && electionConfig.fakeCurrentDate ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila") : moment.tz(new Date(), "Asia/Manila");
+        const fakeCurrent = electionConfig && electionConfig.useFakeDate === true ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila") : moment.tz(new Date(), "Asia/Manila");
 
         const electionStatus = electionConfig && electionConfig.electionStatus ? electionConfig.electionStatus : "";
         const specialStatus = electionConfig && electionConfig.specialStatus ? electionConfig.specialStatus : "None";
@@ -3048,6 +3048,12 @@ const startServer = async () => {
           colleges: collegesArray,
           updatedAt: new Date(),
         };
+
+        // Calculate totals from the collegesArray
+        update.totalNumberOfStudents = collegesArray.reduce((total, college) => total + college.numberOfStudents, 0);
+        update.totalNotRegisteredNotVoted = collegesArray.reduce((total, college) => total + college.notRegisteredNotVoted, 0);
+        update.totalRegisteredNotVoted = collegesArray.reduce((total, college) => total + college.registeredNotVoted, 0);
+        update.totalRegisteredVoted = collegesArray.reduce((total, college) => total + college.registeredVoted, 0);
 
         // Check if an election configuration exists and if it has fakeCurrentDate.
         const existingConfig = await db.collection("election_config").findOne({});

@@ -76,55 +76,7 @@
       </div>
     </div>
 
-    <footer class="footer">
-      <div class="footer-left">
-        <img src="img/calendar.png" class="footer-img" />
-        <p id="datetime">OCTOBER 23, 2024 - 04:17 AM</p>
-      </div>
-
-      <div class="footer-center">
-        <img src="img/copyright.png" class="footer-img" id="copyright-img" />
-        <p>2025 - Fourmula 1</p>
-      </div>
-      <!-- <div class="footer-right">
-        <img src="img/log-in.png" class="footer-img" id="admin-img" />
-        <p>Admin? Log in&nbsp;</p>
-        <a href="admin_login.html"> here.</a>
-      </div> -->
-    </footer>
-
-    <script>
-      function formatDate(isoString) {
-        const date = new Date(isoString);
-        const options = {
-          month: "long",
-          day: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        };
-        return date.toLocaleString("en-US", options).toUpperCase();
-      }
-
-      function updateDateTime() {
-        const datetimeElement = document.getElementById("datetime");
-        if (!datetimeElement) return;
-
-        // Get the initial time from the data attribute
-        let currentTime = new Date(datetimeElement.getAttribute("data-date"));
-
-        function update() {
-          datetimeElement.textContent = formatDate(currentTime);
-          currentTime.setMinutes(currentTime.getMinutes() + 1); // Increment by 1 minute
-        }
-
-        update(); // Set initial formatted date
-        setInterval(update, 60000); // Update every minute (60000ms)
-      }
-
-      document.addEventListener("DOMContentLoaded", updateDateTime);
-    </script>
+    <%- include('footer') %>
 
     <script src="admin/dependencies/liner-bar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
