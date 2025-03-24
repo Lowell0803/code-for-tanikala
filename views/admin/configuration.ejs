@@ -129,7 +129,7 @@
               <% electionConfig.colleges.forEach((college) => { %>
               <div class="num-of-students">
                 <div>
-                  <img height="50" src="img/colleges/college-<%= college.acronym %>.png" alt="<%= college.name %>" />
+                  <img height="50" src="img/colleges/college-<%= college.acronym.toLowerCase() %>.png" alt="<%= college.name %>" />
                   <label for="college-<%= college.acronym %>"><%= college.name %> (<%= college.acronym %>): </label>
                 </div>
                 <input class="input" type="number" id="college-<%= college.acronym %>" name="colleges[<%= college.acronym %>]" value="<%= college.notRegisteredNotVoted %>" min="0" required />
