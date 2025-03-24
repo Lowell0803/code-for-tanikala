@@ -254,6 +254,10 @@ table {
   display: flex;
 }
 
+#popupNextbtn {
+  background-color: transparent;
+}
+
 @media (max-width: 1000px) {
   .title {
     font-size: 1.75rem;

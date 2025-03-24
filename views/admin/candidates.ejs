@@ -490,7 +490,10 @@
 
         <div class="blockchain">
           <!-- Deploy Candidates Button -->
-          <button class="action-button" id="submitBtn">Deploy Candidates to Blockchain</button>
+          <button class="action-button" id="submitBtn" 
+  <%= electionConfig.candidatesSubmitted ? "style='opacity:0.5; pointer-events: none;'" : "Submitted" %>>
+  Submit Candidates to Blockchain
+</button>
 
           <!-- Reset Candidates Button (Initially Hidden) -->
           <button class="action-button" id="resetCandidatesBtn">Reset Candidates</button>
@@ -535,7 +538,8 @@
 
                   // Make "Deploy Candidates" button less opaque and unclickable
                   document.getElementById("submitBtn").style.opacity = "0.5";
-                  document.getElementById("submitBtn").disabled = true; // Make the button unclickable
+                   document.getElementById("submitBtn").style.pointerEvents = "none";
+                  
                 }
               } catch (error) {
                 console.error("Error:", error);

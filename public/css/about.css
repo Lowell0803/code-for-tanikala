@@ -226,6 +226,14 @@ h5 {
   display: none;
 }
 
+.blue {
+  color: #197dff;
+}
+
+.green {
+  color: #258a04;
+}
+
 @media (max-width: 1000px) {
   /* Adjust main buttons container to stack vertically */
   .main-container {
