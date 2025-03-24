@@ -46,54 +46,63 @@
           </div>
           <hr class="title-line" />
           <div class="quick-actions-container">
- <div class="quick-actions-buttons first">
+            <div class="quick-actions-buttons first">
               <i class="fa-regular fa-address-card"></i>
               <p>Voter Information</p>
               <div class="view-export">
                 <a href="/voter-info">View</a>
                 <span class="separator">|</span>
-                <a href="export-voter-info">Export</a>
+                <a href="/api/export/voter-info/json" target="_blank">JSON</a>
+                <span class="separator">|</span>
+                <a href="/api/export/voter-info/csv" target="_blank">CSV</a>
               </div>
             </div>
-
+          
             <div class="quick-actions-buttons">
-             <i class="fa fa-bar-chart" aria-hidden="true"></i>
+              <i class="fa fa-bar-chart" aria-hidden="true"></i>
               <p>Election Results</p>
               <div class="view-export">
                 <a href="/results">View</a>
                 <span class="separator">|</span>
-                <a href="export-election-results">Export</a>
+                <a href="/api/export/results/json" target="_blank">JSON</a>
+                <span class="separator">|</span>
+                <a href="/api/export/results/csv" target="_blank">CSV</a>
               </div>
             </div>
-
+          
             <div class="quick-actions-buttons">
               <i class="fas fa-list-ol"></i>
               <p>Vote Tally</p>
               <div class="view-export">
                 <a href="/vote-tally">View</a>
                 <span class="separator">|</span>
-                <a href="export-candidates">Export</a>
+                <a href="/api/export/vote-tally/json" target="_blank">JSON</a>
+                <span class="separator">|</span>
+                <a href="/api/export/vote-tally/csv" target="_blank">CSV</a>
               </div>
             </div>
-
-           
-<div class="quick-actions-buttons">
-             <i class="fa fa-users"></i>
+          
+            <div class="quick-actions-buttons">
+              <i class="fa fa-users"></i>
               <p>Candidates</p>
               <div class="view-export">
                 <a href="/candidates">View</a>
                 <span class="separator">|</span>
-                <a href="export-candidates">Export</a>
+                <a href="/api/export/candidates/json" target="_blank">JSON</a>
+                <span class="separator">|</span>
+                <a href="/api/export/candidates/csv" target="_blank">CSV</a>
               </div>
             </div>
-
+          
             <div class="quick-actions-buttons last">
               <i class="fa-solid fa-user-tie"></i>
               <p>Admin Accounts</p>
               <div class="view-export">
                 <a href="/manage-admins">View</a>
                 <span class="separator">|</span>
-                <a href="export-admin-accounts">Export</a>
+                <a href="/api/export/admin-accounts/json" target="_blank">JSON</a>
+                <span class="separator">|</span>
+                <a href="/api/export/admin-accounts/csv" target="_blank">CSV</a>
               </div>
             </div>
           </div>

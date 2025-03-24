@@ -3006,6 +3006,89 @@ const startServer = async () => {
       });
     });
 
+    // export quick actions
+
+    // Make sure you have imported any required modules at the top of your file, e.g.,
+    // const { Parser } = require("json2csv");
+    // Also, ensure you have your MongoDB connection available as `db`
+
+    app.get("/api/export/:type/:format", async (req, res) => {
+      try {
+        const { type, format } = req.params;
+
+        // Validate the requested format
+        if (!["json", "csv"].includes(format)) {
+          return res.status(400).send("Invalid format requested");
+        }
+
+        // Determine which collections to export and the filename suffix based on the type parameter
+        let collectionsToExport = [];
+        let filenameSuffix = "";
+
+        switch (type) {
+          case "voter-info": // also accepts "voters" if you wish
+            collectionsToExport = ["registered_voters"];
+            filenameSuffix = "registered_voters";
+            break;
+          case "results":
+            collectionsToExport = ["results"];
+            filenameSuffix = "results";
+            break;
+          case "vote-tally":
+            collectionsToExport = ["vote_tally"];
+            filenameSuffix = "vote_tally";
+            break;
+          case "candidates":
+            // Export both candidates collections
+            collectionsToExport = ["candidates", "candidates_lsc"];
+            filenameSuffix = "candidates";
+            break;
+          case "admin-accounts":
+            // Only allow developers to export admin accounts
+            if (!req.session.admin || req.session.admin.role !== "Developer") {
+              return res.status(403).send("Unauthorized to export admin accounts");
+            }
+            collectionsToExport = ["admin_accounts"];
+            filenameSuffix = "admin_accounts";
+            break;
+          default:
+            return res.status(400).send("Invalid export type requested");
+        }
+
+        // Initialize an empty array to collect data from each collection
+        let data = [];
+
+        // Loop over the collections to export and combine their documents
+        for (let collectionName of collectionsToExport) {
+          const collectionData = await db.collection(collectionName).find({}).toArray();
+          data = data.concat(collectionData);
+        }
+
+        // Send the response in the requested format
+        if (format === "json") {
+          res.setHeader("Content-Disposition", `attachment; filename=export_${filenameSuffix}.json`);
+          res.setHeader("Content-Type", "application/json");
+          return res.send(JSON.stringify(data, null, 2));
+        } else {
+          // Ensure the data is an array; if not, wrap it in one.
+          const dataArray = Array.isArray(data) ? data : [data];
+          try {
+            const json2csvParser = new Parser();
+            const csv = json2csvParser.parse(dataArray);
+            res.setHeader("Content-Disposition", `attachment; filename=export_${filenameSuffix}.csv`);
+            res.setHeader("Content-Type", "text/csv");
+            return res.send(csv);
+          } catch (csvError) {
+            console.error("CSV conversion error:", csvError);
+            return res.status(500).send("Error converting data to CSV");
+          }
+        }
+      } catch (error) {
+        console.error("Export error:", error);
+        return res.status(500).send("Internal Server Error");
+      }
+    });
+
     const moment = require("moment-timezone");
 
     // GET /configuration
