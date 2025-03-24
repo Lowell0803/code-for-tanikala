@@ -1389,7 +1389,7 @@ const startServer = async () => {
         const priceData = await getCryptoPrices();
         if (!priceData) console.log("Failed to fetch crypto prices. Skipping cost calculation.");
 
-        // Log blockchain activity (ensure recordBlockchainActivity is defined)
+        // Log blockchain activity for candidate submission
         await recordBlockchainActivity("system_activity_logs", "Candidates Submitted", "Admin", req, receipts, priceData);
 
         // Aggregate gas costs from each batch
@@ -1401,7 +1401,6 @@ const startServer = async () => {
         });
         const candidateCostWei = totalGasUsed * totalGasPrice;
         const candidateCostInPOL = candidateCostWei / 1e18;
-
         let { ethPricePhp = 0, ethPriceUsd = 0, polPricePhp = 0, polPriceUsd = 0 } = priceData || {};
         if (!polPricePhp && polPriceUsd && ethPricePhp && ethPriceUsd) {
           polPricePhp = (polPriceUsd / ethPriceUsd) * ethPricePhp;
@@ -1409,17 +1408,35 @@ const startServer = async () => {
         const candidateCostPHP = polPricePhp ? candidateCostInPOL * polPricePhp : "N/A";
         const candidateCostUSD = polPriceUsd ? candidateCostInPOL * polPriceUsd : "N/A";
 
+        // Build the candidate submission data for blockchain_management
         const candidateSubmissionData = {
-          blockchainLink: `https://amoy.polygonscan.com/address/${receipts[receipts.length - 1].hash}`,
+          blockchainLink: `https://amoy.polygonscan.com/address/${receipts[0].hash}`, // first batch submission hash
           candidateSubmissionDate: new Date(),
-          candidateSubmissionHash: receipts[receipts.length - 1].hash,
-          candidateSubmissionCostGas: totalGasUsed.toString(),
+          candidateSubmissionHash: receipts.map((r) => r.hash), // array of hashes from batch submissions
+          candidateSubmissionCostGas: totalGasUsed, // stored as a number
           candidateSubmissionCostWei: candidateCostWei.toString(),
           candidateSubmissionCostPHP: candidateCostPHP,
           candidateSubmissionCostUSD: candidateCostUSD,
+          latestCandidateSubmissionCost: candidateCostInPOL, // cost in POL
         };
 
-        await db.collection("blockchain_management").updateOne({}, { $set: candidateSubmissionData, $inc: { candidateSubmissionsCount: 1 } }, { upsert: true });
+        // Update blockchain_management collection:
+        // Overwrite the candidate submission data and increment candidateSubmissionsCount and cumulative totals.
+        await db.collection("blockchain_management").updateOne(
+          {},
+          {
+            $set: candidateSubmissionData,
+            $inc: {
+              candidateSubmissionsCount: 1,
+              totalGasUsed: totalGasUsed,
+              totalWeiSpent: candidateCostWei,
+              totalAmountSpentPol: candidateCostInPOL,
+              totalAmountSpentUSD: candidateCostUSD === "N/A" ? 0 : candidateCostUSD,
+              totalAmountSpentPHP: candidateCostPHP === "N/A" ? 0 : candidateCostPHP,
+            },
+          },
+          { upsert: true }
+        );
 
         await db.collection("electionConfig").updateOne({}, { $set: { candidatesSubmitted: true } }, { upsert: true });
 
