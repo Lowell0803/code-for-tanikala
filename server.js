@@ -1359,7 +1359,7 @@ const startServer = async () => {
         await resetTx.wait();
 
         // Batch the registration transactions to avoid high fees.
-        const BATCH_SIZE = 50; // adjust as needed
+        const BATCH_SIZE = 125; // adjust as needed
         const receipts = [];
         for (let i = 0; i < candidateIds.length; i += BATCH_SIZE) {
           const batch = candidateIds.slice(i, i + BATCH_SIZE);
@@ -1390,7 +1390,7 @@ const startServer = async () => {
         if (!priceData) console.log("Failed to fetch crypto prices. Skipping cost calculation.");
 
         // Log blockchain activity for candidate submission
-        await recordBlockchainActivity("system_activity_logs", "Candidates Submitted", "Admin", req, receipts, priceData);
+        await recordBlockchainActivity("blockchain_activity_logs", "Candidates Submitted", "Admin", req, receipts, priceData);
 
         // Aggregate gas costs from each batch
         let totalGasUsed = 0;
