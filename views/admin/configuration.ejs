@@ -61,24 +61,24 @@
 
         <section class="election-info">
           <p class="election-name">
-            &nbsp;<strong>Election Name:</strong>
+            &nbsp;<strong><span class="green">Election Name:</span></strong>
             <%= electionConfig && electionConfig.electionName ? electionConfig.electionName : "N/A" %>
           </p>
           <hr />
-          <p>
-            <i class="bx bx-calendar-check"></i>&nbsp;<strong>Status:</strong>
+          <p class="space">
+            <i class="bx bx-calendar-check"></i>&nbsp;<strong><span class="green">Status:</span></strong>
             <%= electionConfig && electionConfig.electionStatus ? electionConfig.electionStatus : "N/A" %>
           </p>
-          <p>
+          <p class="space">
             <i class="bx bx-edit-alt"></i>
-            <strong>Registration Period:</strong>
+            <strong><span class="green">Registration Period:</span></strong>
             <%= electionConfig && electionConfig.registrationStart ? formatDisplayDate(electionConfig.registrationStart) : "N/A" %>
             to
             <%= electionConfig && electionConfig.registrationEnd ? formatDisplayDate(electionConfig.registrationEnd) : "N/A" %>
           </p>
-          <p>
+          <p class="space">
             <i class="bx bx-list-ul"></i>
-            <strong>Voting Period:</strong>
+            <strong><span class="green">Voting Period:</span></strong>
             <%= electionConfig && electionConfig.votingStart ? formatDisplayDate(electionConfig.votingStart) : "N/A" %>
             to
             <%= electionConfig && electionConfig.votingEnd ? formatDisplayDate(electionConfig.votingEnd) : "N/A" %>
@@ -88,37 +88,43 @@
         <br />
         <!-- Election Creation / Update Form -->
         <section class="create-election">
-          <h2>Create / Update Election</h2>
+          <h2 class="blue space"><b>Edit Election Configuration</b></h2>
           <hr />
           <br />
           <form action="/configuration" method="POST">
             <div>
-             <label for="electionName" class="rectangle">Election Name:</label>
+             <label for="electionName" class="rectangle blue semi-bold">Election Name:</label>
               <input class="input box" type="text" id="electionName" name="electionName" value="<%= electionConfig ? electionConfig.electionName : '' %>" required />
             </div>
             <div>
-              <label for="registrationStart" class="rectangle">Registration Start Date:</label>
+              <label for="registrationStart" class="rectangle blue semi-bold">Registration Start Date:</label>
               <input class="input box" type="datetime-local" id="registrationStart" name="registrationStart" value="<%= electionConfig ? toPHFormat(electionConfig.registrationStart) : '' %>" required />
             </div>
             <div>
-              <label for="registrationEnd" class="rectangle">Registration End Date:</label>
+              <label for="registrationEnd" class="rectangle blue semi-bold">Registration End Date:</label>
               <input class="input box" type="datetime-local" id="registrationEnd" name="registrationEnd" value="<%= electionConfig ? toPHFormat(electionConfig.registrationEnd) : '' %>" required />
             </div>
             <div>
-              <label for="votingStart" class="rectangle">Voting Start Date:</label>
+              <label for="votingStart" class="rectangle blue semi-bold">Voting Start Date:</label>
               <input class="input box" type="datetime-local" id="votingStart" name="votingStart" value="<%= electionConfig ? toPHFormat(electionConfig.votingStart) : '' %>" required />
             </div>
             <div>
-              <label for="votingEnd" class="rectangle">Voting End Date:</label>
+              <label for="votingEnd" class="rectangle blue semi-bold">Voting End Date:</label>
               <input class="input box" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig ? toPHFormat(electionConfig.votingEnd) : '' %>" required />
             </div>
             <div>
-              <label for="partylists" class="rectangle">Party List (comma separated):</label>
+              <label for="partylists" class="rectangle blue semi-bold">Party List (comma separated):</label>
               <!-- Join the partylists array back to a comma separated string -->
               <input class="input box" type="text" id="partylists" name="partylists" value="<%= electionConfig && electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
             </div>
+             <div>
+              <label for="total-voters" class="rectangle blue semi-bold">Total Number of Voters:</label>
+              <!-- Join the partylists array back to a comma separated string -->
+              <input class="input box" type="text" id="total-voters" name="total-voters" value="<%= electionConfig.totalNumberOfStudents %>" readonly />
+            </div>
+            <br />
             <fieldset>
-              <legend><strong>Number of Students per College</strong></legend>
+              <legend><strong><span class="blue">Number of Voters (Students) per College</span></strong></legend>
               <% if(electionConfig && electionConfig.colleges) { %>
               <% electionConfig.colleges.forEach((college) => { %>
               <div class="num-of-students">
@@ -134,6 +140,7 @@
               <p>No college data found.</p>
               <% } %>
             </fieldset>
+            <br />
             <div class="center">
             <button class="button button-save" type="submit">Save Election Configuration</button>
             </div>

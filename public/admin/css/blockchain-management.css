@@ -68,7 +68,7 @@ th {
 }
 
 .first-main h2 {
-  color: #80550c;
+  color: #451b9d;
   text-decoration: underline;
 
   /* border: 1px solid black; */
@@ -89,8 +89,8 @@ th {
 .column-main {
   display: flex;
   flex-direction: column;
-  background: #f8eac2;
-  border: 0.25rem solid #80550c;
+  background: #d8d1fa;
+  border: 0.25rem solid #451b9d;
   padding: 2rem;
   border-radius: 1.5rem;
   margin: 2rem;
@@ -134,4 +134,47 @@ th {
 
 .top {
   color: #885708;
+}
+
+.sub-highlight {
+  font-weight: bold;
+
+  color: #7c66b2;
+}
+
+.highlight {
+  font-weight: bold;
+  color: #e09f2f;
+}
+
+th {
+  padding: 1rem;
+}
+
+td {
+  padding: 1rem;
+}
+
+.small-text {
+  font-size: 0.8rem;
+}
+
+.status {
+  color: gray;
+}
+
+.balance-excellent {
+  color: #0000ff; /* blue */
+}
+
+.balance-good {
+  color: #00aa00; /* green */
+}
+
+.balance-warning {
+  color: #ff9900; /* orange */
+}
+
+.first-main th {
+  background-color: #ad9bd5;
 }

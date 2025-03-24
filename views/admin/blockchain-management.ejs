@@ -88,13 +88,16 @@
                   let balanceDescription = "";
                   if (walletInfo) {
                     if (walletInfo.balancePOL > recommendedFundPOL * 1.5) {
-                      balanceStatus = "🔵 Excellent";
+                      balanceStatus = "Excellent";
+                       balanceStatusClass = "balance-excellent";
                       balanceDescription = "The admin wallet balance is well above the recommended fund estimate. You have more than enough funds to execute the blockchain voting operation confidently.";
                     } else if (walletInfo.balancePOL >= recommendedFundPOL) {
-                      balanceStatus = "🟢 Good";
+                      balanceStatus = "Good";
+                       balanceStatusClass = "balance-good";
                       balanceDescription = "The admin wallet balance matches the recommended fund estimate. You are in a stable position to proceed with the blockchain voting operation.";
                     } else {
-                      balanceStatus = "🟠 Warning";
+                      balanceStatus = "Warning";
+                        balanceStatusClass = "balance-warning";
                       balanceDescription = "The admin wallet balance is below the recommended fund estimate. Consider adding more funds to avoid potential issues during the blockchain voting operation.";
                     }
                   }
@@ -115,9 +118,9 @@
                     <li>
                       <p>
                         <strong>Current Balance:</strong>
-                        <span><%= balanceStatus %></span>
+                        <span class="<%= balanceStatusClass %>"><b><%= balanceStatus %></b></span>
                       </p>
-                      <p><em><%= balanceDescription %></em></p>
+                      <p class="small-text <%= balanceStatusClass %>"><em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<%= balanceDescription %></em></p>
                     </li>
                     <br />
                     <table class="currency">
@@ -129,7 +132,7 @@
                       <tr>
                         <td><%= walletInfo ? walletInfo.balancePOL.toFixed(4) : "N/A" %> POL</td>
                         <td><%= walletInfo && walletInfo.balanceUSD ? walletInfo.balanceUSD.toFixed(2) : "N/A" %> USD</td>
-                        <td><%= walletInfo && walletInfo.balancePHP ? walletInfo.balancePHP.toFixed(2) : "N/A" %> PHP</td>
+                        <td><span class="highlight"><%= walletInfo && walletInfo.balancePHP ? walletInfo.balancePHP.toFixed(2) : "N/A" %> PHP</span></td>
                       </tr>
                     </table>
                     <br />
@@ -139,7 +142,7 @@
                         <span>
                           <%= (blockchainMgmt && blockchainMgmt.voteTransactionsCount > 0) ? liveFeeEstimatePOL.toFixed(4) : "0" %> POL |
                           <%= (blockchainMgmt && blockchainMgmt.voteTransactionsCount > 0) ? liveFeeEstimateUSD.toFixed(2) : "0" %> USD |
-                          <%= (blockchainMgmt && blockchainMgmt.voteTransactionsCount > 0) ? liveFeeEstimatePHP.toFixed(2) : "0" %> PHP
+                         <span class="sub-highlight"> <%= (blockchainMgmt && blockchainMgmt.voteTransactionsCount > 0) ? liveFeeEstimatePHP.toFixed(2) : "0" %> PHP</span>
                         </span>
                       </p>
                     </li>
@@ -150,11 +153,11 @@
                         <span>
                           <%= (blockchainMgmt && electionConfig && blockchainMgmt.voteTransactionsCount > 0) ? recommendedFundPOL.toFixed(4) : "0" %> POL |
                           <%= (blockchainMgmt && electionConfig && blockchainMgmt.voteTransactionsCount > 0) ? recommendedFundUSD.toFixed(2) : "0" %> USD |
-                          <%= (blockchainMgmt && electionConfig && blockchainMgmt.voteTransactionsCount > 0) ? recommendedFundPHP.toFixed(2) : "0" %> PHP
+                          <span class=highlight><%= (blockchainMgmt && electionConfig && blockchainMgmt.voteTransactionsCount > 0) ? recommendedFundPHP.toFixed(2) : "0" %> PHP</span>
                         </span>
                       </p>
                     </li>
-                    <li>
+                   <!-- <li>
                       <p>
                         <strong>Blockchain Link:</strong>
                         <% if (blockchainMgmt && blockchainMgmt.candidateSubmissionHash) { %>
@@ -165,7 +168,7 @@
                           N/A
                         <% } %>
                       </p>
-                    </li>
+                    </li> -->
                   </ul>
                 </div>
 
@@ -239,9 +242,9 @@
                             : "N/A" %> USD
                         </td>
                         <td>
-                          <%= blockchainMgmt && blockchainMgmt.totalAmountSpentPHP !== undefined
+                          <span class="highlight"><%= blockchainMgmt && blockchainMgmt.totalAmountSpentPHP !== undefined
                             ? blockchainMgmt.totalAmountSpentPHP.toFixed(2)
-                            : "N/A" %> PHP
+                            : "N/A" %> PHP </span>
                         </td>
                       </tr>
                     </table>

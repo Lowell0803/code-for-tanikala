@@ -179,6 +179,10 @@
   color: #bb7e15;
 }
 
+.buttons {
+  gap: 2rem;
+}
+
 /* .admin-name {
   color: #e1ae5b;
 }

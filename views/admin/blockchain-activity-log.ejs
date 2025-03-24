@@ -42,9 +42,10 @@
                 <th>Timestamp</th>
                 <th>Transaction Hash</th>
                 <th>Action</th>
-                <th>Actor</th>
-                <th>Cost (in PHP)</th>
-                <th>Cost (in POL)</th>
+                <th>Performed By</th>
+                <th>Cost in POL</th>
+                <th>Cost in PHP</th>
+                
               </tr>
             </thead>
             <tbody>
@@ -56,8 +57,8 @@
                 </td>
                 <td><%= log.action %></td>
                 <td><%= log.actor %></td>
-                <td><%= log.costPhp %></td>
                 <td><%= log.costPol %></td>
+                <td><%= log.costPhp %></td>
               </tr>
               <% }); %>
             </tbody>

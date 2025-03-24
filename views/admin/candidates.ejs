@@ -56,6 +56,7 @@
                 <button class="button button-add" onclick="addCandidateLSC('Governor')">Add Candidate</button>
               </div>
               <hr />
+              <br />
               <div>
                 ${data.governor.length ? data.governor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}
               </div>
@@ -68,6 +69,7 @@
                 <button class="button button-add" onclick="addCandidateLSC('Vice Governor')">Add Candidate</button>
               </div>
               <hr />
+              <br />
               <div>
                 ${data.viceGovernor.length ? data.viceGovernor.map((candidate) => createCandidateCard(candidate, collegeAcronym)).join("") : "<p>No candidates found.</p>"}
               </div>

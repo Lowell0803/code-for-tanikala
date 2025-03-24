@@ -64,7 +64,9 @@
                   <br />
                   <div class="buttons">
                     <button type="button" id="button-edit">Edit</button>
+                    <button type="button" id="button-close" style="display: none">Close</button>
                     <button type="submit" id="button-save" style="display: none">Save</button>
+
                   </div>
                 </form>
               </div>
@@ -112,6 +114,7 @@
       const formDetails = document.getElementById("form-details");
       const editButton = document.getElementById("button-edit");
       const saveButton = document.getElementById("button-save");
+      const closeButton = document.getElementById("button-close");
       const changeImage = document.getElementById("change-image");
       // Select all inputs except those with the readonly attribute
       const inputs = formDetails.querySelectorAll("input:not([readonly])");
@@ -120,9 +123,21 @@
       editButton.addEventListener("click", () => {
         inputs.forEach((input) => (input.disabled = false));
         saveButton.style.display = "inline-block";
+        closeButton.style.display ="inline-block";
         editButton.style.display = "none";
         changeImage.style.display = "inline-block";
       });
+
+closeButton.addEventListener("click", () => {
+  // Disable editing for all inputs
+  inputs.forEach((input) => (input.disabled = true));
+  // Hide the Save and Close buttons
+  saveButton.style.display = "none";
+  closeButton.style.display = "none";
+  // Show the Edit button and hide the Change Image button
+  editButton.style.display = "inline-block";
+  changeImage.style.display = "none";
+});
 
       // Client-side form validation and AJAX submission
       formDetails.addEventListener("submit", async (event) => {

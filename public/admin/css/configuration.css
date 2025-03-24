@@ -266,3 +266,20 @@ hr {
   padding: 10px;
   margin-top: 20px;
 }
+
+.green {
+  color: #0b8000;
+}
+
+.blue {
+  color: #451b9d;
+}
+
+.semi-bold {
+  font-weight: 500;
+}
+
+.space {
+  padding: 0.2rem;
+  padding-left: 1rem;
+}

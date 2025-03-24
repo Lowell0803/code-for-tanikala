@@ -17,3 +17,7 @@ table {
 .select-log input {
   margin-right: 0.3rem;
 }
+
+td {
+  padding: 0 2rem;
+}

@@ -239,6 +239,10 @@
   font-size: 1.5rem;
 }
 
+.pre-med2 {
+  font-size: 1.3rem;
+}
+
 .first {
   margin-left: 0;
 }
@@ -279,6 +283,31 @@
   color: #885708;
 }
 
+.blue {
+  color: #451b9d;
+  font-weight: bold;
+}
+
+.purple {
+  color: #451b9d;
+  font-weight: bold;
+}
+
+#blockchain-dashboard hr {
+  height: 0.2rem;
+}
+
+#blockchain-dashboard th {
+  background-color: #ad9bd5;
+}
+
+#blockchain-transaction tr {
+  background-color: #d8d1fa;
+}
+
+.first-main {
+  gap: 0;
+}
 /* .left-blockchain,
 .right-blockchain {
   display: flex;
