@@ -162,7 +162,7 @@
                         <span>
                           <%= (blockchainMgmt && electionConfig && (blockchainMgmt.voteTransactionsCount > 0 || blockchainMgmt.candidateSubmissionsCount > 0)) ? recommendedFundPOL.toFixed(4) : "0" %> POL |
                           <%= (blockchainMgmt && electionConfig && (blockchainMgmt.voteTransactionsCount > 0 || blockchainMgmt.candidateSubmissionsCount > 0)) ? recommendedFundUSD.toFixed(2) : "0" %> USD |
-                          <span class=highlight><%= (blockchainMgmt && electionConfig && (blockchainMgmt.voteTransactionsCount > 0 || blockchainMgmt.candidateSubmissionsCount > 0)) ? recommendedFundPHP.toFixed(2) : "0" %> PHP</span>
+                          <span class="highlight"><%= (blockchainMgmt && electionConfig && (blockchainMgmt.voteTransactionsCount > 0 || blockchainMgmt.candidateSubmissionsCount > 0)) ? recommendedFundPHP.toFixed(2) : "0" %> PHP</span>
                         </span>
                       </p>
                     </li>
@@ -242,17 +242,17 @@
                       <tr>
                         <td>
                           <%= blockchainMgmt && blockchainMgmt.totalAmountSpentPol !== undefined && blockchainMgmt.totalAmountSpentInCandidatesPol !== undefined
-                            ? blockchainMgmt.totalAmountSpentPol.toFixed(6) + blockchainMgmt.totalAmountSpentInCandidatesPol.toFixed(6)
+                            ? (blockchainMgmt.totalAmountSpentPol + blockchainMgmt.totalAmountSpentInCandidatesPol).toFixed(6)
                             : "N/A" %> POL
                         </td>
                         <td>
                           <%= blockchainMgmt && blockchainMgmt.totalAmountSpentUSD !== undefined && blockchainMgmt.totalAmountSpentInCandidatesUSD !== undefined
-                            ? blockchainMgmt.totalAmountSpentUSD.toFixed(2) + blockchainMgmt.totalAmountSpentInCandidatesUSD.toFixed(2)
+                            ? (blockchainMgmt.totalAmountSpentUSD + blockchainMgmt.totalAmountSpentInCandidatesUSD).toFixed(2)
                             : "N/A" %> USD
                         </td>
                         <td>
                           <span class="highlight"><%= blockchainMgmt && blockchainMgmt.totalAmountSpentPHP !== undefined && blockchainMgmt.totalAmountSpentInCandidatesPHP !== undefined
-                            ? blockchainMgmt.totalAmountSpentPHP.toFixed(2) + blockchainMgmt.totalAmountSpentInCandidatesPHP.toFixed(2)
+                            ? (blockchainMgmt.totalAmountSpentPHP + blockchainMgmt.totalAmountSpentInCandidatesPHP).toFixed(2)
                             : "N/A" %> PHP </span>
                         </td>
                       </tr>
