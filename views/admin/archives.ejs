@@ -52,6 +52,9 @@
         <div class="first-main">
           <section class="archive-list">
             <% if (archives && archives.length > 0) { %>
+              <% archives.sort(function(a, b) { 
+                return new Date(b.archivedAt) - new Date(a.archivedAt); 
+           }); %>
               <table>
                 <thead>
                   <tr>
