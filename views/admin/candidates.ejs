@@ -25,6 +25,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="components/notification.css" />
+
+    <style>
+      .disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+    </style>
   <script type="module" src="components/notification.js"></script>
   </head>
 
@@ -488,17 +495,27 @@
           </div>
         </div>
 
-<div class="middle"><button class="action-button" id="clearCandidates">Clear All Candidate Data</button></div>
+        <% if (!electionConfig.candidatesSubmitted) { %>
+          <div class="middle">
+            <button class="action-button" id="clearCandidates">Clear All Candidate Data</button>
+          </div>
+        <% } %>
+        
 
         <div class="blockchain">
           <!-- Deploy Candidates Button -->
-          <button class="action-button" id="submitBtn" 
-  <%= electionConfig.candidatesSubmitted ? "style='opacity:0.5; pointer-events: none;'" : "Submitted" %>>
-  Submit Candidates to Blockchain
-</button>
-
-          <!-- Reset Candidates Button (Initially Hidden) -->
-          <!-- <button class="action-button" id="resetCandidatesBtn">Remove Candidates from Blockchain</button> -->
+          <% if (electionConfig.candidatesSubmitted) { %>
+            <!-- If candidates have been submitted, show only the "Remove Candidates from Blockchain" button -->
+            <button class="action-button" id="resetCandidatesBtn">
+              Remove Candidates from Blockchain
+            </button>
+          <% } else { %>
+            <!-- If candidates have not been submitted, show only the "Submit Candidates to Blockchain" button -->
+            <button class="action-button" id="submitBtn">
+              Submit Candidates to Blockchain
+            </button>
+          <% } %>
+          
 
           <script type="module">
             import { createNotification } from "/components/notification.js";
@@ -506,11 +523,21 @@
             document.addEventListener("DOMContentLoaded", () => {
               const resetCandidatesBtn = document.getElementById("resetCandidatesBtn");
           
-              resetCandidatesBtn.addEventListener("click", () => {
-                createNotification("This feature is currently disabled during testing.", "warning", 5000);
+              resetCandidatesBtn.addEventListener("click", async () => {
+                try {
+                  const response = await fetch("/api/resetCandidates");
+                  if (response.ok) {
+                    createNotification("Candidates reset successfully.", "success", 5000);
+                  } else {
+                    createNotification("Failed to reset candidates.", "warning", 5000);
+                  }
+                } catch (error) {
+                  createNotification("An error occurred while resetting candidates.", "warning", 5000);
+                }
               });
             });
           </script>
+          
           
 
           <!-- Status Message -->
@@ -1238,6 +1265,33 @@
         updateLSCCandidates(selectCollege.value);
       });
     </script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+  const isSubmitted = <%= electionConfig.candidatesSubmitted %>;
+
+  if (isSubmitted) {
+    // Function to disable buttons
+    const disableButtons = () => {
+      document.querySelectorAll(".button-add, .button-edit").forEach(button => {
+        button.classList.add("disabled");
+      });
+    };
+
+    // Apply to existing buttons
+    disableButtons();
+
+    // Observe dynamic changes in the document
+    const observer = new MutationObserver(() => {
+      disableButtons(); // Reapply the class when new buttons appear
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+});
+
+</script>
+
 
     <script src="admin/js/sidebar.js"></script>
 

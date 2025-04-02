@@ -3077,6 +3077,14 @@ const startServer = async () => {
         } else {
           // Ensure the data is an array; if not, wrap it in one.
           const dataArray = Array.isArray(data) ? data : [data];
+
+          // If there's no data, send an empty CSV file
+          if (dataArray.length === 0) {
+            res.setHeader("Content-Disposition", `attachment; filename=export_${filenameSuffix}.csv`);
+            res.setHeader("Content-Type", "text/csv");
+            return res.send("");
+          }
+
           try {
             const json2csvParser = new Parser();
             const csv = json2csvParser.parse(dataArray);
@@ -5116,6 +5124,27 @@ const startServer = async () => {
       } catch (error) {
         console.error("Error in reset-election route:", error);
         res.status(500).send("Error resetting election.");
+      }
+    });
+
+    app.get("/api/resetCandidates", async (req, res) => {
+      try {
+        // Optionally, add your authorization check here:
+        if (!req.session.admin || req.session.admin.role !== "Developer") {
+          return res.status(403).send("Unauthorized");
+        }
+
+        // Call the contract's resetCandidates function
+        await contract.resetCandidates();
+
+        // Update the electionConfig's candidatesSubmitted field to false
+        await db.collection("election_config").updateOne({}, { $set: { candidatesSubmitted: false } });
+
+        // Respond with a success message
+        res.status(200).send("Candidates reset successfully");
+      } catch (error) {
+        console.error("Error resetting candidates:", error);
+        res.status(500).send("Error resetting candidates");
       }
     });
 
