@@ -952,6 +952,11 @@ const startServer = async () => {
         const voteStart = electionConfig && electionConfig.votingStart ? moment.tz(electionConfig.votingStart, "Asia/Manila") : null;
         const voteEnd = electionConfig && electionConfig.votingEnd ? moment.tz(electionConfig.votingEnd, "Asia/Manila") : null;
 
+        console.log(electionStatus);
+        console.log(specialStatus);
+        console.log(regStart + " to " + regEnd);
+        console.log(voteStart + " to " + voteEnd);
+
         // Determine which homepage to serve based on the logic.
         let homepage = "";
 
@@ -977,11 +982,11 @@ const startServer = async () => {
             } else if (regStart && regEnd && fakeCurrent.isBetween(regStart, regEnd, null, "[)")) {
               homepage = "index-registration-period.ejs";
             } else if (regEnd && voteStart && fakeCurrent.isBetween(regEnd, voteStart, null, "[)")) {
-              homepage = "index-vote-checking-period.ejs";
+              homepage = "index-voting-period.ejs";
             } else if (voteStart && voteEnd && fakeCurrent.isBetween(voteStart, voteEnd, null, "[)")) {
               homepage = "index-voting-period.ejs";
             } else if (voteEnd && fakeCurrent.isAfter(voteEnd)) {
-              homepage = "index-results-are-out-period.ejs";
+              homepage = "index-vote-checking-period.ejs";
             } else {
               // Fallback if no conditions match.
               homepage = "index-election-not-active.ejs";
@@ -3175,11 +3180,14 @@ const startServer = async () => {
         update.totalRegisteredNotVoted = collegesArray.reduce((total, college) => total + college.registeredNotVoted, 0);
         update.totalRegisteredVoted = collegesArray.reduce((total, college) => total + college.registeredVoted, 0);
 
-        // Check if an election configuration exists and if it has fakeCurrentDate.
-        const existingConfig = await db.collection("election_config").findOne({});
-        if (!existingConfig || !existingConfig.fakeCurrentDate) {
-          update.fakeCurrentDate = new Date();
-        }
+        // Instead of this conditional check:
+        // const existingConfig = await db.collection("election_config").findOne({});
+        // if (!existingConfig || !existingConfig.fakeCurrentDate) {
+        //   update.fakeCurrentDate = new Date();
+        // }
+
+        // Set fakeCurrentDate to the current date unconditionally:
+        update.fakeCurrentDate = new Date();
 
         // Overwrite the existing election configuration (upsert if not exists)
         await db.collection("election_config").updateOne({}, { $set: update, $setOnInsert: { createdAt: new Date() } }, { upsert: true });
@@ -5083,7 +5091,7 @@ const startServer = async () => {
               registeredVoted: 0,
             },
           ],
-          fakeCurrentDate: { $date: "" },
+          fakeCurrentDate: new Date(),
           updatedAt: { $date: "" },
           createdAt: { $date: "" },
           useFakeDate: false,

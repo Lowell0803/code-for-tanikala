@@ -21,6 +21,7 @@
   </footer>
 
   <script>
+    const config = <%- JSON.stringify(electionConfig) %>;
     function updateFooterTime() {
       // Use the fake current date if useFakeDate is true and fakeCurrentDate exists in config.
       let currentTime;
@@ -35,6 +36,8 @@
       const formattedTime = currentTime.format("MMMM DD, YYYY [AT] hh:mm A").toUpperCase();
       document.getElementById("footerTime").textContent = formattedTime;
     }
+
+    console.log("Use Fake Date", config.useFakeDate);
   
     updateFooterTime();
     setInterval(updateFooterTime, 30000);
