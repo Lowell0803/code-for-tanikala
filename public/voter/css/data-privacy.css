@@ -28,9 +28,15 @@
   border-radius: 0.5em;
 }
 
-/* Hover effect when enabled */
+.proceed.button:not(:disabled) {
+  background-color: #e1ae5b;
+  color: #550c0a;
+  font-weight: bold;
+}
+
 .proceed.button:hover:not(:disabled) {
-  background-color: #369f2c;
+  background: #f5ab29;
+  filter: none;
 }
 
 /* Disabled state */
