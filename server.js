@@ -5129,22 +5129,109 @@ const startServer = async () => {
 
     app.get("/api/resetCandidates", async (req, res) => {
       try {
-        // Optionally, add your authorization check here:
+        // Authorization check
         if (!req.session.admin || req.session.admin.role !== "Developer") {
           return res.status(403).send("Unauthorized");
         }
 
-        // Call the contract's resetCandidates function
-        await contract.resetCandidates();
+        // Reset candidates on blockchain
+        const resetTx = await contract.resetCandidates();
+        const resetReceipt = await resetTx.wait();
 
         // Update the electionConfig's candidatesSubmitted field to false
         await db.collection("election_config").updateOne({}, { $set: { candidatesSubmitted: false } });
 
-        // Respond with a success message
-        res.status(200).send("Candidates reset successfully");
+        // Fetch crypto prices for cost calculation
+        const priceData = await getCryptoPrices();
+        if (!priceData) console.log("Failed to fetch crypto prices. Skipping cost calculation.");
+
+        // Log blockchain activity for candidate reset
+        await recordBlockchainActivity("blockchain_activity_logs", "Candidates Reset", "Admin", req, [resetReceipt], priceData);
+
+        // Aggregate gas costs
+        const totalGasUsed = Number(resetReceipt.gasUsed);
+        const totalGasPrice = Number(resetReceipt.gasPrice);
+        const resetCostWei = totalGasUsed * totalGasPrice;
+        const resetCostInPOL = resetCostWei / 1e18;
+
+        let { ethPricePhp = 0, ethPriceUsd = 0, polPricePhp = 0, polPriceUsd = 0 } = priceData || {};
+        if (!polPricePhp && polPriceUsd && ethPricePhp && ethPriceUsd) {
+          polPricePhp = (polPriceUsd / ethPriceUsd) * ethPricePhp;
+        }
+        const resetCostPHP = polPricePhp ? resetCostInPOL * polPricePhp : "N/A";
+        const resetCostUSD = polPriceUsd ? resetCostInPOL * polPriceUsd : "N/A";
+
+        // Update blockchain_management collection
+        await db.collection("blockchain_management").updateOne(
+          {},
+          {
+            $set: {
+              lastResetTransactionHash: resetReceipt.hash,
+              lastResetDate: new Date(),
+              lastResetCostGas: totalGasUsed,
+              lastResetCostWei: resetCostWei,
+              lastResetCostPHP: resetCostPHP,
+              lastResetCostUSD: resetCostUSD,
+              lastResetCostInPOL: resetCostInPOL,
+            },
+            $inc: {
+              candidateResetsCount: 1,
+              totalGasUsedInResets: totalGasUsed,
+              totalWeiSpentInResets: resetCostWei,
+              totalAmountSpentInResetsPol: resetCostInPOL,
+              totalAmountSpentInResetsUSD: resetCostUSD === "N/A" ? 0 : resetCostUSD,
+              totalAmountSpentInResetsPHP: resetCostPHP === "N/A" ? 0 : resetCostPHP,
+            },
+          },
+          { upsert: true }
+        );
+
+        res.status(200).json({
+          message: "Candidates reset successfully",
+          blockchainTxReceipt: resetReceipt,
+          resetTransactionHash: resetReceipt.hash,
+          resetCostInPOL,
+          resetCostPHP,
+          resetCostUSD,
+        });
       } catch (error) {
         console.error("Error resetting candidates:", error);
         res.status(500).send("Error resetting candidates");
+      }
+    });
+
+    app.post("/api/update-voting-period", async (req, res) => {
+      try {
+        // Optionally, add your authorization check here:
+        if (!req.session.admin || req.session.admin.role !== "Developer") {
+          return res.status(403).send({ success: false, error: "Unauthorized" });
+        }
+
+        // Fetch current election config
+        const electionConfig = await db.collection("election_config").findOne({});
+        if (!electionConfig || !electionConfig.votingStart || !electionConfig.votingEnd) {
+          return res.status(400).send({ success: false, error: "Voting period not found in config" });
+        }
+
+        // Parse dates and add 1 day
+        let voteStartTime = moment.tz(electionConfig.votingStart, "Asia/Manila").add(1, "days");
+        let voteEndTime = moment.tz(electionConfig.votingEnd, "Asia/Manila").add(1, "days");
+
+        // Update database
+        await db.collection("election_config").updateOne(
+          {},
+          {
+            $set: {
+              votingStart: voteStartTime.toISOString(),
+              votingEnd: voteEndTime.toISOString(),
+            },
+          }
+        );
+
+        res.status(200).send({ success: true });
+      } catch (error) {
+        console.error("Error updating voting period:", error);
+        res.status(500).send({ success: false, error: "Error updating voting period" });
       }
     });
 

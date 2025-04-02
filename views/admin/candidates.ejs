@@ -522,9 +522,22 @@
           
             document.addEventListener("DOMContentLoaded", () => {
               const resetCandidatesBtn = document.getElementById("resetCandidatesBtn");
+              const currentTime = config.useFakeDate
+                ? moment.tz(config.fakeCurrentDate, "Asia/Manila")
+                : moment.tz(new Date(), "Asia/Manila");
           
               resetCandidatesBtn.addEventListener("click", async () => {
                 try {
+                  // Get voting start time
+                  const votingStartTime = moment.tz(config.votingStart, "Asia/Manila");
+          
+                  // Check if votingStart is less than a day away
+                  if (votingStartTime.diff(currentTime, "hours") < 24) {
+                    createNotification("You can't reset candidates 1 day before the voting period.", "warning", 5000);
+                    return;
+                  }
+          
+                  // Proceed with resetting candidates
                   const response = await fetch("/api/resetCandidates");
                   if (response.ok) {
                     createNotification("Candidates reset successfully.", "success", 5000);
@@ -537,6 +550,8 @@
               });
             });
           </script>
+          
+          
           
           
 
