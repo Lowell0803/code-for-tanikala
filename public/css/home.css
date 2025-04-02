@@ -172,6 +172,10 @@
   animation: load89234 3s infinite linear;
 }
 
+.content-main {
+  overflow-x: hidden;
+}
+
 @keyframes load89234 {
   0% {
     left: -40%;
@@ -362,6 +366,19 @@
     justify-content: flex-start;
     align-items: flex-start;
   }
+
+  .footer p {
+    font-size: 0.6rem;
+  }
+
+  .content-main {
+    overflow-x: hidden;
+  }
+
+  /* .footer-left,
+  .footer-center {
+    border: 1px solid black;
+  } */
 }
 
 .h3 {

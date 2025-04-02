@@ -81,3 +81,28 @@ table td {
 .pass {
   width: 10rem;
 }
+
+.modal-content {
+  border: 0.2rem solid rgba(14, 13, 13, 0.5);
+  padding: 2%;
+  border-radius: 1em;
+  background-color: #d8ac65;
+  min-height: 60dvh;
+  min-width: 60vw;
+}
+
+.center-content {
+  width: 30%;
+}
+
+.right-content {
+  width: 40%;
+}
+
+.left-content {
+  width: 25%;
+}
+
+.form-title {
+  color: #550c0a;
+}

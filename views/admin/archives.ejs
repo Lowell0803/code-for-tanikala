@@ -55,7 +55,7 @@
               <table>
                 <thead>
                   <tr>
-                    <th>No.</th>
+                    
                     <th>Archived At</th>
                     <th>Election Name</th>
                     <th>Election Status</th>
@@ -74,7 +74,7 @@
                 <tbody>
                   <% archives.forEach(function(archive, index) { %>
                     <tr>
-                      <td><%= index + 1 %></td>
+                      
                       <td><%= archive.archivedAt ? formatArchivedAt(archive.archivedAt) : "N/A" %></td>
                       <td><%= archive.electionName %></td>
                       <td><%= archive.electionStatus %></td>

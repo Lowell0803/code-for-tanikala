@@ -1,14 +1,12 @@
 
-
 <div class="first-main">
   <div class="main-content">
-    <br />
-    <br />
+   
     <div class="left-container">
       <h1 class="ssc">Supreme Student Council</h1>
       <br />
       <div class="main-left">
-        <h1>Total Voter Turnout</h1>
+        <h1 class="black">Total Voter Turnout</h1>
         <div class="content-box-2">
           <br />
           <canvas id="chart-turnout"></canvas>
@@ -16,6 +14,7 @@
             <span></span>
           </div>
         </div>
+        <br />
         <h3 style="text-align: center;"><%= electionConfig.totalRegisteredVoted %> students have voted out of <%= electionConfig.totalNumberOfStudents %> students.</h3>
         <br />
         <div class="content-colleges"></div>
@@ -33,7 +32,7 @@
       </div>
       <br />
       <div class="main-right">
-        <h1>Voter Turnout per College</h1>
+        <h1 class="black">Voter Turnout per College</h1>
         <br />
         <div id="container-charts"></div>
       </div>

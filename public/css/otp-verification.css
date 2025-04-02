@@ -9,7 +9,6 @@
   text-align: center;
   background: #f0f1e1;
   border-radius: 1.5rem;
-  box-shadow: rgba(255, 212, 212, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
   color: rgb(0, 0, 0);
   /* position: relative; */
   /* margin-bottom: 2rem; */
@@ -112,7 +111,7 @@ hr {
 
 @media (max-width: 768px) {
   .card {
-    width: 90vw; /* Increase card width for smaller screens */
+    width: 80vw; /* Increase card width for smaller screens */
     padding: 1.5rem; /* Reduce padding */
     padding-bottom: 0;
   }
@@ -129,5 +128,9 @@ hr {
   #resend-btn {
     padding: 0.3rem;
     margin-top: 0.3rem;
+  }
+
+  .footer p {
+    font-size: 0.6rem;
   }
 }

@@ -18,6 +18,15 @@ table {
   margin-right: 0.3rem;
 }
 
-td {
-  padding: 0 2rem;
+th {
+  padding: 0.4rem;
 }
+
+td {
+  padding: 0.2rem 0.15rem;
+}
+
+/* .textie-left {
+  text-align: left;
+  padding: 0.2rem 5rem;
+} */

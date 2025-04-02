@@ -10,7 +10,7 @@
     <!-- <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" /> -->
     <link rel="stylesheet" type="text/css" href="admin/css/candidates.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/vote-tally.css" />
-    <link rel="stylesheet" type="text/css" href="admin/css/vote-tally.css" />
+   
     <link rel="stylesheet" type="text/css" href="admin/css/index-election.css" />
 
     <!-- Admin Dependencies -->
@@ -64,34 +64,23 @@
         </div>
 
         <div class="main-container">
-          <p>This page shows the vote counts for each candidate on the Supreme Student Council and Local Student Councils (LSCs).</p>
-
+          <p>
+           This page displays the final election results, showing the winning candidates and their total vote counts for the Supreme Student Council and Local Student Councils (LSCs).
+<br /> <br />
+The results are secured through blockchain technology, ensuring accuracy and transparency while maintaining voter privacy.
+</p>
+<br />
+<br />
+<h2 class="rvs-title"><u>Election Results</u></h2>
           <br />
-          <p>To verify your vote:</p>
           <br />
-          <ol>
-            <li>Click 'View Transaction Hashes' to see the list of votes for each candidate.</li>
-            <li>Search for your transaction hash in the list.</li>
-          </ol>
-          <br />
-          <p>If your hash appears, your vote was successfully recorded for that candidate. This ensures your vote is counted accurately while keeping your identity private!</p>
-
-          <main class="main">
-            <div class="title-container">
-              <div class="r">
-                <i class="fas fa-list-ol"></i>
-                <h1 class="title">Vote Tally</h1>
-              </div>
-            </div>
-            <hr class="title-line" />
-
-            <%- include('../admin/shared-results') %>
-          </main>
+<div class="rvs-container"> <%- include('../admin/shared-results') %></div>
+         
         </div>
       </div>
     </div>
 
-    <%- include('footer') %>
+    <%- include('../voter/footer') %>
     
     <script src="js/index.js"></script>
   </body>

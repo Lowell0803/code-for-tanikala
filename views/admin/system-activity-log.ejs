@@ -62,7 +62,7 @@
             <tbody>
               <% if (activityLogs && activityLogs.length) { %> <% activityLogs.forEach(log => { %>
               <tr>
-                <td><%= new Date(log.timestamp).toLocaleString() %></td>
+                <td class="textie-left"><%= new Date(log.timestamp).toLocaleString() %></td>
                 <td><%= log.adminUsername %></td>
                 <td><%= log.adminRole %></td>
                 <td><%= log.eventName %></td>

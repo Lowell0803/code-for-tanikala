@@ -5,3 +5,15 @@ th {
 table {
   outline: 2px solid #503a96;
 }
+
+/* .textie-left {
+  text-align: left;
+} */
+
+th {
+  padding: 0.4rem;
+}
+
+td {
+  padding: 0.2rem 0.15rem;
+}

@@ -267,6 +267,87 @@
               <p>All Data Last Updated on <strong><%= walletInfo ? moment(walletInfo.updatedAt).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %></strong></p>
             </div>
           </div>
+
+          <div class="total box-shadow">
+            
+                <h2>All Blockchain Transactions</h2>
+                <br />
+                <div class="indent">
+                  <ul>
+                    <li>
+                      <p>
+                        <strong>Candidate Submission Count: </strong>
+                        <span><%= blockchainMgmt ? blockchainMgmt.candidateSubmissionsCount : "N/A" %></span>
+                      </p>
+                      <div class="indent-ish">
+                        <p>
+                          <strong>Latest Transaction Hash:</strong>
+                          <%= blockchainMgmt && blockchainMgmt.candidateSubmissionHash ? blockchainMgmt.candidateSubmissionHash : "N/A" %>
+                        </p>
+                        <p>
+                          <strong>Latest Submission Date:</strong>
+                          <%= blockchainMgmt && blockchainMgmt.candidateSubmissionDate ? moment(blockchainMgmt.candidateSubmissionDate).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
+                        </p>
+                      </div>
+                    </li>
+                    <br />
+                    <li>
+                      <p>
+                        <strong>Vote Transactions Count: </strong>
+                        <span><%= blockchainMgmt ? blockchainMgmt.voteTransactionsCount : "N/A" %></span>
+                      </p>
+                    </li>
+                    <br />
+                    <li>
+                      <p>
+                        <strong>Total Blockchain Transactions: </strong>
+                        <span>
+                          <%= blockchainMgmt ? (blockchainMgmt.voteTransactionsCount + blockchainMgmt.candidateSubmissionsCount) : "N/A" %>
+                        </span>
+                      </p>
+                      <div class="indent-ish">
+                        <p>
+                          <strong>Total Gas Used:</strong>
+                          <%= blockchainMgmt ? blockchainMgmt.totalGasUsed + blockchainMgmt.totalGasUsedInCandidates : "N/A" %> Gas
+                        </p>
+                        <p>
+                          <strong>Total Amount Spent (Wei):</strong>
+                          <%= blockchainMgmt ? blockchainMgmt.totalWeiSpent + blockchainMgmt.totalWeiSpentInCandidates : "N/A" %> Wei
+                        </p>
+                        <br />
+                        <p><strong>Total Amount Spent:</strong></p>
+                      </div>
+                    </li>
+                    <br />
+                    <table class="currency">
+                      <tr>
+                        <th>Polygon (POL)</th>
+                        <th>United States Dollar (USD)</th>
+                        <th>Philippine Peso (PHP)</th>
+                      </tr>
+                      <tr>
+                        <td>
+                          <%= blockchainMgmt && blockchainMgmt.totalAmountSpentPol !== undefined && blockchainMgmt.totalAmountSpentInCandidatesPol !== undefined
+                            ? (blockchainMgmt.totalAmountSpentPol + blockchainMgmt.totalAmountSpentInCandidatesPol).toFixed(6)
+                            : "N/A" %> POL
+                        </td>
+                        <td>
+                          <%= blockchainMgmt && blockchainMgmt.totalAmountSpentUSD !== undefined && blockchainMgmt.totalAmountSpentInCandidatesUSD !== undefined
+                            ? (blockchainMgmt.totalAmountSpentUSD + blockchainMgmt.totalAmountSpentInCandidatesUSD).toFixed(2)
+                            : "N/A" %> USD
+                        </td>
+                        <td>
+                          <span class="highlight"><%= blockchainMgmt && blockchainMgmt.totalAmountSpentPHP !== undefined && blockchainMgmt.totalAmountSpentInCandidatesPHP !== undefined
+                            ? (blockchainMgmt.totalAmountSpentPHP + blockchainMgmt.totalAmountSpentInCandidatesPHP).toFixed(2)
+                            : "N/A" %> PHP </span>
+                        </td>
+                      </tr>
+                    </table>
+                    <br />
+                  </ul>
+                </div>
+             
+          </div>
         </div>
       </main>
     </div>

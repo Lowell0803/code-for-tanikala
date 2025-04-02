@@ -133,13 +133,22 @@
 
         <div class="main-container">
           <p>
-            This page allows you to view detailed vote counts for each candidate in your selected election. Click "View List of Voter IDs" to see the voter IDs associated with the votes recorded for each candidate. To verify that your vote has been added to a specific candidate, search for your voter ID (which can be found on your voting receipt) in the list. If your voter ID appears, it confirms that your vote has been successfully recorded for that candidate. <br />
+            This page displays the total vote counts for each candidate in the Supreme Student Council and Local Student Councils (LSCs).  </p> <br />
+           
+           <p>To verify your vote:</p> 
             <br />
-            To ensure that your vote has not been recorded for a candidate you did not vote for, simply search again—your voter ID should not appear under that candidate.
-          </p>
+            <ol>
+              <li>Click "View List of Voter IDs" to see the list of votes for each candidate.</li>
+              <li>Search for your voter ID, which can be found on your voting receipt.</li>
+              <li>If your voter ID appears, your vote was successfully recorded for that candidate.</li>
+              <li>To confirm that your vote was not recorded for a candidate you did not vote for, search again—your voter ID should not appear under that candidate.</li>
+            </ol>
+            <br />
+            <p>This process ensures that your vote is accurately counted while keeping your identity private. With hashing technology, your voter ID cannot be traced back to you, as hashes are impossible to decode. This guarantees vote integrity while protecting voter privacy and security.</p>
+         
           <br />
           <br />
-          <h2 class="rvs-title">Votes per Candidate</h2>
+          <h2 class="rvs-title"><u>Votes per Candidate</u></h2>
           <br />
           <br />
           <div class="rvs-container"><%- include('../admin/shared-vote-tally') %></div>
@@ -147,7 +156,7 @@
       </div>
     </div>
 
-    <%- include('footer') %>
+     <%- include('../voter/footer') %>
     
     <script src="js/index.js"></script>
   </body>

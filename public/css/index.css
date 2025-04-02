@@ -39,7 +39,7 @@
   --color-gray: #323847;
   --color-purple: #503a96;
 
-  --sidebar-color-lighter: #534939;
+  --sidebar-color-lighter: #d29c45;
   --sidebar-color: #e1ae5b;
 
   /* div sizes */
@@ -154,7 +154,7 @@ img {
 .content {
   display: flex;
   flex-basis: var(--height-content);
-  overflow-y: auto;
+  overflow-y: auto !important;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
@@ -290,14 +290,14 @@ img {
   opacity: 0.6;
 }
 
-.button {
+/* .button {
   padding: 0.6rem;
   margin: 1rem;
   border-radius: 1rem;
   border: none;
   color: white;
   font-weight: bold;
-}
+} */
 
 #green-button {
   background-color: #369f2c;
@@ -423,21 +423,21 @@ button {
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px, rgba(0, 0, 0, 0.06) 0px 2px 4px;
 }
 
-button:hover,
+/* button:hover,
 button:active {
   background-color: var(--color-lightRed);
   color: #ffeba7;
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
-}
+} */
 
-.button:hover,
+/* .button:hover,
 .button:active {
   background-color: var(--color-lightRed);
   color: #ffeba7;
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
-}
+} */
 
-button {
+/* button {
   padding: 0.6rem;
   margin: 1rem;
   border-radius: 1rem;
@@ -445,7 +445,7 @@ button {
   color: white;
   font-weight: bold;
   background-color: var(--color-mediumYellow);
-}
+} */
 
 #get-ready-to-register {
   color: var(--color-lightYellow);
@@ -620,4 +620,12 @@ button {
     text-decoration: none;
     font-size: 0.5rem;
   }
+
+  .footer p {
+    font-size: 0.6rem;
+  }
 }
+
+/* .content-main {
+  overflow-x: hidden;
+} */

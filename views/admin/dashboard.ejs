@@ -238,9 +238,9 @@
                   <br />
 
                   <% if (electionConfig.totalPartylists) { %>
-                  <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.totalPartylists %></span></p>
+                  <p><b>Total Number of Participating Parties:</b> <span><%= electionConfig.totalPartylists %></span></p>
                   <% } else { %>
-                  <p><b>Total Number of Party Lists:</b> <span><%= electionConfig.partylists ? electionConfig.partylists.length : 0 %></span></p>
+                  <p><b>Total Number of Participating Parties:</b> <span><%= electionConfig.partylists ? electionConfig.partylists.length : 0 %></span></p>
 
                   <% } %> <% if (electionConfig.partylists && electionConfig.partylists.length > 0) { %>
                   <ul class="election-configuration">
@@ -249,7 +249,7 @@
                     <% }); %>
                   </ul>
                   <% } else { %>
-                  <p>No party lists available.</p>
+                  <p>No participating parties available.</p>
                   <% } %>
                   <br />
 
@@ -316,7 +316,7 @@
               
                 <div class="beside">
                   <div class="form" id="candidate-submission">
-                    <h4 class="center box-label">Candidate Submission on Blockchain:</h4>
+                    <h4 class="center box-label">Candidate Submission Status on Blockchain:</h4>
                     <br />
                     <p class="center pre-med bold purple"><%= candidateStatus %></p>
                   </div>

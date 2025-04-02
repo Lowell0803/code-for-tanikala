@@ -41,7 +41,7 @@
   }
   function formatDisplayDate(dateString) { 
     if (!dateString) return ''; 
-    return moment.tz(dateString, "Asia/Manila").format("MM/DD/YYYY, hh:mm A"); 
+    return moment.tz(dateString, "Asia/Manila").format("MMMM D, YYYY [at] hh:mm A"); 
   }
   %>
   <%- include('header') %>
@@ -52,7 +52,7 @@
       <div class="title-container">
         <div class="r">
           <i class="fa fa-cogs"></i>
-          <h1 class="title">Configuration</h1>
+          <h1 class="title">Election Configuration</h1>
         </div>
       </div>
       <hr class="title-line" />
@@ -62,26 +62,26 @@
         <section class="election-info">
           <p class="election-name">
             &nbsp;<strong><span class="green">Election Name:</span></strong>
-            <%= electionConfig && electionConfig.electionName ? electionConfig.electionName : "N/A" %>
+            <span class="semi-boldie"><%= electionConfig && electionConfig.electionName ? electionConfig.electionName : "N/A" %></span>
           </p>
           <hr />
           <p class="space">
             <i class="bx bx-calendar-check"></i>&nbsp;<strong><span class="green">Status:</span></strong>
-            <%= electionConfig && electionConfig.electionStatus ? electionConfig.electionStatus : "N/A" %>
+            <span class="semi-bold"> <%= electionConfig && electionConfig.electionStatus ? electionConfig.electionStatus : "N/A" %></span>
           </p>
           <p class="space">
             <i class="bx bx-edit-alt"></i>
             <strong><span class="green">Registration Period:</span></strong>
-            <%= electionConfig && electionConfig.registrationStart ? formatDisplayDate(electionConfig.registrationStart) : "N/A" %>
+            <span class="semi-bold"> <%= electionConfig && electionConfig.registrationStart ? formatDisplayDate(electionConfig.registrationStart) : "N/A" %>
             to
             <%= electionConfig && electionConfig.registrationEnd ? formatDisplayDate(electionConfig.registrationEnd) : "N/A" %>
-          </p>
+          </p> </span>
           <p class="space">
             <i class="bx bx-list-ul"></i>
             <strong><span class="green">Voting Period:</span></strong>
-            <%= electionConfig && electionConfig.votingStart ? formatDisplayDate(electionConfig.votingStart) : "N/A" %>
+          <span class="semi-bold">   <%= electionConfig && electionConfig.votingStart ? formatDisplayDate(electionConfig.votingStart) : "N/A" %>
             to
-            <%= electionConfig && electionConfig.votingEnd ? formatDisplayDate(electionConfig.votingEnd) : "N/A" %>
+            <%= electionConfig && electionConfig.votingEnd ? formatDisplayDate(electionConfig.votingEnd) : "N/A" %> </span>
           </p>
         </section>
 
@@ -113,7 +113,7 @@
               <input class="input box" type="datetime-local" id="votingEnd" name="votingEnd" value="<%= electionConfig ? toPHFormat(electionConfig.votingEnd) : '' %>" required />
             </div>
             <div>
-              <label for="partylists" class="rectangle blue semi-bold">Party List (comma separated):</label>
+              <label for="partylists" class="rectangle blue semi-bold">Participating Parties (Comma-Separated):</label>
               <!-- Join the partylists array back to a comma separated string -->
               <input class="input box" type="text" id="partylists" name="partylists" value="<%= electionConfig && electionConfig.partylists ? electionConfig.partylists.join(', ') : '' %>" required />
             </div>
@@ -152,7 +152,7 @@
 
         <!-- FAKE DATE -->
         <!-- FAKE DATE (using form submission to reload the page) -->
-        <div class="developer-only" style="">
+        <div class="developer-only">
           <h3>Developer Tools</h3>
           <p>
             Current Date:

@@ -180,7 +180,7 @@
             <h1 class="title">Candidate Management</h1>
           </div>
           <h3>
-            <span class="purple">Candidate Submission on Blockchain:</span>
+            <span class="purple">Candidate Submission Status on Blockchain:</span>
             <span class="smart-contract-status">
               <%= electionConfig.candidatesSubmitted ? "Submitted" : "Not Submitted" %>
             </span>
@@ -488,6 +488,8 @@
           </div>
         </div>
 
+<div class="middle"><button class="action-button" id="clearCandidates">Clear All Candidate Data</button></div>
+
         <div class="blockchain">
           <!-- Deploy Candidates Button -->
           <button class="action-button" id="submitBtn" 
@@ -496,7 +498,7 @@
 </button>
 
           <!-- Reset Candidates Button (Initially Hidden) -->
-          <button class="action-button" id="resetCandidatesBtn">Reset Candidates</button>
+          <!-- <button class="action-button" id="resetCandidatesBtn">Remove Candidates from Blockchain</button> -->
 
           <script type="module">
             import { createNotification } from "/components/notification.js";

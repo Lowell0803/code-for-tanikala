@@ -251,7 +251,7 @@ hr {
 
 .create-election form > div label {
   /* Give each label a consistent width so inputs line up */
-  width: 21rem;
+  width: 30rem;
   margin-right: 1rem;
   text-align: left; /* Ensures label text is left-aligned */
   padding-left: 2rem;
@@ -279,7 +279,26 @@ hr {
   font-weight: 500;
 }
 
+.semi-boldie {
+  font-weight: 600;
+}
+
 .space {
   padding: 0.2rem;
   padding-left: 1rem;
+}
+
+.developer-only {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.election-info i {
+  color: #0b8000;
+}
+
+.num-of-students label {
+  font-weight: 500;
 }

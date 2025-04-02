@@ -86,17 +86,6 @@ th {
   padding: 0;
 }
 
-.column-main {
-  display: flex;
-  flex-direction: column;
-  background: #d8d1fa;
-  border: 0.25rem solid #451b9d;
-  padding: 2rem;
-  border-radius: 1.5rem;
-  margin: 2rem;
-  max-width: 100%;
-}
-
 .right-update {
   display: flex;
   justify-content: flex-end;
@@ -177,4 +166,26 @@ td {
 
 .first-main th {
   background-color: #ad9bd5;
+}
+
+.column-main {
+  display: flex;
+  flex-direction: column;
+  background: #d8d1fa;
+  border: 0.25rem solid #451b9d;
+  padding: 2rem;
+  border-radius: 1.5rem;
+  margin: 2rem;
+  max-width: 100%;
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  background-color: #a69fc8;
+  border: 0.25rem solid #451b9d;
+  padding: 2rem;
+  border-radius: 1.5rem;
+  margin: 2rem;
+  max-width: 100%;
 }

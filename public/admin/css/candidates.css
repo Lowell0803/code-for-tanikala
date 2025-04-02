@@ -105,7 +105,7 @@ hr {
   transform: translate(-50%, -50%);
   background-color: var(--background-form);
   border-radius: 1em;
-  padding: 2%;
+  /* padding: 2%; */
 }
 
 form img {
@@ -343,4 +343,13 @@ form img {
 #form-edit-lsc {
   padding: 0;
   margin: 0;
+}
+
+#clearCandidates {
+  background-color: #4c556d;
+}
+
+.middle {
+  text-align: center;
+  /* padding-right: 3rem; */
 }

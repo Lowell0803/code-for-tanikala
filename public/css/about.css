@@ -234,6 +234,16 @@ h5 {
   color: #258a04;
 }
 
+.text-container {
+  justify-content: flex-start;
+  /* border: 1px solid black; */
+}
+
+.main-buttons {
+  padding-bottom: 3rem;
+  /* border: 1px solid black; */
+}
+
 @media (max-width: 1000px) {
   /* Adjust main buttons container to stack vertically */
   .main-container {
@@ -375,7 +385,7 @@ h5 {
   }
 
   .pham hr {
-    width: 60%;
+    width: 100%;
   }
 
   .picture-holder p {
@@ -430,5 +440,18 @@ h5 {
 
   #bulsu {
     text-align: center;
+  }
+
+  .text-container a {
+    font-size: 0.9rem;
+  }
+
+  .main-buttons {
+    padding-bottom: 0;
+  }
+
+  .text-container {
+    margin: 0;
+    padding: 0;
   }
 }

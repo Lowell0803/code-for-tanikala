@@ -6,7 +6,9 @@
     <title>BulSU Voting System</title>
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" />
+    <link rel="stylesheet" type="text/css" href="admin/css/candidates.css" />
     <link rel="stylesheet" type="text/css" href="admin/css/system-manage-accounts.css" />
+     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
@@ -126,94 +128,109 @@
     </div>
 
     <!-- Add Admin Modal -->
-    <div id="addModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>Add Admin Account</h2>
-        <!-- Note: No enctype attribute -->
-        <form id="add-admin-form" action="/admin-accounts/add" method="POST">
-          <label>Name:</label>
-          <input type="text" name="name" required />
-          
-          <label>Role:</label>
-          <select name="role" class="role" required>
+    
+  <div id="addModal" class="form-container">
+  <div class="right">
+    <i class="fa-solid fa-xmark x-button" onclick="closeAddModal()"></i>
+  </div>
+  <br />
+  <div class="center form-title">
+    <h1 class="postion-name-lsc my-text position-lsc" id="heading-add-admin">Add Admin Account</h1>
+  </div>
+   <br />
+  <div class="form-buttons">
+    <form id="add-admin-form" action="/admin-accounts/add" method="POST">
+      <div class="form-details">
+        <div class="left-content">
+          <img id="img-preview" class="circle-img" src="img/placeholder_admin_profile.png" alt="Image Preview" style="max-width: 200px; max-height: 200px" />
+          <br />
+          <div class="center">
+            <input type="file" name="imgUpload" accept="image/*" onchange="convertImageToBase64(event)" required />
+            <input type="hidden" name="img" id="imgBase64" value="img/placeholder_admin_profile.png" />
+          </div>
+        </div>
+        <br />
+        <div class="center-content">
+          <label for="email">Email:</label>
+          <input type="email" name="email" class="field fill" required /><br /><br />
+          <label for="password">Password:</label>
+          <input type="password" name="password" class="field fill" required />
+        </div>
+        <div class="right-content">
+          <label for="name">Name:</label>
+          <input type="text" name="name" maxlength="35" class="field fill" required /><br /><br />
+          <label for="role">Role:</label>
+          <select name="role" class="role field fill" required>
             <option>Select a Role</option>
             <option value="Electoral Board Member">Electoral Board</option>
             <option value="Technical Team Member">Technical Team</option>
             <option value="Creatives Team Member">Creatives Team</option>
             <option value="Developer">Developer</option>
           </select>
-          
-          <label>Email:</label>
-          <input type="email" name="email" required />
-          
-          <label>Password:</label>
-          <input type="password" name="password" required />
-          
-          <!-- <label>Status:</label>
-          <select name="status" required>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select> -->
-          
-          <label>Profile Image:</label>
-          <!-- File input triggers conversion -->
-          <input type="file" name="imgUpload" accept="image/*" onchange="convertImageToBase64(event)" required />
-          <img id="img-preview" src="img/placeholder_admin_profile.png" alt="Image Preview" style="max-width: 100px; display: block" />
-          <!-- Hidden input to hold the Base64 image data -->
-          <input type="hidden" name="img" id="imgBase64" value="img/placeholder_admin_profile.png" />
-          
-          <button type="submit" class="button button-brown">Add Admin</button>
-        </form>
+        </div>
       </div>
-    </div>
+      <br /><br />   <br /><br />
+      <div class="right">
+        <input type="submit" class="button button-brown" value="Add Admin" />
+      </div>
+    </form>
+  </div>
+</div>
 
     <!-- Edit Modal -->
-    <div id="editModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>Edit Admin Account</h2>
-        <!-- Remove enctype attribute here as well -->
-        <form id="edit-admin-form" action="/admin-accounts/edit" method="POST">
-          <input type="hidden" name="id" id="edit-id" />
+   <div id="editModal" class="form-container">
+  <div class="right">
+    <i class="fa-solid fa-xmark x-button" onclick="closeModal()"></i>
+  </div>
+  <br />
+  <div class="center form-title">
+    <h1 class="postion-name-lsc my-text position-lsc" id="heading-edit-admin">Edit Admin Account</h1>
+  </div>
+  <br />
+  <div class="form-buttons">
+    <form id="edit-admin-form" action="/admin-accounts/edit" method="POST">
+      <input type="hidden" name="id" id="edit-id" />
+      <div class="form-details">
+
+
+        <div class="left-content">
+         <img id="edit-img-preview" class="circle-img" src="" alt="Image Preview" style="max-width: 200px; max-height: 200px; display: block" />
+        <br />
+         <div class="center">
+         <input type="file" name="imgUpload" id="edit-imgUpload" accept="image/*" onchange="convertEditImageToBase64(event)" />
           
+          <input type="hidden" name="img" id="edit-imgBase64" />
+          </div>
+        </div>
+        <br />
+        <div class="center-content">
+          <label>Email:</label>
+          <input type="email" name="email" id="edit-email" class="field fill" required /><br /><br />
+          <label>Password:</label>
+          <input type="password" name="password" id="edit-password" class="field fill" required />
+          <!-- <button type="button" onclick="toggleEditPassword()">Show/Hide</button> -->
+        </div>
+        <div class="right-content">
           <label>Name:</label>
-          <input type="text" name="name" id="edit-name" required />
-          
+          <input type="text" name="name" id="edit-name" class="field fill" required /><br /><br />
           <label>Role:</label>
-          <select name="role" id="edit-role" required>
+          <select name="role" id="edit-role" class="role field fill" required>
             <option value="">Select a Role</option>
             <option value="Electoral Board Member">Electoral Board</option>
             <option value="Technical Team Member">Technical Team</option>
             <option value="Creatives Team Member">Creatives Team</option>
             <option value="Developer">Developer</option>
           </select>
-          
-          <label>Email:</label>
-          <input type="email" name="email" id="edit-email" required />
-          
-          <label>Password:</label>
-          <input type="password" name="password" id="edit-password" required />
-          <button type="button" onclick="toggleEditPassword()">Show/Hide</button>
-          
-          <!-- <label>Status:</label>
-          <select name="status" id="edit-status" required>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-           -->
-          <!-- <label>Status:</label>
-          <input type="text" id="edit-status-display" disabled /> -->
-           
-          <label>Profile Image:</label>
-          <input type="file" name="imgUpload" id="edit-imgUpload" accept="image/*" onchange="convertEditImageToBase64(event)" />
-          <img id="edit-img-preview" src="" alt="Image Preview" style="max-width: 100px; display: block" />
-          <input type="hidden" name="img" id="edit-imgBase64" />
-          
-          <button type="submit" class="button button-brown">Save Changes</button>
-        </form>
+        </div>
       </div>
-    </div>
+      <br /><br />
+      <br /><br />
+      <div class="right">
+        <button type="submit" class="button button-brown">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
 
     <%- include('footer') %>
 
@@ -243,6 +260,22 @@
           closeModal();
         }
       };
+
+        function closeAddModal() {
+    // Reset the form inputs in the add modal
+    document.getElementById('add-admin-form').reset();
+    // Reset the image preview (if applicable)
+    document.getElementById('img-preview').src = 'img/placeholder_admin_profile.png';
+    // Hide the add modal
+    addModal.style.display = "none";
+  }
+
+  // If clicking outside the add modal, close it
+  window.onclick = function(event) {
+    if (event.target === addModal) {
+      closeAddModal();
+    }
+  };
 
       // Toggle password visibility in Edit Admin modal
       function toggleEditPassword() {

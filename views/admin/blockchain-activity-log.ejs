@@ -51,14 +51,14 @@
             <tbody>
               <% logs.forEach(function(log) { %>
               <tr>
-                <td><%= new Date(log.timestamp).toLocaleString() %></td>
+                <td class="textie-left"><%= new Date(log.timestamp).toLocaleString() %></td>
                 <td>
                   <a href="https://amoy.polygonscan.com/tx/<%= log.transactionHash %>" target="_blank"> <%= log.transactionHash %> </a>
                 </td>
                 <td><%= log.action %></td>
                 <td><%= log.actor %></td>
-                <td><%= log.costPol %></td>
-                <td><%= log.costPhp %></td>
+                <td><%= log.costPol %> POL</td>
+                <td><%= log.costPhp %> PHP</td>
               </tr>
               <% }); %>
             </tbody>

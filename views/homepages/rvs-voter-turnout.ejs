@@ -11,12 +11,21 @@
     <!-- Admin Styles (only the necessary ones for voter turnout) -->
     <link rel="stylesheet" type="text/css" href="admin/css/index-admin.css" />
     <!-- <link rel="stylesheet" type="text/css" href="admin/css/sidebar.css" /> -->
-    <link rel="stylesheet" type="text/css" href="admin/css/voter-turnout.css" />
+     <link rel="stylesheet" type="text/css" href="admin/css/vote-tally.css" />
+    
+     <link rel="stylesheet" type="text/css" href="admin/css/index-election.css" />
+     <link rel="stylesheet" type="text/css" href="admin/css/voter-turnout.css" />
 
+
+    
     <!-- External Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
     <!-- Custom CSS for ejs2 -->
     <link rel="stylesheet" type="text/css" href="css/index.css" />
@@ -61,22 +70,21 @@
 
         <div class="main-container">
           <p>This page shows the total number of students who participated in the election, providing a clear overview of voter engagement. Explore the participation rate across SSC and LSC elections to see how many students made their voices heard.</p>
-          <div class="content" style="color: black">
-            <main class="main">
-              <div class="title-container">
-                <div class="r">
-                  <h1><i class="fa fa-cogs"></i> Voter Turnout</h1>
-                </div>
-              </div>
-              <hr class="title-line" />
-              <%- include('../admin/shared-voter-turnout') %>
-            </main>
+         <br />
+<br />
+<h2 class="rvs-title"><u>Voter Turnout</u></h2>
+          <br />
+          <br />
+         
+          
+              <div class="rvs-container"> <br /><%- include('../admin/shared-voter-turnout') %></div>
+            
           </div>
         </div>
       </div>
-    </div>
 
-    <%- include('footer') %>
+
+    <%- include('../voter/footer') %>
 
     <script src="admin/dependencies/liner-bar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
