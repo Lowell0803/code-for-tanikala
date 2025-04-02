@@ -49,6 +49,15 @@
 
         <!-- Filter Controls -->
         <div class="filter-controls" style="margin: 10px 0; padding: 5px;">
+          <label for="sortFilter">Sort By:</label>
+          <select id="sortFilter" class="space">
+            <option value="name-asc" selected>Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+            <option value="student-asc">Student Number (Ascending)</option>
+            <option value="student-desc">Student Number (Descending)</option>
+          </select>
+
+
           <label for="collegeFilter">Filter by College:</label>
           <select id="collegeFilter" class="space">
             <option value="all">All Colleges</option>
@@ -124,6 +133,63 @@
     </div>
 
     <%- include('footer') %>
+
+    <script>
+      // Sorting function
+      function sortTable() {
+        const sortValue = document.getElementById("sortFilter").value;
+        const tbody = table.querySelector("tbody");
+        const rowsArray = Array.from(tbody.querySelectorAll("tr"));
+        
+        rowsArray.sort((a, b) => {
+          let valA, valB;
+        
+          switch (sortValue) {
+            case "name-asc":
+              valA = a.cells[1].textContent.toLowerCase();
+              valB = b.cells[1].textContent.toLowerCase();
+              return valA.localeCompare(valB);
+            case "name-desc":
+              valA = a.cells[1].textContent.toLowerCase();
+              valB = b.cells[1].textContent.toLowerCase();
+              return valB.localeCompare(valA);
+            case "student-asc":
+              valA = parseInt(a.cells[3].textContent) || 0; // Student number column
+              valB = parseInt(b.cells[3].textContent) || 0;
+              return valA - valB;
+            case "student-desc":
+              valA = parseInt(a.cells[3].textContent) || 0;
+              valB = parseInt(b.cells[3].textContent) || 0;
+              return valB - valA;
+          }
+        });
+    
+        // Reattach sorted rows
+        rowsArray.forEach((row) => tbody.appendChild(row));
+    
+        // Reset numbering after sorting
+        resetRowNumbers();
+      }
+    
+      // Function to reset row numbers
+      function resetRowNumbers() {
+        const rows = table.querySelectorAll("tbody tr");
+        rows.forEach((row, index) => {
+          row.cells[0].textContent = index + 1; // Update the "No." column to be ascending
+        });
+      }
+    
+      // Attach event listener to sorting dropdown
+      document.getElementById("sortFilter").addEventListener("change", sortTable);
+    
+      // Apply default sorting on page load
+      document.addEventListener("DOMContentLoaded", () => {
+        sortTable(); // Sort by Name (A-Z) by default
+      });
+    </script>
+    
+    
+    
 
     <script>
       // Mapping for each college to its programs (keys in lowercase)
