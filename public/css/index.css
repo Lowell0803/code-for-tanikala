@@ -174,21 +174,6 @@ img {
 
 /* buttons */
 
-.button-rounded-yellow {
-  padding: 1rem;
-  border: none;
-  border-radius: 1.8em;
-  background: linear-gradient(#e1ae5b, #f5ab29);
-  font-weight: bold;
-  font-family: "Montserrat", Arial;
-  color: #550c0a;
-}
-
-.button-rounded-yellow:hover {
-  color: var(--color-lightRed);
-  background: #f5ab29;
-}
-
 .bigger-text {
   font-size: 0.4rem;
 }
@@ -418,7 +403,7 @@ footer p {
 }
 
 button {
-  cursor: pointer;
+  cursor: pointer !important;
   border-style: outset;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px, rgba(0, 0, 0, 0.06) 0px 2px 4px;
 }
@@ -611,6 +596,24 @@ button:active {
   }
 }
 
+button:hover {
+  filter: brightness(1.2); /* Lightens the color */
+}
+
+button:active {
+  filter: brightness(0.8); /* Darkens the color */
+  transform: scale(0.95); /* Adds a click effect */
+}
+
+.button:hover {
+  filter: brightness(1.2); /* Lightens the color */
+}
+
+.button:active {
+  filter: brightness(0.8); /* Darkens the color */
+  transform: scale(0.95); /* Adds a click effect */
+}
+
 @media (max-width: 400px) {
   .header img {
     width: 100%;
@@ -624,6 +627,27 @@ button:active {
   .footer p {
     font-size: 0.6rem;
   }
+}
+
+.button-rounded-yellow {
+  padding: 1rem;
+  border: none;
+  border-radius: 1.8em;
+  background: linear-gradient(#e1ae5b, #f5ab29);
+  font-weight: bold;
+  font-family: "Montserrat", Arial;
+  color: #550c0a;
+}
+
+.button-rounded-yellow:hover {
+  color: var(--color-lightRed);
+  background: #f5ab29;
+  filter: none;
+}
+
+button,
+.button {
+  border: none !important;
 }
 
 /* .content-main {

@@ -210,3 +210,17 @@ li {
     width: 7rem;
   }
 }
+
+button:hover {
+  filter: brightness(1.2); /* Lightens the color */
+}
+
+button:active {
+  filter: brightness(0.8); /* Darkens the color */
+  transform: scale(0.95); /* Adds a click effect */
+}
+
+button {
+  background-color: #004aad;
+  color: pink;
+}

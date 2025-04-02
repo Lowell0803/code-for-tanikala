@@ -111,7 +111,8 @@ form h1 {
   color: #6e1311;
 }
 
-form input {
+input[type="text"],
+input[type="email"] {
   border: none;
   border-bottom: 0.2rem solid #6e1311;
   outline: none;
@@ -122,9 +123,9 @@ form input {
   /* padding-bottom: 0.5rem; */
 }
 
-form input:focus {
+/* form input:focus {
   background-color: transparent;
-}
+} */
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -168,10 +169,6 @@ input:-webkit-autofill:active {
   font-size: 1.2rem;
 }
 
-.button {
-  transition: none;
-}
-
 input[type="submit"]:active,
 input[type="button"]:active {
   transform: none; /* No shrink effect */
@@ -179,6 +176,10 @@ input[type="button"]:active {
 
 i {
   text-align: center;
+}
+
+.form-button input {
+  border: none;
 }
 
 @media (max-width: 1000px) {
@@ -314,9 +315,4 @@ i {
     /* border: 1px solid black; */
     margin-bottom: -1rem;
   }
-}
-
-.button:active {
-  filter: brightness(90%);
-  transform: scale(0.98);
 }
