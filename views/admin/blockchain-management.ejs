@@ -196,7 +196,15 @@
                       <div class="indent-ish">
                         <p>
                           <strong>Latest Transaction Hash:</strong>
-                          <%= blockchainMgmt && blockchainMgmt.candidateSubmissionHash ? blockchainMgmt.candidateSubmissionHash : "N/A" %>
+                          <% if (blockchainMgmt && Array.isArray(blockchainMgmt.candidateSubmissionHash)) { %>
+                            <ol>
+                              <% blockchainMgmt.candidateSubmissionHash.forEach((hash, index) => { %>
+                                <li><%= hash %></li>
+                              <% }); %>
+                            </ol>
+                          <% } else { %>
+                            <%= blockchainMgmt && blockchainMgmt.candidateSubmissionHash ? blockchainMgmt.candidateSubmissionHash : "N/A" %>
+                          <% } %>
                         </p>
                         <p>
                           <strong>Latest Submission Date:</strong>
@@ -282,8 +290,17 @@
                       <div class="indent-ish">
                         <p>
                           <strong>Latest Transaction Hash:</strong>
-                          <%= blockchainMgmt && blockchainMgmt.candidateSubmissionHash ? blockchainMgmt.candidateSubmissionHash : "N/A" %>
+                          <% if (blockchainMgmt && Array.isArray(blockchainMgmt.candidateSubmissionHash)) { %>
+                            <ol>
+                              <% blockchainMgmt.candidateSubmissionHash.forEach((hash, index) => { %>
+                                <li><%= hash %></li>
+                              <% }); %>
+                            </ol>
+                          <% } else { %>
+                            <%= blockchainMgmt && blockchainMgmt.candidateSubmissionHash ? blockchainMgmt.candidateSubmissionHash : "N/A" %>
+                          <% } %>
                         </p>
+                        
                         <p>
                           <strong>Latest Submission Date:</strong>
                           <%= blockchainMgmt && blockchainMgmt.candidateSubmissionDate ? moment(blockchainMgmt.candidateSubmissionDate).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
