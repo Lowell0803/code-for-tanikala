@@ -404,23 +404,31 @@ const startServer = async () => {
      */
     async function logActivity(collectionName, eventName, activityType, req, details = "No details") {
       try {
-        // Check for admin details in session; fall back to req.user if needed.
-        let adminDetails = req.session && req.session.admin;
         let adminUsername = "Unknown Admin";
         let adminRole = "Unknown Role";
         let adminEmail = "Unknown Email";
 
-        if (adminDetails) {
-          // Use the admin details from the session.
-          // If "username" is not set, fall back to "name".
-          adminUsername = adminDetails.username || adminDetails.name || "Unknown Admin";
-          adminRole = adminDetails.role || "Unknown Role";
-          adminEmail = adminDetails.email || "Unknown Email";
-        } else if (req.user) {
-          // Fallback if using a different authentication method.
-          adminUsername = req.user.username || req.user.name || "Unknown Admin";
-          adminRole = req.user.role || "Unknown Role";
-          adminEmail = req.user.email || "Unknown Email";
+        // If activityType is "Voter", assign student info to log
+        if (activityType === "Voter") {
+          const studentDetails = req.body; // Assuming student details are in req.body from the registration form
+          adminUsername = studentDetails.fullName || "Unknown Student";
+          adminRole = "Student";
+          adminEmail = studentDetails.email || "Unknown Email";
+        } else {
+          // Check for admin details in session; fall back to req.user if needed.
+          let adminDetails = req.session && req.session.admin;
+
+          if (adminDetails) {
+            // Use the admin details from the session.
+            adminUsername = adminDetails.username || adminDetails.name || "Unknown Admin";
+            adminRole = adminDetails.role || "Unknown Role";
+            adminEmail = adminDetails.email || "Unknown Email";
+          } else if (req.user) {
+            // Fallback if using a different authentication method.
+            adminUsername = req.user.username || req.user.name || "Unknown Admin";
+            adminRole = req.user.role || "Unknown Role";
+            adminEmail = req.user.email || "Unknown Email";
+          }
         }
 
         // Create the log entry object with a timestamp and provided details.
@@ -429,9 +437,9 @@ const startServer = async () => {
           eventName, // Description of the event
           activityType, // Type of activity (e.g., "CREATE", "UPDATE")
           details, // Additional details about the event
-          adminEmail, // Email of the logged in admin
-          adminUsername, // The admin's username (or name if username is unavailable)
-          adminRole, // The admin's role
+          adminEmail, // Email (either admin or student depending on activityType)
+          adminUsername, // The admin's or student's username (or name if username is unavailable)
+          adminRole, // The admin's or student's role
         };
 
         // Insert the log entry into the specified collection.
@@ -487,7 +495,14 @@ const startServer = async () => {
           status: "Registered",
         };
 
+        // Insert the new voter into the database
         await db.collection("registered_voters").insertOne(newVoter);
+
+        // Log the registration activity
+        const eventName = `Student ${studentNumber} has registered`;
+        const activityType = "Voter"; // As this is a new registration (creation of a new voter)
+        await logActivity("system_activity_logs", eventName, activityType, req, `Registered student with ID: ${studentNumber}`);
+        console.log(eventName);
 
         res.redirect("/?new_reg=true");
       } catch (error) {
@@ -5118,7 +5133,7 @@ const startServer = async () => {
         await contract.resetCandidates();
 
         // Log the archiving activity (assuming logActivity is defined)
-        await logActivity("activity_logs", "Reset Election Archiving", "ARCHIVE", req, "Archived election data.");
+        await logActivity("system_activity_logs", "Reset Election Archiving", "Admin", req, "Archived election data.");
 
         res.redirect("/reset?reset=success");
       } catch (error) {

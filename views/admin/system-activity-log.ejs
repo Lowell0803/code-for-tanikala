@@ -11,11 +11,9 @@
     <link rel="stylesheet" type="text/css" href="admin/css/system-activity-log.css" />
 
     <!-- Boxicons CDN Link -->
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
   </head>
 
@@ -59,20 +57,22 @@
                 <th>Type</th>
               </tr>
             </thead>
-            <tbody>
-              <% if (activityLogs && activityLogs.length) { %> <% activityLogs.forEach(log => { %>
-              <tr>
-                <td class="textie-left"><%= new Date(log.timestamp).toLocaleString() %></td>
-                <td><%= log.adminUsername %></td>
-                <td><%= log.adminRole %></td>
-                <td><%= log.eventName %></td>
-               <!-- <td><%= log.details %></td>-->
-                <td><%= log.activityType %></td>
-              </tr>
-              <% }) %> <% } else { %>
-              <tr>
-                <td colspan="6">No activity logs found.</td>
-              </tr>
+            <tbody id="activityLogsTableBody">
+              <% if (activityLogs && activityLogs.length) { %>
+                <% activityLogs.forEach(log => { %>
+                  <tr class="<%= log.activityType ? log.activityType.toLowerCase() : '' %>" data-type="<%= log.activityType || 'Unknown' %>">
+
+                    <td class="textie-left"><%= new Date(log.timestamp).toLocaleString() %></td>
+                    <td><%= log.adminUsername %></td>
+                    <td><%= log.adminRole %></td>
+                    <td><%= log.eventName %></td>
+                    <td><%= log.activityType %></td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="6">No activity logs found.</td>
+                </tr>
               <% } %>
             </tbody>
           </table>
@@ -84,5 +84,35 @@
 
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/index-admin.js"></script>
+
+    <script>
+      // JavaScript to filter logs based on radio button selection
+      const logRadios = document.querySelectorAll('input[name="system-log"]');
+      const tableRows = document.querySelectorAll("#activityLogsTableBody tr");
+
+      logRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+          const selectedFilter = this.value;
+          filterLogs(selectedFilter);
+        });
+      });
+
+      // Filter logs based on the selected radio button
+      function filterLogs(filter) {
+        tableRows.forEach(row => {
+          const rowType = row.getAttribute('data-type').toLowerCase();
+
+          if (filter === 'all-activity-log') {
+            row.style.display = ''; // Show all rows
+          } else if (filter === 'admin-activity-log' && rowType === 'Admin'.toLowerCase()) {
+            row.style.display = ''; // Show admin logs
+          } else if (filter === 'voter-activity-log' && rowType === 'Voter'.toLowerCase()) {
+            row.style.display = ''; // Show voter logs
+          } else {
+            row.style.display = 'none'; // Hide non-matching rows
+          }
+        });
+      }
+    </script>
   </body>
 </html>
