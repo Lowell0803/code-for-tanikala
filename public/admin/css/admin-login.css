@@ -179,3 +179,8 @@ a:hover {
   /* box-shadow: 9px 9px 33px #d1d1d1, -9px -9px 33px #ffffff; */
   transform: translateY(-2px);
 }
+
+.toggle-password {
+  /* border: 1px solid black; */
+  height: 1em;
+}

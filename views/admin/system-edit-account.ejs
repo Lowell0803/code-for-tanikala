@@ -48,17 +48,29 @@
                   </div>
                   <!-- Password Change Fields -->
                   <div>
-                    <label for="old-password">Old Password:</label>
+                    <label for="old-password">Password:</label>
                     <input type="password" id="old-password" name="oldPassword" placeholder="Old Password" disabled />
                   </div>
-                  <div>
+                  <!-- <div>
                     <label for="new-password">New Password:</label>
                     <input type="password" id="new-password" name="newPassword" placeholder="New Password" disabled />
                   </div>
                   <div>
                     <label for="confirm-new-password">Confirm New Password:</label>
                     <input type="password" id="confirm-new-password" placeholder="Confirm New Password" disabled />
-                  </div>
+                  </div> -->
+
+<div id="new-password-section" style="display: none;">
+  <div>
+    <label for="new-password">New Password:</label>
+    <input type="password" id="new-password" name="newPassword" placeholder="New Password" disabled />
+  </div>
+  <div>
+    <label for="confirm-new-password">Confirm New Password:</label>
+    <input type="password" id="confirm-new-password" placeholder="Confirm New Password" disabled />
+  </div>
+</div>
+
                   <!-- Hidden input to store the base64 encoded profile image -->
                   <input type="hidden" name="img" id="img-hidden" value="<%= loggedInAdmin.img %>" />
                   <br />
@@ -212,5 +224,42 @@ closeButton.addEventListener("click", () => {
       });
     </script>
     
+<script>
+  // Get the elements
+  const editBtn = document.getElementById("button-edit");
+  const closeBtn = document.getElementById("button-close");
+  const saveBtn = document.getElementById("button-save");
+  const changeImageBtn = document.getElementById("change-image");
+  const newPasswordSection = document.getElementById("new-password-section");
+
+  // All form inputs (except hidden ones)
+  const formInputs = document.querySelectorAll("#form-details input:not([type='hidden'])");
+
+  // Edit button: Enable inputs and show the new password fields
+  editBtn.addEventListener("click", () => {
+    formInputs.forEach(input => input.disabled = false);
+    newPasswordSection.style.display = "block";
+    closeBtn.style.display = "inline-block";
+    saveBtn.style.display = "inline-block";
+    editBtn.style.display = "none";
+    changeImageBtn.style.display = "inline-block";
+  });
+
+  // Close button: Disable inputs, hide the new password fields, and reset password fields
+  closeBtn.addEventListener("click", () => {
+    formInputs.forEach(input => input.disabled = true);
+    newPasswordSection.style.display = "none";
+    closeBtn.style.display = "none";
+    saveBtn.style.display = "none";
+    editBtn.style.display = "inline-block";
+    changeImageBtn.style.display = "none";
+    
+    // Reset password fields
+    document.getElementById("old-password").value = "";
+    document.getElementById("new-password").value = "";
+    document.getElementById("confirm-new-password").value = "";
+  });
+</script>
+
   </body>
 </html>

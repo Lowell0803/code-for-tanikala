@@ -52,6 +52,13 @@
                 <path d="M80 192V144C80 64.47 144.5 0 224 0C303.5 0 368 64.47 368 144V192H384C419.3 192 448 220.7 448 256V448C448 483.3 419.3 512 384 512H64C28.65 512 0 483.3 0 448V256C0 220.7 28.65 192 64 192H80zM144 192H304V144C304 99.82 268.2 64 224 64C179.8 64 144 99.82 144 144V192z"></path>
               </svg>
               <input autocomplete="off" id="logpass" placeholder="Type your password here..." class="input-field" name="password" type="password" required />
+              <span class="toggle-password" onclick="togglePassword()" style="cursor:pointer;">
+    <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <!-- This SVG icon represents an eye; you can replace the path with another design if preferred -->
+      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 13c-3.04 0-5.5-2.46-5.5-5.5S8.96 6.5 12 6.5s5.5 2.46 5.5 5.5-2.46 5.5-5.5 5.5z"/>
+      <circle cx="12" cy="12" r="2.5"/>
+    </svg>
+  </span>
             </div>
             <button class="btn" type="submit">Log in</button>
             <a href="#" class="btn-link">Forgot your password?</a>
@@ -107,6 +114,18 @@
         history.replaceState({}, document.title, window.location.pathname);
       }
     </script>
+
+    <script>
+  function togglePassword() {
+    const passwordInput = document.getElementById("logpass");
+    // Toggle the type attribute
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+    } else {
+      passwordInput.type = "password";
+    }
+  }
+</script>
      <%- include('../voter/footer') %>
   </body>
 </html>
