@@ -44,18 +44,18 @@
       // Get the container where the liner bars will be rendered.
       const container = document.getElementById("container-charts");
       if (!container) return;
-
+  
       // Retrieve the list of colleges from electionConfig (new structure)
       const colleges = <%- JSON.stringify(electionConfig.colleges) %>;
       console.log("Colleges data:", colleges);
-
+  
       // Loop through each college and create a liner bar.
       colleges.forEach((college) => {
         const div = document.createElement("div");
         div.id = `liner-bar-college-${college.acronym}`;
         div.classList.add("liner-bar-college");
         container.appendChild(div);
-
+  
         // For each college, the "Voted" value is the registeredVoted,
         // and "Not Yet Voted" is the remaining students.
         const data = {
@@ -70,19 +70,37 @@
             }
           ]
         };
-
+  
         // Instantiate the liner bar using your LinerBar class from liner-bar.js.
         const bar = new LinerBar(`#${div.id}`, data);
         bar.render();
+  
+        // Calculate the percentage of students that have voted.
+        // Guard against division by zero or missing numberOfStudents.
+        const totalStudents = college.numberOfStudents || 0;
+        const percentage = totalStudents 
+          ? ((college.registeredVoted / totalStudents) * 100).toFixed(1) 
+          : "0.0";
+  
+        // Create a paragraph element to show the percentage text.
+        const pPercentage = document.createElement("p");
+        pPercentage.textContent = `${percentage}% of students have voted from ${college.acronym}`;
+        container.appendChild(pPercentage);
+  
+        // Create another paragraph element to show the raw count text.
+        const pCount = document.createElement("p");
+        pCount.textContent = `${college.registeredVoted} out of ${college.numberOfStudents} students have already voted from ${college.acronym}`;
+        container.appendChild(pCount);
       });
     });
   </script>
+  
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       // Retrieve the list of colleges from electionConfig (new structure)
       const colleges = <%- JSON.stringify(electionConfig.colleges) %>;
-
+  
       // Compute overall totals
       let totalStudents = 0;
       let totalRegisteredNotVoted = 0;
@@ -100,18 +118,18 @@
       // "Voted" is the sum of registeredVoted,
       // "Not Yet Voted" is the sum of (registeredNotVoted + notRegisteredNotVoted)
       const totalNotVoted = totalRegisteredNotVoted + totalNotRegisteredNotVoted;
-
+  
       // Setup Chart.js chart data
       const ctx = document.getElementById('chart-turnout').getContext('2d');
       const data = {
         labels: ['Voted', 'Not Yet Voted'],
         datasets: [{
-          data: [totalRegisteredVoted, totalNotRegisteredNotVoted + totalRegisteredNotVoted ],
+          data: [totalRegisteredVoted, totalNotVoted],
           backgroundColor: ['#5fb643', '#FC440F'],
           borderWidth: 1,
         }]
       };
-
+  
       // Instantiate the pie chart using Chart.js
       new Chart(ctx, {
         type: 'pie', // or 'doughnut' if preferred
@@ -129,8 +147,27 @@
           }
         }
       });
+  
+      // Calculate overall percentage of students who have voted.
+      const overallPercentage = totalStudents 
+        ? ((totalRegisteredVoted / totalStudents) * 100).toFixed(1)
+        : "0.0";
+  
+      // Create a paragraph element to display the overall percentage.
+      const percentageText = document.createElement("p");
+      percentageText.textContent = `${overallPercentage}% of total students have voted.`;
+  
+      // Create another paragraph element to display the overall count. ZARINA HERE
+      // const countText = document.createElement("p");
+      // countText.textContent = `${totalRegisteredVoted} out of ${totalStudents} students have already voted.`;
+  
+      // Append the paragraphs after the pie chart canvas.
+      const chartCanvas = document.getElementById('chart-turnout');
+      chartCanvas.parentNode.appendChild(percentageText);
+      chartCanvas.parentNode.appendChild(countText);
     });
   </script>
+  
 
   
 </div>

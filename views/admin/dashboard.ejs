@@ -178,15 +178,37 @@
                   <br />
                   <div class="center">
                     <% if (electionConfig.specialStatus === "System Temporarily Closed") { %>
-                    <form action="/resume-election" method="POST">
-                      <button type="submit election" class="action-buttons resume">Resume Election</button>
-                    </form>
+                      <form action="/resume-election" method="POST">
+                        <button type="submit" class="action-buttons resume">Resume Election</button>
+                      </form>
                     <% } else { %>
-                    <form action="/temporarily-closed" method="POST">
-                      <button type="submit" class="action-buttons reset">Temporarily Close Election</button>
-                    </form>
+                      <form action="/temporarily-closed" method="POST">
+                        <button type="submit" class="action-buttons reset">Temporarily Close Election</button>
+                      </form>
+                    <% } %>
+                  
+                    <% 
+                      // Determine which date to use: the fake date or the real current date
+                      const currentDate = electionConfig.useFakeDate 
+                        ? new Date(electionConfig.fakeCurrentDate) 
+                        : new Date();
+                      const votingEnd = new Date(electionConfig.votingEnd);
+                    %>
+                  
+                    <% if (currentDate > votingEnd && electionConfig.specialStatus !== "System Temporarily Closed") { %>
+                      <% if (!electionConfig.currentlyResultsAreOut) { %>
+                        <form action="/set-to-results-are-out" method="POST">
+                          <button type="submit" class="action-buttons results">Set Results Are Out</button>
+                        </form>
+                      <% } else { %>
+                        <form action="/set-to-double-checking" method="POST">
+                          <button type="submit" class="action-buttons double-check">Set Back to Double Checking</button>
+                        </form>
+                      <% } %>
                     <% } %>
                   </div>
+                  
+                  
                 </div>
 
                 <div class="form" id="election-configuration">

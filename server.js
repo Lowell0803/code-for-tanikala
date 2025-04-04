@@ -3369,6 +3369,44 @@ const startServer = async () => {
       }
     });
 
+    app.post("/set-to-results-are-out", async (req, res) => {
+      try {
+        await db.collection("election_config").updateOne(
+          {},
+          {
+            $set: {
+              specialStatus: "Results Are Out",
+              currentlyResultsAreOut: true,
+            },
+          },
+          { upsert: true }
+        );
+        res.redirect("/dashboard");
+      } catch (error) {
+        console.error("Error updating election config:", error);
+        res.status(500).send("Error updating election configuration");
+      }
+    });
+
+    app.post("/set-to-double-checking", async (req, res) => {
+      try {
+        await db.collection("election_config").updateOne(
+          {},
+          {
+            $set: {
+              specialStatus: "None",
+              currentlyResultsAreOut: false,
+            },
+          },
+          { upsert: true }
+        );
+        res.redirect("/dashboard");
+      } catch (error) {
+        console.error("Error updating election config:", error);
+        res.status(500).send("Error updating election configuration");
+      }
+    });
+
     app.post("/temporarily-closed", async (req, res) => {
       try {
         await db.collection("election_config").updateOne({}, { $set: { specialStatus: "System Temporarily Closed" } });
@@ -3381,8 +3419,41 @@ const startServer = async () => {
 
     app.post("/resume-election", async (req, res) => {
       try {
-        await db.collection("election_config").updateOne({}, { $set: { specialStatus: "None" } });
-        res.redirect("/dashboard"); // Redirect to the homepage or appropriate route
+        await db.collection("election_config").updateOne({}, [
+          {
+            $set: {
+              specialStatus: {
+                $cond: {
+                  if: { $eq: ["$currentlyResultsAreOut", false] },
+                  then: "None",
+                  else: "Results Are Out",
+                },
+              },
+            },
+          },
+        ]);
+        res.redirect("/dashboard");
+      } catch (error) {
+        console.error("Error resuming election:", error);
+        res.status(500).send("Error updating election configuration");
+      }
+    });
+    app.post("/resume-election", async (req, res) => {
+      try {
+        await db.collection("election_config").updateOne({}, [
+          {
+            $set: {
+              specialStatus: {
+                $cond: {
+                  if: { $eq: ["$currentlyResultsAreOut", false] },
+                  then: "None",
+                  else: "Results Are Out",
+                },
+              },
+            },
+          },
+        ]);
+        res.redirect("/dashboard");
       } catch (error) {
         console.error("Error resuming election:", error);
         res.status(500).send("Error updating election configuration");
