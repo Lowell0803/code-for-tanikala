@@ -47,18 +47,7 @@
                     <input type="text" id="admin-email" name="email" placeholder="Email" value="<%= loggedInAdmin.email %>" disabled />
                   </div>
                   <!-- Password Change Fields -->
-                  <div>
-                    <label for="old-password">Password:</label>
-                    <input type="password" id="old-password" name="oldPassword" placeholder="Old Password" disabled />
-                     <span class="toggle-password" onclick="togglePassword()" style="cursor:pointer;">
-    <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <!-- This SVG icon represents an eye; you can replace the path with another design if preferred -->
-      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 13c-3.04 0-5.5-2.46-5.5-5.5S8.96 6.5 12 6.5s5.5 2.46 5.5 5.5-2.46 5.5-5.5 5.5z"/>
-      <circle cx="12" cy="12" r="2.5"/>
-    </svg>
-  </span>
-                  </div>
-                  <!-- <div>
+        <!-- <div>
                     <label for="new-password">New Password:</label>
                     <input type="password" id="new-password" name="newPassword" placeholder="New Password" disabled />
                   </div>
@@ -66,21 +55,53 @@
                     <label for="confirm-new-password">Confirm New Password:</label>
                     <input type="password" id="confirm-new-password" placeholder="Confirm New Password" disabled />
                   </div> -->
-
+<br />
 <div id="new-password-section" style="display: none;">
-  <div>
-    <label for="new-password">New Password:</label>
-    <input type="password" id="new-password" name="newPassword" placeholder="New Password" disabled />
+  <!-- Old Password Field -->
+  <div class="field" style="width: 100%; display: flex; align-items: center; margin-top: 0.1rem;">
+    <label for="old-password" style="white-space: nowrap;">Password:</label>
+    <div class="password-wrapper" style="position: relative; width: 100%;">
+      <input type="password" id="old-password" name="oldPassword" placeholder="Old Password" disabled style="width: 100%; padding-right: 2rem;" />
+      <span class="toggle-password" onclick="togglePassword('old-password')" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); cursor: pointer;">
+        <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 13c-3.04 0-5.5-2.46-5.5-5.5S8.96 6.5 12 6.5s5.5 2.46 5.5 5.5-2.46 5.5-5.5 5.5z"/>
+          <circle cx="12" cy="12" r="2.5"/>
+        </svg>
+      </span>
+    </div>
   </div>
-  <div>
-    <label for="confirm-new-password">Confirm New Password:</label>
-    <input type="password" id="confirm-new-password" placeholder="Confirm New Password" disabled />
+
+  <!-- New Password Field -->
+  <div style="width: 100%; margin-top: 1rem;">
+    <label for="new-password" style="display: block; margin-bottom: 0.25rem;">New Password:</label>
+    <div style="position: relative; width: 100%;">
+      <input type="password" id="new-password" name="newPassword" placeholder="New Password" disabled style="width: 100%; padding-right: 2rem;" />
+      <span class="toggle-password" onclick="togglePassword('new-password')" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); cursor: pointer;">
+        <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 13c-3.04 0-5.5-2.46-5.5-5.5S8.96 6.5 12 6.5s5.5 2.46 5.5 5.5-2.46 5.5-5.5 5.5z"/>
+          <circle cx="12" cy="12" r="2.5"/>
+        </svg>
+      </span>
+    </div>
+  </div>
+
+  <!-- Confirm New Password Field -->
+  <div style="width: 100%; margin-top: 1rem;">
+    <label for="confirm-new-password" style="display: block; margin-bottom: 0.25rem;">Confirm New Password:</label>
+    <div style="position: relative; width: 100%;">
+      <input type="password" id="confirm-new-password" placeholder="Confirm New Password" disabled style="width: 100%; padding-right: 2rem;" />
+      <span class="toggle-password" onclick="togglePassword('confirm-new-password')" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); cursor: pointer;">
+        <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 13c-3.04 0-5.5-2.46-5.5-5.5S8.96 6.5 12 6.5s5.5 2.46 5.5 5.5-2.46 5.5-5.5 5.5z"/>
+          <circle cx="12" cy="12" r="2.5"/>
+        </svg>
+      </span>
+    </div>
   </div>
 </div>
-
                   <!-- Hidden input to store the base64 encoded profile image -->
                   <input type="hidden" name="img" id="img-hidden" value="<%= loggedInAdmin.img %>" />
-                  <br />
+                  <br /> <br />
                   <div class="buttons">
                     <button type="button" id="button-edit">Edit</button>
                     <button type="button" id="button-close" style="display: none">Close</button>
@@ -104,7 +125,7 @@
         </div>
       </main>
     </div>
-    <%- include('footer') %>
+    <%- include('footer') %>   
 
     <script>
       // Image upload using base64 conversion
@@ -247,13 +268,13 @@ closeButton.addEventListener("click", () => {
     formInputs.forEach(input => input.disabled = false);
     newPasswordSection.style.display = "block";
     closeBtn.style.display = "inline-block";
-    saveBtn.style.display = "inline-block";
+    saveBtn.style.display = "inline-block"; 
     editBtn.style.display = "none";
     changeImageBtn.style.display = "inline-block";
   });
 
   // Close button: Disable inputs, hide the new password fields, and reset password fields
-  closeBtn.addEventListener("click", () => {
+  closeBtn.addEventListener("click", () => { 
     formInputs.forEach(input => input.disabled = true);
     newPasswordSection.style.display = "none";
     closeBtn.style.display = "none";
@@ -268,10 +289,9 @@ closeButton.addEventListener("click", () => {
   });
 </script>
 
-    <script>
-  function togglePassword() {
-    const passwordInput = document.getElementById("logpass");
-    // Toggle the type attribute
+<script>
+  function togglePassword(fieldId) {
+    const passwordInput = document.getElementById(fieldId);
     if (passwordInput.type === "password") {
       passwordInput.type = "text";
     } else {
@@ -279,6 +299,8 @@ closeButton.addEventListener("click", () => {
     }
   }
 </script>
+
+  
 
   </body>
 </html>

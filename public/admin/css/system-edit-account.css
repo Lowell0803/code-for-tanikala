@@ -159,15 +159,17 @@
   /* border: 3px solid green; */
 }
 
-.main-details-profile {
-  /* border: 3px solid pink; */
-}
+/* .main-details-profile {
+  border: 3px solid pink;
+} */
 
 .buttons {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  padding-left: 5rem;
+  margin-right: 17%;
+  /* margin-left: 60%; */
+  /* border: 1px solid black; */
 }
 
 .bold {
@@ -182,6 +184,19 @@
 .buttons {
   gap: 2rem;
 }
+
+#form-details label {
+  /* border: 1px solid black; */
+  padding-right: 1rem;
+  /* width: 50%; */
+}
+
+.buttons {
+}
+
+/* .input-icon {  
+  border: 1px solid black;
+} */
 
 /* .admin-name {
   color: #e1ae5b;
