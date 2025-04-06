@@ -52,17 +52,18 @@
 
       <div class="content-main">
         <div class="main-first">
-          <ul class="header-nav-content">
-            <li><a href="/rvs-about">About</a></li>
-            <li><a href="/rvs-voter-turnout" id="active-link2">Voter Turnout</a></li>
-            <li><a href="/rvs-votes-per-candidate">Votes per Candidate</a></li>
-            <li><a href="/rvs-election-results">Election Results</a></li>
-          </ul>
           <div class="election-title">
             <p class="title">
-              <span>BulSU Student Government Elections S.Y. 2025 - 2026</span>
+              <%= electionConfig.electionName %>
             </p>
           </div>
+          <ul class="header-nav-content">
+            <li><a href="/rvs-about">About</a></li>
+            <li><a href="/rvs-voter-turnout">Voter Turnout</a></li>
+            <li><a href="/rvs-votes-per-candidate" id="active-link2">Votes per Candidate</a></li>
+            <li><a href="/rvs-election-results">Election Results</a></li>
+          </ul>
+          
         </div>
 
         <div class="beside">
