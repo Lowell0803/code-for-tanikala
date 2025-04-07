@@ -17,33 +17,36 @@
 }
 
 .main-first {
-  justify-content: flex-start;
+  display: flex;
   /* border: 3px solid black; */
   width: 100%;
   margin: 0;
   padding: 0;
+  gap: 1rem;
 }
 
 .header-nav-content {
-  background-color: #e1d89f;
+  flex: 4;
+  background: rgb(225, 216, 159);
+  background: linear-gradient(90deg, rgba(225, 216, 159, 1) 0%, rgba(231, 223, 177, 1) 25%, rgba(225, 216, 159, 1) 50%, rgba(231, 223, 177, 1) 75%, rgba(225, 216, 159, 1) 100%);
   justify-content: space-around;
   align-items: center;
-  /* border: 3px solid black; */
-  flex-basis: 90%;
-  margin-right: 2rem;
   padding: 1rem;
+  border-radius: 1rem;
 }
 
-/* .header-nav-content a {
-  color: black;
-} */
+.header-nav-content a {
+  color: #0e376c;
+}
 
 .election-title {
+  flex: 2;
   background-color: #e1d89f;
   color: #a60212;
-  font-size: 6rem;
   font-weight: bold;
-  padding: 0.5rem 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 1rem;
 }
 
 .title {
@@ -134,15 +137,16 @@ h2 {
 }
 
 #active-link2 {
-  color: #bb7e15;
+  color: #082449;
+  text-decoration: underline;
 }
 
 .header-nav-content a:hover {
-  color: #bb7e15;
+  color: #104993;
 }
 
 .header-nav-content a {
-  color: #5f3d03;
+  color: #0b3268;
 }
 
 #active-link {
@@ -253,4 +257,54 @@ body {
 
 .title {
   color: #0e376c;
+}
+
+@media (max-width: 1000px) {
+  .beside {
+    padding: 1.5rem 1rem;
+    text-align: center;
+  }
+
+  .beside a {
+    text-decoration: underline;
+  }
+  .header {
+    padding: 0 1rem;
+  }
+  .header-logo {
+    padding: 0;
+    flex: 2 !important;
+    width: 50%;
+  }
+  .header-logo img {
+    width: 100%;
+  }
+  .header-nav {
+    flex: 2 !important;
+    width: 50%;
+    padding: 0;
+  }
+  .header-nav h2 {
+    text-align: right;
+    font-size: 1.25rem !important;
+  }
+
+  .main-first {
+    flex-direction: column;
+  }
+
+  .content-title {
+    padding: 0 0.1rem !important;
+    margin: 0;
+  }
+  .header-nav-content {
+    padding: 0.2rem 0.75rem !important;
+  }
+  .election-title {
+    padding: 0 !important;
+  }
+  .title {
+    padding: 0.2rem 0.75rem !important;
+    font-size: 1rem !important;
+  }
 }

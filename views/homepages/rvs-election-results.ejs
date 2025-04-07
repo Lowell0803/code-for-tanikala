@@ -26,6 +26,8 @@
     <link rel="stylesheet" type="text/css" href="css/index.css" />
     <link rel="stylesheet" type="text/css" href="css/home.css" />
     <link rel="stylesheet" type="text/css" href="css/rvs.css" />
+
+    <link rel="stylesheet" type="text/css" href="css/mobile-votes-per-candidate.css" />
   </head>
   <body>
     <header class="header">
@@ -45,17 +47,18 @@
 
       <div class="content-main">
         <div class="main-first">
+          <div class="election-title">
+            <p class="title">
+              <%= electionConfig.electionName %>
+            </p>
+          </div>
           <ul class="header-nav-content">
             <li><a href="/rvs-about">About</a></li>
             <li><a href="/rvs-voter-turnout">Voter Turnout</a></li>
-            <li><a href="/rvs-votes-per-candidate">Votes per Candidate</a></li>
-            <li><a href="/rvs-election-results" id="active-link2">Election Results</a></li>
+            <li><a href="/rvs-votes-per-candidate" id="active-link2">Votes per Candidate</a></li>
+            <li><a href="/rvs-election-results">Election Results</a></li>
           </ul>
-          <div class="election-title">
-            <p class="title">
-              <span>BulSU Student Government Elections S.Y. 2025 - 2026</span>
-            </p>
-          </div>
+          
         </div>
 
         <div class="beside">
