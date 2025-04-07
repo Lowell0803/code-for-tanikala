@@ -171,8 +171,8 @@ td {
 .column-main {
   display: flex;
   flex-direction: column;
-  background: #d8d1fa;
-  border: 0.25rem solid #451b9d;
+  background: #f9f4f5;
+  border: 0.25rem solid #70587c;
   padding: 2rem;
   border-radius: 1.5rem;
   margin: 2rem;

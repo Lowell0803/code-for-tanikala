@@ -138,7 +138,7 @@ h6 {
   align-items: center;
   text-align: center;
 
-  background: radial-gradient(circle, #550c0a, #310505);
+  background: #4c0a0a;
   background-position: 50% 50%;
   background-repeat: no-repeat;
 
@@ -528,7 +528,7 @@ h6 {
   align-items: center;
   flex-basis: var(--height-footer);
 
-  background-color: var(--background-red);
+  background-color: #28303b;
   color: white;
 }
 

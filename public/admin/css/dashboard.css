@@ -308,6 +308,11 @@
 .first-main {
   gap: 0;
 }
+
+.results,
+.double-check {
+  background-color: green;
+}
 /* .left-blockchain,
 .right-blockchain {
   display: flex;

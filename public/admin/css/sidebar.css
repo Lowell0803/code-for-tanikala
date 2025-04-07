@@ -10,9 +10,9 @@
 
 :root {
   /* --color-hover: #3f0807; */
-  --color-hover: #d99830;
-  --sidebar-color: #e1ae5b;
-  --sidebar-color-lighter: #d29c45;
+  --color-hover: #6d676e;
+  --sidebar-color: #600c0c;
+  --sidebar-color-lighter: #c6c5b9;
 
   --height-header: 14vh;
   --height-footer: 4vh;
@@ -123,7 +123,7 @@
   min-width: 6rem; /* changed from 78px to 6rem */
   text-align: center;
   line-height: 3rem; /* changed from 50px to 3rem */
-  color: #480404;
+  color: #faf2db;
   font-size: 1.25rem; /* changed from 20px to 1.25rem */
   cursor: pointer;
   transition: all 0.3s ease;
@@ -147,7 +147,7 @@
 .sidebar .nav-links li a .link_name {
   font-size: 1.125rem; /* changed from 18px to 1.125rem */
   font-weight: 400;
-  color: #480404;
+  color: white;
   transition: all 0.4s ease;
 }
 
@@ -169,7 +169,7 @@
 }
 
 .sidebar .nav-links li .sub-menu a {
-  color: #480404;
+  color: white;
   font-weight: 500;
   font-size: 0.9375rem; /* changed from 15px to 0.9375rem */
   padding: 0.3125rem 0; /* changed from 5px to 0.3125rem */
@@ -366,5 +366,7 @@
   font-style: italic;
 }
 
-.unclickable {
+.sidebar .nav-links li i,
+.sidebar .nav-links li a .link_name {
+  color: white;
 }
