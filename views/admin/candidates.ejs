@@ -31,11 +31,38 @@
   opacity: 0.5;
   pointer-events: none;
 }
+.main-overlay {
+        position: absolute; /* Make it position relative to the parent <main> */
+          display: none;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(90, 90, 90, 0.7); /* Adjust opacity of the overlay */
+        height: 100%; /* Full height of the parent */
+        width: 100%; /* Full width of the parent */
+        /* display: flex; */
+        align-items: center; /* Center content vertically */
+        justify-content: center; /* Center content horizontally */
+        z-index: 999; /* Ensure it appears on top of other elements */
+      }
+      .main {
+        position: relative; /* Ensures children with absolute position are relative to <main> */
+      }
+      .form-container {
+        position: absolute;
+        z-index: 1001;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        
+        display: none;
+      }
     </style>
   <script type="module" src="components/notification.js"></script>
   </head>
 
   <body>
+
     <%- include('header') %>
 
     <script>
@@ -181,6 +208,228 @@
     <div class="content">
       <%- include('sidebar', { activeTab: 'candidates', activeSub: "" }) %>
       <main class="main">
+        <div class="main-overlay"></div>
+        <!-- LSC -->
+
+    <div id="form-add-lsc" class="form-container">
+      <div class="right">
+        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-add-lsc')"></i>
+      </div>
+      <div class="center position-title-container">
+        <h1 class="postion-name-lsc my-text position-lsc" id="heading-position-add-lsc">Position</h1>
+      </div>
+      <div class="form-buttons">
+        <form method="POST" action="/add-candidate-lsc">
+          <input type="hidden" id="college-acronym-add-lsc" name="collegeAcronym" />
+          <input type="hidden" id="program-add-lsc" name="program" />
+          <input type="hidden" id="candidate-id-add-lsc" name="_id" readonly />
+          <input type="hidden" id="position-add-lsc" name="candidatePosition" readonly />
+
+          <div>
+            <div class="form-details">
+              <div class="left-content">
+                <img id="image-add-lsc" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
+                <br />
+                <div class="center">
+                  <input type="file" id="image-upload-add-lsc" accept="image/*" />
+                  <input type="hidden" id="image-base64-add-lsc" name="image" />
+                </div>
+              </div>
+              <br />
+              <div class="center-content">
+                <!-- (for backend): -->
+                <!-- <label>(for backend):</label> -->
+               
+                <label for="name">Name:</label>
+                <input type="text" id="name-add-lsc" name="name" maxlength="35" class="field fill" required /><br /><br />
+                <label for="party">Party:</label>
+                <!-- For the LSC "Add Candidate" form -->
+                <select id="party-add-lsc" name="party" class="field fill">
+                  <% electionConfig.partylists.forEach(function(party) { %>
+                    <option value="<%= party %>"><%= party %></option>
+                  <% }); %>
+                </select>
+
+              </div>
+              <div class="right-content">
+                <label for="more-info">Info:</label>
+                <textarea id="more-info-add-lsc" name="moreInfo" maxlength="150" class="field info"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <br /><br />
+          <div class="right">
+            <input type="submit" class="button button-add" value="Add Candidate" />
+          </div>
+       </form> <!-- AYAN LANG. HAY -->
+      </div>
+    </div>
+
+    <div id="form-edit-lsc" class="form-container">
+      <div class="right">
+        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-edit-lsc')"></i>
+      </div>
+      <div class="center position-title-container">
+        <h1 class="postion-name-lsc my-text position-lsc" id="heading-position-edit-lsc">Position</h1>
+      </div>
+      <div class="form-buttons">
+        <form method="POST" action="/update-candidate-lsc">
+          <input type="hidden" id="college-acronym-edit-lsc" name="collegeAcronym" />
+          <input type="hidden" id="program-edit-lsc" name="program" />
+          <!-- Only for Board Members -->
+          <!-- <div class="center"> -->
+          <!-- <div class="border"> -->
+          <!-- <label>Candidate Number: </label> -->
+          <input type="hidden" id="candidate-id-edit-lsc" name="_id" readonly />
+          <!-- <label>Position: </label> -->
+          <input type="hidden" id="position-edit-lsc" name="candidatePosition" readonly />
+          <!-- </div> -->
+          <!-- </div> -->
+
+          <div>
+            <div class="form-details">
+              <div class="left-content">
+                <img id="image-edit-lsc" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
+                <br />
+                <div class="center">
+                  <input type="file" id="image-upload-edit-lsc" accept="image/*" />
+                  <input type="hidden" id="image-base64-edit-lsc" name="image" />
+                  <input type="hidden" id="original-image-edit-lsc" name="originalImage" />
+                </div>
+              </div>
+              <br />
+
+              <div class="center-content">
+                <label for="name">Name:</label>
+                <input type="text" id="name-edit-lsc" name="name" maxlength="35" class="field fill" /><br /><br />
+                <label for="party">Party:</label>
+                <!-- For the LSC "Edit Candidate" form -->
+                <select id="party-edit-lsc" name="party" class="field fill">
+                  <% electionConfig.partylists.forEach(function(party) { %>
+                    <option value="<%= party %>"><%= party %></option>
+                  <% }); %>
+                </select>
+
+              </div>
+              <div class="right-content">
+                <label for="more-info">Info:</label>
+                <textarea id="more-info-edit-lsc" name="moreInfo" maxlength="150" class="field info"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <br />
+          <br />
+          <div class="right">
+            <button type="button" class="button beside-button-left" id="button-delete-edit-lsc" onclick="deleteCandidateLSC()">Delete</button>
+            <input type="submit" class="button button-save" value="Save" />
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- SSC -->
+
+    <div id="form-add" class="form-container">
+      <div class="right">
+        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-add')"></i>
+      </div>
+      <div class="center position-title-container">
+        <h1 class="postion-name-ssc my-text position-ssc" id="heading-position-add">Position</h1>
+      </div>
+      <div class="form-buttons">
+        <form method="POST" action="/add-candidate">
+          <input type="hidden" id="candidate-id-add" name="_id" readonly />
+          <input type="hidden" id="position-add" name="candidatePosition" readonly />
+
+          <div>
+            <div class="form-details">
+              <div class="left-content">
+                <img id="image-add" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
+                <br />
+                <div class="center">
+                  <input type="file" id="image-upload-add" accept="image/*" />
+                  <input type="hidden" id="image-base64-add" name="image" />
+                </div>
+              </div>
+              <br />
+              <div class="center-content">
+                <label for="name">Name:</label>
+                <input type="text" id="name-add" name="name" maxlength="35" class="field fill" required /><br /><br />
+                <label for="party">Party:</label>
+                <!-- For the "Add Candidate" form (SSC) -->
+                <select id="party-add" name="party" class="field fill">
+                  <% electionConfig.partylists.forEach(function(party) { %>
+                    <option value="<%= party %>"><%= party %></option>
+                  <% }); %>
+                </select>
+
+              </div>
+              <div class="right-content">
+                <label for="more-info">Info:</label>
+                <textarea id="more-info-add" name="moreInfo" maxlength="150" class="field info"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <br /><br />
+          <div class="right">
+            <input type="submit" class="button button-add" value="Add Candidate" />
+          </div>
+        </form>
+      </div>
+    </div>
+    <div id="form-edit" class="form-container">
+      <div class="right">
+        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-edit')"></i>
+      </div>
+      <div class="center position-title-container">
+        <h1 class="my-text position-ssc" id="heading-position-edit">Position</h1>
+      </div>
+      <div class="form-buttons">
+        <form method="POST" action="/update-candidate">
+          <input type="hidden" id="candidate-id-edit" name="_id" readonly />
+          <input type="hidden" id="position-edit" name="candidatePosition" readonly />
+          <div>
+            <div class="form-details">
+              <div class="left-content">
+                <img id="image-edit" class="circle-img" src="img/placeholder_admin_profile.png" />
+                <br />
+                <div class="center">
+                  <input type="file" id="image-upload-edit" accept="image/*" />
+                  <input type="hidden" id="image-base64-edit" name="image" />
+                  <input type="hidden" id="original-image-edit" name="originalImage" />
+                </div>
+              </div>
+              <br />
+              <div class="center-content">
+                <label for="name">Name:</label>
+                <input type="text" id="name-edit" name="name" maxlength="35" class="field fill" /><br /><br />
+                <label for="party">Party:</label>
+                <!-- For the "Edit Candidate" form (SSC) -->
+                <select id="party-edit" name="party" class="field fill">
+                  <% electionConfig.partylists.forEach(function(party) { %>
+                    <option value="<%= party %>"><%= party %></option>
+                  <% }); %>
+                </select>
+
+              </div>
+              <div class="right-content">
+                <label for="more-info">Info:</label><br />
+                <textarea id="more-info-edit" name="moreInfo" maxlength="150" class="field info"></textarea>
+              </div>
+            </div>
+          </div>
+          <br />
+          <br />
+          <div class="right">
+            <button type="button" class="button beside-button-left" id="button-delete" onclick="deleteCandidate()">Delete</button>
+            <input type="submit" class="button button-save" value="Save" />
+          </div>
+        </form>
+      </div>
+    </div>
         <div class="title-container">
           <div class="r">
             <i class="fa fa-users"></i>
@@ -618,227 +867,7 @@
 
     <%- include('footer') %>
 
-    <!-- LSC -->
-
-    <div id="form-add-lsc" class="form-container">
-      <div class="right">
-        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-add-lsc')"></i>
-      </div>
-      <div class="center position-title-container">
-        <h1 class="postion-name-lsc my-text position-lsc" id="heading-position-add-lsc">Position</h1>
-      </div>
-      <div class="form-buttons">
-        <form method="POST" action="/add-candidate-lsc">
-          <input type="hidden" id="college-acronym-add-lsc" name="collegeAcronym" />
-          <input type="hidden" id="program-add-lsc" name="program" />
-          <input type="hidden" id="candidate-id-add-lsc" name="_id" readonly />
-          <input type="hidden" id="position-add-lsc" name="candidatePosition" readonly />
-
-          <div>
-            <div class="form-details">
-              <div class="left-content">
-                <img id="image-add-lsc" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
-                <br />
-                <div class="center">
-                  <input type="file" id="image-upload-add-lsc" accept="image/*" />
-                  <input type="hidden" id="image-base64-add-lsc" name="image" />
-                </div>
-              </div>
-              <br />
-              <div class="center-content">
-                <!-- (for backend): -->
-                <!-- <label>(for backend):</label> -->
-               
-                <label for="name">Name:</label>
-                <input type="text" id="name-add-lsc" name="name" maxlength="35" class="field fill" required /><br /><br />
-                <label for="party">Party:</label>
-                <!-- For the LSC "Add Candidate" form -->
-                <select id="party-add-lsc" name="party" class="field fill">
-                  <% electionConfig.partylists.forEach(function(party) { %>
-                    <option value="<%= party %>"><%= party %></option>
-                  <% }); %>
-                </select>
-
-              </div>
-              <div class="right-content">
-                <label for="more-info">Info:</label>
-                <textarea id="more-info-add-lsc" name="moreInfo" maxlength="150" class="field info"></textarea>
-              </div>
-            </div>
-          </div>
-
-          <br /><br />
-          <div class="right">
-            <input type="submit" class="button button-add" value="Add Candidate" />
-          </div>
-       </form> <!-- AYAN LANG. HAY -->
-      </div>
-    </div>
-
-    <div id="form-edit-lsc" class="form-container">
-      <div class="right">
-        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-edit-lsc')"></i>
-      </div>
-      <div class="center position-title-container">
-        <h1 class="postion-name-lsc my-text position-lsc" id="heading-position-edit-lsc">Position</h1>
-      </div>
-      <div class="form-buttons">
-        <form method="POST" action="/update-candidate-lsc">
-          <input type="hidden" id="college-acronym-edit-lsc" name="collegeAcronym" />
-          <input type="hidden" id="program-edit-lsc" name="program" />
-          <!-- Only for Board Members -->
-          <!-- <div class="center"> -->
-          <!-- <div class="border"> -->
-          <!-- <label>Candidate Number: </label> -->
-          <input type="hidden" id="candidate-id-edit-lsc" name="_id" readonly />
-          <!-- <label>Position: </label> -->
-          <input type="hidden" id="position-edit-lsc" name="candidatePosition" readonly />
-          <!-- </div> -->
-          <!-- </div> -->
-
-          <div>
-            <div class="form-details">
-              <div class="left-content">
-                <img id="image-edit-lsc" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
-                <br />
-                <div class="center">
-                  <input type="file" id="image-upload-edit-lsc" accept="image/*" />
-                  <input type="hidden" id="image-base64-edit-lsc" name="image" />
-                  <input type="hidden" id="original-image-edit-lsc" name="originalImage" />
-                </div>
-              </div>
-              <br />
-
-              <div class="center-content">
-                <label for="name">Name:</label>
-                <input type="text" id="name-edit-lsc" name="name" maxlength="35" class="field fill" /><br /><br />
-                <label for="party">Party:</label>
-                <!-- For the LSC "Edit Candidate" form -->
-                <select id="party-edit-lsc" name="party" class="field fill">
-                  <% electionConfig.partylists.forEach(function(party) { %>
-                    <option value="<%= party %>"><%= party %></option>
-                  <% }); %>
-                </select>
-
-              </div>
-              <div class="right-content">
-                <label for="more-info">Info:</label>
-                <textarea id="more-info-edit-lsc" name="moreInfo" maxlength="150" class="field info"></textarea>
-              </div>
-            </div>
-          </div>
-
-          <br />
-          <br />
-          <div class="right">
-            <button type="button" class="button beside-button-left" id="button-delete-edit-lsc" onclick="deleteCandidateLSC()">Delete</button>
-            <input type="submit" class="button button-save" value="Save" />
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- SSC -->
-
-    <div id="form-add" class="form-container">
-      <div class="right">
-        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-add')"></i>
-      </div>
-      <div class="center position-title-container">
-        <h1 class="postion-name-ssc my-text position-ssc" id="heading-position-add">Position</h1>
-      </div>
-      <div class="form-buttons">
-        <form method="POST" action="/add-candidate">
-          <input type="hidden" id="candidate-id-add" name="_id" readonly />
-          <input type="hidden" id="position-add" name="candidatePosition" readonly />
-
-          <div>
-            <div class="form-details">
-              <div class="left-content">
-                <img id="image-add" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
-                <br />
-                <div class="center">
-                  <input type="file" id="image-upload-add" accept="image/*" />
-                  <input type="hidden" id="image-base64-add" name="image" />
-                </div>
-              </div>
-              <br />
-              <div class="center-content">
-                <label for="name">Name:</label>
-                <input type="text" id="name-add" name="name" maxlength="35" class="field fill" required /><br /><br />
-                <label for="party">Party:</label>
-                <!-- For the "Add Candidate" form (SSC) -->
-                <select id="party-add" name="party" class="field fill">
-                  <% electionConfig.partylists.forEach(function(party) { %>
-                    <option value="<%= party %>"><%= party %></option>
-                  <% }); %>
-                </select>
-
-              </div>
-              <div class="right-content">
-                <label for="more-info">Info:</label>
-                <textarea id="more-info-add" name="moreInfo" maxlength="150" class="field info"></textarea>
-              </div>
-            </div>
-          </div>
-
-          <br /><br />
-          <div class="right">
-            <input type="submit" class="button button-add" value="Add Candidate" />
-          </div>
-        </form>
-      </div>
-    </div>
-    <div id="form-edit" class="form-container">
-      <div class="right">
-        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-edit')"></i>
-      </div>
-      <div class="center position-title-container">
-        <h1 class="my-text position-ssc" id="heading-position-edit">Position</h1>
-      </div>
-      <div class="form-buttons">
-        <form method="POST" action="/update-candidate">
-          <input type="hidden" id="candidate-id-edit" name="_id" readonly />
-          <input type="hidden" id="position-edit" name="candidatePosition" readonly />
-          <div>
-            <div class="form-details">
-              <div class="left-content">
-                <img id="image-edit" class="circle-img" src="img/placeholder_admin_profile.png" />
-                <br />
-                <div class="center">
-                  <input type="file" id="image-upload-edit" accept="image/*" />
-                  <input type="hidden" id="image-base64-edit" name="image" />
-                  <input type="hidden" id="original-image-edit" name="originalImage" />
-                </div>
-              </div>
-              <br />
-              <div class="center-content">
-                <label for="name">Name:</label>
-                <input type="text" id="name-edit" name="name" maxlength="35" class="field fill" /><br /><br />
-                <label for="party">Party:</label>
-                <!-- For the "Edit Candidate" form (SSC) -->
-                <select id="party-edit" name="party" class="field fill">
-                  <% electionConfig.partylists.forEach(function(party) { %>
-                    <option value="<%= party %>"><%= party %></option>
-                  <% }); %>
-                </select>
-
-              </div>
-              <div class="right-content">
-                <label for="more-info">Info:</label><br />
-                <textarea id="more-info-edit" name="moreInfo" maxlength="150" class="field info"></textarea>
-              </div>
-            </div>
-          </div>
-          <br />
-          <br />
-          <div class="right">
-            <button type="button" class="button beside-button-left" id="button-delete" onclick="deleteCandidate()">Delete</button>
-            <input type="submit" class="button button-save" value="Save" />
-          </div>
-        </form>
-      </div>
-    </div>
+    
 
     <script>
       // Set the default selection to CAFA on page load
@@ -1110,10 +1139,16 @@
 
       function toggleForm(form_id) {
         let form = document.getElementById(form_id);
+        
         if (form) {
           if (form.style.display === "none" || form.style.display === "") {
+            updateModalPosition(form);
+            mainElement.style.overflow = "hidden";
+            mainOverlay.style.display="block";
             form.style.display = "block";
           } else {
+            mainOverlay.style.display ="none";
+            mainElement.style.overflow = "auto";
             form.style.display = "none";
           }
         }
@@ -1312,5 +1347,43 @@
 
     <script src="admin/js/index-admin.js"></script>
     <script src="js/dropdown.js"></script>
+
+    <script>
+      // Get references to the main container and overlay
+      const mainOverlay = document.querySelector('.main-overlay');
+      const main = document.querySelector('main');
+      const mainElement = document.querySelector('main');
+      
+      // Listen for the scroll event on the <main> element
+      main.addEventListener('scroll', function () {
+        // Get the current scroll position of <main>
+        const scrollY = main.scrollTop;  // Use scrollTop for the scroll within the <main> container
+        console.log('Scroll Position (main.scrollTop):', scrollY);
+      
+        // Calculate the distance of the main element from the top of the viewport
+        // const overlayOffsetTop = main.offsetTop;
+        const overlayOffsetTop = 0;
+        console.log('Main offsetTop:', overlayOffsetTop);
+      
+        // Calculate the new position for the main-overlay
+        const newTop = overlayOffsetTop + scrollY;
+        console.log('New Top Value for Overlay:', newTop);
+      
+        // Update the position of the overlay
+        mainOverlay.style.top = `${newTop}px`;
+      
+        // Debugging the final computed styles (optional)
+        const computedStyle = window.getComputedStyle(mainOverlay);
+        console.log('Current Position of Overlay:', computedStyle.top);
+      });
+      
+          </script>
+          <script>
+            function updateModalPosition(modal) {
+              const scroll = mainElement.scrollTop; // Get current scroll position directly from <main>
+              const modalTop = scroll + mainElement.clientHeight / 2;
+              modal.style.top = modalTop + "px";
+            }
+          </script>
   </body>
 </html>
