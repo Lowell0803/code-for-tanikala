@@ -11,8 +11,8 @@
   display: flex;
   flex-direction: column;
   flex-basis: 55%;
-  background-color: #f8eac2;
-  border: 0.2rem solid rgba(58, 27, 5, 0.677);
+  background-color: #a2ad59;
+  border: 0.2rem solid #28303b;
   margin-right: 1.5rem;
   padding: 1.5rem;
 }
@@ -23,10 +23,10 @@
 
 .election-info {
   font-size: 1.2rem;
-  background-color: #c0edbc;
+  background-color: #a8c69f;
   padding: 2%;
   border-radius: 0.5em;
-  border: 0.2rem solid rgba(58, 27, 5, 0.677);
+  border: 0.2rem solid #5fb643;
 }
 
 .election-name {
@@ -35,14 +35,14 @@
 
 .create-election {
   font-size: 1.2rem;
-  background-color: #b8e5ff;
+  background-color: #cce2a3;
   padding: 2%;
   border-radius: 0.5em;
-  border: 0.2rem solid rgba(58, 27, 5, 0.677);
+  border: 0.2rem solid #2c86fd;
 }
 
 hr {
-  border: 0.1rem solid rgba(14, 13, 13, 0.5);
+  border: 0.1rem solid #28303b;
 }
 
 .create-election form > * {
@@ -120,7 +120,7 @@ hr {
 
 #election-settings {
   display: flex;
-  background-color: #c0edbc;
+  background-color: #bbd686;
   flex-direction: column;
   align-items: flex-start;
   padding: 1.5rem;

@@ -12,14 +12,14 @@
 
 /* Style the scrollbar thumb (the draggable part) */
 ::-webkit-scrollbar-thumb {
-  background: var(--sidebar-color); /* Slightly lighter black for the thumb */
+  background: #e1ae5b; /* Slightly lighter black for the thumb */
   border-radius: 10px; /* Optional: rounded corners */
   border: 1.2px solid #3f0807;
 }
 
 /* Style the scrollbar thumb when hovered */
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--sidebar-color-lighter);
+  background: #d29c45;
 }
 
 :root {
@@ -31,6 +31,8 @@
 
   --sidebar-color-lighter: #d29c45;
   --sidebar-color: #e1ae5b;
+  --footer-color: #28303b;
+  --title-color: #550c0a;
 
   /* main sizes */
   --height-header: 14vh;
@@ -138,7 +140,7 @@ h6 {
   align-items: center;
   text-align: center;
 
-  background: #4c0a0a;
+  background: #550c0a;
   background-position: 50% 50%;
   background-repeat: no-repeat;
 
@@ -417,13 +419,13 @@ h6 {
 .save-button,
 .button-save,
 .resume {
-  background-color: #369f2c;
+  background-color: #4d9246;
 }
 
 .cancel-button,
 .button-cancel,
 .reset {
-  background-color: #c11515;
+  background-color: #b63838;
 }
 
 .blockchain-button {
@@ -528,7 +530,7 @@ h6 {
   align-items: center;
   flex-basis: var(--height-footer);
 
-  background-color: #28303b;
+  background-color: var(--footer-color);
   color: white;
 }
 
@@ -803,4 +805,32 @@ input {
 
 .top {
   color: #885708;
+}
+
+button:hover {
+  filter: brightness(1.2); /* Lightens the color */
+}
+
+button:active {
+  filter: brightness(0.8); /* Darkens the color */
+  transform: scale(0.95); /* Adds a click effect */
+}
+
+.title,
+.title-line,
+.r {
+  color: black;
+}
+
+.title,
+.r i {
+  color: var(--title-color);
+}
+
+.title-line {
+  border: 0.1rem solid var(--title-color);
+}
+
+.box-shadow {
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
 }

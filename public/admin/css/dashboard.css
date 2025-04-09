@@ -76,7 +76,7 @@
   padding: 0.35rem;
   width: 22%;
   height: 10rem;
-  color: #956004;
+  color: #2e3844;
 }
 
 .quick-actions-buttons p {
@@ -319,3 +319,47 @@
   flex-direction: column;
   flex-basis: 50%;
 } */
+
+#registered-students,
+#voter-turnout,
+#vote-queue,
+#candidate-submission,
+#election-settings,
+#election-configuration,
+#blockchain-dashboard {
+  background-color: white;
+}
+
+.first {
+  background-color: #d6d6b1;
+}
+
+.second {
+  background-color: #c3e79b;
+}
+
+.third {
+  background-color: #9091cb;
+}
+
+.fourth {
+  background-color: #b7bb9a;
+}
+
+.fifth {
+  background-color: #acb4ba;
+}
+
+/* .reset {
+  background: #873835;
+}
+
+.resume,
+.results,
+.double-check {
+  background: #218044;
+} */
+
+.center {
+  gap: 2rem;
+}

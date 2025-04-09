@@ -1,0 +1,35 @@
+ --color-darkRed: #310505;
+  --color-mediumRed: #550c0a;
+  --color-lightRed: #a60212;
+  --color-darkYellow: #f5ab29;
+  --color-mediumYellow: #e1ae5b;
+  --color-lightYellow: #f2ddb4;
+  --color-lighterYellow: #faf2db;
+
+  --color-darkGreen: #245414;
+  --color-lightGreen: #5fb643;
+  --color-darkBlue: #004aad;
+  --color-lightBlue: #2c86fd;
+  --color-gray: #323847;
+  --color-purple: #503a96;
+
+  --sidebar-color-lighter: #d29c45;
+  --sidebar-color: #e1ae5b;
+  
+  
+  
+  deep gray: #28303b
+  light gray: #364150
+  deep red: #550C0A
+  medium red: #85211D
+  green: 
+
+  brick brown: #C1B4AE
+
+  #22333B
+  #001427
+
+  #CCE2A3
+  #A8C69F
+  #5C5D8D
+  #99A1A6

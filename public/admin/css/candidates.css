@@ -4,7 +4,8 @@
   --background-yellow: #e1ae5b;
   --background-green: #57ac4f;
   --background-brown: #370606;
-  --background-form: #d8ac65;
+  --background-form: #f2ddb4;
+  --field-color: #f0f1e1;
   --background-red: #a60212;
 }
 
@@ -67,7 +68,7 @@ hr {
 }
 
 .button-add {
-  background-color: var(--background-brown);
+  background-color: #550c0a;
   /* width: 100%; */
   /* text-align: right; */
   /* float: right; */
@@ -288,12 +289,6 @@ form img {
   gap: 2%;
 }
 
-.field {
-  border-radius: 1rem;
-  background: #f2ddb4;
-  border: 0.15rem solid rgba(58, 27, 5, 0.677);
-}
-
 .fill {
   width: 15rem;
   height: 2.5rem;
@@ -352,4 +347,10 @@ form img {
 .middle {
   text-align: center;
   /* padding-right: 3rem; */
+}
+
+.field {
+  border-radius: 1rem;
+  background: var(--field-color);
+  border: 0.15rem solid rgba(58, 27, 5, 0.677);
 }

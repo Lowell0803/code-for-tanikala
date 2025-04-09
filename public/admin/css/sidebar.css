@@ -10,9 +10,12 @@
 
 :root {
   /* --color-hover: #3f0807; */
-  --color-hover: #6d676e;
-  --sidebar-color: #600c0c;
-  --sidebar-color-lighter: #c6c5b9;
+  --color-hover: #e6dabe;
+  --sidebar-color: white;
+  --scrollbar-color: #e1ae5b;
+  --sidebar-color-lighter: white;
+  --text-color: #550c0a;
+  --profile-color: #faf2db;
 
   --height-header: 14vh;
   --height-footer: 4vh;
@@ -144,13 +147,6 @@
   text-decoration: none;
 }
 
-.sidebar .nav-links li a .link_name {
-  font-size: 1.125rem; /* changed from 18px to 1.125rem */
-  font-weight: 400;
-  color: white;
-  transition: all 0.4s ease;
-}
-
 .sidebar.close .nav-links li a .link_name {
   opacity: 0;
   pointer-events: none;
@@ -166,16 +162,6 @@
 
 .sidebar .nav-links li.showMenu .sub-menu {
   display: block;
-}
-
-.sidebar .nav-links li .sub-menu a {
-  color: white;
-  font-weight: 500;
-  font-size: 0.9375rem; /* changed from 15px to 0.9375rem */
-  padding: 0.3125rem 0; /* changed from 5px to 0.3125rem */
-  white-space: nowrap;
-  opacity: 0.6;
-  transition: all 0.3s ease;
 }
 
 .sidebar .nav-links li .sub-menu a:hover {
@@ -232,7 +218,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-hover);
+  background: var(--profile-color);
   padding: 0.75rem 0; /* changed from 12px to 0.75rem */
   transition: all 0.5s ease;
 }
@@ -274,13 +260,6 @@
 
 .sidebar.close .profile-details img {
   padding: 0.625rem; /* changed from 10px to 0.625rem */
-}
-
-.sidebar .profile-details .profile-name {
-  color: #480404;
-  font-size: 1.125rem;
-  font-weight: 700;
-  white-space: nowrap;
 }
 
 .sidebar .profile-details .profile-name {
@@ -339,12 +318,6 @@
   }
 }
 
-.nav-links hr {
-  display: block;
-  border: 0;
-  border-top: 0.1rem solid #480404 !important;
-}
-
 .profile-details .profile-name {
   color: #480404;
 }
@@ -368,5 +341,41 @@
 
 .sidebar .nav-links li i,
 .sidebar .nav-links li a .link_name {
-  color: white;
+  color: var(--text-color);
+}
+
+.nav-links hr {
+  display: block;
+  border: 0;
+  border-top: 0.1rem solid var(--text-color) !important;
+}
+
+.sidebar .profile-details .profile-name {
+  color: var(--text-color);
+  font-size: 1.125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sidebar .profile-details .job {
+  font-size: 1rem;
+  color: var(--text-color);
+  font-style: italic;
+}
+
+.sidebar .nav-links li a .link_name {
+  font-size: 1.125rem; /* changed from 18px to 1.125rem */
+  font-weight: 400;
+  color: var(--text-color);
+  transition: all 0.4s ease;
+}
+
+.sidebar .nav-links li .sub-menu a {
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 0.9375rem; /* changed from 15px to 0.9375rem */
+  padding: 0.3125rem 0; /* changed from 5px to 0.3125rem */
+  white-space: nowrap;
+  opacity: 0.6;
+  transition: all 0.3s ease;
 }
