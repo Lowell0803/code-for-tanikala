@@ -16,7 +16,7 @@
     
     <style>
       /* Modal styling */
-      .modal {
+      /* .modal {
         display: none;
         position: fixed;
         z-index: 1000;
@@ -26,7 +26,7 @@
         height: 100%;
         overflow: auto;
         background-color: rgba(0, 0, 0, 0.4);
-      }
+      } */
       .modal-content {
         background-color: #fefefe;
         margin: 10% auto;
@@ -40,6 +40,36 @@
         font-weight: bold;
         cursor: pointer;
       }
+      .main-overlay {
+        position: absolute; /* Make it position relative to the parent <main> */
+          display: none;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(90, 90, 90, 0.7); /* Adjust opacity of the overlay */
+        height: 100%; /* Full height of the parent */
+        width: 100%; /* Full width of the parent */
+        /* display: flex; */
+        align-items: center; /* Center content vertically */
+        justify-content: center; /* Center content horizontally */
+        z-index: 999; /* Ensure it appears on top of other elements */
+      }
+      .main {
+        position: relative; /* Ensures children with absolute position are relative to <main> */
+      }
+
+      .form-container {
+        position: absolute;
+        z-index: 1001;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        
+        display: none;
+      }
+
+
+
     </style>
   </head>
   <body>
@@ -50,7 +80,114 @@
     <%- include('header') %>
     <div class="content">
       <%- include('sidebar', { activeTab: 'system', activeSub: "manage-admins" }) %>
+      
       <main class="main">
+        <div class="main-overlay"></div>
+            <!-- Add Admin Modal -->
+    
+  <div id="addModal" class="form-container">
+    <div class="right">
+      <i class="fa-solid fa-xmark x-button" onclick="closeAddModal()"></i>
+    </div>
+    <br />
+    <div class="center form-title">
+      <h1 class="postion-name-lsc my-text position-lsc" id="heading-add-admin">Add Admin Account</h1>
+    </div>
+     <br />
+    <div class="form-buttons">
+      <form id="add-admin-form" action="/admin-accounts/add" method="POST">
+        <div class="form-details">
+          <div class="left-content">
+            <img id="img-preview" class="circle-img" src="img/placeholder_admin_profile.png" alt="Image Preview" style="max-width: 200px; max-height: 200px" />
+            <br />
+            <div class="center">
+              <input type="file" name="imgUpload" accept="image/*" onchange="convertImageToBase64(event)" required />
+              <input type="hidden" name="img" id="imgBase64" value="img/placeholder_admin_profile.png" />
+            </div>
+          </div>
+          <br />
+          <div class="center-content">
+            <label for="email">Email:</label>
+            <input type="email" name="email" class="field fill" required /><br /><br />
+            <label for="password">Password:</label>
+            <input type="password" name="password" class="field fill" required />
+          </div>
+          <div class="right-content">
+            <label for="name">Name:</label>
+            <input type="text" name="name" maxlength="35" class="field fill" required /><br /><br />
+            <label for="role">Role:</label>
+            <select name="role" class="role field fill" required>
+              <option>Select a Role</option>
+              <option value="Electoral Board Member">Electoral Board</option>
+              <option value="Technical Team Member">Technical Team</option>
+              <option value="Creatives Team Member">Creatives Team</option>
+              <option value="Developer">Developer</option>
+            </select>
+          </div>
+        </div>
+        <br /><br />   <br /><br />
+        <div class="right">
+          <input type="submit" class="button button-brown" value="Add Admin" />
+        </div>
+      </form>
+    </div>
+  </div>
+  
+      <!-- Edit Modal -->
+     <div id="editModal" class="form-container">
+    <div class="right">
+      <i class="fa-solid fa-xmark x-button" onclick="closeEditModal()"></i>
+    </div>
+    <br />
+    <div class="center form-title">
+      <h1 class="postion-name-lsc my-text position-lsc" id="heading-edit-admin">Edit Admin Account</h1>
+    </div>
+    <br />
+    <div class="form-buttons">
+      <form id="edit-admin-form" action="/admin-accounts/edit" method="POST">
+        <input type="hidden" name="id" id="edit-id" />
+        <div class="form-details">
+  
+  
+          <div class="left-content">
+           <img id="edit-img-preview" class="circle-img" src="" alt="Image Preview" style="max-width: 200px; max-height: 200px; display: block" />
+          <br />
+           <div class="center">
+           <input type="file" name="imgUpload" id="edit-imgUpload" accept="image/*" onchange="convertEditImageToBase64(event)" />
+            
+            <input type="hidden" name="img" id="edit-imgBase64" />
+            </div>
+          </div>
+          <br />
+          <div class="center-content">
+            <label>Email:</label>
+            <input type="email" name="email" id="edit-email" class="field fill" required /><br /><br />
+            <label>Password:</label>
+            <input type="password" name="password" id="edit-password" class="field fill" required />
+            <!-- <button type="button" onclick="toggleEditPassword()">Show/Hide</button> -->
+          </div>
+          <div class="right-content">
+            <label>Name:</label>
+            <input type="text" name="name" id="edit-name" class="field fill" required /><br /><br />
+            <label>Role:</label>
+            <select name="role" id="edit-role" class="role field fill" required>
+              <option value="">Select a Role</option>
+              <option value="Electoral Board Member">Electoral Board</option>
+              <option value="Technical Team Member">Technical Team</option>
+              <option value="Creatives Team Member">Creatives Team</option>
+              <option value="Developer">Developer</option>
+            </select>
+          </div>
+        </div>
+        <br /><br />
+        <br /><br />
+        <div class="right">
+          <button type="submit" class="button button-brown">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
         <div class="title-container">
           <div class="r">
             <i class="fa-solid fa-user-tie"></i>
@@ -113,7 +250,7 @@
                   <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
                   <td>
                     <div class="actions">
-                      <button class="action-buttons button-edit" data-id="<%= admin._id %>">Edit</button>
+                      <button class="action-buttons button-edit" onclick="openEditModal()" data-id="<%= admin._id %>">Edit</button>
                       <button class="action-buttons button-cancel" data-id="<%= admin._id %>">Delete</button>
                     </div>
                   </td>
@@ -127,110 +264,6 @@
       </main>
     </div>
 
-    <!-- Add Admin Modal -->
-    
-  <div id="addModal" class="form-container">
-  <div class="right">
-    <i class="fa-solid fa-xmark x-button" onclick="closeAddModal()"></i>
-  </div>
-  <br />
-  <div class="center form-title">
-    <h1 class="postion-name-lsc my-text position-lsc" id="heading-add-admin">Add Admin Account</h1>
-  </div>
-   <br />
-  <div class="form-buttons">
-    <form id="add-admin-form" action="/admin-accounts/add" method="POST">
-      <div class="form-details">
-        <div class="left-content">
-          <img id="img-preview" class="circle-img" src="img/placeholder_admin_profile.png" alt="Image Preview" style="max-width: 200px; max-height: 200px" />
-          <br />
-          <div class="center">
-            <input type="file" name="imgUpload" accept="image/*" onchange="convertImageToBase64(event)" required />
-            <input type="hidden" name="img" id="imgBase64" value="img/placeholder_admin_profile.png" />
-          </div>
-        </div>
-        <br />
-        <div class="center-content">
-          <label for="email">Email:</label>
-          <input type="email" name="email" class="field fill" required /><br /><br />
-          <label for="password">Password:</label>
-          <input type="password" name="password" class="field fill" required />
-        </div>
-        <div class="right-content">
-          <label for="name">Name:</label>
-          <input type="text" name="name" maxlength="35" class="field fill" required /><br /><br />
-          <label for="role">Role:</label>
-          <select name="role" class="role field fill" required>
-            <option>Select a Role</option>
-            <option value="Electoral Board Member">Electoral Board</option>
-            <option value="Technical Team Member">Technical Team</option>
-            <option value="Creatives Team Member">Creatives Team</option>
-            <option value="Developer">Developer</option>
-          </select>
-        </div>
-      </div>
-      <br /><br />   <br /><br />
-      <div class="right">
-        <input type="submit" class="button button-brown" value="Add Admin" />
-      </div>
-    </form>
-  </div>
-</div>
-
-    <!-- Edit Modal -->
-   <div id="editModal" class="form-container">
-  <div class="right">
-    <i class="fa-solid fa-xmark x-button" onclick="closeModal()"></i>
-  </div>
-  <br />
-  <div class="center form-title">
-    <h1 class="postion-name-lsc my-text position-lsc" id="heading-edit-admin">Edit Admin Account</h1>
-  </div>
-  <br />
-  <div class="form-buttons">
-    <form id="edit-admin-form" action="/admin-accounts/edit" method="POST">
-      <input type="hidden" name="id" id="edit-id" />
-      <div class="form-details">
-
-
-        <div class="left-content">
-         <img id="edit-img-preview" class="circle-img" src="" alt="Image Preview" style="max-width: 200px; max-height: 200px; display: block" />
-        <br />
-         <div class="center">
-         <input type="file" name="imgUpload" id="edit-imgUpload" accept="image/*" onchange="convertEditImageToBase64(event)" />
-          
-          <input type="hidden" name="img" id="edit-imgBase64" />
-          </div>
-        </div>
-        <br />
-        <div class="center-content">
-          <label>Email:</label>
-          <input type="email" name="email" id="edit-email" class="field fill" required /><br /><br />
-          <label>Password:</label>
-          <input type="password" name="password" id="edit-password" class="field fill" required />
-          <!-- <button type="button" onclick="toggleEditPassword()">Show/Hide</button> -->
-        </div>
-        <div class="right-content">
-          <label>Name:</label>
-          <input type="text" name="name" id="edit-name" class="field fill" required /><br /><br />
-          <label>Role:</label>
-          <select name="role" id="edit-role" class="role field fill" required>
-            <option value="">Select a Role</option>
-            <option value="Electoral Board Member">Electoral Board</option>
-            <option value="Technical Team Member">Technical Team</option>
-            <option value="Creatives Team Member">Creatives Team</option>
-            <option value="Developer">Developer</option>
-          </select>
-        </div>
-      </div>
-      <br /><br />
-      <br /><br />
-      <div class="right">
-        <button type="submit" class="button button-brown">Save Changes</button>
-      </div>
-    </form>
-  </div>
-</div>
 
     <%- include('footer') %>
 
@@ -247,37 +280,7 @@
         }
       }
 
-      // Modal functions for Edit Admin
-      const editModal = document.getElementById("editModal");
-     
-      // Function to close any open modal
-      function closeModal() {
-        editModal.style.display = "none";
-        addModal.style.display = "none";
-      }
-      window.onclick = function(event) {
-        if (event.target === editModal || event.target === addModal) {
-          closeModal();
-        }
-      };
-
-        function closeAddModal() {
-    // Reset the form inputs in the add modal
-    document.getElementById('add-admin-form').reset();
-    // Reset the image preview (if applicable)
-    document.getElementById('img-preview').src = 'img/placeholder_admin_profile.png';
-    // Hide the add modal
-    addModal.style.display = "none";
-  }
-
-  // If clicking outside the add modal, close it
-  window.onclick = function(event) {
-    if (event.target === addModal) {
-      closeAddModal();
-    }
-  };
-
-      // Toggle password visibility in Edit Admin modal
+         // Toggle password visibility in Edit Admin modal
       function toggleEditPassword() {
         const passwordInput = document.getElementById("edit-password");
         passwordInput.type = passwordInput.type === "password" ? "text" : "password";
@@ -311,11 +314,6 @@
         }
       }
 
-      // Modal functions for Add Admin
-      const addModal = document.getElementById("addModal");
-      function openAddModal() {
-        addModal.style.display = "block";
-      }
     </script>
     <script src="admin/js/sidebar.js"></script>
     <script src="admin/js/manage-admins.js"></script>
@@ -325,6 +323,108 @@
     <script>
       const socket = io("/", { query: { email: "<%= loggedInAdmin.email %>" } });
     </script>
+    <script>
+// Get references to the main container and overlay
+const mainOverlay = document.querySelector('.main-overlay');
+const main = document.querySelector('main');
+
+// Listen for the scroll event on the <main> element
+main.addEventListener('scroll', function () {
+  // Get the current scroll position of <main>
+  const scrollY = main.scrollTop;  // Use scrollTop for the scroll within the <main> container
+  console.log('Scroll Position (main.scrollTop):', scrollY);
+
+  // Calculate the distance of the main element from the top of the viewport
+  // const overlayOffsetTop = main.offsetTop;
+  const overlayOffsetTop = 0;
+  console.log('Main offsetTop:', overlayOffsetTop);
+
+  // Calculate the new position for the main-overlay
+  const newTop = overlayOffsetTop + scrollY;
+  console.log('New Top Value for Overlay:', newTop);
+
+  // Update the position of the overlay
+  mainOverlay.style.top = `${newTop}px`;
+
+  // Debugging the final computed styles (optional)
+  const computedStyle = window.getComputedStyle(mainOverlay);
+  console.log('Current Position of Overlay:', computedStyle.top);
+});
+
+    </script>
+   <script>
+
+    // Get <main> and both modal elements
+      const mainElement = document.querySelector('main');
+    const addModal = document.getElementById("addModal");
+    const editModal = document.getElementById("editModal");
+
+
+    // Helper: update the modal’s position based on current scroll and visible height
+    function updateModalPosition(modal) {
+      const scroll = mainElement.scrollTop; // Get current scroll position directly from <main>
+      const modalTop = scroll + mainElement.clientHeight / 2;
+      modal.style.top = modalTop + "px";
+    }
+    
+    // Open Add Modal
+    function openAddModal() {
+      mainElement.style.overflow = "hidden";
+      // Use setTimeout to allow current layout update
+      setTimeout(() => {
+        updateModalPosition(addModal);
+        addModal.style.display = "block";
+        mainOverlay.style.display = "block"; 
+      }, 0);
+    }
+    
+    // Open Edit Modal
+    function openEditModal() {
+      mainElement.style.overflow = "hidden";
+      setTimeout(() => {
+        updateModalPosition(editModal);
+        editModal.style.display = "block";
+        mainOverlay.style.display = "block";
+      }, 0);
+    }
+    
+    // Close Add Modal only
+    function closeAddModal() {
+      mainElement.style.overflow = "auto";
+      document.getElementById('add-admin-form').reset();
+      document.getElementById('img-preview').src = 'img/placeholder_admin_profile.png';
+      addModal.style.display = "none";
+      mainOverlay.style.display = "none"; // Hide overlay when modal is closed
+    }
+    
+    // Close Edit Modal separately
+    function closeEditModal() {
+      mainElement.style.overflow = "auto";
+      editModal.style.display = "none";
+      mainOverlay.style.display = "none";
+    }
+    
+    // Optional: update modal position on scroll (if modal is open)
+    mainElement.addEventListener('scroll', () => {
+      if (addModal.style.display === "block") {
+        updateModalPosition(addModal);
+      }
+      if (editModal.style.display === "block") {
+        updateModalPosition(editModal);
+      }
+    });
+    
+    // Optionally, dismiss the modal when clicking outside it (if applicable)
+    window.addEventListener('click', (event) => {
+      if (event.target === addModal) {
+        closeAddModal();
+      }
+      if (event.target === editModal) {
+        closeEditModal();
+      }
+    });
+  </script>
+    
     
   </body>
 </html>
