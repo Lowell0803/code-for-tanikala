@@ -213,7 +213,7 @@
 
     <div id="form-add-lsc" class="form-container">
       <div class="right">
-        <i class="fa-solid fa-xmark x-button" onclick="toggleForm('form-add-lsc')"></i>
+        <i class="fa-solid fa-xmark x-button close" onclick="toggleForm('form-add-lsc')"></i>
       </div>
       <div class="center position-title-container">
         <h1 class="postion-name-lsc my-text position-lsc" id="heading-position-add-lsc">Position</h1>
@@ -228,7 +228,7 @@
           <div>
             <div class="form-details">
               <div class="left-content">
-                <img id="image-add-lsc" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
+                <img id="image-add-lsc" class="circle-img" src="img/placeholder_admin_profile.png" />
                 <br />
                 <div class="center">
                   <input type="file" id="image-upload-add-lsc" accept="image/*" />
@@ -290,7 +290,7 @@
           <div>
             <div class="form-details">
               <div class="left-content">
-                <img id="image-edit-lsc" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
+                <img id="image-edit-lsc" class="circle-img" src="img/placeholder_admin_profile.png"/>
                 <br />
                 <div class="center">
                   <input type="file" id="image-upload-edit-lsc" accept="image/*" />
@@ -346,7 +346,7 @@
           <div>
             <div class="form-details">
               <div class="left-content">
-                <img id="image-add" class="circle-img" src="img/placeholder_admin_profile.png" style="max-width: 200px; max-height: 200px" />
+                <img id="image-add" class="circle-img" src="img/placeholder_admin_profile.png"  />
                 <br />
                 <div class="center">
                   <input type="file" id="image-upload-add" accept="image/*" />
@@ -416,7 +416,7 @@
 
               </div>
               <div class="right-content">
-                <label for="more-info">Info:</label><br />
+                <label for="more-info">Info:</label>
                 <textarea id="more-info-edit" name="moreInfo" maxlength="150" class="field info"></textarea>
               </div>
             </div>
@@ -746,7 +746,7 @@
 
         <% if (!electionConfig.candidatesSubmitted) { %>
           <div class="middle">
-            <button class="action-button" id="clearCandidates">Clear All Candidate Data</button>
+            <button class="action-button cancel-button" id="clearCandidates">Clear All Candidate Data</button>
           </div>
         <% } %>
         

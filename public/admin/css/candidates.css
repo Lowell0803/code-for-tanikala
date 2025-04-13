@@ -4,8 +4,8 @@
   --background-yellow: #e1ae5b;
   --background-green: #57ac4f;
   --background-brown: #370606;
-  --background-form: #f2ddb4;
-  --field-color: #f0f1e1;
+  --background-form: #e2be84;
+  --field-color: white;
   --background-red: #a60212;
 }
 
@@ -21,7 +21,7 @@
 
 .container,
 .form-container {
-  border: 0.2rem solid rgba(14, 13, 13, 0.5);
+  border: 0.1rem solid rgba(14, 13, 13, 0.5);
 }
 
 hr {
@@ -140,7 +140,7 @@ form img {
   justify-content: center; /* Center the content horizontally */
   align-items: center; /* Center the content vertically */
   overflow: hidden;
-  width: 25%;
+  width: 30%;
 }
 
 .candidate img {
@@ -178,11 +178,11 @@ form img {
 }
 
 #submitBtn {
-  background-color: #503a96;
+  background-color: #4b368f;
 }
 
 #resetCandidatesBtn {
-  background-color: #c11515;
+  background-color: #8271b7;
 }
 
 .purple {
@@ -191,7 +191,7 @@ form img {
 
 .smart-contract-status {
   font-weight: normal;
-  color: #482e03;
+  color: #28303b;
   /* border: 1px solid black; */
 }
 
@@ -250,11 +250,12 @@ form img {
 }
 
 .circle-img {
-  width: 8rem; /* match your desired max width */
-  height: 8rem; /* match your desired max height */
+  width: 8rem !important; /* match your desired max width */
+  height: 8rem !important; /* match your desired max height */
   object-fit: cover; /* ensures the image fills the circle without distortion */
   border-radius: 50%; /* creates the circular shape */
   display: block;
+
   border: 0.2rem solid rgba(58, 27, 5, 0.677);
 }
 
@@ -287,6 +288,7 @@ form img {
   justify-content: center;
   align-items: center;
   gap: 2%;
+  height: 100%;
 }
 
 .fill {
@@ -340,9 +342,9 @@ form img {
   margin: 0;
 }
 
-#clearCandidates {
-  background-color: #4c556d;
-}
+/* #clearCandidates {
+  background-color: #a01321;
+} */
 
 .middle {
   text-align: center;
@@ -350,7 +352,48 @@ form img {
 }
 
 .field {
-  border-radius: 1rem;
+  border-radius: 0.8rem;
   background: var(--field-color);
-  border: 0.15rem solid rgba(58, 27, 5, 0.677);
+  border: 0.1rem solid rgba(58, 27, 5, 0.677);
+  outline: none;
+}
+
+.field:hover,
+.field:focus {
+  border: 2px solid #85211d;
+  /* box-shadow: 0px 0px 0px 7px rgba(236, 101, 74, 0.2); */
+}
+
+.button-save {
+  background: #008000;
+}
+
+#button-remove {
+  background: #503a96;
+}
+
+/* form > * {
+  border: 1px solid black;
+} */
+
+.select:hover,
+.select:focus {
+  /* border: 2px solid green; */
+  box-shadow: 0px 0px 0px 7px rgba(74, 236, 136, 0.2);
+}
+
+.container {
+  border-radius: 1.5em !important;
+}
+
+.x-button:hover {
+  color: red;
+}
+
+#collegeSelect {
+  border: 0.15rem solid #008000;
+}
+
+option:hover {
+  background: pink;
 }

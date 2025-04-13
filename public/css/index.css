@@ -42,6 +42,8 @@
   --sidebar-color-lighter: #d29c45;
   --sidebar-color: #e1ae5b;
 
+  --color-footer: #990715;
+
   /* div sizes */
   --height-body: 100vh;
   --height-header: 16vh;
@@ -186,7 +188,7 @@ img {
   align-items: center;
   flex-basis: var(--height-footer);
 
-  background-color: var(--color-lightRed);
+  background-color: var(--color-footer);
   color: white;
 }
 

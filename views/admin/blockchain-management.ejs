@@ -12,6 +12,7 @@
 
     <!-- Boxicons CDN Link -->
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=upins:wght@400;700&display=swap" rel="stylesheet" />
@@ -32,10 +33,9 @@
               <h1 class="title">Blockchain Management</h1>
             </div>
              <h3 class="top">
-                        <b>Blockchain Link:</b>
                         <% if (blockchainInfo && blockchainInfo.transactionHash) { %>
-                          <a href="https://amoy.polygonscan.com/tx/<%= blockchainInfo.transactionHash %>#eventlog" target="_blank">
-                            View Transaction
+                          <a class="link" href="https://amoy.polygonscan.com/tx/<%= blockchainInfo.transactionHash %>#eventlog" target="_blank">
+                         View TANIKALA Transactions on the Blockchain <span><i class="fa-solid fa-magnifying-glass"></i></span> 
                           </a>
                         <% } else { %>
                           N/A
@@ -47,7 +47,7 @@
           <div class="column-main box-shadow">
             <div class="first-main">
               <div class="left">
-                <h2>Blockchain Information</h2>
+                <h2><span><i class="fa fa-info-circle" aria-hidden="true"></i></span> Blockchain Information</h2>
                 <br />
                 <div class="indent">
                   <ul>
@@ -107,12 +107,12 @@
                     } else {
                       balanceStatus = "Warning";
                         balanceStatusClass = "balance-warning";
-                      balanceDescription = "The admin wallet balance is below the recommended fund estimate. Consider adding more funds to avoid potential issues during the blockchain voting operation.";
+                      balanceDescription = "The admin wallet balance is below the recommended fund estimate. To prevent potential issues during blockchain voting operations, please add more funds.";
                     }
                   }
                 %>
 
-                <h2>Admin Wallet Information</h2>
+                <h2><span><i class="fa-solid fa-wallet"></i></span> Admin Wallet Information</h2>
                 <br />
                 <!-- Wallet Address -->
                 <div class="indent">
@@ -184,7 +184,7 @@
               </div>
 
               <div class="right">
-                <h2>Blockchain Transactions</h2>
+              <h2>  <i class="fa fa-link"></i></span> Blockchain Transactions (Current Election)</h2>
                 <br />
                 <div class="indent">
                   <ul>
@@ -215,6 +215,19 @@
                     <br />
                     <li>
                       <p>
+                        <strong>Candidate Removal Count: </strong>
+                      </p>
+                      <div class="indent-ish">
+                         <p>
+                          <strong>Latest Transaction Hash:</strong>
+                         </p>
+                          <strong>Latest Removal Date:</strong>
+                        </p>
+                      </div>
+                    </li>
+                    <br />
+                    <li>
+                      <p>
                         <strong>Vote Transactions Count: </strong>
                         <span><%= blockchainMgmt ? blockchainMgmt.voteTransactionsCount : "N/A" %></span>
                       </p>
@@ -232,10 +245,10 @@
                           <strong>Total Gas Used:</strong>
                           <%= blockchainMgmt ? blockchainMgmt.totalGasUsed + blockchainMgmt.totalGasUsedInCandidates : "N/A" %> Gas
                         </p>
-                        <p>
+                        <!-- <p>
                           <strong>Total Amount Spent (Wei):</strong>
                           <%= blockchainMgmt ? blockchainMgmt.totalWeiSpent + blockchainMgmt.totalWeiSpentInCandidates : "N/A" %> Wei
-                        </p>
+                        </p> -->
                         <br />
                         <p><strong>Total Amount Spent:</strong></p>
                       </div>
@@ -272,13 +285,13 @@
               
             </div>
             <div class="update-date">
-              <p>All Data Last Updated on <strong><%= walletInfo ? moment(walletInfo.updatedAt).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %></strong></p>
+              <p>All data last updated on <span class="update"> <%= walletInfo ? moment(walletInfo.updatedAt).format("MMMM DD, YYYY [at] hh:mm A") : "N/A" %></span></p>
             </div>
           </div>
 
           <div class="total box-shadow">
             
-                <h2>All Blockchain Transactions</h2>
+                <span class="middle"><h2>All Blockchain Transactions</h2></span>
                 <br />
                 <div class="indent">
                   <ul>
@@ -303,7 +316,20 @@
                         
                         <p>
                           <strong>Latest Submission Date:</strong>
-                          <%= blockchainMgmt && blockchainMgmt.candidateSubmissionDate ? moment(blockchainMgmt.candidateSubmissionDate).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
+                          <%= blockchainMgmt && blockchainMgmt.candidateSubmissionDate ? moment(blockchainMgmt.candidateSubmissionDate).format("MMMM DD, YYYY [at] hh:mm A") : "N/A" %>
+                        </p>
+                      </div>
+                    </li>
+                    <br /> 
+                     <li>
+                      <p>
+                        <strong>Candidate Removal Count: </strong>
+                      </p>
+                      <div class="indent-ish">
+                         <p>
+                          <strong>Latest Transaction Hash:</strong>
+                         </p>
+                          <strong>Latest Removal Date:</strong>
                         </p>
                       </div>
                     </li>
@@ -327,16 +353,19 @@
                           <strong>Total Gas Used:</strong>
                           <%= blockchainMgmt ? blockchainMgmt.totalGasUsed + blockchainMgmt.totalGasUsedInCandidates : "N/A" %> Gas
                         </p>
-                        <p>
+                        <!-- <p>
                           <strong>Total Amount Spent (Wei):</strong>
                           <%= blockchainMgmt ? blockchainMgmt.totalWeiSpent + blockchainMgmt.totalWeiSpentInCandidates : "N/A" %> Wei
-                        </p>
+                        </p> -->
                         <br />
                         <p><strong>Total Amount Spent:</strong></p>
                       </div>
                     </li>
-                    <br />
-                    <table class="currency">
+                   
+                  </ul>
+                </div>
+<br />
+                <table class="currency total-currency">
                       <tr>
                         <th>Polygon (POL)</th>
                         <th>United States Dollar (USD)</th>
@@ -360,11 +389,12 @@
                         </td>
                       </tr>
                     </table>
-                    <br />
-                  </ul>
-                </div>
-             
-          </div>
+             <br />
+           <div class="update-date">
+              <p>All data last updated on <span class="update"> <%= walletInfo ? moment(walletInfo.updatedAt).format("MMMM DD, YYYY [at] hh:mm A") : "N/A" %></span></p>
+            </div>
+          
+              </div>
         </div>
       </main>
     </div>

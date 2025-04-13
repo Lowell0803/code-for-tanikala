@@ -29,6 +29,7 @@ td {
   max-height: 10vh;
   width: 100%;
   padding: 2%;
+  /* align-items: center; */
 }
 
 .main-header-title {
@@ -52,6 +53,10 @@ td {
   margin-right: 8%;
 }
 
+.option-print {
+  cursor: pointer;
+}
+
 .studentTable {
 }
 
@@ -64,12 +69,12 @@ td {
 table,
 th,
 td {
-  border: 0.1em solid #a60212;
+  border: 0.1em solid #85211d;
   border-collapse: collapse;
 }
 
 table {
-  outline: 2px solid #a60212;
+  outline: 2px solid #85211d;
 }
 
 table {
@@ -84,7 +89,7 @@ table td {
 }
 
 table th {
-  background-color: #a60212;
+  background-color: #85211d;
   color: white;
 }
 
@@ -114,7 +119,7 @@ table th {
   background-color: #f3f3f4;
   color: #0d0c22;
   transition: 0.3s ease;
-  border: 0.1rem solid #482e03;
+  border: 0.07rem solid #550c0a;
 }
 
 .input::placeholder {
@@ -143,4 +148,33 @@ input:hover {
 
 td {
   padding: 0.5rem;
+}
+
+.gray {
+  color: #28303b;
+}
+
+select {
+  border: 0.07rem solid #550c0a;
+  cursor: pointer;
+  transition: 0.3s ease;
+  /* border-radius: 0.5rem; */
+  /* outline: 1rem solid pink; */
+}
+
+select:focus,
+select:hover {
+  border-color: #a60212;
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgb(234 76 137 / 10%);
+  outline: none;
+  /* outline: 1rem solid green; */
+}
+
+/* select:valid {
+  outline: 1rem solid pink;
+} */
+
+.group {
+  margin-left: -0.5rem;
 }

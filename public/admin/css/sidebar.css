@@ -11,7 +11,7 @@
 :root {
   /* --color-hover: #3f0807; */
   --color-hover: #e6dabe;
-  --sidebar-color: white;
+  --sidebar-color: rgb(249, 247, 247);
   --scrollbar-color: #e1ae5b;
   --sidebar-color-lighter: white;
   --text-color: #550c0a;

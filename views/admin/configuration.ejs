@@ -61,24 +61,24 @@
 
         <section class="election-info">
           <p class="election-name">
-            &nbsp;<strong><span class="green">Election Name:</span></strong>
-            <span class="semi-boldie"><%= electionConfig && electionConfig.electionName ? electionConfig.electionName : "N/A" %></span>
+            &nbsp;<strong><span class="gray semi-boldgre">Election Name:</span></strong>
+            <span class="semi-boldie hey"><%= electionConfig && electionConfig.electionName ? electionConfig.electionName : "N/A" %></span>
           </p>
           <hr />
           <p class="space">
-            <i class="bx bx-calendar-check"></i>&nbsp;<strong><span class="green">Status:</span></strong>
+            <i class="bx bx-calendar-check"></i>&nbsp;<strong><span class="gray semi-boldgr">Status:</span></strong>
             <span class="semi-bold"> <%= electionConfig && electionConfig.electionStatus ? electionConfig.electionStatus : "N/A" %></span>
           </p>
           <p class="space">
             <i class="bx bx-edit-alt"></i>
-            <strong><span class="green">Registration Period:</span></strong>
+            <strong><span class="gray semi-boldgr">Registration Period:</span></strong>
             <span class="semi-bold"> <%= electionConfig && electionConfig.registrationStart ? formatDisplayDate(electionConfig.registrationStart) : "N/A" %>
             to
             <%= electionConfig && electionConfig.registrationEnd ? formatDisplayDate(electionConfig.registrationEnd) : "N/A" %>
           </p> </span>
           <p class="space">
             <i class="bx bx-list-ul"></i>
-            <strong><span class="green">Voting Period:</span></strong>
+            <strong><span class="gray semi-boldgr">Voting Period:</span></strong>
           <span class="semi-bold">   <%= electionConfig && electionConfig.votingStart ? formatDisplayDate(electionConfig.votingStart) : "N/A" %>
             to
             <%= electionConfig && electionConfig.votingEnd ? formatDisplayDate(electionConfig.votingEnd) : "N/A" %> </span>

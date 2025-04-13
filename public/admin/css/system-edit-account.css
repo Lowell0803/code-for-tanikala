@@ -116,9 +116,9 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  background: #f8eac2;
-  border: 0.25rem solid #80550c;
-  border-radius: 1.5rem;
+  background: rgb(249, 247, 247);
+  border: 0.2rem solid rgb(128, 127, 127);
+  border-radius: 1rem;
   padding: 2rem;
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
 }

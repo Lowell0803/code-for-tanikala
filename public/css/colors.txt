@@ -20,6 +20,8 @@
   
   deep gray: #28303b
   light gray: #364150
+
+
   deep red: #550C0A
   medium red: #85211D
   green: 
@@ -33,3 +35,24 @@
   #A8C69F
   #5C5D8D
   #99A1A6
+  #DAC4F7
+
+
+
+  #9274a1
+  #f9f4f5
+
+
+
+#cce2a3
+#bcdeb2
+
+
+  special button: #85211D;
+  blue: #0024E4;
+  green: #008000;
+  red: #A60212; 
+
+
+
+  <i class="fa-solid fa-network-wired"> blockchain activity log

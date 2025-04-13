@@ -44,16 +44,16 @@
 }
 
 tr:nth-child(even) {
-  background-color: #faf2db;
+  background-color: #f9f4f5;
 }
 
 th,
 td {
-  border: 1px solid black;
+  border: 0.05rem solid #745b80;
 }
 
 th {
-  background: #dbc390;
+  background: #d2b9de;
   color: black;
 }
 
@@ -68,8 +68,8 @@ th {
 }
 
 .first-main h2 {
-  color: #451b9d;
-  text-decoration: underline;
+  color: #73438b;
+  /* text-decoration: underline; */
 
   /* border: 1px solid black; */
 }
@@ -128,12 +128,12 @@ th {
 .sub-highlight {
   font-weight: bold;
 
-  color: #7c66b2;
+  color: #bb8dd0;
 }
 
 .highlight {
   font-weight: bold;
-  color: #e09f2f;
+  color: #9950bd;
 }
 
 th {
@@ -153,28 +153,24 @@ td {
 }
 
 .balance-excellent {
-  color: #0000ff; /* blue */
+  color: blue; /* blue */
 }
 
 .balance-good {
-  color: #00aa00; /* green */
+  color: green; /* green */
 }
 
 .balance-warning {
-  color: #ff9900; /* orange */
-}
-
-.first-main th {
-  background-color: #ad9bd5;
+  color: red; /* orange */
 }
 
 .column-main {
   display: flex;
   flex-direction: column;
   background: #f9f4f5;
-  border: 0.25rem solid #70587c;
+  border: 0.1em solid #9274a1;
   padding: 2rem;
-  border-radius: 1.5rem;
+  border-radius: 1rem;
   margin: 2rem;
   max-width: 100%;
 }
@@ -182,10 +178,52 @@ td {
 .total {
   display: flex;
   flex-direction: column;
-  background-color: #a69fc8;
-  border: 0.25rem solid #451b9d;
+  background-color: #e0cbe3;
+  border: 0.1em solid #9274a1;
   padding: 2rem;
-  border-radius: 1.5rem;
+  border-radius: 1rem;
   margin: 2rem;
   max-width: 100%;
+}
+
+.polygon-img {
+  width: 1rem;
+  height: auto;
+}
+
+.update {
+  color: #364150;
+  font-weight: bold;
+}
+
+.middle {
+  text-align: center;
+  color: #73438b;
+  text-decoration: underline;
+}
+
+.first-main th {
+  background-color: #d2b9de;
+}
+
+.total-currency th {
+  background-color: #be9dcd;
+}
+
+table {
+  outline: 0.05rem solid #9274a1;
+}
+
+.total {
+  margin-top: 3rem;
+}
+
+.link {
+  color: rgb(78, 78, 235);
+  text-decoration: none;
+}
+
+.link:hover {
+  color: blue;
+  text-decoration: underline;
 }
