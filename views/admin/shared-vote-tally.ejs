@@ -1,4 +1,43 @@
+<style>
+        .close {
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .main-overlay {
+        position: absolute; /* Make it position relative to the parent <main> */
+          display: none;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(90, 90, 90, 0.7); /* Adjust opacity of the overlay */
+        height: 100%; /* Full height of the parent */
+        width: 100%; /* Full width of the parent */
+        /* display: flex; */
+        align-items: center; /* Center content vertically */
+        justify-content: center; /* Center content horizontally */
+        z-index: 999; /* Ensure it appears on top of other elements */
+      }
+      .main {
+        position: relative; /* Ensures children with absolute position are relative to <main> */
+      }
+
+      .hashes-container {
+        position: absolute;
+        z-index: 1001;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        
+        display: none;
+      }
+</style>
+
+<div class="main-overlay"></div>
 <div class="first-main">
+  
+
   <div class="main-left">
     <h1 class="ssc">Supreme Student Council</h1>
     <% const presidentCandidates = candidates.filter(candidate => candidate.position === 'president' && candidate.name !== 'Abstain'); const abstainCandidate = candidates.find(candidate => candidate.position === 'president' && candidate.name === 'Abstain'); presidentCandidates.sort((a, b) => Number(b.voteCount) - Number(a.voteCount)); const totalVotes = presidentCandidates.reduce((acc, candidate) => acc + (Number(candidate.voteCount) || 0), 0); %>
@@ -397,6 +436,40 @@
       </script>
     </div>
   </div>
+
+  
+</div>
+
+<!-- sample voter ids form -->
+<div class="hashes-container modal">
+  <div classs="modal-content">
+
+    <span class="close-modal">&times;</span>
+    <h2 class="hashes-title">List of Transaction Hashes for "John Doe"</h2>
+    <div class="top-bar">
+      <strong>
+        <h3 class="total-votes">Total Votes: <span id="totalVotes"></span></h3>
+      </strong>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search..." />
+        <button id="searchBtn">
+          <i class="fa fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="grid-wrapper">
+      <div class="hashes-grid" id="hashesGrid">
+        <div class="id"><!-- The 3-column listing of transaction hashes goes here --></div>
+      </div>
+    </div>
+
+    <div class="pagination">
+      <button id="prevBtn">&lt;</button>
+      <span id="pageInfo">Page 1 of 1</span>
+      <button id="nextBtn">&gt;</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -439,68 +512,8 @@
   });
 </script>
 
-<!-- sample voter ids form -->
-<div class="hashes-container modal">
-  <div classs="modal-content">
 
-    <span class="close-modal">&times;</span>
-    <h2 class="hashes-title">List of Transaction Hashes for "John Doe"</h2>
-    <div class="top-bar">
-      <strong>
-        <h3 class="total-votes">Total Votes: <span id="totalVotes"></span></h3>
-      </strong>
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search..." />
-        <button id="searchBtn">
-          <i class="fa fa-search"></i>
-        </button>
-      </div>
-    </div>
 
-    <div class="grid-wrapper">
-      <div class="hashes-grid" id="hashesGrid">
-        <div class="id"><!-- The 3-column listing of transaction hashes goes here --></div>
-      </div>
-    </div>
-
-    <div class="pagination">
-      <button id="prevBtn">&lt;</button>
-      <span id="pageInfo">Page 1 of 1</span>
-      <button id="nextBtn">&gt;</button>
-    </div>
-  </div>
-</div>
-
-<script>
-  // Get the modal element (which is now the .hashes-container)
-  const modal = document.querySelector(".hashes-container.modal");
-  // Get the close button inside the modal
-  const closeBtn = document.querySelector(".close-modal");
-
-  // Toggle modal display when any .votes button is clicked
-  document.querySelectorAll(".votes").forEach((button) => {
-    button.addEventListener("click", function (event) {
-      event.preventDefault();
-      // You can call your fetch function here if needed.
-      // For popup functionality, we just toggle the modal.
-      modal.style.display = "block";
-    });
-  });
-
-  // Close the modal when the close button is clicked
-  closeBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-  });
-
-  // Optional: Close modal when clicking outside modal content (if needed)
-  // Note: if the entire .hashes-container is the modal, clicking anywhere inside will close it.
-  // You might want to add an inner wrapper if that behavior isn't desired.
-  window.addEventListener("click", function (event) {
-    if (event.target === modal) {
-      modal.style.display = "none";
-    }
-  });
-</script>
 
 <script>
   /***************************************************
@@ -665,3 +678,97 @@
    ***************************************************/
   render();
 </script>
+
+<script>
+  // Get references to the main container and overlay
+  const mainOverlay = document.querySelector('.main-overlay');
+  const main = document.querySelector('main');
+
+  // Listen for the scroll event on the <main> element
+main.addEventListener('scroll', function () {
+  // Get the current scroll position of <main>
+  const scrollY = main.scrollTop;  // Use scrollTop for the scroll within the <main> container
+  console.log('Scroll Position (main.scrollTop):', scrollY);
+
+  // Calculate the distance of the main element from the top of the viewport
+  // const overlayOffsetTop = main.offsetTop;
+  const overlayOffsetTop = 0;
+  console.log('Main offsetTop:', overlayOffsetTop);
+
+  // Calculate the new position for the main-overlay
+  const newTop = overlayOffsetTop + scrollY;
+  console.log('New Top Value for Overlay:', newTop);
+
+  // Update the position of the overlay
+  mainOverlay.style.top = `${newTop}px`;
+
+  // Debugging the final computed styles (optional)
+  const computedStyle = window.getComputedStyle(mainOverlay);
+  console.log('Current Position of Overlay:', computedStyle.top);
+});
+
+    </script>
+
+<script>
+  
+</script>
+<script>
+
+  // Get <main> and both modal elements
+    const mainElement = document.querySelector('main');
+
+
+  // Helper: update the modal’s position based on current scroll and visible height
+  function updateModalPosition(modal) {
+    const scroll = mainElement.scrollTop; // Get current scroll position directly from <main>
+    const modalTop = scroll + mainElement.clientHeight / 2;
+    modal.style.top = modalTop + "px";
+  }
+
+
+  // Get the modal element (which is now the .hashes-container)
+  const modal = document.querySelector(".hashes-container.modal");
+  // Get the close button inside the modal
+  const closeBtn = document.querySelector(".close-modal");
+
+  // Toggle modal display when any .votes button is clicked
+  document.querySelectorAll(".votes").forEach((button) => {
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+      // You can call your fetch function here if needed.
+      // For popup functionality, we just toggle the modal.
+      modal.style.display = "block";
+
+    mainOverlay.style.display = "block"; 
+    mainElement.style.overflow = "hidden";
+    });
+  });
+
+  // Close the modal when the close button is clicked
+  closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+    mainOverlay.style.display = "none"; 
+    mainElement.style.overflow = "auto";
+  });
+
+  // Optional: Close modal when clicking outside modal content (if needed)
+  // Note: if the entire .hashes-container is the modal, clicking anywhere inside will close it.
+  // You might want to add an inner wrapper if that behavior isn't desired.
+  window.addEventListener("click", function (event) {
+    if (event.target === modal) {
+      modal.style.display = "none";
+      mainOverlay.style.display = "none"; 
+    mainElement.style.overflow = "auto";
+    }
+  });
+  
+  // Optional: update modal position on scroll (if modal is open)
+  mainElement.addEventListener('scroll', () => {
+    if (modal.style.display === "block") {
+      updateModalPosition(modal);
+    }
+  });
+
+</script>
+
+
