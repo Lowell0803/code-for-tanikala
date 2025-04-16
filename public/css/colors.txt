@@ -22,6 +22,8 @@
   light gray: #364150
 
 
+#660E0C
+
   deep red: #550C0A
   medium red: #85211D
   green: 

@@ -93,7 +93,7 @@
     <div class="center form-title">
       <h1 class="postion-name-lsc my-text position-lsc" id="heading-add-admin">Add Admin Account</h1>
     </div>
-     <br />
+     <!-- <br /> -->
     <div class="form-buttons">
       <form id="add-admin-form" action="/admin-accounts/add" method="POST">
         <div class="form-details">
@@ -109,8 +109,8 @@
           <div class="center-content">
             <label for="email">Email:</label>
             <input type="email" name="email" class="field fill" required /><br /><br />
-            <label for="password">Password:</label>
-            <input type="password" name="password" class="field fill" required />
+            <!-- <label for="password">Password:</label>
+            <input type="password" name="password" class="field fill" required /> -->
           </div>
           <div class="right-content">
             <label for="name">Name:</label>
@@ -162,8 +162,8 @@
           <div class="center-content">
             <label>Email:</label>
             <input type="email" name="email" id="edit-email" class="field fill" required /><br /><br />
-            <label>Password:</label>
-            <input type="password" name="password" id="edit-password" class="field fill" required />
+            <!-- <label>Password:</label>
+            <input type="password" name="password" id="edit-password" class="field fill" required /> -->
             <!-- <button type="button" onclick="toggleEditPassword()">Show/Hide</button> -->
           </div>
           <div class="right-content">
@@ -196,14 +196,15 @@
         </div>
         <hr class="title-line" />
         <div class="first-main">
+         <br />
           <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
           <!-- Button to open Add Admin Modal -->
-           <div class="right">
+           <div class="right right-add">
           <button class="button button-brown" onclick="openAddModal()">Add Admin</button>
           </div>
           <% } %>
           <br />
-          <br />
+          
           <td class="table-container">
             <table>
               <thead>
@@ -212,7 +213,6 @@
                   <th>NAME</th>
                   <th>ROLE</th>
                   <th>EMAIL</th>
-                  <th>PASSWORD</th>
                   <!-- <th>STATUS</th> -->
                   <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
                   <th>ACTIONS</th>
@@ -229,17 +229,17 @@
                     data-img="<%= admin.img %>"
                     data-password="<%= admin.password %>">
                   <td>
-                    <img class="circle-img" src="<%= admin.img %>" alt="Admin Image" style="width: 50px; height: 50px" />
+                    <img class="circle-img-candidate" src="<%= admin.img %>" alt="Admin Image" />
                   </td>
                   <td><%= admin.name %></td>
                   <td><%= admin.role %></td>
                   <td><%= admin.email %></td>
-                  <td class="pass">
+                  <!-- <td class="pass">
                     <span class="password-mask">********</span>
                     <button type="button" onclick="togglePassword(this)" data-password="<%= admin.password %>">
                        Show
                     </button>
-                  </td>
+                  </td> -->
                   <!-- <td>
                     <% if (admin.online) { %>
                       <span class="status-indicator active">Active</span>
@@ -248,10 +248,10 @@
                     <% } %>
                   </td> -->
                   <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
-                  <td>
+                  <td class="action-column">
                     <div class="actions">
-                      <button class="action-buttons button-edit" onclick="openEditModal()" data-id="<%= admin._id %>">Edit</button>
-                      <button class="action-buttons button-cancel" data-id="<%= admin._id %>">Delete</button>
+                      <button class="button button-edit" onclick="openEditModal()" data-id="<%= admin._id %>">Edit</button>
+                      <button class="button button-cancel" data-id="<%= admin._id %>">Delete</button>
                     </div>
                   </td>
                   <% } %>

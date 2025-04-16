@@ -7,12 +7,6 @@
   /* border: 1px solid black; */
 }
 
-/* .title {
-  display: flex;
-  flex-direction: row;
-  padding: 3rem;
-} */
-
 .indent {
   text-indent: 28rem;
 }
@@ -39,22 +33,22 @@
 }
 
 table {
-  outline: 2px solid #0b287e;
+  outline: 2px solid #364150;
 }
 
 th {
-  background-color: #0b287e;
+  background-color: #364150;
 }
 
 table,
 th,
 td {
-  border: 0.1em solid #0b287e;
+  border: 0.1em solid #364150;
   border-collapse: collapse;
 }
 
 table {
-  width: 100%;
+  width: 85vw;
   border-radius: 0;
 }
 
@@ -76,6 +70,7 @@ table td {
 .right {
   /* border: 3px solid black; */
   text-align: right;
+  margin-bottom: -1rem;
 }
 
 .pass {
@@ -105,4 +100,60 @@ table td {
 
 .form-title {
   color: #550c0a;
+}
+
+.circle-img-candidate {
+  width: 6rem !important; /* match your desired max width */
+  height: 6rem !important; /* match your desired max height */
+  object-fit: cover; /* ensures the image fills the circle without distortion */
+  border-radius: 50%; /* creates the circular shape */
+  display: block;
+
+  border: 0.149rem solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+td img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.right-add {
+  padding-right: 5.3rem;
+
+  margin-bottom: 0.6rem;
+  text-align: right;
+  /* border: 1px solid black; */
+}
+
+.button-brown {
+  background: #550c0a;
+}
+
+.button {
+  font-weight: bold;
+  font-size: 0.9em;
+  color: white;
+  padding: 1em 2em;
+  border-radius: 5em;
+  border: none;
+  margin: 0.5rem;
+}
+
+.actions {
+  gap: 1rem;
+}
+
+.action-column {
+  width: 22%;
+  padding: 0;
 }

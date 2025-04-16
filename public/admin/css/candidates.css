@@ -256,7 +256,7 @@ form img {
   border-radius: 50%; /* creates the circular shape */
   display: block;
 
-  border: 0.2rem solid rgba(58, 27, 5, 0.677);
+  border: 0.15rem solid rgba(58, 27, 5, 0.677);
 }
 
 .left-content,
