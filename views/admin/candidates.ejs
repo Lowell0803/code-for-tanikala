@@ -808,20 +808,25 @@
               const currentTime = config.useFakeDate
                 ? moment.tz(config.fakeCurrentDate, "Asia/Manila")
                 : moment.tz(new Date(), "Asia/Manila");
-          
+
               resetCandidatesBtn.addEventListener("click", async () => {
+                // Display the loading container when the process starts.
+                document.getElementById("loadingContainer").style.display = "block";
+
                 try {
-                  // Get voting start time
+                  // Get voting start time for validation
                   const votingStartTime = moment.tz(config.votingStart, "Asia/Manila");
-          
-                  // Check if votingStart is less than a day away
+
+                  // Check if the voting period is within one day and block reset if so
                   if (votingStartTime.diff(currentTime, "hours") < 24) {
                     createNotification("You can't reset candidates 1 day before the voting period.", "warning", 5000);
                     return;
                   }
-          
-                  // Proceed with resetting candidates
+
+                  // Proceed with resetting candidates by calling the API
                   const response = await fetch("/api/resetCandidates");
+
+                  // Notify user based on the success or failure of the API call
                   if (response.ok) {
                     createNotification("Candidates reset successfully.", "success", 5000);
                   } else {
@@ -829,9 +834,15 @@
                   }
                 } catch (error) {
                   createNotification("An error occurred while resetting candidates.", "warning", 5000);
+                } finally {
+                  // Hide the loading container once the request is completed.
+                  document.getElementById("loadingContainer").style.display = "none";
                 }
               });
             });
+
+
+
           </script>
           
           

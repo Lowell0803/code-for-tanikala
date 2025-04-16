@@ -9,6 +9,37 @@ const session = require("express-session");
 
 const axios = require("axios");
 
+const bson = require("bson");
+
+function chunkByBsonSize(docs, maxSizeInBytes = 15 * 1024 * 1024) {
+  // 15MB safety margin
+  const chunks = [];
+  let currentChunk = [];
+  let currentSize = 0;
+
+  for (const doc of docs) {
+    const size = bson.calculateObjectSize(doc);
+
+    // If adding this doc would push us over the limit...
+    if (currentSize + size > maxSizeInBytes) {
+      if (currentChunk.length) {
+        chunks.push(currentChunk);
+      }
+      currentChunk = [doc];
+      currentSize = size;
+    } else {
+      currentChunk.push(doc);
+      currentSize += size;
+    }
+  }
+
+  if (currentChunk.length) {
+    chunks.push(currentChunk);
+  }
+
+  return chunks;
+}
+
 // ==================================================================================================
 //                                  BLOCKCHAIN (HARDHAT)
 // ==================================================================================================
@@ -5012,20 +5043,22 @@ const startServer = async () => {
     // Reset-election route that calls the three functions and archives the data
     app.post("/reset-election", ensureAdminAuthenticated, async (req, res) => {
       try {
+        const { ObjectId } = require("mongodb");
+        const bson = require("bson");
+        const groupId = new ObjectId(); // 🔗 Used to group all archive chunks
+
         // 1. Get the current election configuration document
         const electionConfig = await db.collection("election_config").findOne({});
         if (!electionConfig) {
           return res.status(404).send("Election configuration not found.");
         }
 
-        // Use the specialStatus if it's "Results Are Out"
         const electionName = electionConfig.electionName || "Unnamed Election";
         let electionStatus = electionConfig.electionStatus;
         if (electionConfig.specialStatus === "Results Are Out") {
           electionStatus = electionConfig.specialStatus;
         }
 
-        // 2. Prepare registration and voting period objects
         const registrationPeriod = {
           start: electionConfig.registrationStart,
           end: electionConfig.registrationEnd,
@@ -5035,39 +5068,74 @@ const startServer = async () => {
           end: electionConfig.votingEnd,
         };
 
-        // BEFORE #3: Update and store additional election data by calling helper functions.
         await saveVoterTurnoutData();
         await saveVoteTallyData();
         await saveResultsData();
 
-        // 3. Read whole collections from the database, including computed data
-        const configDocs = await db.collection("election_config").find({}).toArray();
-        const candidatesDocs = await db.collection("candidates").find({}).toArray();
-        const candidatesLSCDocs = await db.collection("candidates_lsc").find({}).toArray();
-        const registeredVotersDocs = await db.collection("registered_voters").find({}).toArray();
-        const voterTurnoutDocs = await db.collection("voter_turnout").find({}).toArray();
-        const voteTallyDocs = await db.collection("vote_tally").find({}).toArray();
-        const resultsDocs = await db.collection("results").find({}).toArray();
+        // 🔧 Helpers
+        const removeImageField = (docs) =>
+          docs.map((doc) => {
+            delete doc.image;
+            return doc;
+          });
 
-        // 4. Prepare the archive document, including all computed data
-        const archiveDoc = {
-          archivedAt: new Date(),
-          electionName,
-          electionStatus,
-          registrationPeriod,
-          votingPeriod,
-          electionConfig: configDocs,
-          candidates: candidatesDocs,
-          candidates_lsc: candidatesLSCDocs,
-          registeredVoters: registeredVotersDocs,
-          voterTurnout: voterTurnoutDocs,
-          voterTally: voteTallyDocs,
-          voterResults: resultsDocs,
+        const chunkByBsonSize = (docs, maxSizeInBytes = 15 * 1024 * 1024) => {
+          const chunks = [];
+          let currentChunk = [];
+          let currentSize = 0;
+
+          for (const doc of docs) {
+            const size = bson.calculateObjectSize(doc);
+            if (currentSize + size > maxSizeInBytes) {
+              if (currentChunk.length) chunks.push(currentChunk);
+              currentChunk = [doc];
+              currentSize = size;
+            } else {
+              currentChunk.push(doc);
+              currentSize += size;
+            }
+          }
+          if (currentChunk.length) chunks.push(currentChunk);
+          return chunks;
         };
 
-        // 5. Insert the archive document into the election_archive collection
-        await db.collection("election_archive").insertOne(archiveDoc);
+        const archiveDocs = [];
 
+        const addChunks = (collectionName, data) => {
+          const chunks = chunkByBsonSize(data);
+          chunks.forEach((chunk, index) => {
+            const doc = {
+              groupId,
+              archivedAt: new Date(),
+              electionName,
+              electionStatus,
+              registrationPeriod,
+              votingPeriod,
+              collection: collectionName,
+              chunkIndex: index,
+              data: chunk,
+            };
+            const size = bson.calculateObjectSize(doc);
+            console.log(`📦 Inserting ${collectionName} chunk (~${Math.round(size / 1024)} KB)`);
+            archiveDocs.push(doc);
+          });
+        };
+
+        // 3. Load and archive each collection
+        addChunks("electionConfig", removeImageField(await db.collection("election_config").find({}).toArray()));
+        addChunks("candidates", removeImageField(await db.collection("candidates").find({}).toArray()));
+        addChunks("candidates_lsc", removeImageField(await db.collection("candidates_lsc").find({}).toArray()));
+        addChunks("registeredVoters", removeImageField(await db.collection("registered_voters").find({}).toArray()));
+        addChunks("voterTurnout", removeImageField(await db.collection("voter_turnout").find({}).toArray()));
+        addChunks("voteTally", removeImageField(await db.collection("vote_tally").find({}).toArray()));
+        addChunks("results", removeImageField(await db.collection("results").find({}).toArray()));
+
+        // 4. Save all chunks
+        for (const doc of archiveDocs) {
+          await db.collection("election_archive").insertOne(doc);
+        }
+
+        // 5. Reset flags
         await db.collection("electionConfig").updateOne({}, { $set: { candidatesSubmitted: false } }, { upsert: true });
 
         const defaultElectionConfig = {
@@ -5080,110 +5148,19 @@ const startServer = async () => {
           votingEnd: { $date: "" },
           partylists: ["Independent"],
           colleges: [
-            {
-              acronym: "CAFA",
-              name: "College of Architecture and Fine Arts",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "CAL",
-              name: "College of Arts and Letters",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "CBEA",
-              name: "College of Business Education and Accountancy",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "CCJE",
-              name: "College of Criminal Justice Education",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "COE",
-              name: "College of Engineering",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "COED",
-              name: "College of Education",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "CHTM",
-              name: "College of Hospitality and Tourism Management",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "CIT",
-              name: "College of Industrial Technology",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "CICT",
-              name: "College of Information and Communications Technology",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "CON",
-              name: "College of Nursing",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "CS",
-              name: "College of Science",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "CSSP",
-              name: "College of Social Sciences and Philosophy",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
-            {
-              acronym: "CSER",
-              name: "College of Sports, Exercise, and Recreation",
-              numberOfStudents: 0,
-              notRegisteredNotVoted: 0,
-              registeredNotVoted: 0,
-              registeredVoted: 0,
-            },
+            { acronym: "CAFA", name: "College of Architecture and Fine Arts", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "CAL", name: "College of Arts and Letters", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "CBEA", name: "College of Business Education and Accountancy", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "CCJE", name: "College of Criminal Justice Education", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "COE", name: "College of Engineering", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "COED", name: "College of Education", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "CHTM", name: "College of Hospitality and Tourism Management", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "CIT", name: "College of Industrial Technology", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "CICT", name: "College of Information and Communications Technology", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "CON", name: "College of Nursing", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "CS", name: "College of Science", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "CSSP", name: "College of Social Sciences and Philosophy", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
+            { acronym: "CSER", name: "College of Sports, Exercise, and Recreation", numberOfStudents: 0, notRegisteredNotVoted: 0, registeredNotVoted: 0, registeredVoted: 0 },
           ],
           fakeCurrentDate: new Date(),
           updatedAt: { $date: "" },
@@ -5196,14 +5173,10 @@ const startServer = async () => {
           totalRegisteredVoted: 0,
           totalCandidates: 0,
         };
-        // NEW FEATURE: Reset election_config to default values.
-        await db.collection("election_config").updateOne({}, { $set: defaultElectionConfig });
 
-        // 6. (Optional) Delete the current election data.
+        await db.collection("election_config").updateOne({}, { $set: defaultElectionConfig });
         await db.collection("registered_voters").deleteMany({});
         await contract.resetCandidates();
-
-        // Log the archiving activity (assuming logActivity is defined)
         await logActivity("system_activity_logs", "Reset Election Archiving", "Admin", req, "Archived election data.");
 
         res.redirect("/reset?reset=success");
@@ -5326,11 +5299,31 @@ const startServer = async () => {
       try {
         const electionConfigCollection = db.collection("election_config");
         let electionConfig = await electionConfigCollection.findOne({});
-        const archives = await db.collection("election_archive").find({}).toArray();
-
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
-        res.render("admin/archives", { archives, electionConfig, loggedInAdmin: req.session.admin, moment });
+
+        const archives = await db
+          .collection("election_archive")
+          .aggregate([
+            {
+              $group: {
+                _id: "$groupId",
+                electionName: { $first: "$electionName" },
+                electionStatus: { $first: "$electionStatus" },
+                archivedAt: { $first: "$archivedAt" },
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { archivedAt: -1 } },
+          ])
+          .toArray();
+
+        res.render("admin/archives", {
+          archives,
+          electionConfig,
+          loggedInAdmin: req.session.admin,
+          moment,
+        });
       } catch (error) {
         console.error("Error fetching archives:", error);
         res.status(500).send("Internal Server Error");
@@ -5341,75 +5334,62 @@ const startServer = async () => {
     app.get("/api/download-archive/:id/all/:format", async (req, res) => {
       try {
         const { id, format } = req.params;
-        console.log(`📥 Received request to download all sections for archive ID: ${id} in ${format.toUpperCase()} format`);
+        const groupId = new ObjectId(id);
 
         if (!["json", "csv"].includes(format)) {
-          console.log("❌ Invalid format requested:", format);
           return res.status(400).send("Invalid format requested");
         }
 
-        const archive = await db.collection("election_archive").findOne({ _id: new ObjectId(id) });
-        if (!archive) {
-          console.log("❌ Archive not found for ID:", id);
+        const archiveChunks = await db.collection("election_archive").find({ groupId }).toArray();
+        if (archiveChunks.length === 0) {
           return res.status(404).send("Archive not found");
         }
 
-        // Log all keys available in the archive document
-        console.log("✅ Archive found! Available sections:", Object.keys(archive));
+        // Rebuild full archive
+        const archive = {
+          electionName: archiveChunks[0].electionName,
+          electionStatus: archiveChunks[0].electionStatus,
+          archivedAt: archiveChunks[0].archivedAt,
+        };
 
-        // List of expected sections
-        const sections = ["electionConfig", "candidates", "candidates_lsc", "registeredVoters", "voterTurnout", "voterTally", "voterResults"];
-
-        // Filter out missing sections (in your file, only "electionConfig" and "candidates" exist)
-        const existingSections = sections.filter((section) => archive.hasOwnProperty(section));
-        console.log("📂 Sections to be included in ZIP:", existingSections);
-
-        if (existingSections.length === 0) {
-          console.log("❌ No valid sections found for this archive.");
-          return res.status(400).send("No valid sections found for this archive.");
+        const sectionMap = {};
+        for (const chunk of archiveChunks) {
+          const section = chunk.collection;
+          if (!sectionMap[section]) sectionMap[section] = [];
+          sectionMap[section].push(...chunk.data);
         }
 
-        // Set up headers for ZIP file
-        res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_all_${format}.zip`);
+        Object.assign(archive, {
+          electionConfig: sectionMap["electionConfig"] || [],
+          candidates: sectionMap["candidates"] || [],
+          candidates_lsc: sectionMap["candidates_lsc"] || [],
+          registeredVoters: sectionMap["registeredVoters"] || [],
+          voterTurnout: sectionMap["voterTurnout"] || [],
+          voterTally: sectionMap["voterTally"] || [],
+          voterResults: sectionMap["results"] || [],
+        });
+
+        // ZIP setup
+        res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_all.${format}.zip`);
         res.setHeader("Content-Type", "application/zip");
 
         const zipArchive = archiver("zip");
         zipArchive.pipe(res);
 
-        // Track number of files added
-        let filesAdded = 0;
+        const sections = Object.keys(archive).filter((key) => Array.isArray(archive[key]));
 
-        for (const section of existingSections) {
-          let content;
-          let fileName = `${section}.${format}`;
-          try {
-            if (format === "json") {
-              content = JSON.stringify(archive[section], null, 2);
-            } else {
-              let data = archive[section];
-              let dataArray = Array.isArray(data) ? data : [data];
-              const json2csvParser = new Parser();
-              content = json2csvParser.parse(dataArray);
-              console.log(`✅ Successfully converted ${section} to CSV`);
-            }
-            zipArchive.append(content, { name: fileName });
-            console.log(`📎 Added ${fileName} to ZIP`);
-            filesAdded++;
-          } catch (error) {
-            console.error(`❌ Error processing ${section}:`, error);
-          }
-        }
+        for (const section of sections) {
+          const data = archive[section];
+          const content = format === "json" ? JSON.stringify(data, null, 2) : new Parser().parse(data);
 
-        if (filesAdded === 0) {
-          console.log("❌ No files were added to the ZIP. Ending request.");
-          return res.status(500).send("Failed to generate ZIP file.");
+          const fileName = `${section}.${format}`;
+          zipArchive.append(content, { name: fileName });
         }
 
         zipArchive.finalize();
-        console.log("📦 ZIP file finalized and sent to client.");
       } catch (error) {
         console.error("❌ Error exporting archive all sections:", error);
-        return res.status(500).send("Internal Server Error");
+        res.status(500).send("Internal Server Error");
       }
     });
 
@@ -5417,35 +5397,33 @@ const startServer = async () => {
     app.get("/api/download-archive/:id/:section/:format", async (req, res) => {
       try {
         const { id, section, format } = req.params;
+        const groupId = new ObjectId(id);
+
         if (!["json", "csv"].includes(format)) {
           return res.status(400).send("Invalid format requested");
         }
-        const archive = await db.collection("election_archive").findOne({ _id: new ObjectId(id) });
-        if (!archive) return res.status(404).send("Archive not found");
-        if (!archive.hasOwnProperty(section)) return res.status(400).send("Invalid section requested");
 
-        const data = archive[section];
+        const chunks = await db.collection("election_archive").find({ groupId, collection: section }).sort({ chunkIndex: 1 }).toArray();
+
+        if (chunks.length === 0) {
+          return res.status(404).send("Archive section not found");
+        }
+
+        const data = chunks.flatMap((chunk) => chunk.data);
 
         if (format === "json") {
           res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_${section}.json`);
           res.setHeader("Content-Type", "application/json");
           return res.send(JSON.stringify(data, null, 2));
         } else {
-          let dataArray = Array.isArray(data) ? data : [data];
-          try {
-            const json2csvParser = new Parser();
-            const csv = json2csvParser.parse(dataArray);
-            res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_${section}.csv`);
-            res.setHeader("Content-Type", "text/csv");
-            return res.send(csv);
-          } catch (csvError) {
-            console.error("CSV conversion error:", csvError);
-            return res.status(500).send("Error converting data to CSV");
-          }
+          const csv = new Parser().parse(data);
+          res.setHeader("Content-Disposition", `attachment; filename=archive_${id}_${section}.csv`);
+          res.setHeader("Content-Type", "text/csv");
+          return res.send(csv);
         }
       } catch (error) {
         console.error("Error exporting archive section:", error);
-        return res.status(500).send("Internal Server Error");
+        res.status(500).send("Internal Server Error");
       }
     });
 
