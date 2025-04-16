@@ -122,36 +122,80 @@
   position: relative; /* Positioning context for the modal */
 }
 
-/* Modal styling applied directly to .hashes-container */
+/* 1. Outer modal container (absolute positioning in viewport) */
 .hashes-container.modal {
-  display: none; /* Hidden by default */
-  position: absolute; /* Positioned relative to .main */
+  position: absolute;
   z-index: 1000;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 80%; /* Adjust as needed */
-  background-color: #fefefe; /* Modal background */
-  padding: 20px;
+  width: 80%;
+  height: 80vh; /* or any other fixed height */
+  background-color: #fefefe;
   border: 1px solid #888;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  /* Remove internal padding so .modal-content can fill entirely */
+  display: none;
 }
 
-/* Style the close button */
+/* 2. Modal content - relative to the outer container */
+.modal-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 20px; /* adjust as needed */
+  box-sizing: border-box;
+}
+
+/* 3. Close button - can remain the same */
 .close-modal {
-  color: #aaa;
   position: absolute;
   top: 10px;
   right: 15px;
   font-size: 28px;
   font-weight: bold;
+  color: #aaa;
   cursor: pointer;
 }
-
 .close-modal:hover,
 .close-modal:focus {
   color: #000;
   text-decoration: none;
+}
+
+/* 4. The header area (.top-bar) and grid-wrapper - normal flow inside modal-content */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.grid-wrapper {
+  /* Give enough bottom padding so that content doesn't hide behind the pagination */
+  padding-bottom: 60px; /* or more if your pagination is taller */
+  overflow-y: auto;
+  height: calc(100% - 150px); /* Adjust if needed: total height minus header+footer height */
+}
+
+/* 5. Pagination - absolutely positioned at the bottom of the modal content */
+.pagination {
+  position: absolute;
+  bottom: 20px; /* Match this value with modal-content padding */
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid #ccc; /* optional */
+  padding-top: 1rem;
+  box-sizing: border-box;
+}
+
+/* Example pagination buttons styling */
+#prevBtn,
+#nextBtn {
+  margin: 0 1rem;
 }
 
 .campus {

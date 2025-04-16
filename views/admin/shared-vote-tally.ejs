@@ -440,32 +440,34 @@
 </script>
 
 <!-- sample voter ids form -->
-<!-- Modal wrapper -->
 <div class="hashes-container modal">
-  <span class="close-modal">&times;</span>
-  <h2 class="hashes-title">List of Transaction Hashes for "John Doe"</h2>
-  <div class="top-bar">
-    <strong>
-      <h3 class="total-votes">Total Votes: <span id="totalVotes"></span></h3>
-    </strong>
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="Search..." />
-      <button id="searchBtn">
-        <i class="fa fa-search"></i>
-      </button>
-    </div>
-  </div>
+  <div classs="modal-content">
 
-  <div class="grid-wrapper">
-    <div class="hashes-grid" id="hashesGrid">
-      <div class="id"><!-- The 3-column listing of transaction hashes goes here --></div>
+    <span class="close-modal">&times;</span>
+    <h2 class="hashes-title">List of Transaction Hashes for "John Doe"</h2>
+    <div class="top-bar">
+      <strong>
+        <h3 class="total-votes">Total Votes: <span id="totalVotes"></span></h3>
+      </strong>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search..." />
+        <button id="searchBtn">
+          <i class="fa fa-search"></i>
+        </button>
+      </div>
     </div>
-  </div>
 
-  <div class="pagination">
-    <button id="prevBtn">&lt;</button>
-    <span id="pageInfo">Page 1 of 1</span>
-    <button id="nextBtn">&gt;</button>
+    <div class="grid-wrapper">
+      <div class="hashes-grid" id="hashesGrid">
+        <div class="id"><!-- The 3-column listing of transaction hashes goes here --></div>
+      </div>
+    </div>
+
+    <div class="pagination">
+      <button id="prevBtn">&lt;</button>
+      <span id="pageInfo">Page 1 of 1</span>
+      <button id="nextBtn">&gt;</button>
+    </div>
   </div>
 </div>
 
