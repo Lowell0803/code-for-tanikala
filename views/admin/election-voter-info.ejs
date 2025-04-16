@@ -135,7 +135,7 @@ tr.odd {
                   </tr>
                 <% }); %>
               <% } else { %>
-                <tr>
+                <tr class="no-data-row">
                   <td colspan="8" style="text-align: center">No registered voters found.</td>
                 </tr>
               <% } %>
@@ -188,11 +188,21 @@ tr.odd {
     
       // Function to reset row numbers
       function resetRowNumbers() {
-        const rows = table.querySelectorAll("tbody tr");
-        rows.forEach((row, index) => {
-          row.cells[0].textContent = index + 1; // Update the "No." column to be ascending
-        });
+  const rows = table.querySelectorAll("tbody tr");
+  let visibleCount = 0;
+  rows.forEach((row) => {
+    if (row.style.display !== "none") {
+      // If it is the no-data row, leave the content as is (or clear it)
+      if (row.classList.contains("no-data-row")) {
+        row.cells[0].textContent = "No registered voters found.";
+      } else {
+        visibleCount++;
+        row.cells[0].textContent = visibleCount;
       }
+    }
+  });
+}
+
     
       // Attach event listener to sorting dropdown
       document.getElementById("sortFilter").addEventListener("change", sortTable);
@@ -377,28 +387,27 @@ tr.odd {
       });
 
       function updateRowNumbersAndColors() {
-  const visibleRows = [];
   const allRows = table.querySelectorAll("tbody tr");
+  let visibleCount = 0;
   
   allRows.forEach((row) => {
-    // Only add rows that are still visible
     if (row.style.display !== "none") {
-      visibleRows.push(row);
-    }
-  });
-  
-  visibleRows.forEach((row, index) => {
-    // Update the numbering in the first cell
-    row.cells[0].textContent = index + 1;
-    
-    // Remove any existing class for alternating colors
-    row.classList.remove("even", "odd");
-    
-    // Add new class: even for rows with an even index (0, 2, 4…) and odd for odd indices (1, 3, 5…)
-    if (index % 2 === 0) {
-      row.classList.add("even");
-    } else {
-      row.classList.add("odd");
+      // If it has the class "no-data-row", skip numbering
+      if (row.classList.contains("no-data-row")) {
+        // Optionally clear the first cell’s content
+        row.cells[0].textContent = "";
+        return;
+      }
+
+      visibleCount++;
+      row.cells[0].textContent = visibleCount;
+
+      row.classList.remove("even", "odd");
+      if ((visibleCount - 1) % 2 === 0) {
+        row.classList.add("even");
+      } else {
+        row.classList.add("odd");
+      }
     }
   });
 }
