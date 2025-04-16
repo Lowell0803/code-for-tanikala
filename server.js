@@ -1823,7 +1823,7 @@ const startServer = async () => {
         // Send the OTP via email using SendGrid
         const msg = {
           to: req.user.email,
-          from: process.env.SENDGRID_FROM_EMAIL,
+          from: "noreply@tanikala-bulsu.com",
           subject: "Your OTP Code for Voting",
           text: `Your OTP code is ${otp}. It is valid for 5 minutes.`,
         };
@@ -1929,7 +1929,7 @@ const startServer = async () => {
         // Send the OTP via email using SendGrid
         const msg = {
           to: req.user.email,
-          from: process.env.SENDGRID_FROM_EMAIL,
+          from: "noreply@tanikala-bulsu.com",
           subject: "Your OTP Code for Voting (Resent)",
           text: `Your new OTP code is ${otp}. It is valid for 5 minutes.`,
         };
@@ -5068,17 +5068,33 @@ const startServer = async () => {
           end: electionConfig.votingEnd,
         };
 
+        // BEFORE archiving, update and store additional election data
         await saveVoterTurnoutData();
         await saveVoteTallyData();
         await saveResultsData();
 
-        // 🔧 Helpers
-        const removeImageField = (docs) =>
-          docs.map((doc) => {
-            delete doc.image;
-            return doc;
-          });
+        // 🔧 Helper functions
 
+        // Recursively remove the "image" field from objects/arrays
+        const removeImageFieldsDeep = (obj) => {
+          if (Array.isArray(obj)) {
+            return obj.map(removeImageFieldsDeep);
+          } else if (obj && typeof obj === "object") {
+            const result = {};
+            for (const [key, value] of Object.entries(obj)) {
+              if (key !== "image") {
+                result[key] = removeImageFieldsDeep(value);
+              }
+            }
+            return result;
+          }
+          return obj;
+        };
+
+        // Remove image field from each document in an array
+        const removeImageField = (docs) => docs.map(removeImageFieldsDeep);
+
+        // Break documents into chunks based on BSON size limit (default: ~15MB)
         const chunkByBsonSize = (docs, maxSizeInBytes = 15 * 1024 * 1024) => {
           const chunks = [];
           let currentChunk = [];
@@ -5101,10 +5117,12 @@ const startServer = async () => {
 
         const archiveDocs = [];
 
+        // Push data from a collection into the archiveDocs array after chunking.
+        // If no documents exist, store an archive record with an empty array.
         const addChunks = (collectionName, data) => {
-          const chunks = chunkByBsonSize(data);
-          chunks.forEach((chunk, index) => {
-            const doc = {
+          if (!data.length) {
+            // Archive an explicit empty record.
+            archiveDocs.push({
               groupId,
               archivedAt: new Date(),
               electionName,
@@ -5112,16 +5130,32 @@ const startServer = async () => {
               registrationPeriod,
               votingPeriod,
               collection: collectionName,
-              chunkIndex: index,
-              data: chunk,
-            };
-            const size = bson.calculateObjectSize(doc);
-            console.log(`📦 Inserting ${collectionName} chunk (~${Math.round(size / 1024)} KB)`);
-            archiveDocs.push(doc);
-          });
+              chunkIndex: 0,
+              data: [],
+            });
+            console.log(`📦 Inserting ${collectionName} chunk (empty)`);
+          } else {
+            const chunks = chunkByBsonSize(data);
+            chunks.forEach((chunk, index) => {
+              const doc = {
+                groupId,
+                archivedAt: new Date(),
+                electionName,
+                electionStatus,
+                registrationPeriod,
+                votingPeriod,
+                collection: collectionName,
+                chunkIndex: index,
+                data: chunk,
+              };
+              const size = bson.calculateObjectSize(doc);
+              console.log(`📦 Inserting ${collectionName} chunk (~${Math.round(size / 1024)} KB)`);
+              archiveDocs.push(doc);
+            });
+          }
         };
 
-        // 3. Load and archive each collection
+        // 3. Load and archive each collection, ensuring even empty collections are archived:
         addChunks("electionConfig", removeImageField(await db.collection("election_config").find({}).toArray()));
         addChunks("candidates", removeImageField(await db.collection("candidates").find({}).toArray()));
         addChunks("candidates_lsc", removeImageField(await db.collection("candidates_lsc").find({}).toArray()));
@@ -5130,12 +5164,12 @@ const startServer = async () => {
         addChunks("voteTally", removeImageField(await db.collection("vote_tally").find({}).toArray()));
         addChunks("results", removeImageField(await db.collection("results").find({}).toArray()));
 
-        // 4. Save all chunks
+        // 4. Save all archive chunks to the "election_archive" collection
         for (const doc of archiveDocs) {
           await db.collection("election_archive").insertOne(doc);
         }
 
-        // 5. Reset flags
+        // 5. Reset flags and update election configuration document
         await db.collection("electionConfig").updateOne({}, { $set: { candidatesSubmitted: false } }, { upsert: true });
 
         const defaultElectionConfig = {
@@ -5175,14 +5209,70 @@ const startServer = async () => {
         };
 
         await db.collection("election_config").updateOne({}, { $set: defaultElectionConfig });
+
+        // 6. (Optional) Delete the current election data
         await db.collection("registered_voters").deleteMany({});
         await contract.resetCandidates();
+
+        // Log the archiving activity (assuming logActivity is defined)
         await logActivity("system_activity_logs", "Reset Election Archiving", "Admin", req, "Archived election data.");
 
         res.redirect("/reset?reset=success");
       } catch (error) {
         console.error("Error in reset-election route:", error);
         res.status(500).send("Error resetting election.");
+      }
+    });
+
+    app.post("/reset-election/request-otp", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        console.log("🔐 [RESET OTP] OTP request received.");
+
+        const { password } = req.body;
+        console.log("🧪 [RESET OTP] Submitted password:", password);
+
+        if (!req.session.admin) {
+          console.error("❌ [RESET OTP] No admin session found.");
+          return res.status(401).json({ error: "Unauthorized: Admin session not found." });
+        }
+
+        console.log("👤 [RESET OTP] Admin session email:", req.session.admin.email);
+        console.log("🔍 [RESET OTP] Stored admin password:", req.session.admin.password);
+
+        if (!password || password !== req.session.admin.password) {
+          console.warn("⚠️ [RESET OTP] Password mismatch.");
+          return res.status(400).json({ error: "Invalid password." });
+        }
+
+        const electionConfig = await db.collection("election_config").findOne({});
+        console.log("🗳️ [RESET OTP] Loaded election config.");
+
+        // Generate a hardcoded OTP for testing
+        // const hardcodedOtps = ["123456", "654321", "111222"];
+        // const otp = hardcodedOtps[Math.floor(Math.random() * hardcodedOtps.length)];
+        // Generate a random 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        req.session.otp = otp;
+        req.session.otpExpires = Date.now() + 5 * 60 * 1000; // valid for 5 minutes
+
+        console.log("🔐 [RESET OTP] Generated OTP:", otp);
+
+        const msg = {
+          to: req.session.admin.email,
+          from: "noreply@tanikala-bulsu.com",
+          subject: "Your OTP Code for Election Reset",
+          text: `Your OTP code is ${otp}. It is valid for 5 minutes.`,
+        };
+
+        console.log("📧 [RESET OTP] Sending OTP email via SendGrid...");
+        await sgMail.send(msg);
+        console.log(`✅ [RESET OTP] OTP sent to ${req.session.admin.email}`);
+
+        res.status(200).json({ message: "OTP sent to your email." });
+      } catch (error) {
+        console.error("❌ [RESET OTP] Error sending OTP for election reset:", error);
+        res.status(500).json({ error: "Failed to send OTP. Please try again." });
       }
     });
 
