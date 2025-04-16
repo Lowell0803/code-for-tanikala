@@ -58,12 +58,12 @@
 <br />
 <div id="new-password-section" style="display: none;">
   <!-- Old Password Field -->
-  <div class="field" style="width: 100%; display: flex; align-items: center; margin-top: 0.1rem;">
-    <label for="old-password" style="white-space: nowrap;">Password:</label>
-    <div class="password-wrapper" style="position: relative; width: 100%;">
-      <input type="password" id="old-password" name="oldPassword" placeholder="Old Password" disabled style="width: 100%; padding-right: 2rem;" />
-      <span class="toggle-password" onclick="togglePassword('old-password')" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); cursor: pointer;">
-        <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+  <div>
+    <label for="old-password">Old Password:</label>
+    <div style="position: relative;">
+      <input type="password" id="old-password" name="oldPassword" placeholder="Old Password" disabled />
+      <span class="toggle-password" onclick="togglePassword('old-password')" style="position: absolute;">
+        <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
           <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 13c-3.04 0-5.5-2.46-5.5-5.5S8.96 6.5 12 6.5s5.5 2.46 5.5 5.5-2.46 5.5-5.5 5.5z"/>
           <circle cx="12" cy="12" r="2.5"/>
         </svg>
@@ -73,11 +73,11 @@
 
   <!-- New Password Field -->
   <div style="width: 100%; margin-top: 1rem;">
-    <label for="new-password" style="display: block; margin-bottom: 0.25rem;">New Password:</label>
+    <label for="new-password" style="display: inline-block; white-space: nowrap; width: 20%;">New Password:</label>
     <div style="position: relative; width: 100%;">
       <input type="password" id="new-password" name="newPassword" placeholder="New Password" disabled style="width: 100%; padding-right: 2rem;" />
       <span class="toggle-password" onclick="togglePassword('new-password')" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); cursor: pointer;">
-        <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+        <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
           <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 13c-3.04 0-5.5-2.46-5.5-5.5S8.96 6.5 12 6.5s5.5 2.46 5.5 5.5-2.46 5.5-5.5 5.5z"/>
           <circle cx="12" cy="12" r="2.5"/>
         </svg>
@@ -87,11 +87,11 @@
 
   <!-- Confirm New Password Field -->
   <div style="width: 100%; margin-top: 1rem;">
-    <label for="confirm-new-password" style="display: block; margin-bottom: 0.25rem;">Confirm New Password:</label>
+    <label for="confirm-new-password" style="display: inline-block; white-space: nowrap; width: 10%;">Confirm New Password:</label>
     <div style="position: relative; width: 100%;">
       <input type="password" id="confirm-new-password" placeholder="Confirm New Password" disabled style="width: 100%; padding-right: 2rem;" />
       <span class="toggle-password" onclick="togglePassword('confirm-new-password')" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); cursor: pointer;">
-        <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+        <svg class="input-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
           <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 13c-3.04 0-5.5-2.46-5.5-5.5S8.96 6.5 12 6.5s5.5 2.46 5.5 5.5-2.46 5.5-5.5 5.5z"/>
           <circle cx="12" cy="12" r="2.5"/>
         </svg>

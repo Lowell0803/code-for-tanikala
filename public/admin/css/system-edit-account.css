@@ -22,7 +22,7 @@
 #img-admin {
   width: 9rem;
   height: 9rem;
-  border: 0.2rem solid rgba(58, 27, 5, 0.677);
+  border: 0.03rem solid #28303b9d;
 }
 
 /* .main > div {
@@ -60,7 +60,7 @@
 
 #form-details div {
   display: flex;
-  margin-top: 3%;
+  margin-top: 5%;
 }
 
 #form-details > div label {
@@ -70,11 +70,20 @@
 
 #form-details > div input {
   min-width: 70%;
-  height: 2.5em;
-  background-color: var(--background-light-yellow);
+  height: 2rem;
+  background-color: white;
   color: black;
   border: none;
+  border-radius: 0.5rem;
+  border: 0.03rem solid #28303b9d;
   padding: 0 3%;
+  outline: 0;
+}
+
+input:hover,
+input:focus {
+  border: 0.149rem solid rgb(58, 58, 175) !important;
+  /* box-shadow: 0 0 12px 2px rgba(59, 59, 208, 0.388); */
 }
 
 #button-edit,
@@ -116,8 +125,8 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  background: rgb(249, 247, 247);
-  border: 0.2rem solid rgb(128, 127, 127);
+  background: #f3e9d2;
+  border: 0.15rem solid #28303b99;
   border-radius: 1rem;
   padding: 2rem;
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
@@ -178,7 +187,7 @@
 }
 
 .details {
-  color: #bb7e15;
+  color: #28303b;
 }
 
 .buttons {
@@ -194,6 +203,10 @@
 .buttons {
 }
 
+.change {
+  color: blue;
+}
+
 /* .input-icon {  
   border: 1px solid black;
 } */
@@ -205,3 +218,97 @@
 .admin-role {
   color: #f2ddb4;
 } */
+
+/* Reset any default margin/padding on labels within the new password section */
+#new-password-section label {
+  margin: 0;
+  padding: 0;
+}
+
+/* Make all labels inline-block and assign a consistent width */
+#new-password-section label {
+  display: inline-block;
+  width: 140px; /* adjust the width as needed */
+  vertical-align: middle;
+}
+
+/* For the fields that originally used block label, wrap them in a flex container */
+#new-password-section .field,
+#new-password-section .password-field {
+  display: flex;
+  align-items: center;
+}
+
+/* If you are not wrapping the second and third fields in a flex container,
+     you can force the label and input to use the same inline-block layout */
+#new-password-section > div {
+  /* This applies to all immediate div children of #new-password-section that hold a field */
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* For the input container – ensuring it takes up the remaining space */
+#new-password-section .password-wrapper,
+#new-password-section [style*="position: relative"] {
+  position: relative;
+  width: calc(100% - 140px); /* subtract the label width */
+}
+
+/* Ensure inputs are full-width in their container */
+#new-password-section input {
+  width: 100%;
+  padding-right: 2rem;
+}
+
+label {
+  border: 1px solid black;
+}
+
+#new-password-section .field {
+  display: flex;
+  flex-wrap: wrap; /* allows label to move above if it's too long */
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+#new-password-section .field label {
+  width: 140px; /* same label width as others */
+  min-width: 140px;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+  text-align: right;
+}
+
+#new-password-section .password-wrapper {
+  position: relative;
+  flex: 1;
+  width: auto;
+}
+
+#new-password-section input[type="password"] {
+  width: 100%;
+  padding-right: 2rem;
+}
+
+#new-password-section .toggle-password {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+/* Optional: Responsive tweak to drop label on smaller screens */
+@media (max-width: 480px) {
+  #new-password-section .field {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #new-password-section .field label {
+    text-align: left;
+    margin-bottom: 0.25rem;
+  }
+}
