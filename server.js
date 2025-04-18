@@ -217,14 +217,36 @@ agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }
     await db.collection("blockchain_management").updateOne(
       {},
       {
-        $set: { latestVoteCost: voteCostInPOL },
+        $set: {
+          // — Overwrite with the latest single‑vote metrics —
+          latestVoteCostInGas: gasUsed,
+          latestVoteCostInWei: voteCost,
+          latestVoteCostInPol: voteCostInPOL,
+          latestVoteCostInPHP: amountSpentPHP,
+          latestVoteCostInUSD: amountSpentUSD,
+
+          latestVoteTimeStamp: new Date(),
+          latestVoteHash: receipt.hash, // use an array if you ever batch
+        },
         $inc: {
-          voteTransactionsCount: 1,
-          totalGasUsed: gasUsed,
-          totalWeiSpent: voteCost,
-          totalAmountSpentPol: voteCostInPOL,
-          totalAmountSpentUSD: amountSpentUSD,
-          totalAmountSpentPHP: amountSpentPHP,
+          // — Per‑operation counters —
+          voteCount: 1, // how many votes processed (total)
+
+          // — Current‑election accumulators (reset when a new election starts) —
+          currentElectionVoteCount: 1,
+          currentElectionVoteCostInGas: gasUsed,
+          currentElectionVoteCostInWei: voteCost,
+          currentElectionVoteCostInPol: voteCostInPOL,
+          currentElectionVoteCostInPHP: amountSpentPHP,
+          currentElectionVoteCostInUSD: amountSpentUSD,
+
+          // — Lifetime totals (never reset) —
+          totalCount: 1,
+          totalCostInGas: gasUsed,
+          totalCostInWei: voteCost,
+          totalCostInPol: voteCostInPOL,
+          totalCostInPHP: amountSpentPHP,
+          totalCostInUSD: amountSpentUSD,
         },
       }
     );
@@ -1425,9 +1447,61 @@ const startServer = async () => {
         // Extract candidate unique IDs (assumed to be valid 32-byte hex strings)
         const candidateIds = aggregatedCandidates.map((candidate) => candidate.uniqueId);
 
-        // Reset candidates on blockchain
+        // Reset candidates on blockchain and wait for the transaction receipt
         const resetTx = await contract.resetCandidates();
-        await resetTx.wait();
+        const resetReceipt = await resetTx.wait();
+
+        // Fetch current crypto prices for conversion at the time of the operation
+        const cryptoPrices = await getCryptoPrices();
+
+        // Compute gas usage and cost for the reset transaction
+        const resetGasUsed = Number(resetReceipt.gasUsed);
+        const resetGasPrice = Number(resetReceipt.gasPrice);
+        const resetCostWei = resetGasUsed * resetGasPrice;
+        const resetCostInPOL = resetCostWei / 1e18;
+
+        // Calculate cost in PHP and USD using the prices available at the time of operation
+        const resetCostPHP = cryptoPrices && cryptoPrices.polPricePhp ? parseFloat((resetCostInPOL * cryptoPrices.polPricePhp).toFixed(2)) : "N/A";
+        const resetCostUSD = cryptoPrices && cryptoPrices.polPriceUsd ? parseFloat((resetCostInPOL * cryptoPrices.polPriceUsd).toFixed(2)) : "N/A";
+
+        // Update the blockchain_management collection rewc
+        await db.collection("blockchain_management").updateOne(
+          {},
+          {
+            $set: {
+              // Latest “Reset” metrics
+              latestResetCostInGas: resetGasUsed,
+              latestResetCostInWei: resetCostWei,
+              latestResetCostInPol: resetCostInPOL,
+              latestResetCostInPHP: resetCostPHP,
+              latestResetCostInUSD: resetCostUSD,
+
+              latestResetTimeStamp: new Date(),
+              latestResetHash: resetReceipt.hash, // or array of hashes if needed
+            },
+            $inc: {
+              // 1) Per‐call count
+              ResetCount: 1,
+
+              // 2) Accumulate during _this_ election
+              currentElectionResetCount: 1,
+              currentElectionResetCostInGas: resetGasUsed,
+              currentElectionResetCostInWei: resetCostWei,
+              currentElectionResetCostInPol: resetCostInPOL,
+              currentElectionResetCostInPHP: resetCostPHP,
+              currentElectionResetCostInUSD: resetCostUSD,
+
+              // 3) Lifetime totals (never reset)
+              totalCount: 1,
+              totalCostInGas: resetGasUsed,
+              totalCostInWei: resetCostWei,
+              totalCostInPol: resetCostInPOL,
+              totalCostInPHP: resetCostPHP,
+              totalCostInUSD: resetCostUSD,
+            },
+          },
+          { upsert: true }
+        );
 
         // Batch the registration transactions to avoid high fees.
         const BATCH_SIZE = 125; // adjust as needed
@@ -1496,14 +1570,36 @@ const startServer = async () => {
         await db.collection("blockchain_management").updateOne(
           {},
           {
-            $set: candidateSubmissionData,
+            $set: {
+              // Latest “SubmitCandidates” metrics
+              latestSubmitCandidatesCostInGas: totalGasUsed,
+              latestSubmitCandidatesCostInWei: candidateCostWei,
+              latestSubmitCandidatesCostInPol: candidateCostInPOL,
+              latestSubmitCandidatesCostInPHP: candidateCostPHP,
+              latestSubmitCandidatesCostInUSD: candidateCostUSD,
+
+              latestSubmitCandidatesTimeStamp: new Date(),
+              latestSubmitCandidatesHash: receipts.map((r) => r.hash),
+            },
             $inc: {
-              candidateSubmissionsCount: 1,
-              totalGasUsedInCandidates: totalGasUsed,
-              totalWeiSpentInCandidates: candidateCostWei,
-              totalAmountSpentInCandidatesPol: candidateCostInPOL,
-              totalAmountSpentInCandidatesUSD: candidateCostUSD === "N/A" ? 0 : candidateCostUSD,
-              totalAmountSpentInCandidatesPHP: candidateCostPHP === "N/A" ? 0 : candidateCostPHP,
+              // 1) Per‑call count
+              SubmitCandidatesCount: 1,
+
+              // 2) Accumulate during _this_ election
+              currentElectionSubmitCandidatesCount: 1,
+              currentElectionSubmitCandidatesCostInGas: totalGasUsed,
+              currentElectionSubmitCandidatesCostInWei: candidateCostWei,
+              currentElectionSubmitCandidatesCostInPol: candidateCostInPOL,
+              currentElectionSubmitCandidatesCostInPHP: candidateCostPHP,
+              currentElectionSubmitCandidatesCostInUSD: candidateCostUSD,
+
+              // 3) Lifetime totals (never reset)
+              totalCount: 1,
+              totalCostInGas: totalGasUsed,
+              totalCostInWei: candidateCostWei,
+              totalCostInPol: candidateCostInPOL,
+              totalCostInPHP: candidateCostPHP,
+              totalCostInUSD: candidateCostUSD,
             },
           },
           { upsert: true }
@@ -5315,21 +5411,35 @@ const startServer = async () => {
           {},
           {
             $set: {
-              lastResetTransactionHash: resetReceipt.hash,
-              lastResetDate: new Date(),
-              lastResetCostGas: totalGasUsed,
-              lastResetCostWei: resetCostWei,
-              lastResetCostPHP: resetCostPHP,
-              lastResetCostUSD: resetCostUSD,
-              lastResetCostInPOL: resetCostInPOL,
+              // — Latest “Reset” metrics —
+              latestResetCostInGas: totalGasUsed,
+              latestResetCostInWei: resetCostWei,
+              latestResetCostInPol: resetCostInPOL,
+              latestResetCostInPHP: resetCostPHP,
+              latestResetCostInUSD: resetCostUSD,
+
+              latestResetTimeStamp: new Date(),
+              latestResetHash: resetReceipt.hash, // or array if batched
             },
             $inc: {
-              candidateResetsCount: 1,
-              totalGasUsedInResets: totalGasUsed,
-              totalWeiSpentInResets: resetCostWei,
-              totalAmountSpentInResetsPol: resetCostInPOL,
-              totalAmountSpentInResetsUSD: resetCostUSD === "N/A" ? 0 : resetCostUSD,
-              totalAmountSpentInResetsPHP: resetCostPHP === "N/A" ? 0 : resetCostPHP,
+              // — Per‐call count —
+              ResetCount: 1,
+
+              // — Current‐election accumulators —
+              currentElectionResetCount: 1,
+              currentElectionResetCostInGas: totalGasUsed,
+              currentElectionResetCostInWei: resetCostWei,
+              currentElectionResetCostInPol: resetCostInPOL,
+              currentElectionResetCostInPHP: resetCostPHP,
+              currentElectionResetCostInUSD: resetCostUSD,
+
+              // — Lifetime totals —
+              totalCount: 1,
+              totalCostInGas: totalGasUsed,
+              totalCostInWei: resetCostWei,
+              totalCostInPol: resetCostInPOL,
+              totalCostInPHP: resetCostPHP,
+              totalCostInUSD: resetCostUSD,
             },
           },
           { upsert: true }
