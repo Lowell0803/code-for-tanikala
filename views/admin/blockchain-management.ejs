@@ -87,9 +87,9 @@
 
                   // Compute average vote cost per unit
                   if (blockchainMgmt && blockchainMgmt.voteCount > 0) {
-                    avgVoteCostPOL = blockchainMgmt.totalCostInPol / blockchainMgmt.voteCount;
-                    avgVoteCostUSD = blockchainMgmt.totalCostInUSD / blockchainMgmt.voteCount;
-                    avgVoteCostPHP = blockchainMgmt.totalCostInPHP / blockchainMgmt.voteCount;
+                    avgVoteCostPOL = blockchainMgmt.currentElectionVoteCostInPol / electionConfig.totalRegisteredVoted;
+                    avgVoteCostUSD = blockchainMgmt.currentElectionVoteCostInUSD / electionConfig.totalRegisteredVoted;
+                    avgVoteCostPHP = blockchainMgmt.currentElectionVoteCostInPHP / electionConfig.totalRegisteredVoted;
                   }
 
                   // Get latest reset cost

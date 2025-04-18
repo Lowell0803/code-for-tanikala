@@ -657,7 +657,7 @@ const startServer = async () => {
 
     app.post("/admin-login", async (req, res) => {
       try {
-        const { email, password } = req.body;
+        const { email, password, otp } = req.body;
         console.log("Login attempt for email:", email);
 
         // Find admin by email
@@ -676,13 +676,32 @@ const startServer = async () => {
           return res.redirect("/admin-login?error=invalid_credentials");
         }
 
+        // --- BEGIN OTP VERIFICATION ---
+        // Make sure an OTP was requested and hasn’t expired
+        if (!req.session.loginOtp || Date.now() > req.session.loginOtpExpires) {
+          console.warn("⚠️ [LOGIN OTP] No OTP in session or OTP expired for:", email);
+          return res.redirect("/admin-login?error=invalid_otp");
+        }
+
+        // Compare user‑submitted OTP vs. session
+        if (otp !== req.session.loginOtp) {
+          console.warn("⚠️ [LOGIN OTP] OTP mismatch for:", email, "submitted:", otp);
+          return res.redirect("/admin-login?error=invalid_otp");
+        }
+
+        // Clear OTP so it can’t be replayed
+        delete req.session.loginOtp;
+        delete req.session.loginOtpExpires;
+        console.log("✅ [LOGIN OTP] OTP verified for:", email);
+        // --- END OTP VERIFICATION ---
+
         // Store admin details in session
         req.session.admin = {
           id: admin._id,
           name: admin.name,
           email: admin.email,
           role: admin.role,
-          password: admin.password,
+          password: admin.password, // still storing if you really need it
           img: admin.img,
         };
 
@@ -699,6 +718,47 @@ const startServer = async () => {
       } catch (error) {
         console.error("Login error:", error);
         res.redirect("/admin-login?error=server_error");
+      }
+    });
+
+    app.post("/admin-login/request-otp", async (req, res) => {
+      try {
+        const { email } = req.body;
+        if (!email) {
+          return res.status(400).json({ error: "Email is required." });
+        }
+
+        // look up the admin in your users/admins collection
+        const adminUser = await db.collection("admin_accounts").findOne({ email });
+        if (!adminUser) {
+          console.warn("⚠️ [LOGIN OTP] No admin found with email:", email);
+          return res.status(404).json({ error: "Admin not found." });
+        }
+
+        // generate a 6‑digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // store in session for later verification
+        req.session.loginOtp = otp;
+        req.session.loginOtpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+        console.log(`🔐 [LOGIN OTP] Generated OTP ${otp} for ${email}`);
+
+        // send email via SendGrid
+        const msg = {
+          to: email,
+          from: "noreply@tanikala-bulsu.com",
+          subject: "Your TANIKALA Admin Login OTP",
+          text: `Your one‑time login code is ${otp}. It will expire in 5 minutes.`,
+        };
+
+        await sgMail.send(msg);
+        console.log(`✅ [LOGIN OTP] OTP email sent to ${email}`);
+
+        res.status(200).json({ message: "OTP sent to your email." });
+      } catch (err) {
+        console.error("❌ [LOGIN OTP] Error sending OTP:", err);
+        res.status(500).json({ error: "Failed to send OTP. Please try again." });
       }
     });
 
