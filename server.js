@@ -1469,6 +1469,7 @@ const startServer = async () => {
           {},
           {
             $set: {
+              recentlyReset: false,
               // Latest “Reset” metrics
               latestResetCostInGas: resetGasUsed,
               latestResetCostInWei: resetCostWei,
@@ -1571,6 +1572,7 @@ const startServer = async () => {
           {},
           {
             $set: {
+              recentlyResetCandidatesNotSubmitted: false,
               // Latest “SubmitCandidates” metrics
               latestSubmitCandidatesCostInGas: totalGasUsed,
               latestSubmitCandidatesCostInWei: candidateCostWei,
@@ -3310,6 +3312,8 @@ const startServer = async () => {
           });
         }
 
+        const uniqueGroupIds = await db.collection("election_archive").distinct("groupId");
+        const electionNumber = uniqueGroupIds.length;
         // Build the new configuration object.
         const update = {
           electionStatus: "ELECTION ACTIVE", // Immediately active when saved.
@@ -3322,6 +3326,7 @@ const startServer = async () => {
           partylists: partylistsArray,
           colleges: collegesArray,
           updatedAt: new Date(),
+          electionNumber,
         };
 
         // Calculate totals from the collegesArray
@@ -5265,6 +5270,48 @@ const startServer = async () => {
           await db.collection("election_archive").insertOne(doc);
         }
 
+        // 4.5 Archive current blockchain_management election-related fields
+        const blockchainSnapshot = await db.collection("blockchain_management").findOne({});
+        if (blockchainSnapshot) {
+          const { _id, ...fields } = blockchainSnapshot;
+
+          const archiveFields = {};
+          Object.entries(fields).forEach(([key, value]) => {
+            if (key.startsWith("currentElection") || key.startsWith("latest")) {
+              archiveFields[key] = value;
+            }
+          });
+
+          await db.collection("election_archive").insertOne({
+            groupId,
+            archivedAt: new Date(),
+            electionName,
+            electionStatus,
+            registrationPeriod,
+            votingPeriod,
+            collection: "blockchain_management",
+            chunkIndex: 0,
+            data: archiveFields,
+          });
+
+          console.log("🧾 Archived currentElection and latest blockchain stats.");
+        }
+
+        // 4.6 Reset blockchain_management currentElection and latest fields
+        const allResetFields = {};
+
+        Object.keys(blockchainSnapshot || {}).forEach((key) => {
+          if (key.startsWith("currentElection")) {
+            allResetFields[key] = typeof blockchainSnapshot[key] === "number" ? 0 : Array.isArray(blockchainSnapshot[key]) ? [] : null;
+          }
+          // if (key.startsWith("latest")) {
+          //   allResetFields[key] = typeof blockchainSnapshot[key] === "number" ? 0 : Array.isArray(blockchainSnapshot[key]) ? [] : null;
+          // }
+        });
+
+        await db.collection("blockchain_management").updateOne({}, { $set: allResetFields });
+        console.log("♻️ Reset currentElection and latest blockchain fields.");
+
         // 5. Reset flags and update election configuration document
         await db.collection("electionConfig").updateOne({}, { $set: { candidatesSubmitted: false } }, { upsert: true });
 
@@ -5308,7 +5355,50 @@ const startServer = async () => {
 
         // 6. (Optional) Delete the current election data
         await db.collection("registered_voters").deleteMany({});
-        await contract.resetCandidates();
+        // 6.5. Call resetCandidates and update blockchain_management with reset metrics
+        const resetTx = await contract.resetCandidates();
+        const resetReceipt = await resetTx.wait();
+
+        const gasUsed = Number(resetReceipt.gasUsed);
+        const gasPrice = Number(resetReceipt.gasPrice);
+        const resetCostWei = gasUsed * gasPrice;
+        const resetCostPol = resetCostWei / 1e18;
+
+        const cryptoPrices = await getCryptoPrices();
+        const polToUSD = cryptoPrices?.polPriceUsd || 0;
+        const polToPHP = cryptoPrices?.polPricePhp || 0;
+        const costUSD = resetCostPol * polToUSD;
+        const costPHP = resetCostPol * polToPHP;
+
+        // Update blockchain_management with reset-related metrics
+        await db.collection("blockchain_management").updateOne(
+          {},
+          {
+            $set: {
+              latestResetCostInGas: gasUsed,
+              latestResetCostInWei: resetCostWei,
+              latestResetCostInPol: resetCostPol,
+              latestResetCostInUSD: costUSD,
+              latestResetCostInPHP: costPHP,
+
+              latestResetTimeStamp: new Date(),
+              latestResetHash: resetReceipt.hash,
+
+              recentlyReset: true,
+              recentlyResetCandidatesNotSubmitted: true,
+            },
+            $inc: {
+              ResetCount: 1,
+
+              totalCount: 1,
+              totalCostInGas: gasUsed,
+              totalCostInWei: resetCostWei,
+              totalCostInPol: resetCostPol,
+              totalCostInUSD: costUSD,
+              totalCostInPHP: costPHP,
+            },
+          }
+        );
 
         // Log the archiving activity (assuming logActivity is defined)
         await logActivity("system_activity_logs", "Reset Election Archiving", "Admin", req, "Archived election data.");
@@ -5411,6 +5501,7 @@ const startServer = async () => {
           {},
           {
             $set: {
+              recentlyReset: false,
               // — Latest “Reset” metrics —
               latestResetCostInGas: totalGasUsed,
               latestResetCostInWei: resetCostWei,

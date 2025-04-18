@@ -58,7 +58,6 @@
               <table>
                 <thead>
                   <tr>
-                    
                     <th>Archived At</th>
                     <th>Election Name</th>
                     <th>Election Status</th>
@@ -71,9 +70,11 @@
                     <th>Voter Turnout</th>
                     <th>Voter Tally</th>
                     <th>Voter Results</th>
+                    <th>Blockchain</th> <!-- ✅ NEW -->
                     <th>Download All</th>
                   </tr>
                 </thead>
+                
                 <tbody>
                   <% archives.forEach(function(archive, index) { %>
                     <tr>
@@ -124,6 +125,11 @@
                         <a href="/api/download-archive/<%= archive._id %>/voterResults/csv" target="_blank">CSV</a>
                       </td>
                       <!-- Extra column for downloading all sections as a zip file -->
+                      <td>
+                        <a href="/api/download-archive/<%= archive._id %>/blockchain_management/json" target="_blank">JSON</a>
+                        |
+                        <a href="/api/download-archive/<%= archive._id %>/blockchain_management/csv" target="_blank">CSV</a>
+                      </td>
                       <td>
                         <a href="/api/download-archive/<%= archive._id %>/all/json" target="_blank">All JSON</a>
                         |

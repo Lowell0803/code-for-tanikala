@@ -42,7 +42,17 @@
 
           <div class="column-main box-shadow">
             <div class="first-main">
+
               <div class="left">
+                <!-- Zari -->
+                <% if (electionConfig.electionStatus === "ELECTION INACTIVE") { %>
+                  <h2>No Current Election</h2>
+                <% } else { %>
+                  <h2>Election #<%= electionConfig.electionNumber + 1 %></h2>
+                <% } %>
+                
+
+                <br />
                 <h2><span><i class="fa fa-info-circle" aria-hidden="true"></i></span> Blockchain Information</h2>
                 <br />
                 <div class="indent">
@@ -199,33 +209,44 @@
                         <span><%= blockchainMgmt ? blockchainMgmt.currentElectionSubmitCandidatesCount : "N/A" %></span>
                       </p>
                       <div class="indent-ish">
-                        <p><strong>Latest Transaction Hash:</strong></p>
-                        <% if (blockchainMgmt && Array.isArray(blockchainMgmt.latestSubmitCandidatesHash)) { %>
-                          <ol>
-                            <% blockchainMgmt.latestSubmitCandidatesHash.forEach((hash) => { %>
-                              <li><%= hash %></li>
-                            <% }); %>
-                          </ol>
+                        <% if (blockchainMgmt && blockchainMgmt.recentlyResetCandidatesNotSubmitted) { %>
+                          <p><strong>Latest Transaction Hash:</strong> None</p>
+                          <p><strong>Latest Submission Date:</strong> None</p>
                         <% } else { %>
-                          <%= blockchainMgmt && blockchainMgmt.latestSubmitCandidatesHash ? blockchainMgmt.latestSubmitCandidatesHash : "N/A" %>
+                          <p><strong>Latest Transaction Hash:</strong></p>
+                          <% if (blockchainMgmt && Array.isArray(blockchainMgmt.latestSubmitCandidatesHash)) { %>
+                            <ol>
+                              <% blockchainMgmt.latestSubmitCandidatesHash.forEach((hash) => { %>
+                                <li><%= hash %></li>
+                              <% }); %>
+                            </ol>
+                          <% } else { %>
+                            <%= blockchainMgmt && blockchainMgmt.latestSubmitCandidatesHash ? blockchainMgmt.latestSubmitCandidatesHash : "N/A" %>
+                          <% } %>
+                          <p><strong>Latest Submission Date:</strong>
+                            <%= blockchainMgmt && blockchainMgmt.latestSubmitCandidatesTimeStamp ? moment(blockchainMgmt.latestSubmitCandidatesTimeStamp).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
+                          </p>
                         <% } %>
-                        <p><strong>Latest Submission Date:</strong>
-                          <%= blockchainMgmt && blockchainMgmt.latestSubmitCandidatesTimeStamp ? moment(blockchainMgmt.latestSubmitCandidatesTimeStamp).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
-                        </p>
                       </div>
                     </li>
+                    
                     <br />
                     <li>
                       <p><strong>Candidate Removal Count:</strong>
                         <span><%= blockchainMgmt ? blockchainMgmt.currentElectionResetCount : "N/A" %></span>
                       </p>
                       <div class="indent-ish">
-                        <p><strong>Latest Transaction Hash:</strong>
-                          <%= blockchainMgmt && blockchainMgmt.latestResetHash ? blockchainMgmt.latestResetHash : "N/A" %>
-                        </p>
-                        <p><strong>Latest Removal Date:</strong>
-                          <%= blockchainMgmt && blockchainMgmt.latestResetTimeStamp ? moment(blockchainMgmt.latestResetTimeStamp).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
-                        </p>
+                        <% if (blockchainMgmt && blockchainMgmt.recentlyReset) { %>
+                          <p><strong>Latest Transaction Hash:</strong> None</p>
+                          <p><strong>Latest Removal Date:</strong> None</p>
+                        <% } else { %>
+                          <p><strong>Latest Transaction Hash:</strong>
+                            <%= blockchainMgmt && blockchainMgmt.latestResetHash ? blockchainMgmt.latestResetHash : "N/A" %>
+                          </p>
+                          <p><strong>Latest Removal Date:</strong>
+                            <%= blockchainMgmt && blockchainMgmt.latestResetTimeStamp ? moment(blockchainMgmt.latestResetTimeStamp).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
+                          </p>
+                        <% } %>
                       </div>
                     </li>
                     <br />
