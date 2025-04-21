@@ -53,9 +53,31 @@
           <p class="gray">Press the button below to request OTP to <span><%= email %></span>.</p>
           <!-- <br /><small>(For testing, you may enter <strong>999999</strong>.)</small> -->
           <!-- Form to request an OTP -->
-          <form id="otpForm" action="/request-otp" method="POST" style="margin-bottom: 20px">
+          <!-- <form id="otpForm" action="/request-otp" method="POST" style="margin-bottom: 20px">
             <button class="request" type="button" onclick="requestOTP()">Request OTP</button>
+          </form> -->
+          <form id="otpForm" action="/request-otp" method="POST" style="margin-bottom: 20px">
+            <button
+              id="sendOtpButton"
+              class="request"
+              type="button"
+            >
+              Request OTP
+            </button>
           </form>
+          <input
+            type="tel"
+            name="otp"
+            id="otpField"
+            inputmode="numeric"
+            pattern="\d{6}"
+            maxlength="6"
+            placeholder="Enter OTP"
+            class="otp-field"
+            disabled
+            required
+          />
+          
 
           <script>
             function requestOTP() {
@@ -74,6 +96,60 @@
               }
             }
           </script>
+
+          <script>
+            const sendOtpButton = document.getElementById('sendOtpButton');
+            const otpField       = document.getElementById('otpField');
+            let   cooldownTimer  = null;
+            let   cooldownRemaining = 0;
+
+            function startCooldown(seconds) {
+              cooldownRemaining = seconds;
+              sendOtpButton.disabled = true;
+              updateButtonLabel();
+
+              cooldownTimer = setInterval(() => {
+                cooldownRemaining--;
+                if (cooldownRemaining <= 0) {
+                  clearInterval(cooldownTimer);
+                  sendOtpButton.disabled = false;
+                  sendOtpButton.textContent = 'Request OTP';
+                } else {
+                  updateButtonLabel();
+                }
+              }, 1000);
+            }
+
+            function updateButtonLabel() {
+              const m = Math.floor(cooldownRemaining / 60);
+              const s = cooldownRemaining % 60;
+              sendOtpButton.textContent = 
+                `Resend OTP in ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            }
+
+            sendOtpButton.addEventListener('click', async () => {
+              // if still cooling down, do nothing
+              if (cooldownRemaining > 0) return;
+
+              sendOtpButton.disabled = true;
+              try {
+                const res = await fetch('/request-otp', { method: 'POST' });
+                const json = await res.json();
+
+                if (!res.ok) throw new Error(json.error || 'Unknown error');
+
+                alert('OTP sent to your email.');
+                otpField.disabled = false;
+                otpField.focus();
+                startCooldown(300);  // 5 minutes = 300 seconds
+              } catch (err) {
+                console.error(err);
+                alert('Failed to send OTP: ' + err.message);
+                sendOtpButton.disabled = false;
+              }
+            });
+          </script>
+
 
           <script type="module" src="components/notificationHandler.js"></script>
         </div>
