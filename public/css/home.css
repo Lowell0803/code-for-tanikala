@@ -259,9 +259,9 @@
   .time {
     margin: 0;
     padding: 0;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     width: 4rem;
-    height: 2rem;
+    height: 3rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -375,9 +375,46 @@
     overflow-x: hidden;
   }
 
+  .date-period .start-date,
+  .date-period .end-date {
+    font-size: 1rem;
+  }
+
+  #register-button,
+  #voting-button {
+    width: 9rem !important;
+    height: auto;
+    margin-top: 0.5rem !important;
+    font-size: 0.7rem;
+    padding: 0.8rem 0.8rem !important;
+  }
+
   /* .footer-left,
   .footer-center {
     border: 1px solid black;
+  } */
+  /* .date-period {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .date-period .start-date,
+  .date-period .end-date {
+    display: block;
+  }
+
+  .date-period {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .start-date {
+    padding-left: 0.8rem;
+  } */
+
+  /* .separator {
+    display: none;
   } */
 }
 
@@ -389,5 +426,20 @@
 #voting-button {
   width: 10rem;
   height: auto;
-  margin-top: -0.5rem;
+  margin-top: -0.8rem;
+}
+
+#be-heard,
+#vote-now {
+  font-size: 1.2rem;
+}
+
+.date-period {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  text-align: center;
+  font-weight: bold;
 }

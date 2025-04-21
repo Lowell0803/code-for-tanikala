@@ -262,7 +262,7 @@ img {
 
   min-width: 80%;
   flex-grow: 1;
-  padding-bottom: 1rem;
+  padding-bottom: 0;
   justify-content: center;
   align-items: center;
   gap: 0;
@@ -274,7 +274,7 @@ img {
 }
 
 .logo-opacity {
-  opacity: 0.6;
+  opacity: 0.67;
 }
 
 /* .button {
@@ -511,7 +511,7 @@ button:active {
     order: 1;
   }
   .content-main-center .date-period {
-    font-size: 1rem;
+    font-size: 0.82rem;
   }
   .content-main-right {
     order: 3;
@@ -594,7 +594,7 @@ button:active {
     padding: 0.7rem; /* Reduce padding */
     font-size: 0.9rem; /* Reduce font size */
     border-radius: 1.5em; /* Slightly smaller border-radius */
-    height: 0.8rem;
+    height: 0.7rem;
   }
 }
 

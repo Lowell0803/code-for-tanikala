@@ -68,18 +68,6 @@
   font-weight: bold;
 }
 
-#form-details .form-details-container .input {
-  min-width: 70%;
-  height: 2rem;
-  background-color: white;
-  color: black;
-  border: none;
-  border-radius: 0.5rem;
-  border: 0.03rem solid #28303b9d;
-  padding: 0 3%;
-  outline: 0;
-}
-
 /* .input:hover,
 .input:focus {
   border: 0.149rem solid rgb(58, 58, 175) !important;
@@ -88,7 +76,7 @@
 
 /* Hover effect for enabled inputs (when in edit mode) */
 .input:enabled:hover,
-.div-input:hover {
+.input-in-div:hover {
   border: 0.149rem solid rgb(58, 58, 175) !important; /* Use a text cursor or any other desired cursor */
 }
 
@@ -275,9 +263,9 @@
   padding-right: 2rem;
 }
 
-label {
+/* label {
   border: 1px solid black;
-}
+} */
 
 #new-password-section .field {
   display: flex;
@@ -333,7 +321,50 @@ label {
   box-shadow: none;
 }
 
+/* .input-in-div {
+  border: 0.03rem solid #28303b9d;
+  padding: 0;
+} */
+
 .div-input {
-  border: none !important;
-  background: transparent; /* optional: to match the desired style */
+  /* border: 1px solid black; */
+  background: transparent;
+}
+
+#form-details .form-details-container .input,
+#form-details .form-details-container .div-input .input-in-div {
+  min-width: 70%;
+  height: 2rem;
+  background-color: white;
+  color: black;
+  border: none;
+  border-radius: 0.5rem;
+  border: 0.03rem solid #28303b9d;
+  padding: 0 3%;
+  /* margin: 1rem; */
+  outline: 0;
+}
+
+.form-details-container {
+  /* border: 3px solid black; */
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* border: 1px solid black; */
+  margin: -0.5rem 0;
+  /* width: 100%; */
+}
+
+.form-details-container label {
+  width: 20rem; /* ← pick whatever width works for your longest label */
+  padding-right: 0.3rem;
+  /* margin-right: 1rem; */
+  text-align: right; /* optional, if you want the text to hug the input */
+  /* border: 1px solid black; */
+}
+
+.input-in-div {
+  background-color: pink;
+  color: pink;
 }
