@@ -847,3 +847,6 @@ button:active {
 #resetCandidatesBtn:hover {
   background-color: #503a96;
 }
+
+label {
+}
