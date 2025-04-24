@@ -1,7 +1,27 @@
+/* popup-vote.css */
 * {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+}
+
+/* hidden by default */
+#popupContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none; /* <<< hide until .active */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* show when we add .active */
+#popupContainer.active {
+  display: flex;
 }
 
 .popup-vote {
@@ -15,13 +35,10 @@
   text-align: center;
   color: #5fb643;
   font-family: "Poppins", "Century Gothic";
-  /* static size */
   width: 450px;
   height: 400px;
-  /* border: 1px solid black; */
   border-radius: 2rem;
-
-  padding: 0rem 3rem;
+  padding: 0 3rem;
 }
 
 .popup-img {
@@ -46,8 +63,6 @@
   border: 0.2rem solid #5fb643;
   background-color: transparent;
   color: #5fb643;
-
-  /* smoother transition */
   transition: all 0.3s ease, transform 0.2s ease;
 }
 
@@ -56,36 +71,22 @@
   color: white;
 }
 
+/* responsive tweaks… */
 @media (max-width: 1000px) {
   .popup-vote {
-    height: 300px;
     width: 337.5px;
+    height: 300px;
     row-gap: 0.4rem;
-    padding: 0rem 1.5rem;
+    padding: 0 1.5rem;
   }
-
   .popup-img {
     height: 4rem;
     width: 4rem;
   }
-
   .popup-title {
     font-size: 1.4rem;
   }
-
   .popup-info {
-    color: black;
     font-size: 0.6rem;
-  }
-
-  .popup-vote button {
-    width: 60%;
-    height: 12%;
-    font-weight: 700;
-    border-radius: 5rem;
-    border: 0.2rem solid #5fb643;
-
-    /* smoother transition */
-    transition: all 0.3s ease, transform 0.2s ease;
   }
 }
