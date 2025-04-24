@@ -291,10 +291,10 @@
         const now = new Date();
 
         // Validate the order of dates: now < registrationStart < registrationEnd < votingStart < votingEnd
-        if (!(now < registrationStart && registrationStart < registrationEnd && registrationEnd < votingStart && votingStart < votingEnd)) {
-          createNotification("Please ensure that the current date is before registration start, which is before registration end, then voting start, and finally voting end.", "error", 2000);
-          return;
-        }
+        // if (!(now < registrationStart && registrationStart < registrationEnd && registrationEnd < votingStart && votingStart < votingEnd)) {
+        //   createNotification("Please ensure that the current date is before registration start, which is before registration end, then voting start, and finally voting end.", "error", 2000);
+        //   return;
+        // }
 
         // Validate and adjust the party list field
         const partylistsInput = document.getElementById("partylists");
