@@ -1,5 +1,5 @@
 .form {
-  border-radius: 1.5rem;
+  border-radius: 1rem;
   /* border: .2rem solid; */
 }
 
@@ -71,7 +71,7 @@
   align-items: center;
   margin-left: 0.75rem;
   margin-right: 0.75rem;
-  border-radius: 1.5rem;
+  border-radius: 1rem;
   font-size: 1rem;
   padding: 0.35rem;
   width: 22%;
@@ -331,23 +331,23 @@
 }
 
 .first {
-  background-color: #d6d6b1;
+  background-color: #d6d6b1c6;
 }
 
 .second {
-  background-color: #c3e79b;
+  background-color: #c4e79bbe;
 }
 
 .third {
-  background-color: #9091cb;
+  background-color: #9091cba1;
 }
 
 .fourth {
-  background-color: #b7bb9a;
+  background-color: #b7bb9aa3;
 }
 
 .fifth {
-  background-color: #acb4ba;
+  background-color: #acb4bab0;
 }
 
 /* .reset {
@@ -362,4 +362,36 @@
 
 .center {
   gap: 2rem;
+}
+
+#registered-students {
+  border: 0.12rem solid #28303b71;
+}
+
+#voter-turnout {
+  border: 0.12rem solid #28303b71;
+}
+
+#vote-queue {
+  border: 0.12rem solid #28303b71;
+}
+
+#candidate-submission {
+  border: 0.12rem solid #28303b71;
+}
+
+#election-settings {
+  border: 0.12rem solid #28303b71;
+}
+
+#election-configuration {
+  border: 0.12rem solid #28303b71;
+}
+
+#blockchain-dashboard {
+  border: 0.12rem solid #28303b71;
+}
+
+.large {
+  font-size: 1.3rem;
 }

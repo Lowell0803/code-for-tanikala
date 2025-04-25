@@ -1,5 +1,5 @@
  --color-darkRed: #310505;
-  --color-mediumRed: #550c0a;
+  --color-mediumRed: #0a2140 ;
   --color-lightRed: #a60212;
   --color-darkYellow: #f5ab29;
   --color-mediumYellow: #e1ae5b;
@@ -39,7 +39,7 @@
   #99A1A6
   #DAC4F7
 
-
+#503a96
 
   #9274a1
   #f9f4f5
@@ -58,3 +58,8 @@
 
 
   <i class="fa-solid fa-network-wired"> blockchain activity log
+
+
+  background-color: #dfe0e0;
+
+    background-color: rgb(249, 247, 247);

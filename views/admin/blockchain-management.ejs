@@ -45,14 +45,12 @@
 
               <div class="left">
                 <!-- Zari -->
-                <% if (electionConfig.electionStatus === "ELECTION INACTIVE") { %>
+                <!-- <% if (electionConfig.electionStatus === "ELECTION INACTIVE") { %>
                   <h2>No Current Election</h2>
                 <% } else { %>
                   <h2>Election #<%= electionConfig.electionNumber + 1 %></h2>
-                <% } %>
+                <% } %> -->
                 
-
-                <br />
                 <h2><span><i class="fa fa-info-circle" aria-hidden="true"></i></span> Blockchain Information</h2>
                 <br />
                 <div class="indent">
@@ -224,7 +222,7 @@
                             <%= blockchainMgmt && blockchainMgmt.latestSubmitCandidatesHash ? blockchainMgmt.latestSubmitCandidatesHash : "N/A" %>
                           <% } %>
                           <p><strong>Latest Submission Date:</strong>
-                            <%= blockchainMgmt && blockchainMgmt.latestSubmitCandidatesTimeStamp ? moment(blockchainMgmt.latestSubmitCandidatesTimeStamp).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
+                            <%= blockchainMgmt && blockchainMgmt.latestSubmitCandidatesTimeStamp ? moment(blockchainMgmt.latestSubmitCandidatesTimeStamp).format("MMMM DD, YYYY [at] hh:mm A") : "N/A" %>
                           </p>
                         <% } %>
                       </div>
@@ -244,7 +242,7 @@
                             <%= blockchainMgmt && blockchainMgmt.latestResetHash ? blockchainMgmt.latestResetHash : "N/A" %>
                           </p>
                           <p><strong>Latest Removal Date:</strong>
-                            <%= blockchainMgmt && blockchainMgmt.latestResetTimeStamp ? moment(blockchainMgmt.latestResetTimeStamp).format("MMMM DD, YYYY [AT] hh:mm A") : "N/A" %>
+                            <%= blockchainMgmt && blockchainMgmt.latestResetTimeStamp ? moment(blockchainMgmt.latestResetTimeStamp).format("MMMM DD, YYYY [at] hh:mm A") : "N/A" %>
                           </p>
                         <% } %>
                       </div>

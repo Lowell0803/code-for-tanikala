@@ -7,19 +7,19 @@
 
 /* Style the scrollbar track (background of the scrollbar) */
 ::-webkit-scrollbar-track {
-  background: #3f0807; /* Black track */
+  background: #500c0a; /* Black track */
 }
 
 /* Style the scrollbar thumb (the draggable part) */
 ::-webkit-scrollbar-thumb {
-  background: #e1ae5b; /* Slightly lighter black for the thumb */
+  background: #d7b378; /* Slightly lighter black for the thumb */
   border-radius: 10px; /* Optional: rounded corners */
-  border: 1.2px solid #3f0807;
+  border: 1.2px solid #500c0a;
 }
 
 /* Style the scrollbar thumb when hovered */
 ::-webkit-scrollbar-thumb:hover {
-  background: #d29c45;
+  background: #e1ae5b;
 }
 
 :root {
@@ -140,7 +140,7 @@ h6 {
   align-items: center;
   text-align: center;
 
-  background: #550c0a;
+  background: #500c0a;
   background-position: 50% 50%;
   background-repeat: no-repeat;
 
@@ -318,7 +318,7 @@ h6 {
 .dropdown-menu {
   display: none;
   position: absolute;
-  background-color: #f2ddb4;
+  background-color: #e2be84;
   width: 15%;
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 1;
@@ -848,5 +848,29 @@ button:active {
   background-color: #503a96;
 }
 
-label {
+.link {
+  color: rgb(59, 59, 209);
+  text-decoration: none;
+}
+
+.link:hover {
+  color: blue;
+  text-decoration: underline;
+}
+
+.option-print {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: transform 0.2s, filter 0.2s;
+}
+
+.option-print:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+.option-print:active {
+  transform: scale(0.95);
+  filter: brightness(0.8);
 }

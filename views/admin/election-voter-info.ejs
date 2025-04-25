@@ -124,10 +124,10 @@ tr.odd {
               <% if (voters.length > 0) { %>
                 <% voters.forEach((voter, index) => { %>
                   <tr>
-                    <td><%= index + 1 %></td>
+                    <td class="number"><%= index + 1 %></td>
                     <td><%= voter.name %></td>
                     <td><%= voter.email %></td>
-                    <td><%= voter.student_number %></td>
+                    <td class="stud-number"><%= voter.student_number %></td>
                     <td><%= voter.campus %></td>
                     <td><%= voter.college %></td>
                     <td><%= voter.program %></td>

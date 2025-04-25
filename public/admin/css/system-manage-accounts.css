@@ -71,6 +71,7 @@ table td {
   /* border: 3px solid black; */
   text-align: right;
   margin-bottom: -1rem;
+  gap: 3rem;
 }
 
 .pass {
@@ -103,8 +104,8 @@ table td {
 }
 
 .circle-img-candidate {
-  width: 6rem !important; /* match your desired max width */
-  height: 6rem !important; /* match your desired max height */
+  width: 5rem !important; /* match your desired max width */
+  height: 5rem !important; /* match your desired max height */
   object-fit: cover; /* ensures the image fills the circle without distortion */
   border-radius: 50%; /* creates the circular shape */
   display: block;
@@ -156,4 +157,20 @@ td {
 .action-column {
   width: 22%;
   padding: 0;
+}
+
+.right {
+  /* border: 1px solid black; */
+}
+
+.select-role {
+  margin-right: 65%;
+}
+
+.select-role:focus,
+.select-role:hover {
+  outline: none;
+  border-color: #a60212;
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgb(234 76 137 / 10%);
 }

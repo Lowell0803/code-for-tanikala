@@ -1,28 +1,35 @@
+/* Style the scrollbar itself */
 ::-webkit-scrollbar {
   width: 8px; /* Adjust the width for a slimmer scrollbar */
   height: 8px; /* Adjust height for horizontal scrollbar */
-  border: 1px solid #0a2140;
+  border: 1px solid #3f0807;
 }
 
 /* Style the scrollbar track (background of the scrollbar) */
 ::-webkit-scrollbar-track {
-  background: #0a2140; /* Black track */
+  background: #3f0807; /* Black track */
 }
 
 /* Style the scrollbar thumb (the draggable part) */
 ::-webkit-scrollbar-thumb {
   background: var(--sidebar-color); /* Slightly lighter black for the thumb */
   border-radius: 10px; /* Optional: rounded corners */
-  border: 1.2px solid #0a2140;
+  border: 1.2px solid #3f0807;
+}
+
+/* Style the scrollbar thumb when hovered */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-color-lighter);
 }
 
 .main-first {
   display: flex;
   /* border: 3px solid black; */
-  width: 100%;
+  width: 100vw;
   margin: 0;
   padding: 0;
   gap: 1rem;
+  /* border: 1px solid black; */
 }
 
 .header-nav-content {
@@ -32,11 +39,11 @@
   justify-content: space-around;
   align-items: center;
   padding: 1rem;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
 }
 
 .header-nav-content a {
-  color: #0e376c;
+  color: #28303b;
 }
 
 .election-title {
@@ -46,7 +53,7 @@
   font-weight: bold;
   align-items: center;
   padding: 1rem;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
 }
 
 .title {
@@ -81,12 +88,12 @@
   padding-left: 6rem;
   font-size: 1.3rem;
   /* border: 1px solid black; */
-  color: #004aad;
+  color: #28303b;
   margin: 0;
 }
 
 .beside a {
-  color: #004aad;
+  color: #28303b;
   text-decoration: none;
 }
 
@@ -107,7 +114,7 @@ h2 {
 }
 
 .main-first {
-  /* border: 1px solid black; */
+  gap: 3rem;
 }
 
 .main-first {
@@ -137,16 +144,16 @@ h2 {
 }
 
 #active-link2 {
-  color: #082449;
-  text-decoration: underline;
+  color: #85211d;
+  /* text-decoration: underline; */
 }
 
 .header-nav-content a:hover {
-  color: #104993;
+  color: #85211d;
 }
 
 .header-nav-content a {
-  color: #0b3268;
+  color: #28303b;
 }
 
 #active-link {
@@ -185,7 +192,7 @@ body {
 
 .rvs-container {
   background-color: #fff3c8;
-  border-radius: 3rem;
+  border-radius: 1.5rem;
   box-shadow: rgba(168, 151, 151, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
 }
 
@@ -230,7 +237,7 @@ body {
 
 html,
 body {
-  background: radial-gradient(circle, #0b3268 15%, #0a2140 65%);
+  background: radial-gradient(circle, var(--color-mediumRed), var(--color-darkRed));
   margin: 0;
   padding: 0;
   width: 100%;
@@ -242,7 +249,7 @@ body {
 }
 
 .footer {
-  background: #224689;
+  background: #990715;
 }
 
 .go-back {
@@ -256,7 +263,11 @@ body {
 }
 
 .title {
-  color: #0e376c;
+  color: #85211d;
+}
+
+.header-nav h2 {
+  font-family: "montserrat";
 }
 
 @media (max-width: 1000px) {
@@ -286,7 +297,7 @@ body {
   }
   .header-nav h2 {
     text-align: right;
-    font-size: 1.25rem !important;
+    font-size: 0.85rem !important;
   }
 
   .main-first {
@@ -307,4 +318,37 @@ body {
     padding: 0.2rem 0.75rem !important;
     font-size: 1rem !important;
   }
+
+  .beside {
+    font-size: 0.8rem;
+  }
+
+  .rvs-title {
+    font-size: 1.6rem !important;
+  }
+
+  .dark-yellow {
+    font-size: 1.2rem !important;
+    /* color: pink; */
+  }
+
+  h3 {
+    font-size: 1.2rem;
+  }
+
+  .main-container h3 {
+    font-size: 1rem !important;
+  }
+
+  .main-first {
+    gap: 1.5rem;
+  }
 }
+
+.content-main {
+  width: 100vw;
+}
+
+/* .h3 {
+  font-family: "montserrat" !important;
+} */

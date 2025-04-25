@@ -6,9 +6,11 @@ table {
   outline: 0.05rem solid #503a96;
 }
 
-/* .textie-left {
+.textie-left {
+  padding-left: 0.8rem;
   text-align: left;
-} */
+  width: 15%;
+}
 
 th {
   padding: 0.4rem;

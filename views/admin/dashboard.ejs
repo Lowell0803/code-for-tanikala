@@ -32,16 +32,11 @@
               <i class="bx bxs-dashboard"></i>
               <h1 class="title">Dashboard</h1>
             </div>
-            <h3 class="top">
-                          <b>Blockchain Link:</b>
-                          <% if (blockchainMgmt && blockchainMgmt.candidateSubmissionHash) { %>
-                            <a href="https://amoy.polygonscan.com/tx/<%= blockchainMgmt.candidateSubmissionHash %>#eventlog" target="_blank">
-                              View Transaction
-                            </a>
-                          <% } else { %>
-                            N/A
-                          <% } %>
-                          </h3>
+            <h3 class="top">      
+              <a class="link" href="https://amoy.polygonscan.com/address/0xdd70759c1166a90c30c5115db0188d31b5d331da" target="_blank">
+                View TANIKALA Transactions on the Blockchain <span><i class="fa-solid fa-magnifying-glass"></i></span> 
+              </a>
+            </h3>
 
           </div>
           <hr class="title-line" />
@@ -483,7 +478,7 @@
                   
                   <hr />
                   <br />
-                  <h4 class="center grow purple"><b>Blockchain Transactions</b></h4>
+                  <h4 class="center grow purple large"><b>Blockchain Transactions</b></h4>
                  
                     <br />
                     <p>

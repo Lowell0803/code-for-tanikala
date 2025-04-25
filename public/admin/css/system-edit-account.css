@@ -127,7 +127,7 @@
   align-items: center;
   text-align: center;
   background: #f3e9d2;
-  border: 0.15rem solid #28303b99;
+  border: 0.15rem solid #1e20239e;
   border-radius: 1rem;
   padding: 2rem;
   box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
@@ -367,4 +367,53 @@
 .input-in-div {
   background-color: pink;
   color: pink;
+}
+
+/* label {
+  border: 1px solid black;
+  margin-right: 0.5rem;
+  padding-right: 2rem;
+} */
+
+.form-details-container {
+  display: grid;
+  grid-template-columns: 150px 1fr; /* first column fixed width for labels, second fills remaining space */
+  column-gap: 1rem; /* horizontal gap between label and input */
+  row-gap: 1rem; /* vertical gap between rows */
+  align-items: center; /* vertically center label & input */
+  margin-bottom: 0.5rem; /* space below each row */
+}
+
+.form-details-container label {
+  justify-self: end; /* right-align labels in their grid cell */
+  font-weight: 500;
+}
+
+#form-details .form-details-container {
+  display: grid;
+  grid-template-columns: 140px 1fr; /* 140px for all labels, inputs fill the rest */
+  column-gap: 1.5rem; /* horizontal gap between label and input */
+  row-gap: 1rem; /* vertical gap between rows */
+  align-items: center; /* vertical centering */
+  margin-bottom: 0; /* space after each row */
+}
+
+#form-details .form-details-container label {
+  justify-self: end; /* right-align label text */
+  font-weight: bold;
+  padding: 0;
+}
+
+#form-details .form-details-container .input,
+#form-details .form-details-container .div-input {
+  width: 100%; /* inputs take full cell width */
+  max-width: none; /* override any earlier max-width */
+}
+
+/* label {
+  border: 1px solid black;
+} */
+
+#change-image {
+  padding: 5% 8%;
 }

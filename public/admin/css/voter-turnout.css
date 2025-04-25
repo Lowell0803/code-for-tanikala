@@ -1,5 +1,5 @@
 :root {
-  --background-light-yellow: #f2ddb4;
+  --background-light-yellow: rgb(249, 247, 247);
   --background-lighter-yellow: #faf2db;
 
   --height-main-header: 10vh;
@@ -70,5 +70,31 @@
 }
 
 .black {
-  color: black;
+  color: #28303b;
+}
+
+.first-main p {
+  text-align: center;
+}
+
+.college-summary {
+  /* background: #f9f9f9; */
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0 2rem;
+}
+
+/* the percentage line: bold and green */
+.college-summary .percentage-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2a7f4f; /* matching your “voted” color */
+  margin: 0;
+}
+
+/* the count line: normal weight, muted color */
+.college-summary .count-text {
+  font-size: 0.95rem;
+  color: #555;
+  margin: 0.25rem 0 0;
 }
