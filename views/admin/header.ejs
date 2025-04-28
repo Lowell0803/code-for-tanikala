@@ -112,36 +112,35 @@
     <p id="timeMessage"><%- timeMessage %></p>
   </div>
   <div class="header-user">
-      <div class="warning-container">
+    <%
+  // Determine which current time to use: fake or real
+  const currentTimeForDropdown = (electionConfig && electionConfig.useFakeDate && electionConfig.fakeCurrentDate)
+    ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila")
+    : moment.tz(new Date(), "Asia/Manila");
+
+  // Check if candidates have not been submitted
+  const candidatesNotSubmitted = (electionConfig && electionConfig.candidatesSubmitted === false);
+
+  // Determine if there is 1 day or less until voting starts (if voteStart exists)
+  let oneDayLeft = false;
+  if (voteStart) {
+    const diffMs = voteStart.diff(currentTimeForDropdown);
+    oneDayLeft = diffMs <= moment.duration(1, "day").asMilliseconds();
+  }
+%>
+
+<% if (candidatesNotSubmitted && oneDayLeft) { %>
+  <div class="warning-container">
     <i class="fa fa-exclamation-triangle warning" aria-hidden="true"></i>
     <div class="warning-dropdown">
       <div class="triangle"></div>
       <div class="dropdown-content">
-    <% 
-      // Determine which current time to use: fake or real
-      const currentTimeForDropdown = (electionConfig && electionConfig.useFakeDate && electionConfig.fakeCurrentDate)
-        ? moment.tz(electionConfig.fakeCurrentDate, "Asia/Manila")
-        : moment.tz(new Date(), "Asia/Manila");
-
-      // Check if candidates have not been submitted
-      const candidatesNotSubmitted = (electionConfig && electionConfig.candidatesSubmitted === false);
-
-      // Determine if there is 1 day or less until voting starts (if voteStart exists)
-      let oneDayLeft = false;
-      if (voteStart) {
-        const diffMs = voteStart.diff(currentTimeForDropdown);
-        oneDayLeft = diffMs <= moment.duration(1, "day").asMilliseconds();
-      }
-    %>
-    <% if(candidatesNotSubmitted && oneDayLeft) { %>
-      <p>The voting period will start in less than 24 hours, but you haven’t submitted candidates to the blockchain yet. Please submit them now.</p>
-    <% } else { %>
-      <p>No warnings.</p>
-    <% } %>
-  </div>
-
+        <p>The voting period will start in less than 24 hours, but you haven’t submitted candidates to the blockchain yet. Please submit them now.</p>
+      </div>
     </div>
   </div>
+<% } %>
+
           <img src="<%= loggedInAdmin.img %>" alt="Admin Profile" />
           <div class="profile">
             <div class="admin-name"><%= loggedInAdmin.name %></div>
