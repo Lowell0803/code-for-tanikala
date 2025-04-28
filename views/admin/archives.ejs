@@ -55,6 +55,7 @@
               <% archives.sort(function(a, b) { 
                 return new Date(b.archivedAt) - new Date(a.archivedAt); 
            }); %>
+           <% if (loggedInAdmin.role === "Developer" || loggedInAdmin.role === "Electoral Board Member" || loggedInAdmin.role === "Technical Team Member") { %>
              <table class="archive-table">
   <thead>
     <tr>
@@ -128,9 +129,13 @@
     <% }) %>
   </tbody>
 </table>
+            
             <% } else { %>
-              <p>No archived elections found.</p>
-            <% } %>
+              <p class="error-message" style="text-align: center;">You do not have permission to view this information.</p>
+              <% } %>
+              <% } else { %>
+                <p>No archived elections found.</p>
+              <% } %>
           </section>
         </div>
       </main>

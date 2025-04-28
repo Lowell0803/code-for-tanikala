@@ -3734,6 +3734,23 @@ const startServer = async () => {
       }
     });
 
+    // DELETE /clear-candidates
+    app.post("/clear-candidates", ensureAdminAuthenticated, async (req, res) => {
+      try {
+        // Delete everything in both collections
+        await db.collection("candidates").deleteMany({});
+        await db.collection("candidates_lsc").deleteMany({});
+
+        // (Optionally) reset the flag so the "Submit Candidates" UI re-opens
+        await db.collection("election_config").updateOne({}, { $set: { candidatesSubmitted: false } });
+
+        return res.json({ success: true });
+      } catch (err) {
+        console.error("Error clearing candidate data:", err);
+        return res.status(500).json({ success: false, message: err.message });
+      }
+    });
+
     app.get("/old-candidates", ensureAdminAuthenticated, async (req, res) => {
       try {
         const electionConfigCollection = db.collection("election_config");

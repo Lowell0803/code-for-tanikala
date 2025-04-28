@@ -211,8 +211,10 @@
               <option value="Developer">Developer</option>
             </select>
         
+            <% if (loggedInAdmin.role === "Developer" || loggedInAdmin.role === "Electoral Board Member" || loggedInAdmin.role === "Technical Team Member") { %>
           <button class="button button-brown" onclick="openAddModal()">Add Admin</button>
-          </div>
+          <% } %>
+        </div>
           <% } %>
           <br />
           
@@ -231,6 +233,7 @@
                 </tr>
               </thead>
               <tbody>
+                <% if (loggedInAdmin.role === "Developer" || loggedInAdmin.role === "Electoral Board Member" || loggedInAdmin.role === "Technical Team Member") { %>
                 <% admins.forEach(function(admin) { %>
                 <tr data-id="<%= admin._id %>"
                     data-name="<%= admin.name %>"
@@ -276,6 +279,9 @@
                   <% } %>
                 </tr>
                 <% }); %>
+                <% } else { %>
+                  <td colspan="5" class="error-message" style="text-align:center">You do not have permission to view this information.</td>
+                  <% } %>
               </tbody>
             </table>
           </td>

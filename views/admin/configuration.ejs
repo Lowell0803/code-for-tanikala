@@ -20,6 +20,102 @@
   <script type="module" src="components/notification.js"></script>
 
   <style>
+    /* Developer Tools Container */
+    .developer-only {
+      background-color: transparent;
+      color: #333;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      border: 3px solid #e1ae5b; /* matched to button color */
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+  
+    /* Section Heading */
+    .developer-only h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 1.5em;
+      color: #222;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+    }
+  
+    /* Labels and Text */
+    .developer-only p,
+    .developer-only label {
+      margin: 8px 0;
+      font-size: 0.95em;
+    }
+  
+    /* Inline Date Displays */
+    #currentDate,
+    #fakeCurrentDateDisplay {
+      display: inline-block;
+      background: #f5f5f5;
+      padding: 4px 8px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      margin-left: 5px;
+    }
+  
+    /* Inputs and Selects */
+    .developer-only input[type="datetime-local"],
+    .developer-only input[type="checkbox"],
+    .developer-only select {
+      font-size: 0.95em;
+      padding: 6px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+  
+    .developer-only input[type="checkbox"] {
+      width: auto;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+  
+    /* Buttons */
+    .developer-only button {
+      background-color: #e1ae5b;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      margin-top: 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.95em;
+    }
+  
+    .developer-only button:hover {
+      background-color: #c8954a;
+    }
+  
+    /* Warning Text */
+    .developer-only p[style*="color: red"] {
+      color: #a00;
+      background-color: #fee;
+      padding: 8px;
+      border: 1px solid #f99;
+      border-radius: 3px;
+      margin: 10px 0;
+    }
+  
+    /* Fieldsets */
+    .developer-only fieldset {
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 3px;
+      margin-top: 15px;
+    }
+  
+    .developer-only legend {
+      font-weight: bold;
+      padding: 0 5px;
+    }
+
+
     .period-info {
       margin: 10px 0;
       padding: 10px;
@@ -142,8 +238,10 @@
             </fieldset>
             <br />
             <div class="center">
+            <% if (loggedInAdmin.role === "Developer" || loggedInAdmin.role === "Electoral Board Member" || loggedInAdmin.role === "Technical Team Member") { %>
             <button class="button button-save" type="submit">Save Election Configuration</button>
-            </div>
+            <% } %>              
+          </div>
           </form>
           <!-- <form action="/reset-election" method="POST">
             <button type="submit" style="background-color: #000; color: #fff">Reset Election</button>
@@ -152,6 +250,7 @@
 
         <!-- FAKE DATE -->
         <!-- FAKE DATE (using form submission to reload the page) -->
+        <% if (loggedInAdmin.role === "Developer") { %>
         <div class="developer-only">
           <h3>Developer Tools</h3>
           <p>
@@ -202,6 +301,7 @@
           </form>
           
         </div>
+        <% } %>
 
         <!-- Client-side JS -->
         <script>

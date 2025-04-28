@@ -185,3 +185,8 @@ a:hover {
   /* border: 1px solid black; */
   height: 1em;
 }
+
+.enter-the-code {
+  font-size: 0.8em !important;
+  white-space: nowrap;
+}

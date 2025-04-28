@@ -58,6 +58,7 @@
               </tr>
             </thead>
             <tbody id="activityLogsTableBody">
+              <% if (loggedInAdmin.role === "Developer" || loggedInAdmin.role === "Electoral Board Member" || loggedInAdmin.role === "Technical Team Member") { %>
               <% if (activityLogs && activityLogs.length) { %>
                 <% activityLogs.forEach(log => { %>
                   <tr class="<%= log.activityType ? log.activityType.toLowerCase() : '' %>" data-type="<%= log.activityType || 'Unknown' %>">
@@ -74,6 +75,9 @@
                   <td colspan="6">No activity logs found.</td>
                 </tr>
               <% } %>
+               <% } else { %>
+                  <td colspan="5" class="error-message" style="text-align:center">You do not have permission to view this information.</td>
+                  <% } %>
             </tbody>
           </table>
         </div>

@@ -750,54 +750,90 @@
             <button class="action-button cancel-button" id="clearCandidates">Clear All Candidate Data</button>
           </div>
         <% } %>
+
+        <script>
+          document.getElementById("clearCandidates").addEventListener("click", async () => {
+            if (!confirm("Are you sure you want to delete ALL candidate data?")) return;
         
+            try {
+              const res = await fetch("/clear-candidates", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+              });
+              const body = await res.json();
+              if (body.success) {
+                // reload so the empty state shows up
+                window.location.reload();
+              } else {
+                alert("Failed to clear data: " + (body.message || "unknown error"));
+              }
+            } catch (err) {
+              console.error(err);
+              alert("Error clearing data. See console.");
+            }
+          });
+        </script>
+        
+        <%
+          // pick real‐time or fake time based on your config
+          const now = electionConfig.useFakeDate
+            ? new Date(electionConfig.fakeCurrentDate)
+            : new Date();
+          const votingStart = new Date(electionConfig.votingStart);
+        %>
+
 
         <div class="blockchain">
           <!-- Deploy Candidates Button -->
-          <% if (electionConfig.candidatesSubmitted) { %>
+          <% if (electionConfig.candidatesSubmitted && now < votingStart) { %>
             <!-- If candidates have been submitted, show only the "Remove Candidates from Blockchain" button -->
             <button class="action-button" id="resetCandidatesBtn">
               Remove Candidates from Blockchain
             </button>
-          <% } else { %>
+          <% } %>
+          <% if (!electionConfig.candidatesSubmitted) { %>
             <!-- If candidates have not been submitted, show only the "Submit Candidates to Blockchain" button -->
             <!-- <button class="action-button" id="submitBtn">
               Submit Candidates to Blockchain
             </button> -->
-            <button id="submitBtn" value="Submit Votes to Blockchain" onclick="" class="button-submit">
-              <span class="fold"></span>
+            <% if (loggedInAdmin.role === "Developer" ||  loggedInAdmin.role === "Technical Team Member") { %>
+              <button id="submitBtn" value="Submit Votes to Blockchain" onclick="" class="button-submit">
+                <span class="fold"></span>
 
-              <div class="points_wrapper">
-                <i class="point"></i>
-                <i class="point"></i>
-                <i class="point"></i>
-                <i class="point"></i>
-                <i class="point"></i>
-                <i class="point"></i>
-                <i class="point"></i>
-                <i class="point"></i>
-                <i class="point"></i>
-                <i class="point"></i>
-              </div>
+                <div class="points_wrapper">
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                  <i class="point"></i>
+                </div>
 
-              <span class="inner">
-                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5">
-                  <polyline points="13.18 1.37 13.18 9.64 21.45 9.64 10.82 22.63 10.82 14.36 2.55 14.36 13.18 1.37"></polyline>
-                </svg>
-                <span>Submit Votes to Blockchain</span>
-              </span>
-            </button>
+                <span class="inner">
+                  <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5">
+                    <polyline points="13.18 1.37 13.18 9.64 21.45 9.64 10.82 22.63 10.82 14.36 2.55 14.36 13.18 1.37"></polyline>
+                  </svg>
+                  <span>Submit Votes to Blockchain</span>
+                </span>
+              </button>
+            <% } %>
             <br><br>
-            <!-- Loading container is hidden by default -->
-            <div id="loadingContainer" style="display: none;">
-              <p>Loading</p>
-              <div class="progress-loader">
-                <div class="progress"></div>
-              </div>
-            </div>
+            
             
             
           <% } %>
+
+          <!-- Loading container is hidden by default -->
+          <div id="loadingContainer" style="display: none;">
+            <p>Loading</p>
+            <div class="progress-loader">
+              <div class="progress"></div>
+            </div>
+          </div>
           
 
           <script type="module">
@@ -882,7 +918,7 @@
                 }
               } catch (error) {
                 console.error("Error:", error);
-                document.getElementById("statusMessage").innerText = "Failed to submit candidates.";
+                document.getElementById("statusMessage").innerText = "Storing Candidates...";
               }// In the finally block, after a short delay:
               finally {
                 // Hide the loading container
