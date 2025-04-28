@@ -87,6 +87,8 @@
       <i class="fa-solid fa-xmark x-button" onclick="closeAddModal()"></i>
     </div>
     <br />
+   
+    
     <div class="center form-title">
       <h1 class="postion-name-lsc my-text position-lsc" id="heading-add-admin">Add Admin Account</h1>
     </div>
@@ -106,8 +108,8 @@
           <div class="center-content">
             <label for="email">Email:</label>
             <input type="email" name="email" class="field fill" required /><br /><br />
-            <!-- <label for="password">Password:</label>
-            <input type="password" name="password" class="field fill" required /> -->
+            <label for="password">Password:</label>
+            <input type="password" name="password" class="field fill" required />
           </div>
           <div class="right-content">
             <label for="name">Name:</label>
@@ -157,6 +159,8 @@
           </div>
           <br />
           <div class="center-content">
+            <br />
+            <br />
             <label>Email:</label>
             <input type="email" name="email" id="edit-email" class="field fill" required /><br /><br />
             <!-- <label>Password:</label>
@@ -196,7 +200,17 @@
          <br />
           <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
           <!-- Button to open Add Admin Modal -->
+         
            <div class="right right-add">
+            <label>Admin Role: </label>
+             <select name="role" class="select-role" required>
+              <option>All</option>
+              <option value="Electoral Board Member">Electoral Board</option>
+              <option value="Technical Team Member">Technical Team</option>
+              <option value="Creatives Team Member">Creatives Team</option>
+              <option value="Developer">Developer</option>
+            </select>
+        
           <button class="button button-brown" onclick="openAddModal()">Add Admin</button>
           </div>
           <% } %>
@@ -231,12 +245,12 @@
                   <td><%= admin.name %></td>
                   <td><%= admin.role %></td>
                   <td><%= admin.email %></td>
-                  <!-- <td class="pass">
-                    <span class="password-mask">********</span>
-                    <button type="button" onclick="togglePassword(this)" data-password="<%= admin.password %>">
-                       Show
-                    </button>
-                  </td> -->
+            <td class="pass" style="display: none;">
+  <span class="password-mask">********</span>
+  <button type="button" onclick="togglePassword(this)" data-password="<%= admin.password %>">
+    Show
+  </button>
+</td>
                   <!-- <td>
                     <% if (admin.online) { %>
                       <span class="status-indicator active">Active</span>
@@ -247,7 +261,15 @@
                   <% if (loggedInAdmin.role === "Technical Team Member" || loggedInAdmin.role === "Developer") { %>
                   <td class="action-column">
                     <div class="actions">
-                      <button class="button button-edit" onclick="openEditModal()" data-id="<%= admin._id %>">Edit</button>
+<button class="button button-edit"
+        onclick="openEditModal(this)"
+        data-id="<%= admin._id %>"
+        data-img="<%= admin.img %>"
+        data-email="<%= admin.email %>"
+        data-name="<%= admin.name %>"
+        data-role="<%= admin.role %>">
+  Edit
+</button>
                       <button class="button button-cancel" data-id="<%= admin._id %>">Delete</button>
                     </div>
                   </td>
@@ -256,7 +278,7 @@
                 <% }); %>
               </tbody>
             </table>
-          </td>z
+          </td>
         </div>
       </main>
     </div>
@@ -376,14 +398,30 @@ main.addEventListener('scroll', function () {
     }
     
     // Open Edit Modal
-    function openEditModal() {
-      mainElement.style.overflow = "hidden";
-      setTimeout(() => {
-        updateModalPosition(editModal);
-        editModal.style.display = "block";
-        mainOverlay.style.display = "block";
-      }, 0);
-    }
+ function openEditModal(button) {
+  // pull values from the clicked button
+  const id      = button.dataset.id;
+  const imgUrl  = button.dataset.img;
+  const email   = button.dataset.email;
+  const name    = button.dataset.name;
+  const role    = button.dataset.role;
+
+  // populate the form fields
+  document.getElementById('edit-id').value        = id;
+  document.getElementById('edit-email').value     = email;
+  document.getElementById('edit-name').value      = name;
+  document.getElementById('edit-role').value      = role;
+
+  // **set the preview** and hidden input
+  document.getElementById('edit-img-preview').src = imgUrl;
+  document.getElementById('edit-imgBase64').value = imgUrl;
+
+  // now show the modal & overlay
+  updateModalPosition(editModal);
+  editModal.style.display      = 'block';
+  mainOverlay.style.display    = 'block';
+  mainElement.style.overflow   = 'hidden';
+}
     
     // Close Add Modal only
     function closeAddModal() {
@@ -420,6 +458,10 @@ main.addEventListener('scroll', function () {
         closeEditModal();
       }
     });
+
+
+
+    
   </script>
     
     

@@ -63,6 +63,7 @@
           </div>
         </div>
       </div>
+      
       <a href="#" class="votes" data-uniqueid="<%= candidate.uniqueId %>" data-name="<%= candidate.name %>">View List of Voter IDs</a>
 
       <% }); %> <% if (abstainCandidate) { const voteCount = Number(abstainCandidate.voteCount) || 0; calculatedTotalVotes += voteCount; const percentage = totalVotes > 0 ? ((voteCount / totalVotes) * 100).toFixed(2) : 0; %>

@@ -60,10 +60,11 @@
   height: 12%;
   font-weight: 700;
   border-radius: 5rem;
-  border: 0.2rem solid #5fb643;
+  border: 0.15rem solid #5fb643 !important;
   background-color: transparent;
   color: #5fb643;
   transition: all 0.3s ease, transform 0.2s ease;
+  box-shadow: none;
 }
 
 .popup-vote button:hover {

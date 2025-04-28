@@ -438,9 +438,9 @@
           </div>
           <h3>
             <span class="purple">Candidate Submission Status on Blockchain:</span>
-            <span class="smart-contract-status">
-              <%= electionConfig.candidatesSubmitted ? "Submitted" : "Not Submitted" %>
-            </span>
+           <span class="smart-contract-status <%= electionConfig.candidatesSubmitted ? 'submitted' : 'not-submitted' %>">
+  <%= electionConfig.candidatesSubmitted ? "Submitted" : "Not Submitted" %>
+</span>
           </h3>
           
         </div>

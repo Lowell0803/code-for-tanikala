@@ -32,6 +32,7 @@
       </div>
       <br />
       <div class="main-right">
+        <br />
         <h1 class="black" id="voter-turnout-per-college">Voter Turnout per College</h1>
         <br />
         <div id="container-charts"></div>
@@ -83,14 +84,21 @@
           : "0.0";
   
         // Create a paragraph element to show the percentage text.
-        const pPercentage = document.createElement("p");
-        pPercentage.textContent = `${percentage}% of students have voted from ${college.acronym}`;
-        container.appendChild(pPercentage);
-  
-        // Create another paragraph element to show the raw count text.
-        const pCount = document.createElement("p");
-        pCount.textContent = `${college.registeredVoted} out of ${college.numberOfStudents} students have already voted from ${college.acronym}`;
-        container.appendChild(pCount);
+        const summaryWrap = document.createElement('div');
+summaryWrap.classList.add('college-summary');
+
+const pPercentage = document.createElement("p");
+pPercentage.classList.add("percentage-text");
+pPercentage.textContent = `${percentage}% of students have voted from ${college.acronym}.`;
+summaryWrap.appendChild(pPercentage);
+
+const pCount = document.createElement("p");
+pCount.classList.add("count-text");
+pCount.textContent = `${college.registeredVoted} out of ${college.numberOfStudents} students have already voted from ${college.acronym}.`;
+summaryWrap.appendChild(pCount);
+
+// append the whole block right after your bar chart div
+div.after(summaryWrap);
       });
     });
   </script>
@@ -155,7 +163,7 @@
   
       // Create a paragraph element to display the overall percentage.
       const percentageText = document.createElement("p");
-      percentageText.textContent = `${overallPercentage}% of total students have voted.`;
+      percentageText.textContent = `${overallPercentage}% total students have voted.`;
   
       // Create another paragraph element to display the overall count. ZARINA HERE
       // const countText = document.createElement("p");

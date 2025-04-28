@@ -149,15 +149,18 @@
   }
 
   .center {
+    /* margin-top: 3rem; */
     text-align: center; /* Retain centering if needed */
   }
 
   .yellow {
-    color: #e1ae5b; /* Color remains the same */
+    color: #e1ae5b;
+    margin-top: 3rem;
+    font-size: 1.2rem; /* Color remains the same */
   }
 
   .title {
-    font-size: 2rem;
+    font-size: 1.6rem;
   }
 
   .main-second p {
@@ -171,6 +174,7 @@
 
   .button {
     width: 7rem;
+    margin-top: -3rem;
   }
 
   .main-first {

@@ -189,10 +189,16 @@ form img {
   color: #511e77;
 }
 
+.smart-contract-status.submitted {
+  font-weight: 600;
+  color: green;
+  font-style: italic;
+}
+
+.smart-contract-status.not-submitted,
 .smart-contract-status {
-  font-weight: normal;
-  color: #28303b;
-  /* border: 1px solid black; */
+  font-weight: 500;
+  color: #85211d;
 }
 
 .button-close {
@@ -391,7 +397,7 @@ form img {
 }
 
 #collegeSelect {
-  border: 0.15rem solid #008000;
+  border: 0.3rem solid #008000;
 }
 
 option:hover {

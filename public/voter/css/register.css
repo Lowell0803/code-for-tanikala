@@ -135,7 +135,7 @@ li {
     padding: 0;
   }
   h2.title {
-    font-size: 2rem;
+    font-size: 1.6rem;
     padding: 0;
   }
 
@@ -208,6 +208,10 @@ li {
 
   button {
     width: 7rem;
+  }
+
+  .title h2 {
+    font-size: 1rem;
   }
 }
 

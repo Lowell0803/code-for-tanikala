@@ -55,90 +55,79 @@
               <% archives.sort(function(a, b) { 
                 return new Date(b.archivedAt) - new Date(a.archivedAt); 
            }); %>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Archived At</th>
-                    <th>Election Name</th>
-                    <th>Election Status</th>
-                    <th>Registration Period</th>
-                    <th>Voting Period</th>
-                    <th>Election Config</th>
-                    <th>Candidates</th>
-                    <th>Candidates (LSC)</th>
-                    <th>Registered Voters</th>
-                    <th>Voter Turnout</th>
-                    <th>Voter Tally</th>
-                    <th>Voter Results</th>
-                    <th>Blockchain</th> <!-- ✅ NEW -->
-                    <th>Download All</th>
-                  </tr>
-                </thead>
-                
-                <tbody>
-                  <% archives.forEach(function(archive, index) { %>
-                    <tr>
-                      
-                      <td><%= archive.archivedAt ? formatArchivedAt(archive.archivedAt) : "N/A" %></td>
-                      <td><%= archive.electionName %></td>
-                      <td><%= archive.electionStatus %></td>
-                      <td>
-                        <%= archive.registrationPeriod && archive.registrationPeriod.start && archive.registrationPeriod.end ? formatRange(archive.registrationPeriod.start, archive.registrationPeriod.end) : "N/A" %>
-                      </td>
-                      <td>
-                        <%= archive.votingPeriod && archive.votingPeriod.start && archive.votingPeriod.end ? formatRange(archive.votingPeriod.start, archive.votingPeriod.end) : "N/A" %>
-                      </td>
-                      <!-- Download links per section -->
-                      <td>
-                        <a href="/api/download-archive/<%= archive._id %>/electionConfig/json" target="_blank">JSON</a>
-                        |
-                        <a href="/api/download-archive/<%= archive._id %>/electionConfig/csv" target="_blank">CSV</a>
-                      </td>
-                      <td>
-                        <a href="/api/download-archive/<%= archive._id %>/candidates/json" target="_blank">JSON</a>
-                        |
-                        <a href="/api/download-archive/<%= archive._id %>/candidates/csv" target="_blank">CSV</a>
-                      </td>
-                      <td>
-                        <a href="/api/download-archive/<%= archive._id %>/candidates_lsc/json" target="_blank">JSON</a>
-                        |
-                        <a href="/api/download-archive/<%= archive._id %>/candidates_lsc/csv" target="_blank">CSV</a>
-                      </td>
-                      <td>
-                        <a href="/api/download-archive/<%= archive._id %>/registeredVoters/json" target="_blank">JSON</a>
-                        |
-                        <a href="/api/download-archive/<%= archive._id %>/registeredVoters/csv" target="_blank">CSV</a>
-                      </td>
-                      <td>
-                        <a href="/api/download-archive/<%= archive._id %>/voterTurnout/json" target="_blank">JSON</a>
-                        |
-                        <a href="/api/download-archive/<%= archive._id %>/voterTurnout/csv" target="_blank">CSV</a>
-                      </td>
-                      <td>
-                        <a href="/api/download-archive/<%= archive._id %>/voterTally/json" target="_blank">JSON</a>
-                        |
-                        <a href="/api/download-archive/<%= archive._id %>/voterTally/csv" target="_blank">CSV</a>
-                      </td>
-                      <td>
-                        <a href="/api/download-archive/<%= archive._id %>/voterResults/json" target="_blank">JSON</a>
-                        |
-                        <a href="/api/download-archive/<%= archive._id %>/voterResults/csv" target="_blank">CSV</a>
-                      </td>
-                      <!-- Extra column for downloading all sections as a zip file -->
-                      <td>
-                        <a href="/api/download-archive/<%= archive._id %>/blockchain_management/json" target="_blank">JSON</a>
-                        |
-                        <a href="/api/download-archive/<%= archive._id %>/blockchain_management/csv" target="_blank">CSV</a>
-                      </td>
-                      <td>
-                        <a href="/api/download-archive/<%= archive._id %>/all/json" target="_blank">All JSON</a>
-                        |
-                        <a href="/api/download-archive/<%= archive._id %>/all/csv" target="_blank">All CSV</a>
-                      </td>
-                    </tr>
-                  <% }); %>
-                </tbody>
-              </table>
+             <table class="archive-table">
+  <thead>
+    <tr>
+      <th>Archived At</th>
+      <th>Election Name</th>
+      <th>Status</th>
+      <th>Periods</th>
+      <!-- <th>Turnout</th> -->
+      <th>Downloads</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% archives.forEach(function(archive){ %>
+      <tr>
+        <td><%= archive.archivedAt ? formatArchivedAt(archive.archivedAt) : "N/A" %></td>
+        <td><%= archive.electionName %></td>
+        <td><%= archive.electionStatus %></td>
+        <td>
+          Reg: <%= archive.registrationPeriod?.start && archive.registrationPeriod?.end 
+                ? formatRange(archive.registrationPeriod.start, archive.registrationPeriod.end) 
+                : "N/A" %><br/>
+          Vote: <%= archive.votingPeriod?.start && archive.votingPeriod?.end 
+                ? formatRange(archive.votingPeriod.start, archive.votingPeriod.end) 
+                : "N/A" %>
+        </td>
+        <!-- <td><%= archive.voterTurnout?.percentage ?? "—" %></td> -->
+        <td>
+          <details class="download-menu">
+            <summary>Downloads ▾</summary>
+            <ul>
+              <li>Config:
+                <a href="/api/download-archive/<%= archive._id %>/electionConfig/json" target="_blank">JSON</a> |
+                <a href="/api/download-archive/<%= archive._id %>/electionConfig/csv" target="_blank">CSV</a>
+              </li>
+              <li>Candidates:
+                <a href="/api/download-archive/<%= archive._id %>/candidates/json" target="_blank">JSON</a> |
+                <a href="/api/download-archive/<%= archive._id %>/candidates/csv" target="_blank">CSV</a>
+              </li>
+              <li>LSC Candidates:
+                <a href="/api/download-archive/<%= archive._id %>/candidates_lsc/json" target="_blank">JSON</a> |
+                <a href="/api/download-archive/<%= archive._id %>/candidates_lsc/csv" target="_blank">CSV</a>
+              </li>
+              <li>Voters:
+                <a href="/api/download-archive/<%= archive._id %>/registeredVoters/json" target="_blank">JSON</a> |
+                <a href="/api/download-archive/<%= archive._id %>/registeredVoters/csv" target="_blank">CSV</a>
+              </li>
+              <li>Turnout:
+                <a href="/api/download-archive/<%= archive._id %>/voterTurnout/json" target="_blank">JSON</a> |
+                <a href="/api/download-archive/<%= archive._id %>/voterTurnout/csv" target="_blank">CSV</a>
+              </li>
+              <li>Tally:
+                <a href="/api/download-archive/<%= archive._id %>/voterTally/json" target="_blank">JSON</a> |
+                <a href="/api/download-archive/<%= archive._id %>/voterTally/csv" target="_blank">CSV</a>
+              </li>
+              <li>Results:
+                <a href="/api/download-archive/<%= archive._id %>/voterResults/json" target="_blank">JSON</a> |
+                <a href="/api/download-archive/<%= archive._id %>/voterResults/csv" target="_blank">CSV</a>
+              </li>
+              <li>Blockchain:
+                <a href="/api/download-archive/<%= archive._id %>/blockchain_management/json" target="_blank">JSON</a> |
+                <a href="/api/download-archive/<%= archive._id %>/blockchain_management/csv" target="_blank">CSV</a>
+              </li>
+              <li>All:
+                <a href="/api/download-archive/<%= archive._id %>/all/json" target="_blank">JSON</a> |
+                <a href="/api/download-archive/<%= archive._id %>/all/csv" target="_blank">CSV</a>
+              </li>
+            </ul>
+          </details>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
             <% } else { %>
               <p>No archived elections found.</p>
             <% } %>

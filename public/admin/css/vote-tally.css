@@ -47,14 +47,14 @@
   background-color: var(--background-light-yellow);
   margin: 2%;
   padding: 6%;
-  border-radius: 2em;
+  border-radius: 1em;
 }
 
 .container-lsc {
   background-color: var(--background-light-green);
   margin: 4% 2%;
   padding: 6%;
-  border-radius: 2em;
+  border-radius: 1em;
 }
 #container-president {
   background-color: var(--background-light-red);
@@ -204,4 +204,55 @@
 
 .candidate-info {
   padding-left: 1rem;
+}
+
+.candidate {
+  width: 100%;
+  /* border: 1px solid black; */
+}
+
+.votes {
+  margin-left: 2rem;
+  /* border: 1px solid black; */
+  padding: 0;
+}
+
+.select {
+  background-color: #fff3c8;
+  color: #bb7e15;
+  font-family: "Montserrat", "Century Gothic";
+  font-weight: 700;
+  padding: 1em 0.8em;
+  border: none;
+  border-radius: 0.8em;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 0.1em #ffffff;
+  border: 0.2rem solid #bb7e15;
+}
+
+.select:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #ffaa00;
+}
+
+.select option {
+  background-color: #fff;
+  color: #4a0707;
+  font-weight: 400;
+}
+
+#collegeSelect {
+  border: 0.18rem solid #008000;
+}
+
+.select:hover,
+.select:focus {
+  /* border: 2px solid green; */
+  box-shadow: 0px 0px 0px 7px rgba(74, 236, 136, 0.2);
+}
+
+.main-left h1,
+.main-right h1 {
+  color: ;
 }

@@ -53,7 +53,7 @@ td {
 }
 
 th {
-  background: #d2b9de;
+  background: #a88eff;
   color: black;
 }
 
@@ -68,7 +68,7 @@ th {
 }
 
 .first-main h2 {
-  color: #73438b;
+  color: #503a96;
   /* text-decoration: underline; */
 
   /* border: 1px solid black; */
@@ -168,7 +168,7 @@ td {
   display: flex;
   flex-direction: column;
   background: #f9f4f5;
-  border: 0.1em solid #9274a1;
+  border: 0.1em solid #8d84aa;
   padding: 2rem;
   border-radius: 1rem;
   margin: 2rem;
@@ -178,8 +178,8 @@ td {
 .total {
   display: flex;
   flex-direction: column;
-  background-color: #e0cbe3;
-  border: 0.1em solid #9274a1;
+  background-color: #eae6fd;
+  border: 0.1em solid #7e72a9;
   padding: 2rem;
   border-radius: 1rem;
   margin: 2rem;
@@ -198,16 +198,16 @@ td {
 
 .middle {
   text-align: center;
-  color: #73438b;
+  color: #503a96;
   text-decoration: underline;
 }
 
 .first-main th {
-  background-color: #d2b9de;
+  background-color: #bfb0d9;
 }
 
 .total-currency th {
-  background-color: #be9dcd;
+  background-color: #bfb0d9;
 }
 
 table {
@@ -219,7 +219,7 @@ table {
 }
 
 .link {
-  color: rgb(78, 78, 235);
+  color: rgb(59, 59, 209);
   text-decoration: none;
 }
 

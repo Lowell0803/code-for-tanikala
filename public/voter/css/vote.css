@@ -64,6 +64,9 @@
   height: 5em; /* Match width for a perfect circle */
   border-radius: 50%;
   object-fit: cover;
+  display: flex;
+  /* justify-content: flex-start; */
+  align-items: flex-start;
   /* Ensures the image fills the circle without distortion */
 }
 

@@ -178,3 +178,11 @@ select:hover {
 .group {
   margin-left: -0.5rem;
 }
+
+.stud-number {
+  width: 9%;
+}
+
+.number {
+  width: 4%;
+}
