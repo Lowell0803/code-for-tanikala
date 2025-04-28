@@ -83,12 +83,23 @@
                     avgCandidateCostPHP = blockchainMgmt.totalCostInPHP / blockchainMgmt.SubmitCandidatesCount;
                   }
 
-                  // Compute average vote cost per unit
-                  if (blockchainMgmt && blockchainMgmt.voteCount > 0) {
-                    avgVoteCostPOL = blockchainMgmt.currentElectionVoteCostInPol / electionConfig.totalRegisteredVoted;
-                    avgVoteCostUSD = blockchainMgmt.currentElectionVoteCostInUSD / electionConfig.totalRegisteredVoted;
-                    avgVoteCostPHP = blockchainMgmt.currentElectionVoteCostInPHP / electionConfig.totalRegisteredVoted;
+                  // Compute average vote cost per unit, or fallback to latest if no votes yet
+                  if (blockchainMgmt) {
+                    if (electionConfig.totalRegisteredVoted > 0) {
+                      avgVoteCostPOL = blockchainMgmt.currentElectionVoteCostInPol
+                        / electionConfig.totalRegisteredVoted;
+                      avgVoteCostUSD = blockchainMgmt.currentElectionVoteCostInUSD
+                        / electionConfig.totalRegisteredVoted;
+                      avgVoteCostPHP = blockchainMgmt.currentElectionVoteCostInPHP
+                        / electionConfig.totalRegisteredVoted;
+                    } else {
+                      // No one’s voted yet – use the latest single-vote cost
+                      avgVoteCostPOL = blockchainMgmt.latestVoteCostInPol || 0;
+                      avgVoteCostUSD = blockchainMgmt.latestVoteCostInUSD || 0;
+                      avgVoteCostPHP = blockchainMgmt.latestVoteCostInPHP || 0;
+                    }
                   }
+
 
                   // Get latest reset cost
                   if (blockchainMgmt) {
