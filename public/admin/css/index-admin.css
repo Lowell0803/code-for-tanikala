@@ -874,3 +874,9 @@ button:active {
   transform: scale(0.95);
   filter: brightness(0.8);
 }
+
+.printer {
+  height: 0.5rem;
+  width: 0.5rem;
+  border: 1px solid black;
+}

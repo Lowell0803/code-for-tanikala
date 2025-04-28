@@ -152,7 +152,57 @@
 
         <!-- FAKE DATE -->
         <!-- FAKE DATE (using form submission to reload the page) -->
- 
+        <div class="developer-only">
+          <h3>Developer Tools</h3>
+          <p>
+            Current Date:
+            <span id="currentDate"> <%= formatDisplayDate(new Date()) %> </span>
+          </p>
+          <p>
+            Fake Current Date:
+            <span id="fakeCurrentDateDisplay">
+              <%= (electionConfig && electionConfig.useFakeDate && electionConfig.fakeCurrentDate) 
+                  ? formatDisplayDate(electionConfig.fakeCurrentDate)
+                  : formatDisplayDate(new Date()) %>
+            </span>
+          </p>
+          <!-- Form that submits when the date changes -->
+          <form id="updateFakeDateForm" action="/update-fake-date" method="POST">
+            <label for="fakeDatePicker">Fake Date Picker:</label>
+            <input type="datetime-local" id="fakeDatePicker" name="fakeCurrentDate" value="<%= (electionConfig && electionConfig.useFakeDate && electionConfig.fakeCurrentDate)
+                ? toPHFormat(electionConfig.fakeCurrentDate)
+                : toPHFormat(new Date()) %>" onchange="this.form.submit()" />
+          </form>
+          <!-- Reset form: sets fake date to current date and reloads -->
+          <form id="resetFakeDateForm" action="/update-fake-date" method="POST" style="margin-top: 10px">
+            <input type="hidden" name="fakeCurrentDate" value="<%= toPHFormat(new Date()) %>" />
+            <button type="submit">Reset Fake Date to Current Date</button>
+          </form>
+          <form action="/update-special-status" method="POST" style="margin: 10px 0;">
+            <button type="submit" name="specialStatus" value="None">None</button>
+            <button type="submit" name="specialStatus" value="System Temporarily Closed">System Temporarily Closed</button>
+            <button type="submit" name="specialStatus" value="Results Are Out">Results Are Out</button>
+          </form>
+          <!-- Toggle form to switch between fake and real date modes -->
+          <form id="toggleDateModeForm" action="/toggle-date-mode" method="POST" style="margin-top: 10px;">
+            <label for="useFakeDateToggle">Use Fake Date:</label>
+            <input type="checkbox" id="useFakeDateToggle" name="useFakeDate" value="true" <%= electionConfig && electionConfig.useFakeDate ? 'checked' : '' %> onchange="this.form.submit()" />
+          </form>
+
+          <form id="toggleCandidatesSubmittedForm" action="/update-candidates-submitted" method="POST" style="margin-top: 10px;">
+            <p style="color: red;">
+              WARNING: Changing "candidatesSubmitted" may break something! Remember the original state.
+            </p>
+            <label for="candidatesSubmitted">Candidates Submitted:</label>
+            <select name="candidatesSubmitted" id="candidatesSubmitted">
+              <option value="true" <%= electionConfig && electionConfig.candidatesSubmitted === true ? 'selected' : '' %>>True</option>
+              <option value="false" <%= electionConfig && electionConfig.candidatesSubmitted === false ? 'selected' : '' %>>False</option>
+            </select>
+            <button type="submit">Update Candidates Submitted</button>
+          </form>
+          
+        </div>
+
         <!-- Client-side JS -->
         <script>
           // Pass electionConfig from server to client
