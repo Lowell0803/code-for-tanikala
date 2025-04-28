@@ -180,9 +180,10 @@ agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }
     console.log("Email: ", email);
 
     // Notify client via Socket.IO, if socketId is provided.
-    if (socketId) {
-      io.to(voteId).emit("voteConfirmed", { txHash: tx.hash });
-    }
+    // if (socketId) {
+    //   io.to(voteId).emit("voteConfirmed", { txHash: tx.hash });
+    // }
+    io.to(voteId).emit("voteConfirmed", { txHash: tx.hash });
 
     // Fetch crypto prices for cost calculation
     const cryptoPrices = await getCryptoPrices();
@@ -1828,7 +1829,7 @@ const startServer = async () => {
             voterHash: voteRecord.hashedEmail,
             voteId: voteRecord.voteId,
             electionConfig,
-            txHash: voteRecord.txHash || "Reload this page if this is not visible", // ensure txHash is defined
+            txHash: voteRecord.txHash || "Please wait...", // ensure txHash is defined
             waiting: true,
             queueNumber: voteRecord.queueNumber,
             candidates,
@@ -1907,36 +1908,47 @@ const startServer = async () => {
     app.post("/verify-otp", ensureAuthenticated, async (req, res) => {
       try {
         const { otp } = req.body;
+        const isAjax = req.xhr || req.headers.accept?.includes("application/json");
 
-        // Automatically accept "999999" for testing
-        if (otp === "460825" || otp === "239312" || otp === "175050") {
+        // Auto-accept some test codes
+        if (["460825", "239312", "175050"].includes(otp)) {
           req.session.otpVerified = true;
+          if (isAjax) return res.json({ success: true, redirect: "/vote?logged_in=true" });
           return res.redirect("/vote?logged_in=true");
         }
 
-        // Verify the OTP against the one stored in session and ensure it's not expired
+        // Real OTP check
         if (!req.session.otp || otp !== req.session.otp || Date.now() > req.session.otpExpires) {
+          const errorMsg = "Invalid or expired OTP.";
+          if (isAjax) return res.status(400).json({ success: false, error: errorMsg });
           return res.render("voter/verify-otp", {
             email: req.user.email,
-            error: "Invalid or expired OTP.",
+            error: errorMsg,
           });
         }
 
+        // OTP OK
         req.session.otpVerified = true;
+        if (isAjax) return res.json({ success: true, redirect: "/vote?logged_in=true" });
         return res.redirect("/vote?logged_in=true");
-      } catch (error) {
-        console.error("Error verifying OTP:", error);
+      } catch (err) {
+        console.error("Error verifying OTP:", err);
+        const errorMsg = "An error occurred. Please try again.";
+        if (req.xhr || req.headers.accept?.includes("application/json")) {
+          return res.status(500).json({ success: false, error: errorMsg });
+        }
         return res.render("voter/verify-otp", {
           email: req.user.email,
-          error: "An error occurred. Please try again.",
+          error: errorMsg,
         });
       }
     });
 
     app.post("/request-otp", ensureAuthenticated, async (req, res) => {
+      let electionConfig;
       try {
         const electionConfigCollection = db.collection("election_config");
-        let electionConfig = await electionConfigCollection.findOne({});
+        electionConfig = await electionConfigCollection.findOne({});
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
@@ -1946,20 +1958,28 @@ const startServer = async () => {
         req.session.otpExpires = Date.now() + 5 * 60 * 1000; // Valid for 5 minutes
 
         // Send the OTP via email using SendGrid
-        const msg = {
+        await sgMail.send({
           to: req.user.email,
           from: "noreply@tanikala-bulsu.com",
           subject: "Your OTP Code for Voting",
           text: `Your OTP code is ${otp}. It is valid for 5 minutes.`,
-        };
-        await sgMail.send(msg);
-
+        });
         console.log(`OTP sent to ${req.user.email} - OTP: ${otp}`);
 
-        // Redirect to /verify-otp with a URL param indicating OTP was sent
+        // AJAX clients expect JSON
+        if (req.xhr || req.headers.accept?.includes("application/json")) {
+          return res.json({ message: "OTP sent to your email." });
+        }
+
+        // fallback for non-AJAX: redirect as before
         return res.redirect("/verify-otp?otp_sent=true");
       } catch (error) {
         console.error("Error sending OTP:", error);
+
+        if (req.xhr || req.headers.accept?.includes("application/json")) {
+          return res.status(500).json({ error: "Failed to send OTP. Please try again." });
+        }
+
         return res.render("voter/verify-otp", {
           email: req.user.email,
           error: "Failed to send OTP. Please try again.",

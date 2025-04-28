@@ -21,22 +21,6 @@
     <link rel="stylesheet" type="text/css" href="/components/popup-vote.css" />
   </head>
   <body>
-    <!-- add mo to zari -->
-    <script src="/components/popup.js"></script>
-
-    <script>
-      bigPopup(
-        "VOTE SUBMISSION<br />SUCCESSFUL",
-        "Thank you for casting your vote! Your vote has been successfully recorded on the blockchain. Click 'Next' to view your voting receipt.",
-        {
-          imageSrc: "/components/popup-checkmark.png",
-          buttonText: "Next",
-          timeout: 7000
-        }
-      );
-
-    </script>
-    <!-- add mo to zari -->
 
     <!-- Header (unchanged) -->
     <header class="header">
@@ -179,7 +163,13 @@
               <div class="left">
                 <p><strong>Voting Date and Time:</strong> <%= new Date().toLocaleString() %></p>
                 <p class="long"><strong>Transaction Hash:</strong> <%= txHash %></p>
-                <p><strong>Status:</strong> Vote successfully recorded on blockchain.</p>
+                <!-- <p><strong>Status:</strong> Vote successfully recorded on blockchain.</p> -->
+                <p><strong>Status:</strong>
+                <% if (waiting) { %>
+                  Voting in Queue (Your position: <%= queueNumber %>)
+                <% } else { %>
+                  Vote successfully recorded on blockchain.
+                <% } %>
               </div>
               <hr />
               <br />
@@ -285,16 +275,15 @@
 
     <!-- Include Socket.IO client library (optional if you want real-time updates) -->
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-      // In this receipt view, the vote has been completed.
-      // Socket.IO can be used for any final error handling, if needed.
-      const socket = io();
-      const voteId = "<%= voteId %>";
-      socket.emit("joinVoteRoom", { voteId });
-      socket.on("voteError", (data) => {
-        console.error("Vote Error: ", data.error);
-      });
-    </script>
+<script>
+  const socket = io();
+  const voteId = "<%= voteId %>";
+  socket.emit("joinVoteRoom", { voteId });
+
+  socket.on("voteConfirmed", () => {
+    window.location.reload();
+  });
+</script>
 
     <!-- Additional client-side scripts (export functionality, datetime update, etc.) -->
     <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.10.3/dist/html-to-image.min.js"></script>
@@ -338,6 +327,28 @@
 
     <script src="js/index.js"></script>
     <script src="js/dropdown.js"></script>
+
+        <script src="/components/popup.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      // join the room for this voteId
+      const socket = io();
+      socket.emit("joinVoteRoom", { voteId: "<%= voteId %>" });
+
+      // when backend emits voteConfirmed, reload the page
+      socket.on("voteConfirmed", () => {
+        window.location.reload();
+      });
+    </script>
+
+    <% if (!waiting) { %>
+      <script>
+        bigPopup(          "VOTE SUBMISSION<br />SUCCESSFUL",          "Thank you for casting your vote! Your vote has been successfully recorded on the blockchain. Click 'Next' to view your voting receipt.",          {            imageSrc: "/components/popup-checkmark.png",            buttonText: "Next",
+            timeout: 7000
+          }
+        );
+      </script>
+    <% } %>
     <%- include('footer') %> 
   </body>
 </html>

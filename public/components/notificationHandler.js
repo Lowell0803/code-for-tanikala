@@ -66,7 +66,7 @@ if (urlParams.get("message_submitted") === "true") {
 }
 
 if (urlParams.get("otp_sent") === "true") {
-  notify('Check the "spam" in your emall for the OTP.', "email", 8000);
+  notify("Check your emall for the OTP.", "email", 8000);
   history.replaceState({}, document.title, window.location.pathname);
 }
 

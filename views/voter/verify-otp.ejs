@@ -1,165 +1,194 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style></style>
-    <title>TANIKALA Voting System - OTP Verification</title>
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>TANIKALA Voting System - OTP Verification</title>
 
-    <link rel="stylesheet" type="text/css" href="css/index.css" />
-    <link rel="stylesheet" type="text/css" href="css/otp-verification.css" />
+      <link rel="stylesheet" type="text/css" href="/css/index.css" />
+      <link rel="stylesheet" type="text/css" href="/css/otp-verification.css" />
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+      <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+      <link rel="stylesheet" href="/components/notification.css" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+      <style>
+        button {
+          padding: 0.4em 1.5em;
+          border-radius: 0.4em;
+        }
+      </style>
+    </head>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <body>
+      <header class="header">
+        <div class="header-logo">
+          <img src="/img/logo_tanikala.png" alt="Tanikala Voting System" />
+        </div>
+        <div class="header-bottom-line"></div>
+      </header>
 
-    <link rel="stylesheet" href="components/notification.css" />
-  </head>
-  <body>
-    <header class="header">
-      <div class="header-logo">
-        <img src="img/logo_tanikala.png" alt="Tanikala Voting System" />
-      </div>
-      <div class="header-bottom-line"></div>
-    </header>
+      <div class="content">
+        <div class="content-title">
+          <h3 class="h3">ONLINE VOTING SYSTEM FOR THE STUDENT GOVERNMENT ELECTIONS AT BULACAN STATE UNIVERSITY</h3>
+        </div>
 
-    <div class="content">
-      <div class="content-title">
-        <h3 class="h3">ONLINE VOTING SYSTEM FOR THE STUDENT GOVERNMENT ELECTIONS AT BULACAN STATE UNIVERSITY</h3>
-      </div>
+        <div class="content-main">
+          <div class="card">
+            <i class="fa-solid fa-envelope"></i>
 
-      <div class="content-main">
-        <div class="card">
-          <i class="fa-solid fa-envelope"></i>
-
-          <h2 class="blue">User Verification</h2>
-          <hr />
-          <br />
-          <% var message = typeof message !== 'undefined' ? message : ''; var error = typeof error !== 'undefined' ? error : ''; %> <% if (message) { %>
-          <p class="success-message"><%= message %></p>
-          <% } %> <% if (error) { %>
-          <p class="error-message"><%= error %></p>
-          <% } %>
-          <br />
-          <form action="/verify-otp" method="POST">
-            <input type="tel" name="otp" inputmode="numeric" pattern="\d{6}" maxlength="6" placeholder="Enter OTP" class="otp-field" required />
+            <h2 class="blue">User Verification</h2>
+            <hr />
             <br />
-            <button class="otp" type="submit">Submit OTP</button>
-          </form>
 
-          <hr />
-          <br />
-          <p class="gray">Press the button below to request OTP to <span><%= email %></span>.</p>
-          <!-- <br /><small>(For testing, you may enter <strong>999999</strong>.)</small> -->
-          <!-- Form to request an OTP -->
-          <!-- <form id="otpForm" action="/request-otp" method="POST" style="margin-bottom: 20px">
-            <button class="request" type="button" onclick="requestOTP()">Request OTP</button>
-          </form> -->
-          <form id="otpForm" action="/request-otp" method="POST" style="margin-bottom: 20px">
-            <button
-              id="sendOtpButton"
-              class="request"
-              type="button"
-            >
-              Request OTP
-            </button>
-          </form>
-          <input
-            type="tel"
-            name="otp"
-            id="otpField"
-            inputmode="numeric"
-            pattern="\d{6}"
-            maxlength="6"
-            placeholder="Enter OTP"
-            class="otp-field"
-            disabled
-            required
-          />
-          
+            <% var message = typeof message !== 'undefined' ? message : ''; var error = typeof error !== 'undefined' ? error : ''; %>
+            <% if (message) { %>
+              <p class="success-message"><%= message %></p>
+            <% } %>
+            <% if (error) { %>
+              <p class="error-message"><%= error %></p>
+            <% } %>
 
-          <script>
-            function requestOTP() {
-              let IS_DEV_MODE = false;
-              if (IS_DEV_MODE) {
-                const correctPassword = "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8";
-                const userInput = prompt("(For TESTING Purposes:)");
+            <br />
 
-                if (userInput === correctPasswor || userInput == "lowell.03") {
-                  document.getElementById("otpForm").submit();
-                } else {
-                  alert("Sorry! Wait for Actual Deployment to Request OTP.");
-                }
-              } else {
-                document.getElementById("otpForm").submit();
-              }
-            }
-          </script>
+            <form id="otpForm" style="margin-bottom: 20px">
+              <input
+                id="otpField"
+                type="tel"
+                name="otp"
+                inputmode="numeric"
+                pattern="\d{6}"
+                maxlength="6"
+                placeholder="Enter OTP"
+                class="otp-field"
+                required
+              />
+              <br />
+              <br />
+              <button id="submitOtpButton" class="otp" type="button">Submit OTP</button>
+            </form>
 
-          <script>
-            const sendOtpButton = document.getElementById('sendOtpButton');
-            const otpField       = document.getElementById('otpField');
-            let   cooldownTimer  = null;
-            let   cooldownRemaining = 0;
+            <hr />
+            <br />
+            <p class="gray">Press the button below to request OTP to <span><%= email %></span>.</p>
 
-            function startCooldown(seconds) {
-              cooldownRemaining = seconds;
-              sendOtpButton.disabled = true;
-              updateButtonLabel();
-
-              cooldownTimer = setInterval(() => {
-                cooldownRemaining--;
-                if (cooldownRemaining <= 0) {
-                  clearInterval(cooldownTimer);
-                  sendOtpButton.disabled = false;
-                  sendOtpButton.textContent = 'Request OTP';
-                } else {
-                  updateButtonLabel();
-                }
-              }, 1000);
-            }
-
-            function updateButtonLabel() {
-              const m = Math.floor(cooldownRemaining / 60);
-              const s = cooldownRemaining % 60;
-              sendOtpButton.textContent = 
-                `Resend OTP in ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-            }
-
-            sendOtpButton.addEventListener('click', async () => {
-              // if still cooling down, do nothing
-              if (cooldownRemaining > 0) return;
-
-              sendOtpButton.disabled = true;
-              try {
-                const res = await fetch('/request-otp', { method: 'POST' });
-                const json = await res.json();
-
-                if (!res.ok) throw new Error(json.error || 'Unknown error');
-
-                alert('OTP sent to your email.');
-                otpField.disabled = false;
-                otpField.focus();
-                startCooldown(300);  // 5 minutes = 300 seconds
-              } catch (err) {
-                console.error(err);
-                alert('Failed to send OTP: ' + err.message);
-                sendOtpButton.disabled = false;
-              }
-            });
-          </script>
-
-
-          <script type="module" src="components/notificationHandler.js"></script>
+            <form id="requestOtpForm" style="margin-bottom: 20px">
+              <button id="sendOtpButton" class="request" type="button">Request OTP</button>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
 
-   <%- include('footer') %> 
-    
-    <script src="js/index.js"></script>
+      <%- include('footer') %>
 
-  
-  </body>
-</html>
+      <script>
+        // --- Cooldown setup (persist in localStorage) ---
+        const COOLDOWN_KEY = 'otpCooldownExpires';
+
+        function getRemainingSeconds() {
+          const expires = parseInt(localStorage.getItem(COOLDOWN_KEY), 10);
+          const now = Date.now();
+          return (expires && expires > now) ? Math.ceil((expires - now) / 1000) : 0;
+        }
+
+        function setCooldownExpires(secondsFromNow) {
+          localStorage.setItem(COOLDOWN_KEY, Date.now() + secondsFromNow * 1000);
+        }
+
+        function clearCooldown() {
+          localStorage.removeItem(COOLDOWN_KEY);
+        }
+
+        // --- Elements ---
+        const sendOtpButton   = document.getElementById('sendOtpButton');
+        const otpField        = document.getElementById('otpField');
+        const submitOtpButton = document.getElementById('submitOtpButton');
+
+        let cooldownSeconds = getRemainingSeconds();
+        let cooldownTimer   = null;
+
+        function updateButtonLabel() {
+          const m = Math.floor(cooldownSeconds / 60);
+          const s = cooldownSeconds % 60;
+          sendOtpButton.textContent = `Resend OTP in ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+
+        function startCooldown(seconds) {
+          cooldownSeconds = seconds;
+          sendOtpButton.disabled = true;
+          updateButtonLabel();
+          cooldownTimer = setInterval(() => {
+            cooldownSeconds--;
+            if (cooldownSeconds <= 0) {
+              clearInterval(cooldownTimer);
+              clearCooldown();
+              sendOtpButton.disabled = false;
+              sendOtpButton.textContent = 'Request OTP';
+            } else {
+              updateButtonLabel();
+            }
+          }, 1000);
+        }
+
+        // On page load, if there's remaining cooldown, start it
+        if (cooldownSeconds > 0) {
+          startCooldown(cooldownSeconds);
+        }
+
+        // --- AJAX: Request OTP ---
+        sendOtpButton.addEventListener('click', async () => {
+          if (cooldownSeconds > 0) return;    // still cooling down
+
+          sendOtpButton.disabled = true;
+          try {
+            const res = await fetch('/request-otp', {
+              method: 'POST',
+              headers: { 'Accept': 'application/json' }
+            });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'Unknown error');
+
+            alert(json.message || 'OTP sent to your email.');
+            otpField.disabled = false;
+            otpField.focus();
+
+            // persist cooldown & start timer
+            setCooldownExpires(300);           // 5 minutes
+            startCooldown(300);
+          } catch (err) {
+            console.error(err);
+            alert('Failed to send OTP: ' + err.message);
+            sendOtpButton.disabled = false;
+          }
+        });
+
+        // --- AJAX: Submit OTP ---
+        submitOtpButton.addEventListener('click', async () => {
+          const otp = otpField.value.trim();
+          if (!/^\d{6}$/.test(otp)) {
+            alert('Please enter a 6-digit OTP.');
+            return;
+          }
+          try {
+            const res = await fetch('/verify-otp', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({ otp })
+            });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'Verification failed');
+            // on success, redirect to voting page:
+            window.location.href = '/vote';
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      </script>
+
+      <script src="/js/index.js"></script>
+      <script type="module" src="/components/notificationHandler.js"></script>
+    </body>
+  </html>
