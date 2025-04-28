@@ -78,7 +78,7 @@
   width: 28%;
   border-radius: 0.5rem;
   box-shadow: 0 20px 30px -20px rgba(5, 5, 5, 0.24);
-  height: 34rem;
+  height: 38rem;
   font-size: 1rem;
   margin: 2%;
 }
@@ -86,7 +86,7 @@
 .candidate-info {
   overflow-y: auto;
   overflow-x: hidden;
-  height: 35%;
+  height: 42%;
   margin-top: 1rem;
   /* color: rgba(107, 114, 128, 1); */
   text-align: center;
@@ -204,17 +204,18 @@
   }
 
   .container .candidate-name {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     height: 1.5rem;
+    padding: 0rem;
   }
 
   .candidate-card .candidate-info {
-    font-size: 0.6rem !important;
-    height: 30%;
+    font-size: 0.5rem !important;
+    height: 38%;
   }
 
   .candidate-card {
-    height: 50rem;
+    height: 25rem !important;
   }
   .container .candidate-position {
     font-size: 0.8rem;
