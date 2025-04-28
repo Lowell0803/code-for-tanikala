@@ -90,6 +90,13 @@
         <div class="verify">
           <div class="row">
             <div class="column box-shadow">
+              <% if (waiting) { %>
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <br>
+                  <h2 style="color: #d9534f;">Voting in Queue...</h2>
+                  <p style="color: #555;">Your vote is being recorded on the blockchain.<br>This page will automatically refresh once completed.</p>
+                </div>
+              <% } %>
               <div class="receipt-header">
                 <img src="/img/logo_tanikala.png" />
                 <div class="voting-receipt">VOTING RECEIPT</div>
