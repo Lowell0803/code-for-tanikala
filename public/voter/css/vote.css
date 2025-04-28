@@ -60,14 +60,13 @@
 }
 
 .ballot-choices img {
-  width: 5em;
-  height: 5em; /* Match width for a perfect circle */
-  border-radius: 50%;
+  padding: 0;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 5%;
   object-fit: cover;
-  display: flex;
-  /* justify-content: flex-start; */
-  align-items: flex-start;
-  /* Ensures the image fills the circle without distortion */
+  display: block;
+  flex-shrink: 0; /* 👈 Prevent shrinking */
 }
 
 .ballot-choices input[type="radio"] {
@@ -380,6 +379,7 @@
   .ballot-tile {
     margin: 0;
     padding: 0.25rem;
+    min-height: 28rem;
   }
 
   .ballot-tile:before {
