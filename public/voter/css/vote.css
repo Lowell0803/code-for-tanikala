@@ -63,7 +63,7 @@
   padding: 0;
   width: 5rem;
   height: 5rem;
-  border-radius: 5%;
+  border-radius: 10%;
   object-fit: cover;
   display: block;
   flex-shrink: 0; /* 👈 Prevent shrinking */

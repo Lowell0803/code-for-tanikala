@@ -114,7 +114,7 @@
   height: 7.5rem;
   width: 7.5rem;
   margin-bottom: 1rem;
-  border-radius: 50%;
+  border-radius: 10%;
   /* border: 0.2rem solid black; */
   object-fit: cover;
   background-color: royalblue;
