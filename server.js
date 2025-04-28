@@ -871,61 +871,28 @@ const startServer = async () => {
     // New route to update an admin account using _id as the unique identifier
     app.post("/admin-accounts/edit", ensureAdminAuthenticated, async (req, res) => {
       try {
-        console.log("========================================");
-        console.log("Received request to update admin account.");
-        console.log("Request body:", req.body);
+        const { id, name, email, role, password, img } = req.body;
 
-        // Extract the fields from the request body, including the id
-        const { id, name, email, role, password, status, img } = req.body;
-        console.log("Parsed values:");
-        console.log("id:", id);
-        console.log("name:", name);
-        console.log("email:", email);
-        console.log("role:", role);
-        console.log("password:", password);
-        console.log("status:", status);
-        console.log("img:", img);
+        // Always update these fields
+        const updateData = { name, email, role, img };
 
-        // Construct the update data
-        // const updateData = {
-        //   name,
-        //   email,
-        //   role,
-        //   password, // Consider hashing if needed
-        //   online: status === "Active",
-        //   img,
-        // };
-        const updateData = {
-          name,
-          email,
-          role,
-          password, // (hash the password if needed)
-          // Do not update the online status – keep it as is.
-          img,
-        };
+        // Only overwrite password if a new one was provided
+        if (password && password.trim() !== "") {
+          // TODO: hash password here if your DB stores hashes
+          updateData.password = password;
+        }
 
-        console.log("Constructed updateData object:", updateData);
-
-        // Convert id to ObjectId
         const objectId = new ObjectId(id);
-        console.log("Converted id to ObjectId:", objectId);
-
-        // Update the admin account using the _id as the identifier
-        console.log("About to update document with _id:", objectId);
         const result = await db.collection("admin_accounts").updateOne({ _id: objectId }, { $set: updateData });
-        console.log("MongoDB update result:", result);
 
         if (result.modifiedCount === 1) {
-          console.log("Update successful. Redirecting to /manage-admins");
-          res.redirect("/manage-admins");
+          return res.redirect("/manage-admins");
         } else {
-          console.log("Update failed. No documents were modified.");
-          res.status(400).send("Unable to update admin account.");
+          return res.status(400).send("Unable to update admin account.");
         }
-        console.log("========================================");
       } catch (error) {
         console.error("Error updating admin account:", error);
-        res.status(500).send("Internal Server Error");
+        return res.status(500).send("Internal Server Error");
       }
     });
 

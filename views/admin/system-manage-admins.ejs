@@ -203,13 +203,14 @@
          
            <div class="right right-add">
             <label>Admin Role: </label>
-             <select name="role" class="select-role" required>
-              <option>All</option>
+            <select id="roleFilter" name="role" class="select-role" required>
+              <option value="All">All</option>
               <option value="Electoral Board Member">Electoral Board</option>
               <option value="Technical Team Member">Technical Team</option>
               <option value="Creatives Team Member">Creatives Team</option>
               <option value="Developer">Developer</option>
             </select>
+            
         
             <% if (loggedInAdmin.role === "Developer" || loggedInAdmin.role === "Electoral Board Member" || loggedInAdmin.role === "Technical Team Member") { %>
           <button class="button button-brown" onclick="openAddModal()">Add Admin</button>
@@ -469,6 +470,31 @@ main.addEventListener('scroll', function () {
 
     
   </script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const filter = document.getElementById("roleFilter");
+    const rows   = document.querySelectorAll("table tbody tr");
+
+    function applyFilter() {
+      const selected = filter.value;
+      rows.forEach(row => {
+        const role = row.dataset.role; 
+        if (selected === "All" || role === selected) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+
+    // run on startup in case you want a default (e.g. All)
+    applyFilter();
+
+    // re-filter whenever the dropdown changes
+    filter.addEventListener("change", applyFilter);
+  });
+</script>
     
     
   </body>
