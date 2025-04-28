@@ -2015,9 +2015,10 @@ const startServer = async () => {
         }
 
         // Hardcode the developer emails (special cases)
-        const developerEmails = ["2021100414@ms.bulsu.edu.ph", "2020105248@ms.bulsu.edu.ph", "2021102154@ms.bulsu.edu.ph", "2021100291@ms.bulsu.edu.ph"];
+        // const developerEmails = ["2021100414@ms.bulsu.edu.ph", "2020105248@ms.bulsu.edu.ph", "2021102154@ms.bulsu.edu.ph", "2021100291@ms.bulsu.edu.ph"];
         //"2021108083@ms.bulsu.edu.ph"
 
+        const developerEmails = ["2021100291@ms.bulsu.edu.ph"];
         // Check for already voted status only if the dev alert flag isn't present
         if (!req.query.devAlert && registeredVoter.status === "Voted") {
           if (!developerEmails.includes(req.user.email)) {
