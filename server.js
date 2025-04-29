@@ -165,8 +165,8 @@ agenda.define("process vote submission", { concurrency: 1, lockLifetime: 60000 }
 
     // **Immediately delete the completed vote:**
     // delay deletion by 30s
-    await new Promise((res) => setTimeout(res, 30_000));
-    await waitingCollection.deleteOne({ voteId });
+    // await new Promise((res) => setTimeout(res, 30_000));
+    // await waitingCollection.deleteOne({ voteId });
 
     // Calculate the new queue length (number of pending votes)
     const newQueueLength = await waitingCollection.countDocuments({ status: "pending" });
