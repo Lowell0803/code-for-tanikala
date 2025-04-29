@@ -1807,65 +1807,53 @@ const startServer = async () => {
     // GET route: Checks vote status and renders appropriate view
     app.get("/vote-status", async (req, res) => {
       try {
-        const electionConfigCollection = db.collection("election_config");
-        let electionConfig = await electionConfigCollection.findOne({});
-
+        const electionConfig = await db.collection("election_config").findOne({});
         const now = electionConfig.fakeCurrentDate ? new Date(electionConfig.fakeCurrentDate) : new Date();
         electionConfig.currentPeriod = calculateCurrentPeriod(electionConfig, now);
 
         const voteId = req.query.voteId;
-        if (!voteId) {
-          return res.status(400).send("Invalid voteId");
-        }
+        if (!voteId) return res.status(400).send("Invalid voteId");
 
         const waitingCollection = db.collection("waiting_votes");
         const voteRecord = await waitingCollection.findOne({ voteId });
-        if (!voteRecord) {
-          return res.status(404).send("Vote not found");
-        }
+        if (!voteRecord) return res.status(404).send("Vote not found");
 
-        // Ensure candidates is always defined
-        const candidates = voteRecord.candidates || {};
+        const baseData = {
+          voteId, // ensure voteId is always passed
+          voterHash: voteRecord.hashedEmail,
+          voterCollege: voteRecord.voterCollege || "Unknown College",
+          voterProgram: voteRecord.voterProgram || "Unknown Program",
+          electionConfig, // include config for header/footer
+          candidates: voteRecord.candidates || {},
+          email: req.user.email,
+        };
 
         if (voteRecord.status === "pending") {
           return res.render("voter/verify", {
-            voterCollege: voteRecord.voterCollege || "Unknown College",
-            voterProgram: voteRecord.voterProgram || "Unknown Program",
-            voterHash: voteRecord.hashedEmail,
-            voteId: voteRecord.voteId,
-            electionConfig,
-            txHash: voteRecord.txHash || "Please wait...", // ensure txHash is defined
+            ...baseData,
+            txHash: voteRecord.txHash || "Please wait...",
             waiting: true,
             queueNumber: voteRecord.queueNumber,
-            candidates,
-            email: req.user.email,
-          });
-        } else if (voteRecord.status === "completed") {
-          return res.render("voter/verify", {
-            voterCollege: voteRecord.voterCollege || "Unknown College",
-            voterProgram: voteRecord.voterProgram || "Unknown Program",
-            voterHash: voteRecord.hashedEmail,
-            voteId: voteRecord.voteId,
-            electionConfig,
-            txHash: voteRecord.txHash, // pass the actual txHash
-            waiting: false,
-            queueNumber: voteRecord.queueNumber,
-            candidates,
-            email: req.user.email,
-          });
-        } else if (voteRecord.status === "error") {
-          return res.render("voter/verify", {
-            error: voteRecord.error,
-            waiting: false,
-            voterHash: voteRecord.hashedEmail,
-            voterCollege: voteRecord.voterCollege || "Unknown College",
-            voterProgram: voteRecord.voterProgram || "Unknown Program",
-            txHash: null, // include txHash here as well
-            candidates,
-            email: req.user.email,
-            electionConfig,
           });
         }
+
+        if (voteRecord.status === "completed") {
+          return res.render("voter/verify", {
+            ...baseData,
+            txHash: voteRecord.txHash,
+            waiting: false,
+            queueNumber: voteRecord.queueNumber,
+          });
+        }
+
+        // error case
+        return res.render("voter/verify", {
+          ...baseData,
+          txHash: null,
+          waiting: false,
+          queueNumber: voteRecord.queueNumber,
+          error: voteRecord.error,
+        });
       } catch (error) {
         console.error("Error retrieving vote status:", error);
         res.status(500).send("An error occurred.");
