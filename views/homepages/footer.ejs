@@ -5,19 +5,31 @@
 <footer class="footer">
     <div class="footer-left">
       <img src="img/calendar.png" class="footer-img" />
+
       <p><span id="footerTime"></span></p>
+
     </div>
 
     <div class="footer-center">
       <img src="img/copyright.png" class="footer-img" id="copyright-img" />
+
       <p>2025 - Fourmula 1</p>
     </div>
 
-    <div class="footer-right">
+    <div class="footer-right text-center">
         <img src="img/log-in.png" class="footer-img" id="admin-img" />
-        <p>Admin? Log in&nbsp;</p>
-        <a href="/admin-login"> here.</a>
+    
+        <div id="loginText" class="fade-transition visible d-inline">
+            <p class="d-inline">Admin? Log in&nbsp;</p>
+            <a href="/admin-login" class="d-inline">here.</a>
+            <i class="fa-solid fa-caret-right fs-5 text-light" onclick="toggleLogin()" style="cursor: pointer;"></i>
+        </div>
+    
+        <div id="backText" class="fade-transition hidden d-inline">
+            <i class="fa-solid fa-caret-left fs-5 text-light" onclick="toggleLogin()" style="cursor: pointer;"></i>
+        </div>
     </div>
+    
   </footer>
 
   <script>
@@ -42,3 +54,45 @@
     updateFooterTime();
     setInterval(updateFooterTime, 30000);
   </script> 
+
+  <!-- Note: This style is for toggle in the admin login only -->
+  <style>
+    .fade-transition {
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .hidden {
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+        position: absolute;
+    }
+    .visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+  </style>
+  <!-- End Note -->
+
+  <!-- Note: This is the javascript function for the toggle of the hide and show -->
+  <script>
+    let exe = true;
+
+    function toggleLogin() {
+        exe = !exe;
+        const loginText = document.getElementById('loginText');
+        const backText = document.getElementById('backText');
+
+        if (exe) {
+            loginText.classList.remove('hidden');
+            loginText.classList.add('visible');
+            backText.classList.remove('visible');
+            backText.classList.add('hidden');
+        } else {
+            loginText.classList.remove('visible');
+            loginText.classList.add('hidden');
+            backText.classList.remove('hidden');
+            backText.classList.add('visible');
+        }
+    }
+  </script>
+  <!-- End Note -->

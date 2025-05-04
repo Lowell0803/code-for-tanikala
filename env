@@ -1,0 +1,51 @@
+# Gamit neto personal account ko, so di ko maibigay to damot mo
+# Nakalink Landbank account ko sa billing neto
+# Wnat I did para isetup to dati: Create an account sa MongoDB Atlas, tapos create a cluster, tapos get the connection string
+MONGODB_URI=
+
+# Contract Address ng Blockchain after deployment gamit Hardhat
+# Check deploy script sa ./scripts/deploy.js para makita kung anong contract address ang na-deploy
+CONTRACT_ADDRESS=
+
+HARDHAT_RPC_URL=https://rpc-amoy.polygon.technology
+
+# Wallet Private Key from Metamask
+# Gamit neto crypto wallet ko, so I can't provide this.
+# Wnat I did para isetup to dati: Create an account sa metamask, tapos export mo private key, tapos paste mo dito
+# You can get POLYGON Tokens from faucets
+ADMIN_PRIVATE_KEY=
+
+# Can be anything random kahit "abc" or "123"
+SESSION_SECRET_KEY=
+
+# Gamit neto 2021100291@ms.bulsu.edu.ph account ko
+# As such, I can't give the API key for this account, kasi account ko mismo to
+# If things go wrong, pedeng maapektuhan account ko
+# Wnat I did para isetup to dati: Go and setup your own API key in Microsoft Azure gamit sarili mong account
+MICROSOFT_CLIENT_ID=
+MICROSOFT_CLIENT_SECRET=   
+MICROSOFT_TENANT_ID=
+
+ADMIN_CANDIDATES_ABI_PATH=./artifacts/contracts/AdminCandidates.sol/AdminCandidates.json
+
+# set true kung localhost, set false if deployed sa server
+IS_DEV_MODE=true
+
+# Gamit din neto personal account ko. So di ko ulit maprovide. Ang billing neto ay tied sa Landbank account ko
+# Wnat I did para isetup to dati: Create your own account sa Sendgrid, tapos get the API key.
+# You can create a temporary gmail account para magserve as "From Email"
+SENDGRID_API_KEY=
+# Gmail account na gagamitin mo as "From Email" sa Sendgrid
+SENDGRID_FROM_EMAIL=
+
+# Wallet Private Key from Metamask uli
+PRIVATE_KEY=
+
+# In case na need mo backup nung database, I uploaded it here:
+# https://drive.google.com/drive/folders/12QykZENtMPMb-SvTz_GIxLwFzCnh8dxB?usp=sharing
+# Nasetup ko yan lahat dati kaya possible yan.
+# Goodluck
+# -Yvan
+
+# If you're asking someone na well-verse sa coding, alam nila na hindi shareable ang mga private API keys.
+# You can ask ChatGPT "Can I share my API keys?" and it will tell you the same thing.

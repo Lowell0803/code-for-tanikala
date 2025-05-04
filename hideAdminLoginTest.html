@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/75fe70a6d6.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- FOOTER SECTION -->
+    <div class="text-center position-relative mt-4">
+        <img src="/img/log-in.png" 
+            class="img-fluid" 
+            id="admin-img" 
+            style="cursor: pointer; max-width: 80px;"  />
+
+        <!-- Admin Login Text -->
+        <div id="loginText" class="fade-transition visible d-inline-block mt-2">
+            <p class="d-inline mb-0">Admin? Log in&nbsp;</p>
+            <a href="/admin-login" class="d-inline">here.</a>
+            <i class="fa-solid fa-caret-right fs-5 text-danger" onclick="toggleLogin()" style="cursor: pointer;"></i>
+        </div>
+
+        <!-- Back Arrow Text -->
+        <div id="backText" class="fade-transition hidden d-inline-block mt-2">
+            <i class="fas fa-caret-left fs-5 text-danger" 
+            onclick="toggleLogin()" 
+            style="cursor: pointer;"></i>
+        </div>
+    </div>
+
+    <!-- STYLES -->
+    <style>
+        .fade-transition {
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .hidden {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+
+    <!-- SCRIPT -->
+    <script>
+        let exe = true;
+
+        function toggleLogin() {
+            exe = !exe;
+            const loginText = document.getElementById('loginText');
+            const backText = document.getElementById('backText');
+
+            if (exe) {
+                loginText.classList.remove('hidden');
+                loginText.classList.add('visible');
+                backText.classList.remove('visible');
+                backText.classList.add('hidden');
+            } else {
+                loginText.classList.remove('visible');
+                loginText.classList.add('hidden');
+                backText.classList.remove('hidden');
+                backText.classList.add('visible');
+            }
+        }
+    </script>
+
+</body>
+</html>
